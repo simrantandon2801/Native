@@ -3,36 +3,31 @@ import React, {Suspense} from 'react';
 import {View, Image, Text, StyleSheet, useColorScheme} from 'react-native';
 import {PaperProvider} from 'react-native-paper';
 import {NavigationContainer} from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { HomeStackNavigatorParamList } from './type';
-import { darkThemeColors, lightThemeColors } from './src/core/Colors';
-import { navigationRef } from './src/navigations/RootNavigation';
-import LoginScreen from './src/screens/LoginScreen';
-import WelcomeScreen from './src/screens/WelcomeScreen';
-
+import Header from './src/header/header.tsx'
+import ManageUsers from './src/screens/ManageUsers.tsx';
 const App = () => {
   const scheme = useColorScheme();
-  const Stack = createNativeStackNavigator<HomeStackNavigatorParamList>();
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-    <PaperProvider
-      theme={scheme === 'dark' ? darkThemeColors : lightThemeColors}>
-      <NavigationContainer ref={navigationRef}>
-      <Stack.Navigator initialRouteName="LoginScreen">
-          <Stack.Screen
-            name="LoginScreen"
-            component={LoginScreen}
-            options={{headerShown: false}}
+    <Suspense
+      fallback={
+        <View style={styles.loaderContainer}>
+          <View style={styles.overlay} />
+          <Image
+            source={{
+              uri: 'https://img.freepik.com/free-vector/colorful-bird-illustration-gradient_343694-1741.jpg',
+            }} // Placeholder image
+            style={styles.iconImage}
+            resizeMode="cover"
           />
-          <Stack.Screen
-            name="WelcomeScreen"
-            component={WelcomeScreen}
-            options={{headerShown: false}}
-          />
-           </Stack.Navigator>
-      </NavigationContainer>
-    </PaperProvider>
+        </View>
+      }>
+      <PaperProvider theme={scheme === 'dark' ? {} : {}}>
+        <NavigationContainer>
+          <Header/>
+          <ManageUsers/>
+        </NavigationContainer>
+      </PaperProvider>
     </Suspense>
   );
 };
