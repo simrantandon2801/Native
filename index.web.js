@@ -14,6 +14,7 @@ import iconFont from 'react-native-vector-icons/Fonts/FontAwesome.ttf';
 import MaterialCommunityIconsiconFont from 'react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf';
 import AntDesigniconFont from 'react-native-vector-icons/Fonts/AntDesign.ttf';
 import IoniconsiconFont from 'react-native-vector-icons/Fonts/Ionicons.ttf';
+import MaterialIconsiconFont from 'react-native-vector-icons/Fonts/MaterialIcons.ttf';
 
 const iconFontStyles = `@font-face {
   src: url(${MaterialCommunityIconsiconFont});
@@ -47,6 +48,7 @@ const IoniconsiconFontIcon = `@font-face {
 
 
 `;
+// Create stylesheet
 const style = document.createElement('style');
 style.type = 'text/css';
 if (style.styleSheet) {
@@ -58,4 +60,6 @@ if (style.styleSheet) {
   style.appendChild(document.createTextNode(IoniconsiconFontIcon));
 }
 
+// Inject stylesheet
 document.head.appendChild(style);
+//document.head.appendChild(styles);
