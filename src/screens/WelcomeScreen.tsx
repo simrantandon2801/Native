@@ -1,10 +1,14 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-
+import Header from '../header/header';
+import ManageUsers from './ManageUsers';
+import FooterForge from './FooterForge';
 const WelcomeScreen = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.welcomeText}>Welcome to Forge PPM</Text>
+    <View>
+      <Header/>
+      <ManageUsers/>
+      <FooterForge/>
     </View>
   );
 };

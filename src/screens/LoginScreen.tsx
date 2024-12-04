@@ -1,119 +1,71 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
-import {View, StyleSheet, SafeAreaView, Platform, Alert, Image, TouchableOpacity, ScrollView} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Platform,
+  Alert,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import {TextInput, Button, Text} from 'react-native-paper';
 //import NativeHeader from '../shared/NativeHeader';
 //import Footer from '../home/Footer';
 //import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PostAsync } from '../services/rest_api_service';
-import { decodeBase64,encodeBase64 } from '../core/securedata';
+import {PostAsync} from '../services/rest_api_service';
+import {decodeBase64, encodeBase64} from '../core/securedata';
 import {useNavigation} from '@react-navigation/native';
-import { AppImages } from '../assets';
+import {AppImages} from '../assets';
 import FooterForge from './FooterForge';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import WelcomeScreen from './WelcomeScreen';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 export type HomeStackNavigatorParamList = {
-    LoginScreen: {};
-    WelcomeScreen: {};
-  };
+  LoginScreen: {};
+  WelcomeScreen: {};
+  Main: undefined;
+};
 
-  type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
+type NavigationProp = NativeStackNavigationProp<
+  HomeStackNavigatorParamList,
+  'LoginScreen'
+>;
 
 const LoginScreen: React.FC = () => {
   const [username, setUsername] = useState<string>('forgeppm');
   const [password, setPassword] = useState<string>('lsipl');
   const navigation = useNavigation<NavigationProp>();
-  //   const handleLogin = () => {
-  //     // Handle login logic here
-  //     console.log('Email:', email);
-  //     console.log('Password:', password);
-  //   };
-  /* const handleLogin = async () => {
-    console.log('Email:', email);
-    console.log('Password:', password);
-    var uri = 'http://underbuiltapi.aadhidigital.com/auth/login';
-    var payload = JSON.stringify({
-      email: email,
-      password: password,
-    });
-
-    var jsonResult = await PostAsync(uri, payload);
-    console.log(jsonResult);
-
-    if (jsonResult.status === 'success') {
-      const status = jsonResult.status;
-      const message = jsonResult.message;
-      const accessToken = jsonResult.data?.accessToken;
-      const userId = jsonResult.data?.user?.userId;
-      const firstName = jsonResult.data?.user?.firstName;
-      const lastName = jsonResult.data?.user?.lastName;
-      const emailAddress = jsonResult.data?.user?.email;
-      const phone = jsonResult.data?.user?.phone;
-      const userRole = jsonResult.data?.user?.userrole;
-
-      await AsyncStorage.setItem(
-        'UserEmail',
-        encodeBase64(email.toLowerCase()),
-      );
-      await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
-      await AsyncStorage.setItem('ID', encodeBase64(userId));
-      await AsyncStorage.setItem('UserType', encodeBase64(userRole));
-
-      const UserType = decodeBase64(
-        (await AsyncStorage.getItem('UserType')) ?? '',
-      ); */
-      //debugger;
-      /* if (UserType === 'Admin') {
-        navigation.navigate('ManageZonalRegulation' as never);
-      } */
-      //   if (UserType === 'Admin') {
-      //     navigation.navigate('AdminActionNew' as never);
-      //   }
-      //   if (UserType === 'Staff_Admin') {
-      //     navigation.navigate('StaffAdminActionNew' as never);
-      //   }
-      //   if (UserType === 'BE') {
-      //     Alert.alert('Please install mobile app');
-      //     //Alert.alert('');
-      //     //navigation.navigate('AdminDashborad' as never);
-      //   }
-      //   if (UserType === 'EX') {
-      //     //navigation.navigate('AdminDashborad' as never);
-      //     Alert.alert('Please install mobile app');
-      //   }
-   /*  } else {
-      Alert.alert('Incorrect, User Name/ Password');
-    }
-  }; */
 
   const handleLogin = () => {
     if (username === 'forgeppm' && password === 'lsipl') {
-      navigation.navigate('WelcomeScreen', {}); 
+      navigation.navigate('Main', {});
     } else {
-      Alert.alert('Invalid Credentials', 'Please check your username and password.');
+      Alert.alert(
+        'Invalid Credentials',
+        'Please check your username and password.',
+      );
     }
   };
 
   return (
-   
     <View style={styles.screenContainer}>
-      {/* Centered Container for Logo and Form */}
       <View style={styles.centeredContainer}>
         {/* Left Side: Logo Section */}
         <View style={styles.logoContainer}>
-        <Image
-        source={AppImages.forge} 
-        style={styles.logo}
-        resizeMode="contain"
-      />
+          <Image
+            source={AppImages.forge}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Right Side: Login Form */}
         <View style={styles.formContainer}>
-          <ScrollView contentContainerStyle={styles.formContent}
-          showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.formContent}
+            showsVerticalScrollIndicator={false}>
             <Text style={styles.heading}>Log in to Forge PPM</Text>
 
             {/* Email Input */}
@@ -144,7 +96,9 @@ const LoginScreen: React.FC = () => {
             <View style={styles.captchaContainer}>
               <Text>☑️ I'm not a robot</Text>
               <Image
-                source={{ uri: 'https://via.placeholder.com/150x50.png?text=CAPTCHA' }} 
+                source={{
+                  uri: 'https://via.placeholder.com/150x50.png?text=CAPTCHA',
+                }}
                 style={styles.captchaImage}
               />
             </View>
@@ -152,50 +106,42 @@ const LoginScreen: React.FC = () => {
             {/* Login Button */}
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
               <Text style={styles.loginButtonText}>Log in</Text>
-              
             </TouchableOpacity>
 
             {/* Forgot Password */}
             <TouchableOpacity>
-              <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
+              <Text style={styles.forgotPasswordText}>
+                Forgot your password?
+              </Text>
             </TouchableOpacity>
 
             {/* Social Login Buttons */}
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.google}  
-                style={styles.socialIcon}
-              />
+              <Image source={AppImages.google} style={styles.socialIcon} />
               <Text style={styles.socialButtonText}>Continue with Google</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.micro} 
-                style={styles.socialIcon}
-              />
-              <Text style={styles.socialButtonText}>Continue with Microsoft</Text>
+              <Image source={AppImages.micro} style={styles.socialIcon} />
+              <Text style={styles.socialButtonText}>
+                Continue with Microsoft
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.apple} 
-                style={styles.socialIcon}
-              />
+              <Image source={AppImages.apple} style={styles.socialIcon} />
               <Text style={styles.socialButtonText}>Continue with Apple</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.okta} 
-                style={styles.socialIcon}
-              />
+              <Image source={AppImages.okta} style={styles.socialIcon} />
               <Text style={styles.socialButtonText}>Continue with Okta</Text>
             </TouchableOpacity>
 
             {/* Register Link */}
             <Text style={styles.registerText}>
               Don’t have an account?{' '}
-              <TouchableOpacity onPress={() => console.log('Navigate to registration')}>
-          <Text style={styles.registerLink}>Register with us</Text>
-        </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => console.log('Navigate to registration')}>
+                <Text style={styles.registerLink}>Register with us</Text>
+              </TouchableOpacity>
             </Text>
 
             {/* Footer */}
@@ -205,14 +151,10 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.link}>Contact Us</Text>
             </Text> */}
           </ScrollView>
-          
-       
-          
         </View>
       </View>
       <FooterForge />
     </View>
-   
   );
 };
 
@@ -225,8 +167,8 @@ const styles = StyleSheet.create({
   },
   centeredContainer: {
     flexDirection: 'row',
-    width: '90%', 
-    height: '80%', 
+    width: '90%',
+    height: '80%',
     backgroundColor: '#fff',
     //shadowColor: '#000',
     //shadowOffset: { width: 0, height: 5 },
@@ -267,7 +209,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
     marginBottom: 20,
-    backgroundColor: '#fff', 
+    backgroundColor: '#fff',
     paddingHorizontal: 10,
   },
   passwordContainer: {
