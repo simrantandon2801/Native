@@ -7,6 +7,7 @@ export type HomeStackNavigatorParamList = {
   LoginScreen: {};
   WelcomeScreen: {};
   Main: undefined;
+  ManageList:{};
 };
 export type HomeScreenNavigationProp =
   NativeStackScreenProps<AssignBoothManageSchedule>;
