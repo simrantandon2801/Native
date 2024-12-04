@@ -9,6 +9,7 @@ import {darkThemeColors, lightThemeColors} from './src/core/Colors';
 import {navigationRef} from './src/navigations/RootNavigation';
 import {HomeStackNavigatorParamList} from './type';
 
+
 const Stack = createNativeStackNavigator<HomeStackNavigatorParamList>();
 
 const App: React.FC = () => {

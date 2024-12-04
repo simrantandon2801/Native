@@ -1,11 +1,28 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
 
-export const GetCityData = async (query:string): Promise<string> => {
+// export const GetCityData = async (query:string): Promise<string> => {
+//     try {
+//       //debugger;
+//       //const UserID = await AsyncStorage.getItem('UserID');
+//       var uri = 'http://underbuiltapi.aadhidigital.com/GetMasters/CityList?city=' + query;
+//       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+//       const token = await AsyncStorage.getItem('Token');
+//       console.log(uri);
+//       var jsonResult = await GetAsync_with_token(uri, token);
+//       console.log(jsonResult);
+//       //debugger;
+//       return JSON.stringify(jsonResult ?? '');
+//     } catch (error) {
+//       console.error(error);
+//       throw Error('Failed' + error);
+//     }
+//   };
+export const GetUsers = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = 'http://underbuiltapi.aadhidigital.com/GetMasters/CityList?city=' + query;
+      var uri = 'http://underbuiltapi.aadhidigital.com//master/get_users';
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -18,6 +35,7 @@ export const GetCityData = async (query:string): Promise<string> => {
       throw Error('Failed' + error);
     }
   };
+
   export const GetZoneData = async (query:string): Promise<string> => {
     try {
       //debugger;

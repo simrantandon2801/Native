@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -11,24 +11,27 @@ import {
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
-
+import { GetUsers } from '../database/RestData';
 // Define the User type to ensure type safety
 interface User {
-  id: number;
-  name: string;
-  designation: string;
-  role: string;
-  email: string;
-  department: string;
-  manager: string;
-  projects: number;
-  approval: string;
-  avg_cost: string;
-  status: string;
-  permission: string;
+  user_id: number; // Unique ID for the user
+  username: string; // Username
+  email: string; // User's email address
+  first_name: string; // First name
+  last_name: string; // Last name
+  customer_id: number; // ID of the customer (default: 0)
+  reporting_to: number; // Reporting manager's ID (default: 0)
+  approval_limit: number; // Approval limit (default: 0)
+  is_super_admin: boolean; // Flag to indicate if the user is a super admin
+  created_at: string; // Timestamp when the user was created
+  updated_at: string; // Timestamp when the user was last updated
+  created_by: number | null; // ID of the user who created this record
+  updated_by: number | null; // ID of the user who last updated this record
 }
+
 const {height} = Dimensions.get('window');
 const ManageUsers: React.FC = () => {
+  const [users, setUsers] = useState<User[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -37,36 +40,24 @@ const ManageUsers: React.FC = () => {
   const [actionsVisible, setActionsvisible] = useState(false); // State to control menu visibility
 
   const toggleMenu = () => setActionsvisible(prev => !prev);
-  const users: User[] = [
-    {
-      id: 1,
-      name: 'Marcus',
-      designation: 'CEO',
-      role: 'Project Mgr',
-      email: 'xyz@corporate.com',
-      department: 'US Projects > Development',
-      manager: 'John Doe',
-      projects: 1,
-      approval: '$100,000',
-      avg_cost: '$1000',
-      status: 'Active',
-      permission: 'yes',
-    },
-    {
-      id: 2,
-      name: 'John Wick',
-      designation: 'Director',
-      role: 'Project Member',
-      email: 'xyz@corporate.com',
-      department: 'US Projects > Development',
-      manager: 'John Doe',
-      projects: 5,
-      approval: '$100,000',
-      avg_cost: '$1000',
-      status: 'Active',
-      permission: 'yes',
-    },
-  ];
+  
+
+
+  const fetchUser = async ()=>{
+    try{
+      const response = await GetUsers("");
+      const parsedRes = JSON.parse(response);
+      if(parsedRes.status === 'success') setUsers(parsedRes.data.users);
+      else console.error("Failed to fetch users:", parsedRes.message || "Unknown error");
+      
+    }catch(err){
+      console.log('Error Fetching Users', err)
+    }
+  }
+
+  useEffect(()=>{
+    fetchUser();
+  },[])
 
   return (
     <>
@@ -114,68 +105,59 @@ const ManageUsers: React.FC = () => {
 
       {/* Table Section */}
       <DataTable style={styles.tableHeaderCell}>
-        {/* Table Header */}
-        <DataTable.Header>
-          <DataTable.Title>S. No.</DataTable.Title>
-          <DataTable.Title>Name</DataTable.Title>
-          <DataTable.Title>Designation</DataTable.Title>
-          <DataTable.Title>Role</DataTable.Title>
-          <DataTable.Title>Email ID</DataTable.Title>
-          <DataTable.Title>Department</DataTable.Title>
-          <DataTable.Title>Reporting Manager</DataTable.Title>
-          <DataTable.Title>Projects Active</DataTable.Title>
-          <DataTable.Title>Approval Limit</DataTable.Title>
-          <DataTable.Title>Average Cost</DataTable.Title>
-          <DataTable.Title>Active/ Inactive</DataTable.Title>
-          <DataTable.Title> Permissions</DataTable.Title>
-          <DataTable.Title> Actions </DataTable.Title>
-        </DataTable.Header>
+  {/* Table Header */}
+  <DataTable.Header>
+    <DataTable.Title>S. No.</DataTable.Title>
+    <DataTable.Title>Name</DataTable.Title>
+    <DataTable.Title>Designation</DataTable.Title>
+    <DataTable.Title>Role</DataTable.Title>
+    <DataTable.Title>Email ID</DataTable.Title>
+    <DataTable.Title>Department</DataTable.Title>
+    <DataTable.Title>Reporting Manager</DataTable.Title>
+    <DataTable.Title>Projects Active</DataTable.Title>
+    <DataTable.Title>Approval Limit</DataTable.Title>
+    <DataTable.Title>Average Cost</DataTable.Title>
+    <DataTable.Title>Active/ Inactive</DataTable.Title>
+    <DataTable.Title>Permissions</DataTable.Title>
+    <DataTable.Title>Actions</DataTable.Title>
+  </DataTable.Header>
 
-        {/* Table Rows */}
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {users.map((user, index) => (
-            <DataTable.Row style={styles.table} key={user.id}>
-              <DataTable.Cell>{index + 1}</DataTable.Cell>
-              <DataTable.Cell>{user.name}</DataTable.Cell>
-              <DataTable.Cell>{user.designation}</DataTable.Cell>
-              <DataTable.Cell>{user.role}</DataTable.Cell>
-              <DataTable.Cell>{user.email}</DataTable.Cell>
-              <DataTable.Cell>{user.department}</DataTable.Cell>
-              <DataTable.Cell>{user.manager}</DataTable.Cell>
-              <DataTable.Cell>{user.projects}</DataTable.Cell>
-              <DataTable.Cell>{user.approval}</DataTable.Cell>
-              <DataTable.Cell>{user.avg_cost}</DataTable.Cell>
-              <DataTable.Cell>{user.status}</DataTable.Cell>
-              <DataTable.Cell>{user.permission}</DataTable.Cell>
-              <DataTable.Cell>
-                {/* Wrapping Menu and IconButton */}
-                <Menu
-                  visible={actionsVisible}
-                  onDismiss={toggleMenu}
-                  anchor={
-                    <TouchableOpacity onPress={toggleMenu}>
-                      <IconButton icon="dots-vertical" size={20} />
-                    </TouchableOpacity>
-                  }>
-                  {/* Menu items */}
-                  <Menu.Item
-                    onPress={() => console.log('Edit Permissions')}
-                    title="Edit Permissions"
-                  />
-                  <Menu.Item
-                    onPress={() => console.log('Activate/Deactivate')}
-                    title="Activate/Deactivate"
-                  />
-                  <Menu.Item
-                    onPress={() => console.log('Delete')}
-                    title="Delete"
-                  />
-                </Menu>
-              </DataTable.Cell>
-            </DataTable.Row>
-          ))}
-        </ScrollView>
-      </DataTable>
+  {/* Table Rows */}
+  <ScrollView showsVerticalScrollIndicator={false}>
+    {users.map((user, index) => (
+      <DataTable.Row style={styles.table} key={user.user_id}>
+        <DataTable.Cell>{index + 1}</DataTable.Cell>
+        <DataTable.Cell>{`${user.first_name} ${user.last_name}`}</DataTable.Cell> {/* Name: Concatenating first and last name */}
+        <DataTable.Cell>{user.username}</DataTable.Cell> {/* Assuming username as designation */}
+        <DataTable.Cell>{user.is_super_admin ? "Super Admin" : "User"}</DataTable.Cell> {/* Role: Based on is_super_admin */}
+        <DataTable.Cell>{user.email}</DataTable.Cell>
+        <DataTable.Cell>{user.customer_id ? "Customer" : "No Department"}</DataTable.Cell> {/* Placeholder for department */}
+        <DataTable.Cell>{user.reporting_to}</DataTable.Cell> {/* Reporting Manager: Using reporting_to (ID) */}
+        <DataTable.Cell>{'N/A'}</DataTable.Cell> {/* Placeholder for Projects Active */}
+        <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
+        <DataTable.Cell>{'N/A'}</DataTable.Cell> {/* Placeholder for Average Cost */}
+        <DataTable.Cell>{'Active'}</DataTable.Cell> {/* Placeholder for Active/Inactive */}
+        <DataTable.Cell>{'N/A'}</DataTable.Cell> {/* Placeholder for Permissions */}
+        <DataTable.Cell>
+          {/* Wrapping Menu and IconButton */}
+          <Menu
+            visible={actionsVisible}
+            onDismiss={toggleMenu}
+            anchor={
+              <TouchableOpacity onPress={toggleMenu}>
+                <IconButton icon="dots-vertical" size={20} />
+              </TouchableOpacity>
+            }>
+            {/* Menu items */}
+            <Menu.Item onPress={() => console.log("Edit Permissions")} title="Edit Permissions" />
+            <Menu.Item onPress={() => console.log("Activate/Deactivate")} title="Activate/Deactivate" />
+            <Menu.Item onPress={() => console.log("Delete")} title="Delete" />
+          </Menu>
+        </DataTable.Cell>
+      </DataTable.Row>
+    ))}
+  </ScrollView>
+</DataTable>
 
       <Modal
         visible={isModalVisible}
