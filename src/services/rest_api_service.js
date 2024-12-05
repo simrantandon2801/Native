@@ -225,30 +225,7 @@ export const SubmitDetails = async (uri, payload) => {
       throw error;
     });
 
-  // try {
-  //     const response = await fetch(
-  //         uri,{
-  //             method: 'POST',
-  //             headers: {
-  //               Accept: 'application/text',
-  //               'Content-Type': 'multipart/form-data'
-  //             },
-  //             body: payload
-  //           }).then(async(response) => {
-  //             console.log(response);
-
-  //             if (response.status >= 200 && response.status <= 299) {
-  //               const json = await response.json();
-
-  //               return json;
-  //             } else {
-  //               console.log("fsfsfs"+response.statusText);
-  //             }
-  //           });
-
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
+  
 };
 export const Post_Upload_with_token = async (uri, payload, Token) => {
   try {

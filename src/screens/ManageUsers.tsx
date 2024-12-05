@@ -9,9 +9,11 @@ import {
   TextInput,
 } from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
+import {DataTable, Icon, IconButton, Menu, Switch} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
-import { GetUsers } from '../database/RestData';
+import {GetUsers} from '../database/RestData';
+import Header from '../header/header';
+import FooterForge from './FooterForge';
 // Define the User type to ensure type safety
 interface User {
   user_id: number; // Unique ID for the user
@@ -32,35 +34,57 @@ interface User {
 const {height} = Dimensions.get('window');
 const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isAddUserModalVisible, setisAddUserModalVisible] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [manager, setManager] = useState('');
   const [Designation, setDesignation] = useState('');
-  const [actionsVisible, setActionsvisible] = useState(false); // State to control menu visibility
+  //made independent visible menu state for each user on the basis of user_id
+  const [visibleMenus, setVisibleMenus] = useState<{ [key: number]: boolean }>({});
+  const toggleMenu = (userId: number) => {  
+    setVisibleMenus(prev => ({
+      ...prev,
+      [userId]: !prev[userId]
+    }));
+  };
 
-  const toggleMenu = () => setActionsvisible(prev => !prev);
+  const [isEditPermissionModalVisible, setisEditPermissionModalVisible] = useState(false);
+  const [permissions, setPermissions] = useState({
+    viewing: true,
+    editing: true,
+    deleting: false,
+    notifications: true,
+  });
+
+  const togglePermission = (key:any) => {
+    setPermissions((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   
 
-
-  const fetchUser = async ()=>{
-    try{
-      const response = await GetUsers("");
+  const fetchUser = async () => {
+    try {
+      const response = await GetUsers('');
       const parsedRes = JSON.parse(response);
-      if(parsedRes.status === 'success') setUsers(parsedRes.data.users);
-      else console.error("Failed to fetch users:", parsedRes.message || "Unknown error");
-      
-    }catch(err){
-      console.log('Error Fetching Users', err)
+      if (parsedRes.status === 'success') setUsers(parsedRes.data.users);
+      else
+        console.error(
+          'Failed to fetch users:',
+          parsedRes.message || 'Unknown error',
+        );
+    } catch (err) {
+      console.log('Error Fetching Users', err);
     }
-  }
+  };
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchUser();
-  },[])
+  }, []);
 
   return (
     <>
+        <Header/>
+
       {/* Manage Users Section */}
       <View style={styles.manageUsersContainer}>
         <Text style={styles.heading}>Manage Users</Text>
@@ -75,7 +99,7 @@ const ManageUsers: React.FC = () => {
         <View style={styles.middleActions}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => setIsModalVisible(true)}>
+            onPress={() => setisAddUserModalVisible(true)}>
             <IconButton icon="plus" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>
               Add User
@@ -105,65 +129,94 @@ const ManageUsers: React.FC = () => {
 
       {/* Table Section */}
       <DataTable style={styles.tableHeaderCell}>
-  {/* Table Header */}
-  <DataTable.Header>
-    <DataTable.Title>S. No.</DataTable.Title>
-    <DataTable.Title>Name</DataTable.Title>
-    <DataTable.Title>Designation</DataTable.Title>
-    <DataTable.Title>Role</DataTable.Title>
-    <DataTable.Title>Email ID</DataTable.Title>
-    <DataTable.Title>Department</DataTable.Title>
-    <DataTable.Title>Reporting Manager</DataTable.Title>
-    <DataTable.Title>Projects Active</DataTable.Title>
-    <DataTable.Title>Approval Limit</DataTable.Title>
-    <DataTable.Title>Average Cost</DataTable.Title>
-    <DataTable.Title>Active/ Inactive</DataTable.Title>
-    <DataTable.Title>Permissions</DataTable.Title>
-    <DataTable.Title>Actions</DataTable.Title>
-  </DataTable.Header>
+        {/* Table Header */}
+        <DataTable.Header>
+          <DataTable.Title>S. No.</DataTable.Title>
+          <DataTable.Title>Name</DataTable.Title>
+          <DataTable.Title>Designation</DataTable.Title>
+          <DataTable.Title>Role</DataTable.Title>
+          <DataTable.Title>Email ID</DataTable.Title>
+          <DataTable.Title>Department</DataTable.Title>
+          <DataTable.Title>Reporting Manager</DataTable.Title>
+          <DataTable.Title>Projects Active</DataTable.Title>
+          <DataTable.Title>Approval Limit</DataTable.Title>
+          <DataTable.Title>Average Cost</DataTable.Title>
+          <DataTable.Title>Active/ Inactive</DataTable.Title>
+          <DataTable.Title>Permissions</DataTable.Title>
+          <DataTable.Title>Actions</DataTable.Title>
+        </DataTable.Header>
 
-  {/* Table Rows */}
-  <ScrollView showsVerticalScrollIndicator={false}>
-    {users.map((user, index) => (
-      <DataTable.Row style={styles.table} key={user.user_id}>
-        <DataTable.Cell>{index + 1}</DataTable.Cell>
-        <DataTable.Cell>{`${user.first_name} ${user.last_name}`}</DataTable.Cell> {/* Name: Concatenating first and last name */}
-        <DataTable.Cell>{user.username}</DataTable.Cell> {/* Assuming username as designation */}
-        <DataTable.Cell>{user.is_super_admin ? "Super Admin" : "User"}</DataTable.Cell> {/* Role: Based on is_super_admin */}
-        <DataTable.Cell>{user.email}</DataTable.Cell>
-        <DataTable.Cell>{user.customer_id ? "Customer" : "No Department"}</DataTable.Cell> {/* Placeholder for department */}
-        <DataTable.Cell>{user.reporting_to}</DataTable.Cell> {/* Reporting Manager: Using reporting_to (ID) */}
-        <DataTable.Cell>{'N/A'}</DataTable.Cell> {/* Placeholder for Projects Active */}
-        <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
-        <DataTable.Cell>{'N/A'}</DataTable.Cell> {/* Placeholder for Average Cost */}
-        <DataTable.Cell>{'Active'}</DataTable.Cell> {/* Placeholder for Active/Inactive */}
-        <DataTable.Cell>{'N/A'}</DataTable.Cell> {/* Placeholder for Permissions */}
-        <DataTable.Cell>
-          {/* Wrapping Menu and IconButton */}
-          <Menu
-            visible={actionsVisible}
-            onDismiss={toggleMenu}
-            anchor={
-              <TouchableOpacity onPress={toggleMenu}>
-                <IconButton icon="dots-vertical" size={20} />
-              </TouchableOpacity>
-            }>
-            {/* Menu items */}
-            <Menu.Item onPress={() => console.log("Edit Permissions")} title="Edit Permissions" />
-            <Menu.Item onPress={() => console.log("Activate/Deactivate")} title="Activate/Deactivate" />
-            <Menu.Item onPress={() => console.log("Delete")} title="Delete" />
-          </Menu>
-        </DataTable.Cell>
-      </DataTable.Row>
-    ))}
-  </ScrollView>
-</DataTable>
+        {/* Table Rows */}
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {users.map((user, index) => (
+            <DataTable.Row style={styles.table} key={user.user_id}>
+              <DataTable.Cell>{index + 1}</DataTable.Cell>
+              <DataTable.Cell>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
+              {/* Name: Concatenating first and last name */}
+              <DataTable.Cell>{user.username}</DataTable.Cell>{' '}
+              {/* Assuming username as designation */}
+              <DataTable.Cell>
+                {user.is_super_admin ? 'Super Admin' : 'User'}
+              </DataTable.Cell>{' '}
+              {/* Role: Based on is_super_admin */}
+              <DataTable.Cell>{user.email}</DataTable.Cell>
+              <DataTable.Cell>
+                {user.customer_id ? 'Customer' : 'No Department'}
+              </DataTable.Cell>{' '}
+              {/* Placeholder for department */}
+              <DataTable.Cell>{user.reporting_to}</DataTable.Cell>{' '}
+              {/* Reporting Manager: Using reporting_to (ID) */}
+              <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '}
+              {/* Placeholder for Projects Active */}
+              <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
+              <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '}
+              {/* Placeholder for Average Cost */}
+              <DataTable.Cell>{'Active'}</DataTable.Cell>{' '}
+              {/* Placeholder for Active/Inactive */}
+              <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '}
+              {/* Placeholder for Permissions */}
+              <DataTable.Cell>
+        <Menu
+          visible={visibleMenus[user.user_id] || false}
+          onDismiss={() => toggleMenu(user.user_id)}
+          anchor={
+            <TouchableOpacity onPress={() => toggleMenu(user.user_id)}>
+              <IconButton icon="dots-vertical" size={20} />
+            </TouchableOpacity>
+          }>
+          <Menu.Item
+            onPress={() => {
+              toggleMenu(user.user_id); // Close menu after selection
+              setisEditPermissionModalVisible(true) 
+            }}
+            title="Edit Permissions"
+          />
+          <Menu.Item
+            onPress={() => {
+              console.log('Activate/Deactivate');
+              toggleMenu(user.user_id); // Close menu after selection
+            }}
+            title="Activate/Deactivate"
+          />
+          <Menu.Item
+            onPress={() => {
+              console.log('Delete');
+              toggleMenu(user.user_id); // Close menu after selection
+            }}
+            title="Delete"
+          />
+        </Menu>
+      </DataTable.Cell>
+            </DataTable.Row>
+          ))}
+        </ScrollView>
+      </DataTable>
 
       <Modal
-        visible={isModalVisible}
+        visible={isAddUserModalVisible}
         animationType="none"
         transparent={true}
-        onRequestClose={() => setIsModalVisible(false)}>
+        onRequestClose={() => setisAddUserModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>Add New User</Text>
@@ -192,6 +245,34 @@ const ManageUsers: React.FC = () => {
             </View>
 
             {/* Designation Dropdown */}
+            
+
+            {/* Reporting Manager Dropdown */}
+            <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>* Reporting Manager</Text>
+                <Picker
+                  selectedValue={manager}
+                  onValueChange={itemValue => setManager(itemValue)}
+                  style={styles.picker}>
+                  <Picker.Item label="Rachel" value="Rachel" />
+                  <Picker.Item label="John" value="John" />
+                  <Picker.Item label="Sophia" value="Sophia" />
+                </Picker>
+              </View>
+              <View style={styles.inputWrapper}>
+              <Text style={styles.label}>* Reporting Manager</Text>
+              <Picker
+                selectedValue={manager}
+                onValueChange={itemValue => setManager(itemValue)}
+                style={styles.picker}>
+                <Picker.Item label="Rachel" value="Rachel" />
+                <Picker.Item label="John" value="John" />
+                <Picker.Item label="Sophia" value="Sophia" />
+              </Picker>
+              </View>
+            </View>
+
             <View style={styles.inputRow}>
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>* Designation</Text>
@@ -212,35 +293,12 @@ const ManageUsers: React.FC = () => {
               </View>
             </View>
 
-            {/* Reporting Manager Dropdown */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>* Reporting Manager</Text>
-                <Picker
-                  selectedValue={manager}
-                  onValueChange={itemValue => setManager(itemValue)}
-                  style={styles.picker}>
-                  <Picker.Item label="Rachel" value="Rachel" />
-                  <Picker.Item label="John" value="John" />
-                  <Picker.Item label="Sophia" value="Sophia" />
-                </Picker>
-              </View>
-            </View>
-            <Text style={styles.label}>* Reporting Manager</Text>
-            <Picker
-              selectedValue={manager}
-              onValueChange={itemValue => setManager(itemValue)}
-              style={styles.picker}>
-              <Picker.Item label="Rachel" value="Rachel" />
-              <Picker.Item label="John" value="John" />
-              <Picker.Item label="Sophia" value="Sophia" />
-            </Picker>
             <View
               style={{flexDirection: 'row', justifyContent: 'center', gap: 14}}>
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={() => {
-                  setIsModalVisible(false);
+                  setisAddUserModalVisible(false);
                   // Handle form submission logic here (e.g., save user details)
                 }}>
                 <Text style={styles.submitButtonText}>Submit</Text>
@@ -249,16 +307,58 @@ const ManageUsers: React.FC = () => {
               {/* Close Button */}
               <TouchableOpacity
                 style={styles.submitButton}
-                onPress={() => setIsModalVisible(false)}>
+                onPress={() => setisAddUserModalVisible(false)}>
                 <Text style={styles.submitButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+      <Modal
+        visible={isEditPermissionModalVisible}
+        animationType="none"
+        transparent={true}
+        onRequestClose={() => setisEditPermissionModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalHeader}>Edit Permissions</Text>
+            <View style={styles.permissionsList}>
+              {Object.entries(permissions).map(([key, value]) => (
+                <View key={key} style={styles.permissionRow}>
+                  <Text style={styles.permissionLabel}>
+                    {key.charAt(0).toUpperCase() + key.slice(1)}
+                  </Text>
+                  <Switch
+                    value={value}
+                    onValueChange={() => togglePermission(key)}
+                  />
+                </View>
+              ))}
+            </View>
+
+            {/* Buttons */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => setisEditPermissionModalVisible(false)}
+              >
+                <Text style={styles.submitButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => setisEditPermissionModalVisible(false)}
+              >
+                <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <FooterForge/>
     </>
   );
 };
+
 
 const styles = StyleSheet.create({
   manageUsersContainer: {
@@ -383,6 +483,29 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     textAlign: 'center',
+  },
+  permissionsList: {
+    marginBottom: 20,
+  },
+  permissionRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  permissionLabel: {
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  cancelButton: {
+    backgroundColor: "#f5f5f5",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
   },
 });
 
