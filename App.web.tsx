@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, import/no-unresolved */
 import React from 'react';
 import {StyleSheet, useColorScheme} from 'react-native';
 import {PaperProvider} from 'react-native-paper';
@@ -8,9 +9,12 @@ import MainDrawer from './src/drawer/MainDrawer';
 import {darkThemeColors, lightThemeColors} from './src/core/Colors';
 import {navigationRef} from './src/navigations/RootNavigation';
 import {HomeStackNavigatorParamList} from './type';
+import { LogBox } from 'react-native';
 
 const Stack = createNativeStackNavigator<HomeStackNavigatorParamList>();
-
+LogBox.ignoreLogs([
+  'export \'FooterComponent\' (imported as \'FooterComponent\') was not found in \'./ScreenFooter\'',
+]);
 const App: React.FC = () => {
   const scheme = useColorScheme();
 

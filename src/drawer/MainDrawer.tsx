@@ -1,14 +1,18 @@
+
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Image, LogBox } from 'react-native';
 import { createDrawerNavigator, DrawerNavigationProp } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LoginScreen from '../screens/LoginScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import ManageList from '../screens/ManageList';
 import ManageAss from '../screens/ManageAss';
+import { AppImages } from '../assets';
 
 const Drawer = createDrawerNavigator();
-
+LogBox.ignoreLogs([
+  "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
+]);
 
 type DrawerProp = DrawerNavigationProp<any>;
 
@@ -19,6 +23,13 @@ const AccountSection: React.FC<{
 }> = ({ navigation, isDrawerOpen, handleItemPress }) => {
   return (
     <View style={styles.drawerSection}>
+     {/* Image with onPress to open drawer */}
+     <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+        <Image 
+          source={AppImages.forge11} 
+          style={styles.drawerImage}
+        />
+      </TouchableOpacity>
     {/* Account Heading with Icon */}
     <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
       <Icon name="person-outline" size={24} color="black" />
@@ -131,17 +142,20 @@ const MainDrawer: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+   
   },
   drawerContent: {
     flex: 1,
     paddingTop: 20,
+    
   },
   drawerSection: {
     marginBottom: 15,
+    
   },
   drawerItem: {
     flexDirection: 'row',
-    padding: 15,
+    padding: 20,
     alignItems: 'center',
   },
   drawerItemText: {
@@ -152,6 +166,12 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  drawerImage: {
+    width: 30,   
+    height: 30, 
+    marginRight: 10, 
+ 
   },
 });
 

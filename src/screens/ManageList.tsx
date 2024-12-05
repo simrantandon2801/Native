@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
@@ -13,7 +14,7 @@ import {
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
-
+import { addmodule, fetchModules } from '../database/RestData';
 // Define the User type to ensure type safety
 interface User {
   id: number;
@@ -30,7 +31,7 @@ const ManageList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modulename, setmoduleName] = useState('');
   const [url, seturl] = useState('');
-  const [remark, setRemark] = useState('');
+  //const [remark, setRemark] = useState('');
   const [display, setDisplay] = useState('');
 
   const [manager, setManager] = useState('');
@@ -42,42 +43,26 @@ const ManageList: React.FC = () => {
 
   const submitHandler = async () => {
     try {
-      // Prepare the request body with required fields for the API
+     
       const requestBody = {
-        //module_id: 0, 
+        
         module_name: modulename, 
         module_level: 'Level 1', 
-        parent_module_id: 0, 
+        parent_module_id: 0,
+        url:url,
+        order_id:display
+
         
       };
-  
-     
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/insert_modules',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-  
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-  
-     
-      const data = await response.json();
-  
-      
+
+      const response = await addmodule(requestBody)
+
+      const data = await JSON.parse(response);
+ 
       console.log('Insert Module API Response:', data);
-  
-      
+ 
       Alert.alert('Module inserted successfully!');
-  
-      
+
       setIsModalVisible(false);
       
     } catch (error) {
@@ -86,12 +71,12 @@ const ManageList: React.FC = () => {
       Alert.alert('Failed to insert the module. Please try again later.');
     }
   };
-  const fetchModules = async () => {
+  const getModules = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_modules');
-      const result = await response.json();
+      const response = await fetchModules('');
+      const result = await JSON.parse(response);
   
-      // Extract modules from the response
+     
       if (result?.data?.modules) {
         setModules(result.data.modules);
       } else {
@@ -103,7 +88,7 @@ const ManageList: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchModules();
+    getModules();
   }, []);
   return (
     <>
@@ -139,13 +124,14 @@ const ManageList: React.FC = () => {
         <DataTable.Header>
           <DataTable.Title>S. No.</DataTable.Title>
           <DataTable.Title>Module Name</DataTable.Title>
-          <DataTable.Title>Module Level</DataTable.Title>
-          <DataTable.Title>Parent Module ID</DataTable.Title>
+          {/* <DataTable.Title>Module Level</DataTable.Title> */}
+          <DataTable.Title>Parent Module Name</DataTable.Title>
+          <DataTable.Title>URL</DataTable.Title>
           <DataTable.Title>Status</DataTable.Title>
           <DataTable.Title>Created at</DataTable.Title>
-          <DataTable.Title>Updated at</DataTable.Title>
+          {/* <DataTable.Title>Updated at</DataTable.Title>
           <DataTable.Title>Created by</DataTable.Title>
-          <DataTable.Title>Updated by</DataTable.Title>
+          <DataTable.Title>Updated by</DataTable.Title> */}
         </DataTable.Header>
 
         <ScrollView>
@@ -155,19 +141,20 @@ const ManageList: React.FC = () => {
     <DataTable.Cell>
       {module.module_name === "string" ? "No Name Provided" : module.module_name}
     </DataTable.Cell>
-    <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell>
+    {/* <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell> */}
     <DataTable.Cell>{module.parent_module_id || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>{module.url || "N/A"}</DataTable.Cell>
     <DataTable.Cell>
       {module.is_active ? "Active" : "Inactive"}
     </DataTable.Cell>
     <DataTable.Cell>
       {module.created_at ? new Date(module.created_at).toLocaleString() : "N/A"}
     </DataTable.Cell>
-    <DataTable.Cell>
+   {/*  <DataTable.Cell>
       {module.updated_at ? new Date(module.updated_at).toLocaleString() : "N/A"}
     </DataTable.Cell>
     <DataTable.Cell>{module.created_by || "N/A"}</DataTable.Cell>
-    <DataTable.Cell>{module.updated_by || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>{module.updated_by || "N/A"}</DataTable.Cell> */}
   </DataTable.Row>
 ))}
 
@@ -235,7 +222,7 @@ const ManageList: React.FC = () => {
                   onChangeText={setDisplay}
                 />
               </View>
-              <View style={styles.inputWrapper}>
+             {/*  <View style={styles.inputWrapper}>
                 <Text style={styles.label}>* Remark</Text>
                 <TextInput
                   style={styles.input}
@@ -244,7 +231,7 @@ const ManageList: React.FC = () => {
                   value={remark}
                   onChangeText={setRemark}
                 />
-              </View>
+              </View> */}
             </View>
 
            
