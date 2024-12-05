@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,6 +7,8 @@ import {
   Modal,
   Dimensions,
   TextInput,
+  Module,
+  Alert,
 } from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
@@ -26,44 +28,83 @@ interface User {
 const {height} = Dimensions.get('window');
 const ManageList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [modulename, setmoduleName] = useState('');
+  const [url, seturl] = useState('');
+  const [remark, setRemark] = useState('');
+  const [display, setDisplay] = useState('');
+
   const [manager, setManager] = useState('');
-  const [Designation, setDesignation] = useState('');
+  const [parentmodule, setParentmodule] = useState('');
   const [actionsVisible, setActionsvisible] = useState(false); // State to control menu visibility
+  const [modules, setModules] = useState<Module[]>([]);
 
   const toggleMenu = () => setActionsvisible(prev => !prev);
-  const users: User[] = [
-    {
-      id: 1,
-      modulename: 'Marcus',
-      designation: 'CEO',
-      role: 'Project Mgr',
-      email: 'xyz@corporate.com',
-      department: 'US Projects > Development',
-      manager: 'John Doe',
-      projects: 1,
-      approval: '$100,000',
-      avg_cost: '$1000',
-      status: 'Active',
-      permission: 'yes',
-    },
-    {
-      id: 2,
-      name: 'John Wick',
-      designation: 'Director',
-      role: 'Project Member',
-      email: 'xyz@corporate.com',
-      department: 'US Projects > Development',
-      manager: 'John Doe',
-      projects: 5,
-      approval: '$100,000',
-      avg_cost: '$1000',
-      status: 'Active',
-      permission: 'yes',
-    },
-  ];
 
+  const submitHandler = async () => {
+    try {
+      // Prepare the request body with required fields for the API
+      const requestBody = {
+        //module_id: 0, 
+        module_name: modulename, 
+        module_level: 'Level 1', 
+        parent_module_id: 0, 
+        
+      };
+  
+     
+      const response = await fetch(
+        'https://underbuiltapi.aadhidigital.com/master/insert_modules',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+  
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+     
+      const data = await response.json();
+  
+      
+      console.log('Insert Module API Response:', data);
+  
+      
+      Alert.alert('Module inserted successfully!');
+  
+      
+      setIsModalVisible(false);
+      
+    } catch (error) {
+     
+      console.error('Insert Module API Error:', error);
+      Alert.alert('Failed to insert the module. Please try again later.');
+    }
+  };
+  const fetchModules = async () => {
+    try {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_modules');
+      const result = await response.json();
+  
+      // Extract modules from the response
+      if (result?.data?.modules) {
+        setModules(result.data.modules);
+      } else {
+        console.error('Unexpected API response structure:', result);
+      }
+    } catch (error) {
+      console.error('Error fetching modules:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchModules();
+  }, []);
   return (
     <>
       {/* Manage Users Section */}
@@ -75,92 +116,61 @@ const ManageList: React.FC = () => {
       <View style={styles.actions}>
         <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
           <IconButton icon="trash-can-outline" size={16} color="#344054" />
-          <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
+          <Text style={[styles.actionText, { color: '#344054' }]}>Delete</Text>
         </TouchableOpacity>
         <View style={styles.middleActions}>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => setIsModalVisible(true)}>
             <IconButton icon="plus" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Add User
+            <Text style={[styles.actionText, { color: '#044086' }]}>
+              Add Module
             </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.actionButton}>
-            <IconButton
-              icon="table-column-plus-after"
-              size={16}
-              color="#044086"
-            />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Set Columns
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <IconButton icon="sync" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} color="#344054" />
-          <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
+          <Text style={[styles.actionText, { color: '#344054' }]}>Filters</Text>
         </TouchableOpacity>
       </View>
 
       {/* Table Section */}
-      <DataTable style={styles.tableHeaderCell}>
-        {/* Table Header */}
+      <DataTable>
         <DataTable.Header>
           <DataTable.Title>S. No.</DataTable.Title>
           <DataTable.Title>Module Name</DataTable.Title>
-          <DataTable.Title>Parent Module</DataTable.Title>
+          <DataTable.Title>Module Level</DataTable.Title>
+          <DataTable.Title>Parent Module ID</DataTable.Title>
           <DataTable.Title>Status</DataTable.Title>
-          <DataTable.Title>Order</DataTable.Title>
-          <DataTable.Title>Created By</DataTable.Title>
-          
-          <DataTable.Title> Actions </DataTable.Title>
+          <DataTable.Title>Created at</DataTable.Title>
+          <DataTable.Title>Updated at</DataTable.Title>
+          <DataTable.Title>Created by</DataTable.Title>
+          <DataTable.Title>Updated by</DataTable.Title>
         </DataTable.Header>
 
-        {/* Table Rows */}
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {users.map((user, index) => (
-            <DataTable.Row style={styles.table} key={user.id}>
-              <DataTable.Cell>{index + 1}</DataTable.Cell>
-              
-              <DataTable.Cell>{user.modulename}</DataTable.Cell>
-              <DataTable.Cell>{user.parentmodule}</DataTable.Cell>
-              <DataTable.Cell>{user.status}</DataTable.Cell>
-              <DataTable.Cell>{user.order}</DataTable.Cell>
-              <DataTable.Cell>{user.createdby}</DataTable.Cell>
-              <DataTable.Cell>{user.actions}</DataTable.Cell>
-              <DataTable.Cell>
-                {/* Wrapping Menu and IconButton */}
-                <Menu
-                  visible={actionsVisible}
-                  onDismiss={toggleMenu}
-                  anchor={
-                    <TouchableOpacity onPress={toggleMenu}>
-                      <IconButton icon="dots-vertical" size={20} />
-                    </TouchableOpacity>
-                  }>
-                  {/* Menu items */}
-                  <Menu.Item
-                    onPress={() => console.log('Edit Permissions')}
-                    title="Edit Permissions"
-                  />
-                  <Menu.Item
-                    onPress={() => console.log('Activate/Deactivate')}
-                    title="Activate/Deactivate"
-                  />
-                  <Menu.Item
-                    onPress={() => console.log('Delete')}
-                    title="Delete"
-                  />
-                </Menu>
-              </DataTable.Cell>
-            </DataTable.Row>
-          ))}
+        <ScrollView>
+        {modules.map((module, index) => (
+  <DataTable.Row key={module.module_id}>
+    <DataTable.Cell>{index + 1}</DataTable.Cell>
+    <DataTable.Cell>
+      {module.module_name === "string" ? "No Name Provided" : module.module_name}
+    </DataTable.Cell>
+    <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>{module.parent_module_id || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>
+      {module.is_active ? "Active" : "Inactive"}
+    </DataTable.Cell>
+    <DataTable.Cell>
+      {module.created_at ? new Date(module.created_at).toLocaleString() : "N/A"}
+    </DataTable.Cell>
+    <DataTable.Cell>
+      {module.updated_at ? new Date(module.updated_at).toLocaleString() : "N/A"}
+    </DataTable.Cell>
+    <DataTable.Cell>{module.created_by || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>{module.updated_by || "N/A"}</DataTable.Cell>
+  </DataTable.Row>
+))}
+
         </ScrollView>
       </DataTable>
 
@@ -171,38 +181,16 @@ const ManageList: React.FC = () => {
         onRequestClose={() => setIsModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalHeader}>Add New User</Text>
+            <Text style={styles.modalHeader}>Add New Module</Text>
 
             {/* Input Fields for Name and Email */}
-            <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>* Name/Title</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter name"
-                  value={name}
-                  onChangeText={setName}
-                />
-              </View>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>* Email ID</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter email"
-                  keyboardType="email-address"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
-            </View>
 
-            {/* Designation Dropdown */}
             <View style={styles.inputRow}>
               <View style={styles.inputWrapper}>
-                <Text style={styles.label}>* Designation</Text>
+                <Text style={styles.label}>* Parent Module</Text>
                 <Picker
-                  selectedValue={Designation}
-                  onValueChange={itemValue => setDesignation(itemValue)}
+                  selectedValue={parentmodule}
+                  onValueChange={itemValue => setParentmodule(itemValue)}
                   style={styles.picker}>
                   <Picker.Item label="UX Designing" value="UX Designing" />
                   <Picker.Item
@@ -216,38 +204,53 @@ const ManageList: React.FC = () => {
                 </Picker>
               </View>
             </View>
-
-            {/* Reporting Manager Dropdown */}
             <View style={styles.inputRow}>
               <View style={styles.inputWrapper}>
-                <Text style={styles.label}>* Reporting Manager</Text>
-                <Picker
-                  selectedValue={manager}
-                  onValueChange={itemValue => setManager(itemValue)}
-                  style={styles.picker}>
-                  <Picker.Item label="Rachel" value="Rachel" />
-                  <Picker.Item label="John" value="John" />
-                  <Picker.Item label="Sophia" value="Sophia" />
-                </Picker>
+                <Text style={styles.label}>* Module Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter module name"
+                  value={modulename}
+                  onChangeText={setmoduleName}
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>* url</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter url"
+                  //keyboardType="email-address"
+                  value={url}
+                  onChangeText={seturl}
+                />
               </View>
             </View>
-            <Text style={styles.label}>* Reporting Manager</Text>
-            <Picker
-              selectedValue={manager}
-              onValueChange={itemValue => setManager(itemValue)}
-              style={styles.picker}>
-              <Picker.Item label="Rachel" value="Rachel" />
-              <Picker.Item label="John" value="John" />
-              <Picker.Item label="Sophia" value="Sophia" />
-            </Picker>
+            <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>* Display order</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Display order"
+                  value={display}
+                  onChangeText={setDisplay}
+                />
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>* Remark</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter remark"
+                  //keyboardType="email-address"
+                  value={remark}
+                  onChangeText={setRemark}
+                />
+              </View>
+            </View>
+
+           
             <View
               style={{flexDirection: 'row', justifyContent: 'center', gap: 14}}>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={() => {
-                  setIsModalVisible(false);
-                  // Handle form submission logic here (e.g., save user details)
-                }}>
+              <TouchableOpacity style={styles.submitButton} onPress={submitHandler}>
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
 
