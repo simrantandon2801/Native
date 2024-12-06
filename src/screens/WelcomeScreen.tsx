@@ -6,7 +6,7 @@ import FooterForge from './FooterForge';
 const WelcomeScreen = () => {
   return (
     <View>
-      <Header/>
+      
       <ManageUsers/>
       <FooterForge/>
     </View>

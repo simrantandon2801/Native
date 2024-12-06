@@ -9,7 +9,9 @@ import ManageList from '../screens/ManageList';
 import ManageAss from '../screens/ManageAss';
 import { AppImages } from '../assets';
 import SignupScreen from '../screens/SignupScreen';
-
+import Header from '../header/header';
+import FooterForge from '../screens/FooterForge';
+import ManageUsers from '../screens/ManageUsers';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
@@ -25,15 +27,19 @@ const AccountSection: React.FC<{
   return (
     <View style={styles.drawerSection}>
      {/* Image with onPress to open drawer */}
+  
      <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
         <Image 
           source={AppImages.forge11} 
           style={styles.drawerImage}
         />
       </TouchableOpacity>
+      {/* <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+  <Icon name="menu" size={30} color="black" />
+</TouchableOpacity> */}
     {/* Account Heading with Icon */}
     <TouchableOpacity onPress={() => handleItemPress('SignupScreen')} style={styles.drawerItem}>
-      <Icon name="person-outline" size={24} color="black" />
+      <Icon name="person-outline" size={15} color="black" />
       {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Customer registration</Text>} 
     </TouchableOpacity>
     
@@ -51,7 +57,7 @@ const AccountSection: React.FC<{
     {/* Manage List Heading with Icon */}
 
     <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
-      <Icon name="list-outline" size={24} color="black" />
+      <Icon name="list-outline" size={15} color="black" />
       {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Manage Modules</Text>} 
     </TouchableOpacity>
    
@@ -60,7 +66,7 @@ const AccountSection: React.FC<{
     {isDrawerOpen && (
       <>
        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageList')}>
-       <Text style={styles.drawerItemText}>Manage List</Text>
+       <Text style={styles.drawerItemText}>Manage Module</Text>
      </TouchableOpacity>
       
       <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageAss')}>
@@ -70,12 +76,12 @@ const AccountSection: React.FC<{
     )}
 
 <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
-      <Icon name="person-outline" size={24} color="black" />
+      <Icon name="person-outline" size={15} color="black" />
       {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Users</Text>} 
     </TouchableOpacity>
     {isDrawerOpen && (
       <>
-        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('WelcomeScreen')}>
+        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageUsers')}>
           <Text style={styles.drawerItemText}>Manage Users</Text>
         </TouchableOpacity>
 
@@ -125,15 +131,19 @@ const MainDrawer: React.FC = () => {
             drawerStyle: {
               width: isDrawerOpen ? 250 : 70, 
             },
-            headerShown: false,
+            /* headerShown: false, */
+            header: () => <Header />
           }}
         >
-          <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
-          <Drawer.Screen name="LoginScreen" component={LoginScreen} />
+         {/*  <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} /> */}
+        
           <Drawer.Screen name="ManageList" component={ManageList} />
           <Drawer.Screen name="ManageAss" component={ManageAss} />
           <Drawer.Screen name="SignupScreen" component={SignupScreen} />
+          <Drawer.Screen name="ManageUsers" component={ManageUsers} />
+           <Drawer.Screen name="LoginScreen" component={LoginScreen} /> 
         </Drawer.Navigator>
+<FooterForge/>
       </View>
     </TouchableWithoutFeedback>
   );
@@ -150,27 +160,30 @@ const styles = StyleSheet.create({
     
   },
   drawerSection: {
-    marginBottom: 15,
+    marginBottom: 10,
     
   },
   drawerItem: {
     flexDirection: 'row',
     padding: 20,
+    paddingVertical: 5,
     alignItems: 'center',
   },
   drawerItemText: {
-    marginLeft: 10,
-    fontSize: 16,
+    marginLeft: 50,
+    fontSize: 13,
   },
   drawerSectionTitle: {
+    paddingTop:-1,
     marginLeft: 10,
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   drawerImage: {
     width: 30,   
     height: 30, 
     marginRight: 10, 
+  
  
   },
 });

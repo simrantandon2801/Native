@@ -16,6 +16,7 @@ import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
 import { addmodule, fetchModules } from '../database/RestData';
 // Define the User type to ensure type safety
+import Header from '../header/header';
 interface User {
   id: number;
   modulename: string;
@@ -73,7 +74,7 @@ const ManageList: React.FC = () => {
   };
   const getModules = async () => {
     try {
-      const response = await fetchModules('?parent_module_id=0');
+      const response = await fetchModules('');
       const result = await JSON.parse(response);
   
      
@@ -92,9 +93,10 @@ const ManageList: React.FC = () => {
   }, []);
   return (
     <>
+    <header />
       {/* Manage Users Section */}
       <View style={styles.manageUsersContainer}>
-        <Text style={styles.heading}>Manage List</Text>
+        <Text style={styles.heading}>Manage Module</Text>
       </View>
 
       {/* Action Bar */}
@@ -129,6 +131,7 @@ const ManageList: React.FC = () => {
           <DataTable.Title>URL</DataTable.Title>
           <DataTable.Title>Status</DataTable.Title>
           <DataTable.Title>Created at</DataTable.Title>
+          <DataTable.Title>Action</DataTable.Title>
           {/* <DataTable.Title>Updated at</DataTable.Title>
           <DataTable.Title>Created by</DataTable.Title>
           <DataTable.Title>Updated by</DataTable.Title> */}
