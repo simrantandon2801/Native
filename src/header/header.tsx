@@ -11,7 +11,7 @@ const Header = () => {
     <>
     <View style={styles.headerContainer}>
       <View style={styles.leftContainer}>
-        <ForgeLogo width={30} height={30} />
+        {/* <ForgeLogo width={30} height={30} /> */}
       </View>
 
       <View style={styles.centerContainer}>

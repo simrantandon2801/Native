@@ -8,6 +8,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import ManageList from '../screens/ManageList';
 import ManageAss from '../screens/ManageAss';
 import { AppImages } from '../assets';
+import SignupScreen from '../screens/SignupScreen';
 
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
@@ -31,24 +32,22 @@ const AccountSection: React.FC<{
         />
       </TouchableOpacity>
     {/* Account Heading with Icon */}
-    <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+    <TouchableOpacity onPress={() => handleItemPress('SignupScreen')} style={styles.drawerItem}>
       <Icon name="person-outline" size={24} color="black" />
-      {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Account</Text>} 
+      {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Customer registration</Text>} 
     </TouchableOpacity>
     
     {/* Submenu Items under Account */}
-    {isDrawerOpen && (
+    {/* {isDrawerOpen && (
       <>
-        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('LoginScreen')}>
-          <Text style={styles.drawerItemText}>Login</Text>
-        </TouchableOpacity>
+        
 
-        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('SignUp')}>
-          <Text style={styles.drawerItemText}>Sign Up</Text>
+        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('SignupScreen')}>
+          <Text style={styles.drawerItemText}>Registration</Text>
         </TouchableOpacity>
       </>
     )}
-
+ */}
     {/* Manage List Heading with Icon */}
 
     <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
@@ -133,6 +132,7 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="LoginScreen" component={LoginScreen} />
           <Drawer.Screen name="ManageList" component={ManageList} />
           <Drawer.Screen name="ManageAss" component={ManageAss} />
+          <Drawer.Screen name="SignupScreen" component={SignupScreen} />
         </Drawer.Navigator>
       </View>
     </TouchableWithoutFeedback>

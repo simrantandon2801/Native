@@ -73,7 +73,7 @@ const ManageList: React.FC = () => {
   };
   const getModules = async () => {
     try {
-      const response = await fetchModules('');
+      const response = await fetchModules('?parent_module_id=0');
       const result = await JSON.parse(response);
   
      
@@ -142,7 +142,7 @@ const ManageList: React.FC = () => {
       {module.module_name === "string" ? "No Name Provided" : module.module_name}
     </DataTable.Cell>
     {/* <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell> */}
-    <DataTable.Cell>{module.parent_module_id || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>{module.parent_module || "N/A"}</DataTable.Cell>
     <DataTable.Cell>{module.url || "N/A"}</DataTable.Cell>
     <DataTable.Cell>
       {module.is_active ? "Active" : "Inactive"}
