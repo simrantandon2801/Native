@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Keyboard, Image, LogBox } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Image, LogBox } from 'react-native';
 import { createDrawerNavigator, DrawerNavigationProp } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LoginScreen from '../screens/LoginScreen';
@@ -12,96 +11,175 @@ import SignupScreen from '../screens/SignupScreen';
 import Header from '../header/header';
 import FooterForge from '../screens/FooterForge';
 import ManageUsers from '../screens/ManageUsers';
+import { navigate } from '../navigations/RootNavigation';
+import { useIsFocused } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { decodeBase64 } from '../core/securedata';
+
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
 ]);
 
+interface Submodule {
+  module_id: string;
+  module_name: string;
+  is_active: boolean;
+}
+
+
+interface Module {
+  module_id: string;
+  module_name: string;
+  is_active: boolean;
+  sub_modules: Submodule[];
+}
+
 type DrawerProp = DrawerNavigationProp<any>;
 
-const AccountSection: React.FC<{ 
-  navigation: DrawerProp; 
-  isDrawerOpen: boolean; 
+const AccountSection: React.FC<{
+  navigation: DrawerProp;
+  isDrawerOpen: boolean;
   handleItemPress: (screen: string) => void;
-}> = ({ navigation, isDrawerOpen, handleItemPress }) => {
+  dynamicModules: any[]; // Changed to any[] to accommodate the submodules structure
+}> = ({ navigation, isDrawerOpen, handleItemPress, dynamicModules }) => {
   return (
     <View style={styles.drawerSection}>
-     {/* Image with onPress to open drawer */}
-  
-     <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
-        <Image 
-          source={AppImages.forge11} 
-          style={styles.drawerImage}
-        />
+      {/* Static Drawer Items */}
+      <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+        <Image source={AppImages.forge11} style={styles.drawerImage} />
       </TouchableOpacity>
-      {/* <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
-  <Icon name="menu" size={30} color="black" />
-</TouchableOpacity> */}
-    {/* Account Heading with Icon */}
-    <TouchableOpacity onPress={() => handleItemPress('SignupScreen')} style={styles.drawerItem}>
-      <Icon name="person-outline" size={15} color="black" />
-      {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Customer registration</Text>} 
-    </TouchableOpacity>
-    
-    {/* Submenu Items under Account */}
-    {/* {isDrawerOpen && (
-      <>
-        
 
-        <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('SignupScreen')}>
-          <Text style={styles.drawerItemText}>Registration</Text>
-        </TouchableOpacity>
-      </>
-    )}
- */}
-    {/* Manage List Heading with Icon */}
-
-    <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
-      <Icon name="list-outline" size={15} color="black" />
-      {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Manage Modules</Text>} 
-    </TouchableOpacity>
-   
-
-    {/* Submenu Items under Manage List */}
-    {isDrawerOpen && (
-      <>
-       <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageList')}>
-       <Text style={styles.drawerItemText}>Manage Module</Text>
-     </TouchableOpacity>
-      
-      <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageAss')}>
-        <Text style={styles.drawerItemText}>Module Assignment</Text>
+      <TouchableOpacity onPress={() => handleItemPress('SignupScreen')} style={styles.drawerItem}>
+        <Icon name="person-outline" size={15} color="black" />
+        {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Customer registration</Text>}
       </TouchableOpacity>
-      </>
-    )}
 
-<TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
-      <Icon name="person-outline" size={15} color="black" />
-      {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Users</Text>} 
-    </TouchableOpacity>
-    {isDrawerOpen && (
-      <>
+      <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+        <Icon name="list-outline" size={15} color="black" />
+        {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Manage Modules</Text>}
+      </TouchableOpacity>
+
+      {isDrawerOpen && (
+        <>
+          <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageList')}>
+            <Text style={styles.drawerItemText}>Manage Module</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageAss')}>
+            <Text style={styles.drawerItemText}>Module Assignment</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+        <Icon name="person-outline" size={15} color="black" />
+        {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Users</Text>}
+      </TouchableOpacity>
+
+      {isDrawerOpen && (
         <TouchableOpacity style={styles.drawerItem} onPress={() => handleItemPress('ManageUsers')}>
           <Text style={styles.drawerItemText}>Manage Users</Text>
         </TouchableOpacity>
+      )}
 
-       
-      </>
-    )}
-  </View>
-);
+      {/* Render Modules and Submodules */}
+      {dynamicModules.map((module: Module) => (
+        <View key={module.module_id}>
+          {/* Show module name if it's active */}
+          {module.is_active && (
+            <TouchableOpacity
+              onPress={() => handleItemPress(module.module_name)} 
+              style={styles.drawerItem}
+            >
+              <Icon name="cube-outline" size={15} color="black" />
+              {isDrawerOpen && <Text style={styles.drawerSectionTitle}>{module.module_name}</Text>}
+            </TouchableOpacity>
+          )}
+
+          {/* Show parent as heading and submodule as subheading if parent is inactive and submodule is active */}
+          {!module.is_active && module.sub_modules && module.sub_modules.length > 0 && (
+            <View>
+              <Text style={styles.drawerSectionTitle}>{module.module_name}</Text> {/* Parent as heading */}
+              {module.sub_modules.map((submodule: Submodule) => (
+                submodule.is_active && (
+                  <TouchableOpacity
+                    key={submodule.module_id}
+                    onPress={() => handleItemPress(submodule.module_name)}
+                    style={styles.drawerSubItem}
+                  >
+                    <Text style={styles.drawerSubItemText}>- {submodule.module_name}</Text> {/* Submodule as subheading */}
+                  </TouchableOpacity>
+                )
+              ))}
+            </View>
+          )}
+
+          {/* Check for submodules and show them if the module has active submodules */}
+          {module.sub_modules && module.sub_modules.length > 0 && module.is_active && (
+            <View>
+              {module.sub_modules.map((submodule: Submodule) => (
+                <TouchableOpacity
+                  key={submodule.module_id}
+                  onPress={() => handleItemPress(submodule.module_name)}
+                  style={styles.drawerSubItem}
+                >
+                  <Text style={styles.drawerSubItemText}>- {submodule.module_name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+      ))}
+    </View>
+  );
 };
-
 const MainDrawer: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const handleItemPress = (screen: string, navigation: DrawerProp) => {
+  const [dynamicModules, setDynamicModules] = useState<any[]>([]); // Adjusted type to any[]
+
+  const isFocused = useIsFocused(); 
+
+  const fetchRoleModules = async () => {
+    try {
+      const encodedRoleId = await AsyncStorage.getItem('UserType');
+      const decodedRoleId = decodeBase64(encodedRoleId ?? ''); 
+      console.log('Decoded Role ID:', decodedRoleId);
+  
+      const response = await fetch(`https://underbuiltapi.aadhidigital.com/master/role_modules?role_id=${decodedRoleId}`);
+      const responseData: Module[] = await response.json();  // Define response as Module[] type
+      
+      console.log('Fetched Role Data:', JSON.stringify(responseData, null, 2));  // Log the full response
+  
+      // Filter the active modules and submodules
+      const activeModules = responseData.filter((module) => module.is_active);
+      console.log('Active Modules:', JSON.stringify(activeModules, null, 2)); // Log filtered active modules
+  
+      // Ensure that only active submodules are passed along with active modules
+      const filteredModulesWithActiveSubmodules = activeModules.map(module => ({
+        ...module,
+        sub_modules: module.sub_modules.filter((submodule) => submodule.is_active),  // TypeScript knows submodule is Submodule
+      }));
+      console.log('Filtered Modules with Active Submodules:', JSON.stringify(filteredModulesWithActiveSubmodules, null, 2)); // Log modules with active submodules
+  
+      setDynamicModules(filteredModulesWithActiveSubmodules); // Update state with filtered modules
+    } catch (error) {
+      console.error('Failed to fetch modules:', error);
+    }
+  };
+  useEffect(() => {
+    if (isFocused) { 
+      fetchRoleModules(); 
+    }
+  }, [isFocused]);
+
+  const handleItemPress = (screen: string) => {
     if (!isDrawerOpen) {
       setIsDrawerOpen(true); 
       setTimeout(() => {
-        navigation.navigate(screen);
+        navigate(screen); // Assuming navigate is properly configured for screen navigation
       }, 200); 
     } else {
-      navigation.navigate(screen); 
+      navigate(screen); 
     }
   };
 
@@ -109,6 +187,11 @@ const MainDrawer: React.FC = () => {
     if (isDrawerOpen) {
       setIsDrawerOpen(false);
     }
+  };
+
+  const onDrawerOpen = () => {
+    setIsDrawerOpen(true);
+    fetchRoleModules(); 
   };
 
   return (
@@ -121,7 +204,8 @@ const MainDrawer: React.FC = () => {
                 <AccountSection
                   navigation={props.navigation as DrawerProp}
                   isDrawerOpen={isDrawerOpen}
-                  handleItemPress={(screen) => handleItemPress(screen, props.navigation as DrawerProp)}
+                  handleItemPress={(screen) => handleItemPress(screen)}
+                  dynamicModules={dynamicModules} 
                 />
               </View>
             </TouchableWithoutFeedback>
@@ -131,19 +215,17 @@ const MainDrawer: React.FC = () => {
             drawerStyle: {
               width: isDrawerOpen ? 250 : 70, 
             },
-            /* headerShown: false, */
-            header: () => <Header />
+            header: () => <Header/>
           }}
         >
-         {/*  <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} /> */}
-        
           <Drawer.Screen name="ManageList" component={ManageList} />
           <Drawer.Screen name="ManageAss" component={ManageAss} />
           <Drawer.Screen name="SignupScreen" component={SignupScreen} />
           <Drawer.Screen name="ManageUsers" component={ManageUsers} />
-           <Drawer.Screen name="LoginScreen" component={LoginScreen} /> 
+          <Drawer.Screen name="LoginScreen" component={LoginScreen} /> 
         </Drawer.Navigator>
-<FooterForge/>
+
+        <FooterForge />
       </View>
     </TouchableWithoutFeedback>
   );
@@ -152,16 +234,13 @@ const MainDrawer: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-   
   },
   drawerContent: {
     flex: 1,
     paddingTop: 20,
-    
   },
   drawerSection: {
     marginBottom: 10,
-    
   },
   drawerItem: {
     flexDirection: 'row',
@@ -169,22 +248,29 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     alignItems: 'center',
   },
+  drawerSubItem: {
+    paddingLeft: 40, // Indent submodule items
+    flexDirection: 'row',
+    paddingVertical: 5,
+    alignItems: 'center',
+  },
   drawerItemText: {
     marginLeft: 50,
     fontSize: 13,
   },
+  drawerSubItemText: {
+    fontSize: 13,
+  },
   drawerSectionTitle: {
-    paddingTop:-1,
+    paddingTop: -1,
     marginLeft: 10,
     fontSize: 14,
     fontWeight: 'bold',
   },
   drawerImage: {
-    width: 30,   
-    height: 30, 
-    marginRight: 10, 
-  
- 
+    width: 30,
+    height: 30,
+    marginRight: 10,
   },
 });
 

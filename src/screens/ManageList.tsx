@@ -158,6 +158,27 @@ const ManageList: React.FC = () => {
     </DataTable.Cell>
     <DataTable.Cell>{module.created_by || "N/A"}</DataTable.Cell>
     <DataTable.Cell>{module.updated_by || "N/A"}</DataTable.Cell> */}
+
+<DataTable.Cell>
+                <Menu
+                  visible={actionsVisible}
+                  onDismiss={toggleMenu}
+                  anchor={
+                    <TouchableOpacity onPress={toggleMenu}>
+                      <IconButton icon="dots-vertical" size={20} />
+                    </TouchableOpacity>
+                  }>
+                  <Menu.Item
+                    onPress={() => console.log('Edit Permissions')}
+                    title="Edit Permissions"
+                  />
+                  <Menu.Item
+                    onPress={() => console.log('Activate/Deactivate')}
+                    title="Activate/Deactivate"
+                  />
+                  <Menu.Item onPress={() => console.log('Delete')} title="Delete" />
+                </Menu>
+              </DataTable.Cell>
   </DataTable.Row>
 ))}
 

@@ -55,8 +55,8 @@ const ManageAss: React.FC = () => {
         'https://underbuiltapi.aadhidigital.com/master/modules'
       );
       const data = await response.json();
-      console.log('Fetched Modules:', JSON.stringify(data, null, 2)); // Log data for debugging
-      setModules(data); // Store the module data
+      console.log('Fetched Modules:', JSON.stringify(data, null, 2)); 
+      setModules(data); 
     } catch (error) {
       console.error('Error fetching modules:', error);
     } finally {
@@ -65,32 +65,36 @@ const ManageAss: React.FC = () => {
   };
   const fetchRoleModules = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_role_vs_modules?role_id=3');
+        const encodedRoleId = await AsyncStorage.getItem('UserType');
+        const decodedRoleId = decodeBase64(encodedRoleId ?? ''); 
+      const response = await fetch(`https://underbuiltapi.aadhidigital.com/master/get_role_vs_modules?role_id=${decodedRoleId}`);
       const responseData = await response.json();
       console.log('Fetched Role:', JSON.stringify(responseData, null, 2)); 
+      
       // Extract role_vs_modules array from the response
       const roleModules = responseData.data?.role_vs_modules || [];
   
       if (response.ok) {
         // Create a map of module_id to is_active status
         const moduleStatusMap = roleModules.reduce((acc: Record<number, boolean>, module: any) => {
-          acc[module.module_id] = module.is_active;
-          return acc;
-        }, {});
+            acc[module.module_id] = module.is_active;
+            return acc;
+          }, {});
   
         // Recursive function to update modules and submodules with is_active
         const updateModules = (moduleList: Module[]): Module[] => {
-          return moduleList.map((module) => ({
-            ...module,
-            is_active: !!moduleStatusMap[module.module_id], // Update `is_active` from map
-            sub_modules: module.sub_modules
-              ? updateModules(module.sub_modules) // Recursively update submodules
-              : [],
-          }));
-        };
+            return moduleList.map((module) => ({
+              ...module,
+              is_active: !!moduleStatusMap[module.module_id], 
+              sub_modules: module.sub_modules
+                ? updateModules(module.sub_modules) 
+                : [],
+            }));
+          };
   
         // Update modules state with the new structure
         //setModules((prevModules) => updateModules(prevModules));
+        setModules(updateModules(modules));
       } else {
         console.error('Error fetching role modules:', responseData);
       }
@@ -145,19 +149,42 @@ const ManageAss: React.FC = () => {
     const combinedModuleIds = [...moduleIds, ...submoduleIds];
   
     if (combinedModuleIds.length === 0) {
-      Alert.alert('No modules or submodules selected.');
-      return;
-    }
+      
+        const payload = {
+          id: 0,
+          modules: "",  // Empty string indicating no modules selected
+          role_id: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
+          created_by: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
+        };
+    
+        try {
+          const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+    
+          if (!response.ok) throw new Error(`Failed to save data. Status: ${response.status}`);
+          Alert.alert('Data saved successfully!');
+        } catch (error) {
+          console.error('Error sending data:', error);
+          Alert.alert('Failed to save data. Please try again.');
+        }
+    
+        return;  // Exit early after sending the blank payload
+      }
   
     try {
+        const encodedRoleId = await AsyncStorage.getItem('UserType');
+          const decodedRoleId = decodeBase64(encodedRoleId ?? ''); 
       const UserType = decodeBase64(await AsyncStorage.getItem('UserType') ?? '');
       console.log('Decoded UserType:', UserType);
   
       const payload = {
         id: 0,
-        modules: combinedModuleIds.join(','),  // Ensure combined IDs are joined by a comma
-        role_id: 3,
-        created_by: UserType,  // Send created_by as the decoded UserType
+        modules: combinedModuleIds.length > 0 ? combinedModuleIds.join(',') : "", 
+        role_id: decodedRoleId ,
+        created_by: UserType,  
       };
   
       console.log('Sending Combined Payload:', JSON.stringify(payload, null, 2));
@@ -275,6 +302,7 @@ const ManageAss: React.FC = () => {
           const activeSubmodules = module.sub_modules.filter(submodule => submodule.is_active);
           console.log(`Active Submodules for Module "${module.module_name}":`, JSON.stringify(activeSubmodules, null, 2));
         }
+
       });
   
       // Send the updated data
@@ -297,12 +325,12 @@ const ManageAss: React.FC = () => {
       <DataTable style={styles.tableHeaderCell}>
         {/* Table Header */}
         <DataTable.Header>
-          <DataTable.Title style={styles.checkboxTitle}>
+          {/* <DataTable.Title style={styles.checkboxTitle}>
             <CheckBox
               value={allSelected}
               onValueChange={handleSelectAll}
             />
-          </DataTable.Title>
+          </DataTable.Title> */}
           <DataTable.Title>S. No.</DataTable.Title>
           <DataTable.Title>Role Master Data</DataTable.Title>
           <DataTable.Title>View Modules Assigned</DataTable.Title>
@@ -313,12 +341,12 @@ const ManageAss: React.FC = () => {
         <ScrollView showsVerticalScrollIndicator={false}>
           {users.map((user, index) => (
             <DataTable.Row style={styles.table} key={user.id}>
-              <DataTable.Cell style={styles.checkboxCell}>
+              {/* <DataTable.Cell style={styles.checkboxCell}>
                 <CheckBox
                   value={selectedUsers.includes(user.id)}
                   onValueChange={() => handleUserSelect(user.id)}
                 />
-              </DataTable.Cell>
+              </DataTable.Cell> */}
               <DataTable.Cell>{index + 1}</DataTable.Cell>
               <DataTable.Cell>{user.roleMaster}</DataTable.Cell>
               <DataTable.Cell>
