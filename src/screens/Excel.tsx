@@ -136,6 +136,7 @@ const Excel = () => {
 
 
     <View style={styles.container}>
+      <View style={styles.topContainer}>
       <View style={styles.buttonContainer}>
         <Button title="Import Excel File" onPress={handleFilePicker} />
         {excelData.length > 0 && !modalVisible && (
@@ -144,6 +145,7 @@ const Excel = () => {
       </View>
       <View style={styles.manageUsersContainer}>
         <Text style={styles.heading}>Imported data</Text>
+      </View>
       </View>
 
 
@@ -248,16 +250,25 @@ const Excel = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
+    //flex: 1,
+    justifyContent: 'flex-start',
     alignItems: 'center',
     backgroundColor: '#f5f5f5',
+    
+  },
+  topContainer: {
+    justifyContent: 'flex-start', 
+    alignItems: 'center',        
+    marginTop: 20,   
+             
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     padding: 10,
+    gap:15
+   
   },
   modalBackground: {
     flex: 1,

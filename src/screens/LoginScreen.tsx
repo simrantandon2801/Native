@@ -20,7 +20,7 @@ export type HomeStackNavigatorParamList = {
     LoginScreen: {};
     WelcomeScreen: {};
     Main:undefined;
-    SignupScreen:{}
+    SignupScreen:undefined
   };
 
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
@@ -80,7 +80,7 @@ const LoginScreen: React.FC = () => {
             if (UserType === '1' || userrole === 1) {
               console.log('Decoded UserType:', UserType);
               console.log('Navigating to Main screen');
-              navigation.replace('Main');
+              navigate('Main', { screen: 'SignupScreen' });
             } 
             if (UserType === '2' || userrole === 2) {
               console.log('Decoded UserType:', UserType); 

@@ -319,7 +319,7 @@ const ManageUsers: React.FC = () => {
           animationType="none"
           transparent={true}
           onRequestClose={() => setisAddUserModalVisible(false)}>
-        {/*   <ScrollView contentContainerStyle={styles.modalScrollContainer}> */}
+          <ScrollView contentContainerStyle={styles.modalScrollContainer}> 
             <View style={styles.modalOverlay}>
               <View style={styles.modalContainer}>
                 <Text style={styles.modalHeader}>Add New User</Text>
@@ -518,7 +518,7 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
             </View>
-         {/*  </ScrollView> */}
+          </ScrollView>
         </Modal>
       {/* </ScrollView> */}
 
@@ -727,8 +727,8 @@ const styles = StyleSheet.create({
   },
   modalScrollContainer:{
     flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    //justifyContent: 'center',
+    //alignItems: 'center',
   }
 });
 

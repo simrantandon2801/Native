@@ -188,7 +188,7 @@ const handleAssign = () => { console.log('Assign action for user:', selectedUser
         
           <DataTable.Title>S. No.</DataTable.Title>
           <DataTable.Title>Role</DataTable.Title>
-        
+          <DataTable.Title>Assign module</DataTable.Title>
           <DataTable.Title>Action</DataTable.Title>
         </DataTable.Header>
 
@@ -199,6 +199,12 @@ const handleAssign = () => { console.log('Assign action for user:', selectedUser
            
             <DataTable.Cell>{index + 1}</DataTable.Cell>
             <DataTable.Cell>{user.role_name}</DataTable.Cell>
+            <DataTable.Cell>
+            <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.viewModulesContainer}>
+                  <IconButton  size={20} color="'#044086'" />
+                  <Text style={styles.viewModulesText}>View Modules</Text>
+                </TouchableOpacity>
+                </DataTable.Cell>
             <DataTable.Cell> 
               <TouchableOpacity onPress={() => { setSelectedUser(user); setRoleInput(user.role_name); setIsActionModalVisible(true); }} >
                  <IconButton icon="dots-vertical" size={20} />
