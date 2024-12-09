@@ -16,7 +16,9 @@ import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { decodeBase64 } from '../core/securedata';
 import Excel from '../screens/Excel';
-
+import DepartmentList from '../screens/DepartmentList';
+import RoleMaster from '../screens/RoleMaster';
+import ADIntegration from '../screens/ADIntegration';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
@@ -225,7 +227,10 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="SignupScreen" component={SignupScreen} />
           <Drawer.Screen name="ManageUsers" component={ManageUsers} />
           <Drawer.Screen name="LoginScreen" component={LoginScreen} /> 
+          <Drawer.Screen name="DepartmentList" component={DepartmentList} />
+          <Drawer.Screen name="RoleMaster" component={RoleMaster} />
           <Drawer.Screen name="Excel" component={Excel} /> 
+          <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}

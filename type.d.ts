@@ -10,6 +10,7 @@ export type HomeStackNavigatorParamList = {
   ManageList:{};
   ManageAss:{};
   Excel:{},
+  SignupScreen:{},
 ManageUsers:{}
 };
 export type HomeScreenNavigationProp =

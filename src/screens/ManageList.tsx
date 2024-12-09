@@ -126,10 +126,10 @@ const ManageList: React.FC = () => {
 
       {/* Action Bar */}
       <View style={styles.actions}>
-        <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
+      {/*   <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
           <IconButton icon="trash-can-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, { color: '#344054' }]}>Delete</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <View style={styles.middleActions}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -140,10 +140,10 @@ const ManageList: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
+       {/*  <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} color="#344054" />
           <Text style={[styles.actionText, { color: '#344054' }]}>Filters</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Table Section */}
@@ -156,13 +156,13 @@ const ManageList: React.FC = () => {
           <DataTable.Title>URL</DataTable.Title>
           <DataTable.Title>Status</DataTable.Title>
           <DataTable.Title>Created at</DataTable.Title>
-          <DataTable.Title>Action</DataTable.Title>
+        {/*   <DataTable.Title>Action</DataTable.Title> */}
           {/* <DataTable.Title>Updated at</DataTable.Title>
           <DataTable.Title>Created by</DataTable.Title>
           <DataTable.Title>Updated by</DataTable.Title> */}
         </DataTable.Header>
 
-        <ScrollView>
+        <ScrollView style={{maxHeight:500,}} >
         {modules.map((module, index) => (
   <DataTable.Row key={module.module_id}>
     <DataTable.Cell>{index + 1}</DataTable.Cell>
@@ -184,7 +184,7 @@ const ManageList: React.FC = () => {
     <DataTable.Cell>{module.created_by || "N/A"}</DataTable.Cell>
     <DataTable.Cell>{module.updated_by || "N/A"}</DataTable.Cell> */}
 
-<DataTable.Cell>
+{/* <DataTable.Cell>
                 <Menu
                   visible={actionsVisible}
                   onDismiss={toggleMenu}
@@ -203,7 +203,7 @@ const ManageList: React.FC = () => {
                   />
                   <Menu.Item onPress={() => console.log('Delete')} title="Delete" />
                 </Menu>
-              </DataTable.Cell>
+              </DataTable.Cell> */}
   </DataTable.Row>
 ))}
 

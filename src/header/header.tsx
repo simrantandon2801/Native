@@ -11,6 +11,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackNavigatorParamList } from '../../type';
 import LoginScreen from '../screens/LoginScreen';
+import { navigate } from '../navigations/RootNavigation';
 
 
 export type HeaderNavigationProp = NativeStackScreenProps<HomeStackNavigatorParamList, 'Main'>;
@@ -60,7 +61,7 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
     // Logout logic
     await AsyncStorage.clear();
     setUserType(null);
- 
+ navigate(LoginScreen)
       //navigation.navigate();
   
     setModalVisible(false);

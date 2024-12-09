@@ -10,6 +10,8 @@ import {darkThemeColors, lightThemeColors} from './src/core/Colors';
 import {navigationRef} from './src/navigations/RootNavigation';
 import {HomeStackNavigatorParamList} from './type';
 import { LogBox } from 'react-native';
+import SignupScreen from './src/screens/SignupScreen';
+
 
 const Stack = createNativeStackNavigator<HomeStackNavigatorParamList>();
 LogBox.ignoreLogs([
@@ -27,6 +29,11 @@ const App: React.FC = () => {
           <Stack.Screen
             name="LoginScreen"
             component={LoginScreen}
+            options={{headerShown: false}}
+          />
+          <Stack.Screen
+            name="SignUpScreen"
+            component={SignupScreen}
             options={{headerShown: false}}
           />
 

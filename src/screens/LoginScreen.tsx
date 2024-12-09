@@ -14,10 +14,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import WelcomeScreen from './WelcomeScreen';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ReCaptchaV3 from 'react-native-recaptcha-v3';
+import { navigate } from '../navigations/RootNavigation';
+import SignupScreen from './SignupScreen';
 export type HomeStackNavigatorParamList = {
     LoginScreen: {};
     WelcomeScreen: {};
     Main:undefined;
+    SignupScreen:{}
   };
 
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
@@ -74,6 +77,11 @@ const LoginScreen: React.FC = () => {
               console.log('Navigating to Main screen');
               navigation.replace('Main');
             } 
+            if (UserType === '1' || userrole === 1) {
+              console.log('Decoded UserType:', UserType);
+              console.log('Navigating to Main screen');
+              navigation.replace('Main');
+            } 
             if (UserType === '2' || userrole === 2) {
               console.log('Decoded UserType:', UserType); 
               console.log('Navigating to Main screen');
@@ -116,7 +124,7 @@ const LoginScreen: React.FC = () => {
         <View style={styles.formContainer}>
           <ScrollView contentContainerStyle={styles.formContent}
           showsVerticalScrollIndicator={false}>
-            <Text style={styles.heading}>Log in to Forge PPM</Text>
+            <Text style={styles.heading}>Log in to ForgePortfolioXpert</Text>
 
             {/* Email Input */}
             <TextInput

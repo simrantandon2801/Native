@@ -209,12 +209,12 @@ const ManageAss: React.FC = () => {
   const users: User[] = [
     {
       id: 1,
-      roleMaster: 'Marcus',
+      roleMaster: 'Customer Admin',
       ViewModulesAssigned: 'ViewModule',
     },
     {
       id: 2,
-      roleMaster: 'John Wick',
+      roleMaster: 'Project Manager',
       ViewModulesAssigned: 'ViewModule',
     },
   ];
@@ -335,9 +335,9 @@ const ManageAss: React.FC = () => {
             />
           </DataTable.Title> */}
           <DataTable.Title>S. No.</DataTable.Title>
-          <DataTable.Title>Role Master Data</DataTable.Title>
+          <DataTable.Title>Role Name</DataTable.Title>
           <DataTable.Title>View Modules Assigned</DataTable.Title>
-          <DataTable.Title>Actions</DataTable.Title>
+      {/*     <DataTable.Title>Actions</DataTable.Title> */}
         </DataTable.Header>
 
         {/* Table Rows */}
@@ -354,12 +354,12 @@ const ManageAss: React.FC = () => {
               <DataTable.Cell>{user.roleMaster}</DataTable.Cell>
               <DataTable.Cell>
                 <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.viewModulesContainer}>
-                  <IconButton icon="eye-outline" size={20} color="'#044086'" />
+                  <IconButton  size={20} color="'#044086'" />
                   <Text style={styles.viewModulesText}>View Modules</Text>
                 </TouchableOpacity>
               </DataTable.Cell>
 
-              <DataTable.Cell>
+              {/* <DataTable.Cell>
                 <Menu
                   visible={actionsVisible}
                   onDismiss={toggleMenu}
@@ -378,7 +378,7 @@ const ManageAss: React.FC = () => {
                   />
                   <Menu.Item onPress={() => console.log('Delete')} title="Delete" />
                 </Menu>
-              </DataTable.Cell>
+              </DataTable.Cell> */}
             </DataTable.Row>
           ))}
         </ScrollView>
@@ -392,7 +392,7 @@ const ManageAss: React.FC = () => {
         transparent={true}>
         <ScrollView contentContainerStyle={styles.modalScrollContainer}>
           <View style={styles.modalContainer}>
-          <Text style={styles.modalHeader}> - Module Assignment</Text>
+          <Text style={styles.modalHeader}>View Assigned Modules</Text>
           <View style={styles.dropdownContainer}>
               </View>
       <View style={styles.expandableContainer}>
@@ -455,20 +455,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center', // Ensure the checkbox aligns with the text
   },
-  modalContainer: {
-    width: '50%', 
-    height: '60%', 
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
+    modalContainer: {
+      width: '50%', 
+      maxHeight: '90%', 
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'white',
+      padding: 20,
+      borderRadius: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 5,
+    },
   modalHeader: {
     fontSize: 20,
     fontWeight: 'bold',
