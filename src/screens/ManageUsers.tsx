@@ -11,7 +11,10 @@ import {
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
-
+import { HomeStackNavigatorParamList } from '../../type';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
+import { navigate } from '../navigations/RootNavigation';
 // Define the User type to ensure type safety
 interface User {
   id: number;
@@ -27,6 +30,9 @@ interface User {
   status: string;
   permission: string;
 }
+
+ 
+type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'ManageUsers'>;
 const {height} = Dimensions.get('window');
 const ManageUsers: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -35,7 +41,7 @@ const ManageUsers: React.FC = () => {
   const [manager, setManager] = useState('');
   const [Designation, setDesignation] = useState('');
   const [actionsVisible, setActionsvisible] = useState(false); // State to control menu visibility
-
+  const navigation = useNavigation<NavigationProp>();
   const toggleMenu = () => setActionsvisible(prev => !prev);
   const users: User[] = [
     {
@@ -104,6 +110,10 @@ const ManageUsers: React.FC = () => {
           <TouchableOpacity style={styles.actionButton}>
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
+            <IconButton icon="sync" size={16} color="#044086" />
+            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>

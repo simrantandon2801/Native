@@ -23,7 +23,7 @@ export type HomeStackNavigatorParamList = {
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
 const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState<string>('info@test.com');
+  const [email, setEmail] = useState<string>('customeradmin@forgeportfolioxpert.com');
   const [password, setPassword] = useState<string>('lsipl');
   const navigation = useNavigation<NavigationProp>();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);  //captcha

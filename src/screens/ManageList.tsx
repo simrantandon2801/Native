@@ -39,7 +39,32 @@ const ManageList: React.FC = () => {
   const [parentmodule, setParentmodule] = useState('');
   const [actionsVisible, setActionsvisible] = useState(false); // State to control menu visibility
   const [modules, setModules] = useState<Module[]>([]);
-
+  const [parentModules, setParentModules] = useState<any[]>([]);
+  const fetchParentModules = async () => {
+    try {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_modules');
+      const data = await response.json();
+      console.log('Raw API Response:', data);
+  
+      if (data.status === 'success' && data.data && Array.isArray(data.data.modules)) {
+        const parentModules = data.data.modules.map((module) => ({
+          label: module.module_name || 'Unnamed Module', 
+          value: module.module_id.toString(), 
+        }));
+        console.log('Mapped Parent Modules:', parentModules);
+        setParentModules(parentModules);
+      } else {
+        console.error('Unexpected API response format:', data);
+      }
+    } catch (error) {
+      console.error('Error fetching parent modules:', error);
+    }
+  };
+  
+  useEffect(() => {
+    console.log('Calling fetchParentModules...');
+    fetchParentModules();
+  }, []);
   const toggleMenu = () => setActionsvisible(prev => !prev);
 
   const submitHandler = async () => {
@@ -49,7 +74,7 @@ const ManageList: React.FC = () => {
         
         module_name: modulename, 
         module_level: 'Level 1', 
-        parent_module_id: 0,
+        parent_module_id: parentmodule,
         url:url,
         order_id:display
 
@@ -198,21 +223,19 @@ const ManageList: React.FC = () => {
 
             <View style={styles.inputRow}>
               <View style={styles.inputWrapper}>
-                <Text style={styles.label}>* Parent Module</Text>
+                <Text style={styles.label} >* Parent Module</Text>
                 <Picker
-                  selectedValue={parentmodule}
-                  onValueChange={itemValue => setParentmodule(itemValue)}
-                  style={styles.picker}>
-                  <Picker.Item label="UX Designing" value="UX Designing" />
-                  <Picker.Item
-                    label="Web Development"
-                    value="Web Development"
-                  />
-                  <Picker.Item
-                    label="Project Management"
-                    value="Project Management"
-                  />
-                </Picker>
+  selectedValue={parentmodule} 
+  onValueChange={(itemValue) => setParentmodule(itemValue)} 
+>
+  {parentModules.map((module) => (
+    <Picker.Item 
+      key={module.module_name} 
+      label={module.label}  
+      value={module.parent_module_id}  
+    />
+  ))}
+</Picker>
               </View>
             </View>
             <View style={styles.inputRow}>
