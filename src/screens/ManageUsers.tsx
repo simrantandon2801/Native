@@ -234,10 +234,10 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title>Department</DataTable.Title>
           <DataTable.Title>Reporting Manager</DataTable.Title>
           <DataTable.Title>Projects Active</DataTable.Title>
-          <DataTable.Title>Approval Limit</DataTable.Title>
-          <DataTable.Title>Average Cost</DataTable.Title>
+          {/* <DataTable.Title>Approval Limit</DataTable.Title> */}
+         {/*  <DataTable.Title>Average Cost</DataTable.Title> */}
           <DataTable.Title>Active/ Inactive</DataTable.Title>
-          <DataTable.Title>Permissions</DataTable.Title>
+       {/*    <DataTable.Title>Permissions</DataTable.Title> */}
           <DataTable.Title>Actions</DataTable.Title>
         </DataTable.Header>
 
@@ -267,12 +267,12 @@ const ManageUsers: React.FC = () => {
               {/* Reporting Manager: Using reporting_to (ID) */}
               <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '}
               {/* Placeholder for Projects Active */}
-              <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
-              <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '}
+            {/*   <DataTable.Cell>{user.approval_limit}</DataTable.Cell> */}
+              {/* <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '} */}
               {/* Placeholder for Average Cost */}
               <DataTable.Cell>{'Active'}</DataTable.Cell>{' '}
               {/* Placeholder for Active/Inactive */}
-              <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '}
+            {/*   <DataTable.Cell>{'N/A'}</DataTable.Cell>{' '} */}
               {/* Placeholder for Permissions */}
               <DataTable.Cell>
                 <Menu

@@ -107,9 +107,84 @@ const SignupScreen = () => {
 
         <View style={[styles.paperContainer, { width: deviceWidth > 600 ? '50%' : '90%' }]}>
           <View style={styles.row}>
+          <TextInput
+              style={[styles.input, { marginLeft: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Company Name <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={companyName}
+              onChangeText={(text) => {
+                setCompanyName(text);
+                setErrors({ ...errors, companyName: '' });
+              }}
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+             <TextInput
+              style={[styles.input, { marginRight: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Company Email<Text style={{ color: 'red' }}>*</Text></Text>}
+              value={companyEmail}
+              onChangeText={(text) => {
+                setCompanyEmail(text);
+                setErrors({ ...errors, companyEmail: '' });
+              }}
+              keyboardType="email-address"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+           
+          </View>
+          <View style={styles.row}>
+          <TextInput
+              style={[styles.input, { marginLeft: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Company Contact Number <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={companyContact}
+              onChangeText={(text) => {
+                setCompanyContact(text);
+                setErrors({ ...errors, companyContact: '' });
+              }}
+              keyboardType="phone-pad"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
             <TextInput
               style={[styles.input, { marginRight: 10 }]}
-              label={<Text style={{ color: '#044086' }}>First Name <Text style={{ color: 'red' }}>*</Text></Text>}
+              label={<Text style={{ color: '#044086' }}>Admin Email <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={techAdminEmail}
+              onChangeText={(text) => {
+                setTechAdminEmail(text);
+                setErrors({ ...errors, techAdminEmail: '' });
+              }}
+              keyboardType="email-address"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+           
+          </View>
+
+
+          <View style={styles.row}>
+          <TextInput
+              style={[styles.input, { marginRight: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Admin First Name <Text style={{ color: 'red' }}>*</Text></Text>}
               value={FirstName}
               onChangeText={(text) => {
                 setFirstName(text);
@@ -129,7 +204,7 @@ const SignupScreen = () => {
 
             <TextInput
               style={[styles.input, { marginLeft: 10 }]}
-              label={<Text style={{ color: '#044086' }}>Last Name <Text style={{ color: 'red' }}>*</Text></Text>}
+              label={<Text style={{ color: '#044086' }}>Admin Last Name <Text style={{ color: 'red' }}>*</Text></Text>}
               value={LastName}
               onChangeText={(text) => {
                 setLastName(text);
@@ -143,9 +218,13 @@ const SignupScreen = () => {
                 },
               }}
             />
+            
+
+           
           </View>
+
           <View style={styles.row}>
-            <TextInput
+          <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Username <Text style={{ color: 'red' }}>*</Text></Text>}
               value={username}
@@ -179,82 +258,8 @@ const SignupScreen = () => {
                 },
               }}
             />
-          </View>
 
-
-          <View style={styles.row}>
-            <TextInput
-              style={[styles.input, { marginRight: 10 }]}
-              label={<Text style={{ color: '#044086' }}>Tech Admin Email <Text style={{ color: 'red' }}>*</Text></Text>}
-              value={techAdminEmail}
-              onChangeText={(text) => {
-                setTechAdminEmail(text);
-                setErrors({ ...errors, techAdminEmail: '' });
-              }}
-              keyboardType="email-address"
-              underlineColor="#044086"
-              theme={{
-                colors: {
-                  primary: '#044086',
-                  text: '#044086',
-                },
-              }}
-            />
-
-            <TextInput
-              style={[styles.input, { marginLeft: 10 }]}
-              label={<Text style={{ color: '#044086' }}>Company Name <Text style={{ color: 'red' }}>*</Text></Text>}
-              value={companyName}
-              onChangeText={(text) => {
-                setCompanyName(text);
-                setErrors({ ...errors, companyName: '' });
-              }}
-              underlineColor="#044086"
-              theme={{
-                colors: {
-                  primary: '#044086',
-                  text: '#044086',
-                },
-              }}
-            />
-          </View>
-
-          <View style={styles.row}>
-            <TextInput
-              style={[styles.input, { marginRight: 10 }]}
-              label={<Text style={{ color: '#044086' }}>Company Email ID <Text style={{ color: 'red' }}>*</Text></Text>}
-              value={companyEmail}
-              onChangeText={(text) => {
-                setCompanyEmail(text);
-                setErrors({ ...errors, companyEmail: '' });
-              }}
-              keyboardType="email-address"
-              underlineColor="#044086"
-              theme={{
-                colors: {
-                  primary: '#044086',
-                  text: '#044086',
-                },
-              }}
-            />
-
-            <TextInput
-              style={[styles.input, { marginLeft: 10 }]}
-              label={<Text style={{ color: '#044086' }}>Company Contact Number <Text style={{ color: 'red' }}>*</Text></Text>}
-              value={companyContact}
-              onChangeText={(text) => {
-                setCompanyContact(text);
-                setErrors({ ...errors, companyContact: '' });
-              }}
-              keyboardType="phone-pad"
-              underlineColor="#044086"
-              theme={{
-                colors: {
-                  primary: '#044086',
-                  text: '#044086',
-                },
-              }}
-            />
+            
           </View>
 
           <Button
