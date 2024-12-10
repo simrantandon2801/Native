@@ -8,6 +8,7 @@ import google from './img/google.png';
 import okta from './img/okta.png';
 import micro from './img/micro.png';
 import apple from './img/apple.png';
+import forge11 from './img/forge11.png';
 const AppImages = {
   AppVersion: packageJson.version,
   //background: background,
@@ -25,7 +26,8 @@ const AppImages = {
   micro:micro,
   okta:okta,
   apple:apple,
-  google:google
+  google:google,
+  forge11:forge11,
 };
 
 export {AppImages};

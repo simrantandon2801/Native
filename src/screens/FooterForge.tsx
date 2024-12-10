@@ -7,6 +7,8 @@ const FooterForge: React.FC = () => {
   }
 
   return (
+
+    
     <View style={styles.footerContainer}>
       <Text style={styles.footerText}>
         © 2024. All Rights Reserved |{' '}

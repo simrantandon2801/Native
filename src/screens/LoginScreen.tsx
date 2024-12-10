@@ -13,7 +13,7 @@ import FooterForge from './FooterForge';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import WelcomeScreen from './WelcomeScreen';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
+import ReCaptchaV3 from 'react-native-recaptcha-v3';
 export type HomeStackNavigatorParamList = {
     LoginScreen: {};
     WelcomeScreen: {};
@@ -23,15 +23,23 @@ export type HomeStackNavigatorParamList = {
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
 const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState<string>('info@test.com');
+  const [email, setEmail] = useState<string>('customeradmin@forgeportfolioxpert.com');
   const [password, setPassword] = useState<string>('lsipl');
   const navigation = useNavigation<NavigationProp>();
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);  //captcha
   /*  const handleLogin = () => {
      Handle login logic here
       console.log('Email:', email);
       console.log('Password:', password);
     }; */
+
+
+    const recaptchaSiteKey = '6LdZ3ZQqAAAAAO4wf3jkq1Q_PXV49IwSwYb4ziq4'; 
     const handleLogin = async () => {
+  /*     if (!isCaptchaVerified) {
+        Alert.alert('Please complete the CAPTCHA');
+        return;
+      }else{ */
         //console.log('Email:', email);
         //console.log('Password:', password);
         const uri = 'https://underbuiltapi.aadhidigital.com/auth/login';
@@ -48,7 +56,7 @@ const LoginScreen: React.FC = () => {
             const { accessToken, user } = jsonResult.data;
             const { userId, userrole } = user;
       
-           
+            //setIsLoggedIn(true);
             await AsyncStorage.setItem('UserEmail', encodeBase64(email?.toLowerCase() || ''));
             await AsyncStorage.setItem('ID', encodeBase64(userId?.toString() || ''));
             await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
@@ -61,8 +69,13 @@ const LoginScreen: React.FC = () => {
             console.log('Decoded UserType:', UserType); 
       
            
-            if (UserType === 'admin' || userrole === 3) {
-             
+            if (UserType === '3' || userrole === 3) {
+              console.log('Decoded UserType:', UserType);
+              console.log('Navigating to Main screen');
+              navigation.replace('Main');
+            } 
+            if (UserType === '2' || userrole === 2) {
+              console.log('Decoded UserType:', UserType); 
               console.log('Navigating to Main screen');
               navigation.replace('Main');
             } else {
@@ -74,7 +87,7 @@ const LoginScreen: React.FC = () => {
         } catch (error) {
           console.error('Error logging in:', error);
           Alert.alert('An error occurred. Please try again later.');
-        }
+        }/* } */
       };
  /*  const handleLogin = () => {
     if (username === 'forgeppm' && password === 'lsipl') {
@@ -128,15 +141,26 @@ const LoginScreen: React.FC = () => {
                 <Text style={styles.showPasswordText}>👁</Text>
               </TouchableOpacity>
             </View>
+         {/*    <ReCaptchaV3 style={styles.captchaContainer}
+        siteKey={recaptchaSiteKey}
+        baseUrl="https://yourwebsite.com"
+        onVerify={(token:string) => {
+          console.log('reCAPTCHA Verified, Token:', token);
+          setIsCaptchaVerified(true); 
+        }}
+        onError={(error:string) => {
+          console.log('reCAPTCHA Error:', error);
+        }}
+      /> */}
 
             {/* CAPTCHA Placeholder */}
-            <View style={styles.captchaContainer}>
+            {/* <View style={styles.captchaContainer}>
               <Text>☑️ I'm not a robot</Text>
               <Image
                 source={{ uri: 'https://via.placeholder.com/150x50.png?text=CAPTCHA' }} 
                 style={styles.captchaImage}
               />
-            </View>
+            </View> */}
 
             {/* Login Button */}
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
