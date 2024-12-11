@@ -203,7 +203,7 @@ const ADIntegration = () => {
                     handleSave();
                   }}
                 >
-                  SUbmit
+                  Submit
                 </Button>
               </View>
         </View>
