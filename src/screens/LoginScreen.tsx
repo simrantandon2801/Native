@@ -14,10 +14,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import WelcomeScreen from './WelcomeScreen';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ReCaptchaV3 from 'react-native-recaptcha-v3';
+import { navigate } from '../navigations/RootNavigation';
+import SignupScreen from './SignupScreen';
 export type HomeStackNavigatorParamList = {
     LoginScreen: {};
     WelcomeScreen: {};
     Main:undefined;
+    SignupScreen:undefined
   };
 
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
@@ -50,17 +53,19 @@ const LoginScreen: React.FC = () => {
       
         try {
           const jsonResult = await PostAsync(uri, payload);
-        
+          console.log("login resposne", jsonResult.data)
       
           if (jsonResult.status === 'success') {
             const { accessToken, user } = jsonResult.data;
-            const { userId, userrole } = user;
+            const { userId, userrole, customer_id } = user;
       
             //setIsLoggedIn(true);
             await AsyncStorage.setItem('UserEmail', encodeBase64(email?.toLowerCase() || ''));
             await AsyncStorage.setItem('ID', encodeBase64(userId?.toString() || ''));
             await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
             //await AsyncStorage.setItem('ID', encodeBase64(userId));
+            await AsyncStorage.setItem('Customer ID', encodeBase64(customer_id?.toString() || ''));
+
             await AsyncStorage.setItem('UserType', encodeBase64(userrole.toString()));
       
            
@@ -73,6 +78,11 @@ const LoginScreen: React.FC = () => {
               console.log('Decoded UserType:', UserType);
               console.log('Navigating to Main screen');
               navigation.replace('Main');
+            } 
+            if (UserType === '1' || userrole === 1) {
+              console.log('Decoded UserType:', UserType);
+              console.log('Navigating to Main screen');
+              navigate('Main', { screen: 'SignupScreen' });
             } 
             if (UserType === '2' || userrole === 2) {
               console.log('Decoded UserType:', UserType); 
@@ -116,7 +126,7 @@ const LoginScreen: React.FC = () => {
         <View style={styles.formContainer}>
           <ScrollView contentContainerStyle={styles.formContent}
           showsVerticalScrollIndicator={false}>
-            <Text style={styles.heading}>Log in to Forge PPM</Text>
+            <Text style={styles.heading}>Log in to ForgePortfolioXpert</Text>
 
             {/* Email Input */}
             <TextInput

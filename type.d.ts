@@ -9,6 +9,9 @@ export type HomeStackNavigatorParamList = {
   Main: undefined;
   ManageList:{};
   ManageAss:{};
+  Excel:{},
+  SignupScreen:{},
+ManageUsers:{}
 };
 export type HomeScreenNavigationProp =
   NativeStackScreenProps<AssignBoothManageSchedule>;

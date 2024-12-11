@@ -5,7 +5,7 @@ export const GetUsers = async (query:string): Promise<string> => {
   try {
     //debugger;
     //const UserID = await AsyncStorage.getItem('UserID');
-    var uri = 'https://underbuiltapi.aadhidigital.com//master/get_users';
+    var uri = 'https://underbuiltapi.aadhidigital.com/master/get_users';
     //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
     const token = await AsyncStorage.getItem('Token');
     console.log(uri);
@@ -41,7 +41,7 @@ export const addUser  = async (values: Object): Promise<string> => {
   try {
     // 
      //const UserID = await AsyncStorage.getItem('UserID');
-     var uri = `https://underbuiltapi.aadhidigital.com/master/insert_users`;
+     var uri = `https://underbuiltapi.aadhidigital.com/master/insert_users_with_role`;
      //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
      const token = await AsyncStorage.getItem('Token');  
      console.log(uri);
@@ -58,6 +58,45 @@ export const addUser  = async (values: Object): Promise<string> => {
    }
 };
 
+export const DeleteUser = async (values: Object): Promise<string> => {
+   
+  try {
+    // 
+     //const UserID = await AsyncStorage.getItem('UserID');
+     var uri = 'https://underbuiltapi.aadhidigital.com/master/delete_users';
+     //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+     const token = await AsyncStorage.getItem('Token');  
+     console.log(uri);
+     var payload = JSON.stringify(values);
+     console.log(payload);
+     var jsonResult = await PostAsync_with_token(uri, payload,token);
+     //  
+     //
+     console.log(jsonResult);
+     return JSON.stringify(jsonResult ?? '');
+   } catch (error) {
+     console.error(error);
+     throw Error('Failed' + error);
+   }
+};
+
+export const GetUserPermission = async (query:string): Promise<string> => {
+  try {
+    //debugger;
+    //const UserID = await AsyncStorage.getItem('UserID');
+    var uri = `https://underbuiltapi.aadhidigital.com/master/get_user_permissions + ${query}`;
+    //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+    const token = await AsyncStorage.getItem('Token');
+    console.log(uri);
+    var jsonResult = await GetAsync_with_token(uri, token);
+    console.log(jsonResult);
+    //debugger;
+    return JSON.stringify(jsonResult ?? '');
+  } catch (error) {
+    console.error(error);
+    throw Error('Failed' + error);
+  }
+};
 
 
 

@@ -11,6 +11,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackNavigatorParamList } from '../../type';
 import LoginScreen from '../screens/LoginScreen';
+import { navigate } from '../navigations/RootNavigation';
 
 
 export type HeaderNavigationProp = NativeStackScreenProps<HomeStackNavigatorParamList, 'Main'>;
@@ -60,7 +61,7 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
     // Logout logic
     await AsyncStorage.clear();
     setUserType(null);
- 
+ navigate(LoginScreen);
       //navigation.navigate();
   
     setModalVisible(false);
@@ -75,7 +76,7 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
 
       <View style={styles.centerContainer}>
         <View style={styles.searchInputContainer}>
-          <SearchLogo />
+          {/* <SearchLogo /> */}
           <TextInput
             style={styles.searchInput}
             placeholder="Search any Project"
@@ -186,10 +187,10 @@ const styles = StyleSheet.create({
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '80%',
+    width: '90%',
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderRadius: 20,
+    //borderRadius: 20,
     borderColor: '#ccc',
     backgroundColor: '#fff',
   },
@@ -197,6 +198,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 5,
     fontSize: 16,
+   
+    
   },
   icon: {
     marginLeft: 15,

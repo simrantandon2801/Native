@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, Text, ScrollView ,Modal, } from 'react-native';
-
+import { View, StyleSheet, Alert, Text, ScrollView, Modal } from 'react-native';
 import { TextInput, PaperProvider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
-import { Button,ActivityIndicator } from 'react-native-paper';
+import { Button, ActivityIndicator } from 'react-native-paper';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type HomeStackNavigatorParamList = {
@@ -24,6 +23,8 @@ const SignupScreen = () => {
   const [LastName, setLastName] = useState<string>('');
   const [techAdminEmail, setTechAdminEmail] = useState<string>('');
   const [companyName, setCompanyName] = useState<string>('');
+  const [username, setUsername] = useState<string>(''); // New state for username
+  const [password, setPassword] = useState<string>(''); 
   const [companyEmail, setCompanyEmail] = useState<string>('');
   const [companyContact, setCompanyContact] = useState<string>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -48,24 +49,24 @@ const SignupScreen = () => {
 
     setErrors(tempErrors);
 
-    
     if (Object.keys(tempErrors).length > 0) return;
 
-    
     const payload = {
-      username: "wjesswhdeeeedww",
-      first_name: "Jssoeeehnfjwwjdd",
-      last_name: "Doesdeeejfjwwdd",
-      tech_admin_email: "joewhsdn.doe1@example.com",
-      company_name: "TecweewsshCdorpdss",
-      contact_email: "tweeeewcsdhd1f@gmail.com",
-      contact_phone: "8130233973",
+      username: username,
+      contact_first_name: FirstName,
+      contact_last_name: LastName,
+      tech_admin_email: techAdminEmail,
+      company_name: companyName,
+      contact_email: companyEmail,
+      contact_phone: companyContact,
+      password:password,
+
       role_id: 3,
     };
-    
-    console.log('Payload being sent:', JSON.stringify(payload)); 
+
+    console.log('Payload being sent:', JSON.stringify(payload));
     setIsLoading(true);
-    
+
     async function registerUser() {
       try {
         const response = await fetch('https://underbuiltapi.aadhidigital.com/auth/Register', {
@@ -75,17 +76,17 @@ const SignupScreen = () => {
           },
           body: JSON.stringify(payload),
         });
-    
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-    
+
         const data = await response.json();
         console.log('API Response:', data);
-    
+
         if (data.status === 'success') {
           console.log('User registered successfully.');
-          setModalVisible(true);  
+          setModalVisible(true);
         } else {
           console.error('Error in registration:', data.message || 'Unknown error');
         }
@@ -95,12 +96,8 @@ const SignupScreen = () => {
         setIsLoading(false);
       }
     }
-    
-    
-   
+
     registerUser();
-    
-    
   };
 
   return (
@@ -108,168 +105,203 @@ const SignupScreen = () => {
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
         <Text style={styles.heading}>Customer Registration</Text>
 
-        <View style={[styles.paperContainer, { width: deviceWidth > 600 ? '30%' : '90%' }]}>
+        <View style={[styles.paperContainer, { width: deviceWidth > 600 ? '50%' : '90%' }]}>
+          <View style={styles.row}>
           <TextInput
-            style={styles.input}
-            label={<Text style={{ color: '#044086' }}>First Name <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={FirstName}
-            onChangeText={(text) => {
-              setFirstName(text);
-              setErrors({ ...errors, FirstName: '' });
-            }}
+              style={[styles.input, { marginLeft: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Company Name <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={companyName}
+              onChangeText={(text) => {
+                setCompanyName(text);
+                setErrors({ ...errors, companyName: '' });
+              }}
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+             <TextInput
+              style={[styles.input, { marginRight: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Company Email<Text style={{ color: 'red' }}>*</Text></Text>}
+              value={companyEmail}
+              onChangeText={(text) => {
+                setCompanyEmail(text);
+                setErrors({ ...errors, companyEmail: '' });
+              }}
+              keyboardType="email-address"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
            
-            placeholderTextColor="#044086"
-            underlineColor="#044086"
-            theme={{
-              colors: {
-                primary: '#044086',
-                text: '#044086',
-                placeholder: '#044086',
-              },
-            }}
-          />
-
-          <TextInput
-            style={styles.input}
-            label={<Text style={{ color: '#044086' }}>Last Name <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={LastName}
-            onChangeText={(text) => {
-              setLastName(text);
-              setErrors({ ...errors, LastName: '' });
-            }}
-            underlineColor="#044086"
-            theme={{
-              colors: {
-                primary: '#044086',
-                text: '#044086',
-              },
-            }}
-          />
-
-          <TextInput
-            style={styles.input}
-            label={<Text style={{ color: '#044086' }}>Tech Admin Email <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={techAdminEmail}
-            onChangeText={(text) => {
-              setTechAdminEmail(text);
-              setErrors({ ...errors, techAdminEmail: '' });
-            }}
-            keyboardType="email-address"
-            underlineColor="#044086"
-            theme={{
-              colors: {
-                primary: '#044086',
-                text: '#044086',
-              },
-            }}
-          />
-
-          <TextInput
-            style={styles.input}
-            label={<Text style={{ color: '#044086' }}>Company Name <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={companyName}
-            onChangeText={(text) => {
-              setCompanyName(text);
-              setErrors({ ...errors, companyName: '' });
-            }}
-            underlineColor="#044086"
-            theme={{
-              colors: {
-                primary: '#044086',
-                text: '#044086',
-              },
-            }}
-          />
-
-          <TextInput
-            style={styles.input}
-            label={<Text style={{ color: '#044086' }}>Company Email ID <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={companyEmail}
-            onChangeText={(text) => {
-              setCompanyEmail(text);
-              setErrors({ ...errors, companyEmail: '' });
-            }}
-            keyboardType="email-address"
-            underlineColor="#044086"
-            theme={{
-              colors: {
-                primary: '#044086',
-                text: '#044086',
-              },
-            }}
-          />
-
-          <TextInput
-            style={styles.input}
-            label={<Text style={{ color: '#044086' }}>Company Contact Number <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={companyContact}
-            onChangeText={(text) => {
-              setCompanyContact(text);
-              setErrors({ ...errors, companyContact: '' });
-            }}
-            keyboardType="phone-pad"
-            underlineColor="#044086"
-            theme={{
-              colors: {
-                primary: '#044086',
-                text: '#044086',
-              },
-            }}
-          />
-
-<View>
-
-
-<Button
-  mode="contained"
-  onPress={handleSignup}
-  style={[styles.button, { borderRadius: 25, backgroundColor: '#044086' }]} 
-  icon={isLoading ? undefined : 'arrow-right'}
-  contentStyle={[styles.buttonContent, { flexDirection: 'row-reverse', alignItems: 'center' }]} 
-  disabled={isLoading}
->
-  {isLoading ? (
-    <ActivityIndicator size="small" color="#fff" /> 
-  ) : (
-    <Text style={{ color: '#fff' }}>
-      Register
-    </Text>
-  )}
-</Button>
-
-
-
-
-      
-      <Modal
-        visible={modalVisible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor:'aliceblue' }}>
-          <View style={{ backgroundColor: '#fff', padding: 40, borderRadius: 10 }}>
-            <Text>User Registered Successfully!</Text>
-            <Button onPress={() => {
-  setModalVisible(false);
-  navigation.navigate('LoginScreen', {}); 
-}}>
-  OK
-</Button>
-
-
           </View>
-        </View>
-      </Modal>
-    </View>
+          <View style={styles.row}>
+          <TextInput
+              style={[styles.input, { marginLeft: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Company Contact Number <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={companyContact}
+              onChangeText={(text) => {
+                setCompanyContact(text);
+                setErrors({ ...errors, companyContact: '' });
+              }}
+              keyboardType="phone-pad"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+            <TextInput
+              style={[styles.input, { marginRight: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Admin Email <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={techAdminEmail}
+              onChangeText={(text) => {
+                setTechAdminEmail(text);
+                setErrors({ ...errors, techAdminEmail: '' });
+              }}
+              keyboardType="email-address"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+           
+          </View>
 
+
+          <View style={styles.row}>
+          <TextInput
+              style={[styles.input, { marginRight: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Admin First Name <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={FirstName}
+              onChangeText={(text) => {
+                setFirstName(text);
+                setErrors({ ...errors, FirstName: '' });
+              }}
+              placeholderTextColor="#044086"
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                  placeholder: '#044086',
+                  fontSize:'14px',
+                },
+              }}
+            />
+
+            <TextInput
+              style={[styles.input, { marginLeft: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Admin Last Name <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={LastName}
+              onChangeText={(text) => {
+                setLastName(text);
+                setErrors({ ...errors, LastName: '' });
+              }}
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+            
+
+           
+          </View>
+
+          <View style={styles.row}>
+          <TextInput
+              style={[styles.input, { marginRight: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Username <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text);
+                setErrors({ ...errors, username: '' });
+              }}
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+
+            <TextInput
+              style={[styles.input, { marginLeft: 10 }]}
+              label={<Text style={{ color: '#044086' }}>Password <Text style={{ color: 'red' }}>*</Text></Text>}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                setErrors({ ...errors, password: '' });
+              }}
+              secureTextEntry
+              underlineColor="#044086"
+              theme={{
+                colors: {
+                  primary: '#044086',
+                  text: '#044086',
+                },
+              }}
+            />
+
+            
+          </View>
+
+          <Button
+            mode="contained"
+            onPress={handleSignup}
+            style={[styles.button, { borderRadius: 25, backgroundColor: '#044086' }]}
+            icon={isLoading ? undefined : 'arrow-right'}
+            contentStyle={[styles.buttonContent, { flexDirection: 'row-reverse', alignItems: 'center' }]}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={{ color: '#fff' }}>Register</Text>
+            )}
+          </Button>
+
+          <Modal
+            visible={modalVisible}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'aliceblue' }}>
+              <View style={{ backgroundColor: '#fff', padding: 40, borderRadius: 10 }}>
+                <Text>User Registered Successfully!</Text>
+                <Button
+                  onPress={() => {
+                    setModalVisible(false);
+                    navigation.navigate('SignupScreen', {});
+                  }}
+                >
+                  OK
+                </Button>
+              </View>
+            </View>
+          </Modal>
         </View>
       </ScrollView>
     </PaperProvider>
   );
 };
-
-export default SignupScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -296,6 +328,11 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderRadius: 5,
     backgroundColor: 'transparent',
+    flex: 1,
+  },
+  row: {
+    flexDirection: 'row',
+    marginBottom: 15,
   },
   button: {
     width: '46%',
@@ -311,3 +348,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
 });
+
+export default SignupScreen;

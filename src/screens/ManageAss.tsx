@@ -14,6 +14,7 @@ import {
 import { IconButton, Menu, DataTable } from 'react-native-paper';
 import { decodeBase64,encodeBase64 } from '../core/securedata';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { white } from 'colorette';
 
 const { height } = Dimensions.get('window');
 
@@ -51,12 +52,13 @@ const ManageAss: React.FC = () => {
 
   const fetchModules = async () => {
     try {
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/modules'
-      );
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/modules');
       const data = await response.json();
-      console.log('Fetched Modules:', JSON.stringify(data, null, 2)); 
-      setModules(data); 
+      if (!Array.isArray(data)) {
+        console.error('Modules data is not an array:', data);
+        return;
+      }
+      setModules(data);
     } catch (error) {
       console.error('Error fetching modules:', error);
     } finally {
@@ -126,68 +128,69 @@ const ManageAss: React.FC = () => {
   };
   
   const sendUpdatedData = async () => {
-    const moduleIds: number[] = [];  // Store selected module IDs
-    const submoduleIds: number[] = [];  // Store selected submodule IDs
+    const moduleIds: number[] = [];
+    const submoduleIds: number[] = [];
   
-    // Loop through each module to collect IDs
+    // Collect module and submodule IDs separately
     modules.forEach((module) => {
       if (module.is_active) {
-        moduleIds.push(module.module_id);  // Add module ID if active
-        module.sub_modules?.forEach((submodule) => {
-          if (submodule.is_active) {
-            submoduleIds.push(submodule.module_id);  // Add submodule ID if active
-          }
-        });
+        moduleIds.push(module.module_id); // Add module ID if active
       }
+      module.sub_modules?.forEach((submodule) => {
+        if (submodule.is_active) {
+          submoduleIds.push(submodule.module_id); // Add submodule ID if active
+        }
+      });
     });
-  
-    // Log the selected module and submodule IDs
-    console.log('Selected Module IDs:', JSON.stringify(moduleIds, null, 2));
-    console.log('Selected Submodule IDs:', JSON.stringify(submoduleIds, null, 2));
   
     // Combine module IDs and submodule IDs
     const combinedModuleIds = [...moduleIds, ...submoduleIds];
   
+    // Log for debugging
+    console.log('Selected Module IDs:', JSON.stringify(moduleIds, null, 2));
+    console.log('Selected Submodule IDs:', JSON.stringify(submoduleIds, null, 2));
+    console.log('Combined Module IDs:', JSON.stringify(combinedModuleIds, null, 2));
+  
     if (combinedModuleIds.length === 0) {
-      
-        const payload = {
-          id: 0,
-          modules: "",  // Empty string indicating no modules selected
-          role_id: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
-          created_by: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
-        };
-    
-        try {
-          const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
-          });
-    
-          if (!response.ok) throw new Error(`Failed to save data. Status: ${response.status}`);
-          Alert.alert('Data saved successfully!');
-        } catch (error) {
-          console.error('Error sending data:', error);
-          Alert.alert('Failed to save data. Please try again.');
-        }
-    
-        return;  // Exit early after sending the blank payload
+      // Handle empty selection case
+      const payload = {
+        id: 0,
+        modules: "", // Empty string for no selection
+        role_id: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
+        created_by: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
+      };
+  
+      try {
+        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+  
+        if (!response.ok) throw new Error(`Failed to save data. Status: ${response.status}`);
+        Alert.alert('Data saved successfully!');
+      } catch (error) {
+        console.error('Error sending data:', error);
+        Alert.alert('Failed to save data. Please try again.');
       }
   
+      return; // Exit early for empty payload
+    }
+  
+    // Proceed with sending the payload if there are selected modules or submodules
     try {
-        const encodedRoleId = await AsyncStorage.getItem('UserType');
-          const decodedRoleId = decodeBase64(encodedRoleId ?? ''); 
+      const encodedRoleId = await AsyncStorage.getItem('UserType');
+      const decodedRoleId = decodeBase64(encodedRoleId ?? '');
       const UserType = decodeBase64(await AsyncStorage.getItem('UserType') ?? '');
-      console.log('Decoded UserType:', UserType);
   
       const payload = {
         id: 0,
-        modules: combinedModuleIds.length > 0 ? combinedModuleIds.join(',') : "", 
-        role_id: decodedRoleId ,
-        created_by: UserType,  
+        modules: combinedModuleIds.join(','), // Send combined IDs
+        role_id: decodedRoleId,
+        created_by: UserType,
       };
   
-      console.log('Sending Combined Payload:', JSON.stringify(payload, null, 2));
+      console.log('Sending Payload:', JSON.stringify(payload, null, 2));
   
       const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
         method: 'POST',
@@ -206,12 +209,12 @@ const ManageAss: React.FC = () => {
   const users: User[] = [
     {
       id: 1,
-      roleMaster: 'Marcus',
+      roleMaster: 'Customer Admin',
       ViewModulesAssigned: 'ViewModule',
     },
     {
       id: 2,
-      roleMaster: 'John Wick',
+      roleMaster: 'Project Manager',
       ViewModulesAssigned: 'ViewModule',
     },
   ];
@@ -332,9 +335,9 @@ const ManageAss: React.FC = () => {
             />
           </DataTable.Title> */}
           <DataTable.Title>S. No.</DataTable.Title>
-          <DataTable.Title>Role Master Data</DataTable.Title>
+          <DataTable.Title>Role Name</DataTable.Title>
           <DataTable.Title>View Modules Assigned</DataTable.Title>
-          <DataTable.Title>Actions</DataTable.Title>
+      {/*     <DataTable.Title>Actions</DataTable.Title> */}
         </DataTable.Header>
 
         {/* Table Rows */}
@@ -351,12 +354,12 @@ const ManageAss: React.FC = () => {
               <DataTable.Cell>{user.roleMaster}</DataTable.Cell>
               <DataTable.Cell>
                 <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.viewModulesContainer}>
-                  <IconButton icon="eye-outline" size={20} color="'#044086'" />
+                  <IconButton  size={20} color="'#044086'" />
                   <Text style={styles.viewModulesText}>View Modules</Text>
                 </TouchableOpacity>
               </DataTable.Cell>
 
-              <DataTable.Cell>
+              {/* <DataTable.Cell>
                 <Menu
                   visible={actionsVisible}
                   onDismiss={toggleMenu}
@@ -375,7 +378,7 @@ const ManageAss: React.FC = () => {
                   />
                   <Menu.Item onPress={() => console.log('Delete')} title="Delete" />
                 </Menu>
-              </DataTable.Cell>
+              </DataTable.Cell> */}
             </DataTable.Row>
           ))}
         </ScrollView>
@@ -389,7 +392,7 @@ const ManageAss: React.FC = () => {
         transparent={true}>
         <ScrollView contentContainerStyle={styles.modalScrollContainer}>
           <View style={styles.modalContainer}>
-          <Text style={styles.modalHeader}> - Module Assignment</Text>
+          <Text style={styles.modalHeader}>View Assigned Modules</Text>
           <View style={styles.dropdownContainer}>
               </View>
       <View style={styles.expandableContainer}>
@@ -438,6 +441,7 @@ const styles = StyleSheet.create({
   table: {
     marginTop: 10,
     paddingHorizontal: 10,
+    backgroundColor:'white'
   },
   checkboxRow: {
     flexDirection: 'row',
@@ -451,20 +455,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center', // Ensure the checkbox aligns with the text
   },
-  modalContainer: {
-    width: '50%', 
-    height: '60%', 
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
+    modalContainer: {
+      width: '50%', 
+      maxHeight: '90%', 
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'white',
+      padding: 20,
+      borderRadius: 10,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      elevation: 5,
+    },
   modalHeader: {
     fontSize: 20,
     fontWeight: 'bold',
