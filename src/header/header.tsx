@@ -12,6 +12,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackNavigatorParamList } from '../../type';
 import LoginScreen from '../screens/LoginScreen';
 import { navigate } from '../navigations/RootNavigation';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 
 export type HeaderNavigationProp = NativeStackScreenProps<HomeStackNavigatorParamList, 'Main'>;
@@ -71,6 +72,12 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
     <>
     <View style={styles.headerContainer}>
       <View style={styles.leftContainer}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => navigate('Main', { screen: 'Adminpanel' })}
+      >
+        <Ionicons name="arrow-back" size={24} color="black" />
+      </TouchableOpacity>
         {/* <ForgeLogo width={30} height={30} /> */}
       </View>
 
@@ -175,9 +182,19 @@ const styles = StyleSheet.create({
   },
   leftContainer: {
     flex: 1,
+    top: 2,
+    alignItems: 'flex-start',  
+    justifyContent: 'flex-start', 
+    padding: 10, 
   },
   centerContainer: {
     alignItems: 'center',
+  },
+  backButton: {
+    position: 'absolute', 
+    left: 10, 
+    top: '50%', 
+    transform: [{ translateY: -12 }], 
   },
   rightContainer: {
     flex: 1,
