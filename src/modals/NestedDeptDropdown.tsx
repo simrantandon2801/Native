@@ -7,6 +7,7 @@ import {
   TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { GetUserDept } from '../database/RestData';
 
 // Define TypeScript types
 type Department = {
@@ -109,6 +110,27 @@ const App: React.FC = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selectedPath, setSelectedPath] = useState('');
+
+
+
+  const handleDeptFetching = async () =>{
+    try {
+      const response = await GetUserDept('');
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log("Dept Fetched Succesfully", parsedRes);
+        //setDepartments(apiResponse.data.departments);  
+        setDepartments(parsedRes.data.departments);
+      } else {
+        console.error(
+          'Failed to fetch Departments',
+          parsedRes.message || 'Unknown error',
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   useEffect(() => {
     // Simulate API Call

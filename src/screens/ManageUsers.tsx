@@ -554,7 +554,8 @@ const ManageUsers: React.FC = () => {
                   />
                 </View>
               </View>
-              {/*Username */}{/* Password Enter + Confirmation */}
+              {/*Username */}
+              {/* Password Enter + Confirmation */}
               {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Password</Text>
@@ -617,7 +618,8 @@ const ManageUsers: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>
-              Are you sure you want to delete{` ${selectedUser?.first_name} ${selectedUser?.last_name}`}
+              Are you sure you want to delete
+              {` ${selectedUser?.first_name} ${selectedUser?.last_name}`}
             </Text>
 
             {/* Buttons */}
