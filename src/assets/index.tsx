@@ -9,6 +9,16 @@ import okta from './img/okta.png';
 import micro from './img/micro.png';
 import apple from './img/apple.png';
 import forge11 from './img/forge11.png';
+import Frame from './img/Frame.png'
+import Goal from './img/Goal.png'
+import Program from './img/Program.png'
+import ManageP from './img/ManageP.png'
+import Users from './img/Users.png'
+import RoleM from './img/RoleM.png'
+import Imtegration from './img/Imtegration.png'
+import Field from './img/Field.png'
+import license from './img/license.png'
+import Module from './img/Module.png'
 const AppImages = {
   AppVersion: packageJson.version,
   //background: background,
@@ -28,6 +38,16 @@ const AppImages = {
   apple:apple,
   google:google,
   forge11:forge11,
+  Frame:Frame,
+  Goal:Goal,
+  Program:Program,
+  ManageP:ManageP,
+  USers:Users,
+  RoleM:RoleM,
+  Imtegration:Imtegration,
+  Field:Field,
+  license:license,
+  Module:Module
 };
 
 export {AppImages};

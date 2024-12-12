@@ -32,7 +32,7 @@ const App: React.FC = () => {
             options={{headerShown: false}}
           />
           <Stack.Screen
-            name="SignUpScreen"
+            name="SignupScreen"
             component={SignupScreen}
             options={{headerShown: false}}
           />

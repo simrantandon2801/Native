@@ -170,7 +170,9 @@ const ManageList: React.FC = () => {
       {module.module_name === "string" ? "No Name Provided" : module.module_name}
     </DataTable.Cell>
     {/* <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell> */}
-    <DataTable.Cell>{module.parent_module || "N/A"}</DataTable.Cell>
+    <DataTable.Cell>
+  {module.parent_module === "root module" ? "-------" : module.parent_module || "N/A"}
+</DataTable.Cell>
     <DataTable.Cell>{module.url || "N/A"}</DataTable.Cell>
     <DataTable.Cell>
       {module.is_active ? "Active" : "Inactive"}
