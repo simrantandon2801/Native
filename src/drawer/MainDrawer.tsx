@@ -19,6 +19,7 @@ import Excel from '../screens/Excel';
 import DepartmentList from '../screens/DepartmentList';
 import RoleMaster from '../screens/RoleMaster';
 import ADIntegration from '../screens/ADIntegration';
+import Adminpanel from '../screens/Adminpanel';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
@@ -41,7 +42,23 @@ interface Module {
 }
 
 type DrawerProp = DrawerNavigationProp<any>;
+const moduleIcons = {
+  'Manage Users': 'people-outline',
+  'Role Master': 'shield-checkmark-outline',
+  'Excel': 'document-outline',
+  'Welcome Screen': 'home-outline',
+  "Departments": "business-outline",
+  "Integrations": "link-outline",
+  "Roles & Permissions": "key-outline",
+  "Users": "people-outline",
+  "Admin Panel": "settings-outline"
 
+
+};
+
+const getIconForModule = (moduleName) => {
+  return moduleIcons[moduleName] || 'cube-outline'; 
+};
 const AccountSection: React.FC<{
   navigation: DrawerProp;
   isDrawerOpen: boolean;
@@ -101,7 +118,8 @@ const AccountSection: React.FC<{
           onPress={() => handleItemPress(module.url)}
           style={styles.drawerItem}
         >
-          <Icon name="cube-outline" size={15} color="black" />
+          {/* <Icon name="cube-outline" size={15} color="black" /> */}
+          <Icon name={getIconForModule(module.module_name)} size={18} color="black" />
           {isDrawerOpen && <Text style={styles.drawerSectionTitle}>{module.module_name}</Text>}
         </TouchableOpacity>
       )}
@@ -116,6 +134,7 @@ const AccountSection: React.FC<{
               onPress={() => handleItemPress(submodule.url)}
               style={styles.drawerItem} // Match the style of other items
             >
+               {/* <Icon name={getIconForModule(submodule.module_name)} size={15} color="black" /> */}
               <Text style={styles.drawerItemText}>- {submodule.module_name}</Text>
             </TouchableOpacity>
           ) : null
@@ -231,6 +250,8 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="RoleMaster" component={RoleMaster} />
           <Drawer.Screen name="Excel" component={Excel} /> 
           <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
+          <Drawer.Screen name="ADIntegration" component={ADIntegration} />
+          <Drawer.Screen name="Adminpanel" component={Adminpanel} />
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}

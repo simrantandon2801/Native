@@ -77,7 +77,8 @@ const LoginScreen: React.FC = () => {
             if (UserType === '3' || userrole === 3) {
               console.log('Decoded UserType:', UserType);
               console.log('Navigating to Main screen');
-              navigation.replace('Main');
+              /* navigation.replace('Main'); */
+              navigate('Main', { screen: 'ManageUsers' });
             } 
             if (UserType === '1' || userrole === 1) {
               console.log('Decoded UserType:', UserType);

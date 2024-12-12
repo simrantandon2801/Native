@@ -89,6 +89,7 @@ const DepartmentList = () => {
   const [editingItem, setEditingItem] = React.useState<any>(null);
   const [departmentName, setDepartmentName] = React.useState<string>('');
   const [departmentId, setDepartmentId] = React.useState<string>('');
+  const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]); //rushil
   const isFocused = useIsFocused();
   const handleEdit = (item: any) => {
     setEditingItem(item); // Set the item being edited
@@ -163,7 +164,7 @@ const DepartmentList = () => {
     setData(newData || []); // Properly set the new data
   };
   const fetchDepartmentJSONChilds = async (parent_id: string) => {
-    const departmentData = await GetDepartments(parent_id); // Assuming GetZoneData fetches the zone information
+    const departmentData = await GetDepartments(parent_id); 
     const departments = JSON.parse(departmentData);
 
     const newData = departments?.data?.departments?.map((element: any) => ({
@@ -173,16 +174,19 @@ const DepartmentList = () => {
       description: element.description ?? '',
     }));
 
-    setData(newData || []); // Properly set the new data
+    setData(newData || []); 
   };
   useEffect(() => {
     console.log('1');
     fetchDepartments('0');
   }, []);
   useEffect(() => {
+    fetchDepartmentJSONChilds('0'); 
+  }, [departmentId]);
+  /* useEffect(() => {
     console.log('1');
     fetchDepartmentJSONChilds('0');
-  }, [departmentId]);
+  }, [departmentId]); */
   // useEffect(() => {
   //   if (isFocused) {
   //     (async function () {
@@ -257,7 +261,7 @@ const DepartmentList = () => {
           {/* Column 2: Show editable data table if an item is being edited */}
           <View style={styles.container}>
             <View style={styles.column}>
-              <Button
+              <Button 
                 icon="delete"
                 mode="text"
                 onPress={() => console.log('Pressed')}>
