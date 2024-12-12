@@ -188,26 +188,29 @@ const App: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.inputWrapper}>
-      <Text style={styles.label}>* Department</Text>
+        <Text style={styles.label}>* Department</Text>
 
-      <View style={{justifyContent: 'space-between', flexDirection: 'row'}}>
-        <TextInput
-          style={styles.textInput}
-          value={selectedPath}
-          editable={false} // Non-editable for dropdown behavior
-          placeholder="Select a department"
-        />
-        <TouchableOpacity
-          onPress={() => setDropdownVisible(!dropdownVisible)} // Toggle dropdown visibility
-        >
-          <Icon name="chevron-down" size={20} />
-        </TouchableOpacity>
-      </View>
+        <View style={{flexDirection: 'row'}}>
+          <TouchableOpacity
+            onPress={() => setDropdownVisible(!dropdownVisible)} // Toggle dropdown visibility
+          >
+            <View style={{flexDirection: 'row', width: 550}}>
+              <TextInput
+                style={[styles.textInput, {cursor: 'pointer'}]} // Correct way to combine styles
+                value={selectedPath}
+                editable={false} // Non-editable for dropdown behavior
+                placeholder="Select a department"
+              />
 
-      {/* Conditionally render the dropdown based on state */}
-      {dropdownVisible && (
-        <DepartmentDropdown data={hierarchy} onSelect={handleSelect} />
-      )}
+              <Icon name="chevron-down" size={20} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Conditionally render the dropdown based on state */}
+        {dropdownVisible && (
+          <DepartmentDropdown data={hierarchy} onSelect={handleSelect} />
+        )}
       </View>
     </View>
   );
@@ -241,14 +244,14 @@ const styles = StyleSheet.create({
     outlineStyle: 'none',
     width: '100%', // Ensures input takes up the full width of the container
   },
-  
+
   dropdownItem: {
     borderRadius: 5,
     padding: 10,
     fontSize: 16,
     backgroundColor: 'white',
     color: '#000',
-    
+
     borderBottomColor: '#044086',
     borderWidth: 0,
     outlineStyle: 'none',

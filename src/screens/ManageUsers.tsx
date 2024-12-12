@@ -120,9 +120,7 @@ const ManageUsers: React.FC = () => {
     }));
   };
 
-  const [permissions, setPermissions] = useState({
-    
-});
+  const [permissions, setPermissions] = useState({});
 
   const togglePermission = (key: any) => {
     setPermissions(prev => ({...prev, [key]: !prev[key]}));
@@ -218,7 +216,10 @@ const ManageUsers: React.FC = () => {
       const response = await GetUserPermission(user_id);
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
-        console.log('Permission of' + {user_id} + 'fetched succesfully', parsedRes  )
+        console.log(
+          'Permission of' + {user_id} + 'fetched succesfully',
+          parsedRes,
+        );
         // setUserRole(parsedRes.data.roles);
       } else {
         console.error(
@@ -336,6 +337,7 @@ const ManageUsers: React.FC = () => {
                     <TouchableOpacity
                       onPress={() => {
                         toggleMenu(user.user_id);
+                        setSelectedUser(user);
                       }}>
                       <IconButton icon="dots-vertical" size={20} />
                     </TouchableOpacity>
@@ -482,6 +484,18 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*User Role*/}
+              <Text
+                style={{
+                  color: '#044086',
+                  fontFamily: 'Source Sans Pro',
+                  fontSize: 14,
+                  fontStyle: 'normal',
+                  fontWeight: '600',
+                  lineHeight: 22,
+                  paddingBottom: 5,
+                }}>
+                Approval Limit
+              </Text>
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
@@ -494,6 +508,7 @@ const ManageUsers: React.FC = () => {
                     <Picker.Item label="€ Euro" value="Euro" />
                   </Picker>
                 </View>
+
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Budget Amount</Text>
                   <TextInput
@@ -505,6 +520,18 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Average Costing*/}
+              <Text
+                style={{
+                  color: '#044086',
+                  fontFamily: 'Source Sans Pro',
+                  fontSize: 14,
+                  fontStyle: 'normal',
+                  fontWeight: '600',
+                  lineHeight: 22,
+                  paddingBottom: 5,
+                }}>
+                Average Costing
+              </Text>
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
@@ -527,7 +554,7 @@ const ManageUsers: React.FC = () => {
                   />
                 </View>
               </View>
-              {/*Username */}/{/* Password Enter + Confirmation */}
+              {/*Username */}{/* Password Enter + Confirmation */}
               {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Password</Text>
@@ -590,8 +617,7 @@ const ManageUsers: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>
-              Are you sure you want to delete{' '}
-              {`${selectedUser?.first_name}  ${selectedUser?.first_name}`} User
+              Are you sure you want to delete{` ${selectedUser?.first_name} ${selectedUser?.last_name}`}
             </Text>
 
             {/* Buttons */}
@@ -763,6 +789,18 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*User Role*/}
+              <Text
+                style={{
+                  color: '#044086',
+                  fontFamily: 'Source Sans Pro',
+                  fontSize: 14,
+                  fontStyle: 'normal',
+                  fontWeight: '600',
+                  lineHeight: 22,
+                  paddingBottom: 5,
+                }}>
+                Approval Limit
+              </Text>
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
@@ -786,6 +824,18 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Average Costing*/}
+              <Text
+                style={{
+                  color: '#044086',
+                  fontFamily: 'Source Sans Pro',
+                  fontSize: 14,
+                  fontStyle: 'normal',
+                  fontWeight: '600',
+                  lineHeight: 22,
+                  paddingBottom: 5,
+                }}>
+                Average Costing
+              </Text>
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
