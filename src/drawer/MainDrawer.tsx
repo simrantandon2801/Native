@@ -1,20 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Image, LogBox, Keyboard } from 'react-native';
-import { createDrawerNavigator, DrawerNavigationProp } from '@react-navigation/drawer';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Image,
+  LogBox,
+  Keyboard,
+} from 'react-native';
+import {
+  createDrawerNavigator,
+  DrawerNavigationProp,
+} from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import LoginScreen from '../screens/LoginScreen';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import ManageList from '../screens/ManageList';
 import ManageAss from '../screens/ManageAss';
-import { AppImages } from '../assets';
+import {AppImages} from '../assets';
 import SignupScreen from '../screens/SignupScreen';
 import Header from '../header/header';
 import FooterForge from '../screens/FooterForge';
 import ManageUsers from '../screens/ManageUsers';
-import { navigate } from '../navigations/RootNavigation';
-import { useIsFocused } from '@react-navigation/native';
+import {navigate} from '../navigations/RootNavigation';
+import {useIsFocused} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { decodeBase64 } from '../core/securedata';
+import {decodeBase64} from '../core/securedata';
 import Excel from '../screens/Excel';
 import DepartmentList from '../screens/DepartmentList';
 import RoleMaster from '../screens/RoleMaster';
@@ -22,23 +34,22 @@ import ADIntegration from '../screens/ADIntegration';
 import Adminpanel from '../screens/Adminpanel';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
-  "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
+  "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
 ]);
 
 interface Submodule {
   module_id: string;
   module_name: string;
   is_active: boolean;
-  url:string;
+  url: string;
 }
-
 
 interface Module {
   module_id: string;
   module_name: string;
   is_active: boolean;
   sub_modules: Submodule[];
-  url:string;
+  url: string;
 }
 
 type DrawerProp = DrawerNavigationProp<any>;
@@ -62,17 +73,19 @@ const getIconForModule = (moduleName) => {
 const AccountSection: React.FC<{
   navigation: DrawerProp;
   isDrawerOpen: boolean;
-  handleItemPress: (screen: string,url?: string) => void;
+  handleItemPress: (screen: string, url?: string) => void;
   dynamicModules: any[]; // Changed to any[] to accommodate the submodules structure
-}> = ({ navigation, isDrawerOpen, handleItemPress, dynamicModules }) => {
+}> = ({navigation, isDrawerOpen, handleItemPress, dynamicModules}) => {
   return (
     <View style={styles.drawerSection}>
       {/* Static Drawer Items */}
-      <TouchableOpacity onPress={() => handleItemPress('Account')} style={styles.drawerItem}>
+      <TouchableOpacity
+        onPress={() => handleItemPress('Account')}
+        style={styles.drawerItem}>
         <Image source={AppImages.forge11} style={styles.drawerImage} />
       </TouchableOpacity>
 
-     {/*  <TouchableOpacity onPress={() => handleItemPress('SignupScreen')} style={styles.drawerItem}>
+      {/*  <TouchableOpacity onPress={() => handleItemPress('SignupScreen')} style={styles.drawerItem}>
         <Icon name="person-outline" size={15} color="black" />
         {isDrawerOpen && <Text style={styles.drawerSectionTitle}>Customer registration</Text>}
       </TouchableOpacity> */}
@@ -106,8 +119,10 @@ const AccountSection: React.FC<{
 
       {/* Render Modules and Submodules */}
       {dynamicModules.map((module: Module) => {
-  // Check if module or any submodule is active
-  const hasActiveSubmodules = module.sub_modules.some((submodule) => submodule.is_active);
+        // Check if module or any submodule is active
+        const hasActiveSubmodules = module.sub_modules.some(
+          submodule => submodule.is_active,
+        );
 
   return (
     <View key={module.module_id}>
@@ -149,59 +164,66 @@ const MainDrawer: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [dynamicModules, setDynamicModules] = useState<any[]>([]); // Adjusted type to any[]
 
-  const isFocused = useIsFocused(); 
+  const isFocused = useIsFocused();
 
   const fetchRoleModules = async () => {
     try {
       const encodedRoleId = await AsyncStorage.getItem('UserType');
-      const decodedRoleId = decodeBase64(encodedRoleId ?? ''); 
+      const decodedRoleId = decodeBase64(encodedRoleId ?? '');
       console.log('Decoded Role ID:', decodedRoleId);
-  
-      const response = await fetch(`https://underbuiltapi.aadhidigital.com/master/role_modules?role_id=${decodedRoleId}`);
-      const responseData: Module[] = await response.json();  
-  
-      console.log('Fetched Role Data:', JSON.stringify(responseData, null, 2));  // Log the full response
-  
-      // Include modules that are active OR have active submodules
-      const filteredModules = responseData.filter((module) => 
-        module.is_active || module.sub_modules.some((submodule) => submodule.is_active)
+
+      const response = await fetch(
+        `https://underbuiltapi.aadhidigital.com/master/role_modules?role_id=${decodedRoleId}`,
       );
-  
+      const responseData: Module[] = await response.json();
+
+      console.log('Fetched Role Data:', JSON.stringify(responseData, null, 2)); // Log the full response
+
+      // Include modules that are active OR have active submodules
+      const filteredModules = responseData.filter(
+        module =>
+          module.is_active ||
+          module.sub_modules.some(submodule => submodule.is_active),
+      );
+
       // Ensure that only active submodules are passed along
-      const modulesWithActiveSubmodules = filteredModules.map((module) => ({
+      const modulesWithActiveSubmodules = filteredModules.map(module => ({
         ...module,
-        sub_modules: module.sub_modules.filter((submodule) => submodule.is_active),
+        sub_modules: module.sub_modules.filter(
+          submodule => submodule.is_active,
+        ),
       }));
-  
-      console.log('Filtered Modules with Active Submodules:', JSON.stringify(modulesWithActiveSubmodules, null, 2)); 
+
+      console.log(
+        'Filtered Modules with Active Submodules:',
+        JSON.stringify(modulesWithActiveSubmodules, null, 2),
+      );
       setDynamicModules(modulesWithActiveSubmodules); // Update state with filtered modules
     } catch (error) {
       console.error('Failed to fetch modules:', error);
     }
   };
   useEffect(() => {
-    if (isFocused) { 
-      fetchRoleModules(); 
+    if (isFocused) {
+      fetchRoleModules();
     }
   }, [isFocused]);
 
   const handleItemPress = (screen: string, url: string) => {
-    
     if (!isDrawerOpen) {
       setIsDrawerOpen(true);
       fetchRoleModules();
       setTimeout(() => {
-        if(!url){
+        if (!url) {
           return;
         }
         if (url) {
-          navigate(url); 
+          navigate(url);
         } else {
           navigate(screen);
         }
       }, 200);
     } else {
-     
       navigate(screen);
     }
   };
@@ -214,21 +236,21 @@ const MainDrawer: React.FC = () => {
 
   const onDrawerOpen = () => {
     setIsDrawerOpen(true);
-    fetchRoleModules(); 
+    fetchRoleModules();
   };
 
   return (
     <TouchableWithoutFeedback onPress={handleOutsidePress}>
       <View style={styles.container}>
         <Drawer.Navigator
-          drawerContent={(props) => (
+          drawerContent={props => (
             <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
               <View style={styles.drawerContent}>
                 <AccountSection
                   navigation={props.navigation as DrawerProp}
                   isDrawerOpen={isDrawerOpen}
-                  handleItemPress={(screen) => handleItemPress(screen)}
-                  dynamicModules={dynamicModules} 
+                  handleItemPress={screen => handleItemPress(screen)}
+                  dynamicModules={dynamicModules}
                 />
               </View>
             </TouchableWithoutFeedback>
@@ -236,16 +258,15 @@ const MainDrawer: React.FC = () => {
           screenOptions={{
             drawerType: 'permanent',
             drawerStyle: {
-              width: isDrawerOpen ? 250 : 70, 
+              width: isDrawerOpen ? 250 : 70,
             },
-            header: () => <Header/>
-          }}
-        >
+            header: () => <Header />,
+          }}>
           <Drawer.Screen name="ManageList" component={ManageList} />
           <Drawer.Screen name="ManageAss" component={ManageAss} />
           <Drawer.Screen name="SignupScreen" component={SignupScreen} />
           <Drawer.Screen name="ManageUsers" component={ManageUsers} />
-          <Drawer.Screen name="LoginScreen" component={LoginScreen} /> 
+          <Drawer.Screen name="LoginScreen" component={LoginScreen} />
           <Drawer.Screen name="DepartmentList" component={DepartmentList} />
           <Drawer.Screen name="RoleMaster" component={RoleMaster} />
           <Drawer.Screen name="Excel" component={Excel} /> 
@@ -256,13 +277,16 @@ const MainDrawer: React.FC = () => {
             <Drawer.Screen
               key={module.module_id}
               name={module.module_name}
-              component={() => <View style={styles.dynamicScreen}><Text>{module.module_name}</Text></View>}
+              component={() => (
+                <View style={styles.dynamicScreen}>
+                  <Text>{module.module_name}</Text>
+                </View>
+              )}
               options={{
                 title: module.module_name,
               }}
             />
           ))}
-          
         </Drawer.Navigator>
 
         <FooterForge />
