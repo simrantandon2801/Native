@@ -62,7 +62,7 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
     // Logout logic
     await AsyncStorage.clear();
     setUserType(null);
- navigate(LoginScreen)
+ navigate(LoginScreen);
       //navigation.navigate();
   
     setModalVisible(false);

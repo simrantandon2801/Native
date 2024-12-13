@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   View,
@@ -14,7 +14,7 @@ import {
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
-import { addmodule, fetchModules } from '../database/RestData';
+import {addmodule, fetchModules} from '../database/RestData';
 // Define the User type to ensure type safety
 import Header from '../header/header';
 interface User {
@@ -25,7 +25,6 @@ interface User {
   order: string;
   createdby: string;
   actions: string;
- 
 }
 const {height} = Dimensions.get('window');
 const ManageList: React.FC = () => {
@@ -69,7 +68,6 @@ const ManageList: React.FC = () => {
 
   const submitHandler = async () => {
     try {
-     
       const requestBody = {
         
         module_name: modulename, 
@@ -81,18 +79,16 @@ const ManageList: React.FC = () => {
         
       };
 
-      const response = await addmodule(requestBody)
+      const response = await addmodule(requestBody);
 
       const data = await JSON.parse(response);
- 
+
       console.log('Insert Module API Response:', data);
- 
+
       Alert.alert('Module inserted successfully!');
 
       setIsModalVisible(false);
-      
     } catch (error) {
-     
       console.error('Insert Module API Error:', error);
       Alert.alert('Failed to insert the module. Please try again later.');
     }
@@ -101,8 +97,7 @@ const ManageList: React.FC = () => {
     try {
       const response = await fetchModules('');
       const result = await JSON.parse(response);
-  
-     
+
       if (result?.data?.modules) {
         setModules(result.data.modules);
       } else {
@@ -118,7 +113,7 @@ const ManageList: React.FC = () => {
   }, []);
   return (
     <>
-    <header />
+      <header />
       {/* Manage Users Section */}
       <View style={styles.manageUsersContainer}>
         <Text style={styles.heading}>Manage Module</Text>
@@ -135,7 +130,7 @@ const ManageList: React.FC = () => {
             style={styles.actionButton}
             onPress={() => setIsModalVisible(true)}>
             <IconButton icon="plus" size={16} color="#044086" />
-            <Text style={[styles.actionText, { color: '#044086' }]}>
+            <Text style={[styles.actionText, {color: '#044086'}]}>
               Add Module
             </Text>
           </TouchableOpacity>
@@ -172,7 +167,8 @@ const ManageList: React.FC = () => {
     {/* <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell> */}
     <DataTable.Cell>
   {module.parent_module === "root module" ? "-------" : module.parent_module || "N/A"}
-</DataTable.Cell>
+    </DataTable.Cell>
+
     <DataTable.Cell>{module.url || "N/A"}</DataTable.Cell>
     <DataTable.Cell>
       {module.is_active ? "Active" : "Inactive"}
@@ -203,7 +199,10 @@ const ManageList: React.FC = () => {
                     onPress={() => console.log('Activate/Deactivate')}
                     title="Activate/Deactivate"
                   />
-                  <Menu.Item onPress={() => console.log('Delete')} title="Delete" />
+                  <Menu.Item
+                    onPress={() => console.log('Delete')}
+                    title="Delete"
+                  />
                 </Menu>
               </DataTable.Cell> */}
   </DataTable.Row>
@@ -271,7 +270,7 @@ const ManageList: React.FC = () => {
                   onChangeText={setDisplay}
                 />
               </View>
-             {/*  <View style={styles.inputWrapper}>
+              {/*  <View style={styles.inputWrapper}>
                 <Text style={styles.label}>* Remark</Text>
                 <TextInput
                   style={styles.input}
@@ -283,10 +282,11 @@ const ManageList: React.FC = () => {
               </View> */}
             </View>
 
-           
             <View
               style={{flexDirection: 'row', justifyContent: 'center', gap: 14}}>
-              <TouchableOpacity style={styles.submitButton} onPress={submitHandler}>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={submitHandler}>
                 <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
 

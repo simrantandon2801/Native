@@ -53,17 +53,19 @@ const LoginScreen: React.FC = () => {
       
         try {
           const jsonResult = await PostAsync(uri, payload);
-        
+          console.log("login resposne", jsonResult.data)
       
           if (jsonResult.status === 'success') {
             const { accessToken, user } = jsonResult.data;
-            const { userId, userrole } = user;
+            const { userId, userrole, customer_id } = user;
       
             //setIsLoggedIn(true);
             await AsyncStorage.setItem('UserEmail', encodeBase64(email?.toLowerCase() || ''));
             await AsyncStorage.setItem('ID', encodeBase64(userId?.toString() || ''));
             await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
             //await AsyncStorage.setItem('ID', encodeBase64(userId));
+            await AsyncStorage.setItem('Customer ID', encodeBase64(customer_id?.toString() || ''));
+
             await AsyncStorage.setItem('UserType', encodeBase64(userrole.toString()));
       
            

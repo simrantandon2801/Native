@@ -7,6 +7,7 @@ import {
   TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { GetUserDept } from '../database/RestData';
 
 // Define TypeScript types
 type Department = {
@@ -106,9 +107,30 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
 const App: React.FC = () => {
   const [departments, setDepartments] = useState([]);
   const [hierarchy, setHierarchy] = useState([]);
-  const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState('');
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [selectedPath, setSelectedPath] = useState("");
+  const [selectedPath, setSelectedPath] = useState('');
+
+
+
+  const handleDeptFetching = async () =>{
+    try {
+      const response = await GetUserDept('');
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log("Dept Fetched Succesfully", parsedRes);
+        //setDepartments(apiResponse.data.departments);  
+        setDepartments(parsedRes.data.departments);
+      } else {
+        console.error(
+          'Failed to fetch Departments',
+          parsedRes.message || 'Unknown error',
+        );
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
 
   useEffect(() => {
     // Simulate API Call
@@ -187,62 +209,79 @@ const App: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>* Department</Text>
+      <View style={styles.inputWrapper}>
+        <Text style={styles.label}>* Department</Text>
 
-      <View style={{ justifyContent: "space-between", flexDirection: "row" }}>
-        <TextInput
-          style={styles.textInput}
-          value={selectedPath}
-          editable={false} // Non-editable for dropdown behavior
-          placeholder="Select a department"
-        />
-        <TouchableOpacity
-          onPress={() => setDropdownVisible(!dropdownVisible)} // Toggle dropdown visibility
-        >
-          <Icon name="chevron-down" size={20} />
-        </TouchableOpacity>
+        <View style={{flexDirection: 'row'}}>
+          <TouchableOpacity
+            onPress={() => setDropdownVisible(!dropdownVisible)} // Toggle dropdown visibility
+          >
+            <View style={{flexDirection: 'row', width: 550}}>
+              <TextInput
+                style={[styles.textInput, {cursor: 'pointer'}]} // Correct way to combine styles
+                value={selectedPath}
+                editable={false} // Non-editable for dropdown behavior
+                placeholder="Select a department"
+              />
+
+              <Icon name="chevron-down" size={20} />
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Conditionally render the dropdown based on state */}
+        {dropdownVisible && (
+          <DepartmentDropdown data={hierarchy} onSelect={handleSelect} />
+        )}
       </View>
-
-      {/* Conditionally render the dropdown based on state */}
-      {dropdownVisible && (
-        <DepartmentDropdown data={hierarchy} onSelect={handleSelect} />
-      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  inputWrapper: {
     flex: 1,
-    padding: 20,
-    backgroundColor: "#ffffff",
+    alignItems: 'left', // Centers the label above the input
   },
   label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#044086',
+    marginBottom: 5,
   },
   textInput: {
-    height: 45,
-    borderColor: "#ccc",
-    borderWidth: 1,
     borderRadius: 5,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-    backgroundColor: "#f8f9fa",
+    padding: 10,
     fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '100%', // Ensures input takes up the full width of the container
   },
+
   dropdownItem: {
-    padding: 12,
-    backgroundColor: "#f8f9fa",
     borderRadius: 5,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: "#ddd",
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '100%', // Ensures input takes up the full width of the container
   },
   text: {
     fontSize: 16,
-    color: "#333",
+    color: '#333',
   },
 });
 

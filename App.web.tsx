@@ -13,6 +13,7 @@ import { LogBox } from 'react-native';
 import SignupScreen from './src/screens/SignupScreen';
 
 
+
 const Stack = createNativeStackNavigator<HomeStackNavigatorParamList>();
 LogBox.ignoreLogs([
   'export \'FooterComponent\' (imported as \'FooterComponent\') was not found in \'./ScreenFooter\'',

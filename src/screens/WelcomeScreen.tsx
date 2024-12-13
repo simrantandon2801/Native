@@ -7,8 +7,8 @@ import ADIntegration from './ADIntegration';
 const WelcomeScreen = () => {
   return (
     <View>
-      
-      
+      <ManageUsers/>
+      <FooterForge/>
      <ADIntegration/>
     </View>
   );

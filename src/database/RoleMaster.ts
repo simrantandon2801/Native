@@ -24,4 +24,35 @@ export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
        throw Error('Failed' + error);
      }
   };
+
+  export const DeleteRole = async (roleId: number): Promise<string> => {
+    console.log(`Deleting role with ID: ${roleId}`);
+    try {
+      const uri = 'https://underbuiltapi.aadhidigital.com/master/delete_roles';
+      const token = await AsyncStorage.getItem('Token');
+      
+      // Create payload with role_id
+      const payload = JSON.stringify({ role_id: roleId });
+      console.log(`Payload: ${payload}`);
+  
+      // Make the API call to delete the role using the token for authorization
+      const jsonResult = await PostAsync_with_token(uri, payload, token);
+      console.log('Delete API response:', jsonResult);
+  
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error('Error in Delete API:', error);
+      throw new Error('Failed to delete role: ' + error);
+    }
+  };
+
+
+
+  
+  
+  
+  
+  
+  
+  
  
