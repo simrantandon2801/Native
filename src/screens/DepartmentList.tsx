@@ -185,7 +185,7 @@ const handleDelete = async (departmentId) => {
   
     try {
       console.log("Department to be sent: ", newDepartment);
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department1', {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
