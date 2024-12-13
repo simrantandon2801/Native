@@ -261,8 +261,10 @@ const ManageUsers: React.FC = () => {
       console.log(payload);
       const response = await addUser(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success')
+      if (parsedRes.status === 'success'){
         console.log(' User Added succesfully');
+        fetchUser();
+      }
       else
         console.error(
           'Failed to fetch users:',
@@ -283,6 +285,7 @@ const ManageUsers: React.FC = () => {
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         setisDeleteModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
       } else {
         console.error('Failed to delete user:', parsedRes.message); // Handle failure
       }
@@ -368,6 +371,9 @@ const ManageUsers: React.FC = () => {
     console.log('Selected User IDs:', allSelectedUsersID);
   };
 
+
+
+
   const handleUpdateMultipleUsersDepartment = async () => {
     const payload = {
       department_id: selectedDeptID,
@@ -382,7 +388,8 @@ const ManageUsers: React.FC = () => {
           'All the users you selected are now assigned the selected Department',
         );
         //set
-        setisMultipleDeleteModalVisible(false); // Close the modal after successful deletion
+        setisMultipleAssignDeptModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
       } else {
         console.error(
           'Failed to assign this Department to user:',
@@ -407,8 +414,8 @@ const ManageUsers: React.FC = () => {
         console.log(
           'All the users you selected are now assigned the selected Role',
         );
-        //set
-        setisMultipleDeleteModalVisible(false); // Close the modal after successful deletion
+        setisMultipleRoleAssignModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
       } else {
         console.error('Failed to assign this role to user:', parsedRes.message); // Handle failure
       }
@@ -429,6 +436,7 @@ const ManageUsers: React.FC = () => {
         console.log('All the users you slected are now succesfully deleted');
         //set
         setisMultipleDeleteModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
       } else {
         console.error('Failed to delete user:', parsedRes.message); // Handle failure
       }
