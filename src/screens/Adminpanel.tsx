@@ -19,7 +19,7 @@ const gridData: GridItem[] = [
   { id: '4', image: AppImages.ManageP, text: 'Manage Departments', component: 'DepartmentList'  },
   { id: '5', image: AppImages.USers, text: 'Manage Users', component: 'ManageUsers'  },
   { id: '6', image: AppImages.RoleM, text: 'Role Master', component: 'RoleMaster' },
-  { id: '7', image: AppImages.Imtegration, text: 'Manage Integration', component: 'ADIntegration'  },
+  { id: '7', image: AppImages.Imtegration, text: 'Manage Integration', component: 'IntegrationList'  },
   { id: '8', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
   { id: '9', image: AppImages.license, text: 'License details', component: 'ManageCompany'  },
   { id: '10', image: AppImages.Module, text: 'Modules', component: 'ManageCompany'  },

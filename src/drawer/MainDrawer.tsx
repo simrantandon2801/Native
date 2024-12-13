@@ -19,6 +19,7 @@ import Excel from '../screens/Excel';
 import DepartmentList from '../screens/DepartmentList';
 import RoleMaster from '../screens/RoleMaster';
 import ADIntegration from '../screens/ADIntegration';
+import IntegrationList from '../screens/IntegrationList';
 import Adminpanel from '../screens/Adminpanel';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
@@ -251,6 +252,7 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="Excel" component={Excel} /> 
           <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
           <Drawer.Screen name="ADIntegration" component={ADIntegration} />
+          <Drawer.Screen name="IntegrationList" component={IntegrationList} />
           <Drawer.Screen name="Adminpanel" component={Adminpanel} />
           {dynamicModules.map((module) => (
             <Drawer.Screen

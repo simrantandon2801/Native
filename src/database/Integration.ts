@@ -5,7 +5,7 @@ export const BASE_URL = 'http://localhost:3000';
 
 
 
-export const addADForCustomer  = async (values: Object): Promise<string> => {
+export const AddADForCustomer  = async (values: Object): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
@@ -26,11 +26,29 @@ export const addADForCustomer  = async (values: Object): Promise<string> => {
      }
   };
 
-  export const GetIntegrations = async (customer_id:string): Promise<string> => {
+  export const GetADIntegrationsForCustomer = async (customer_id:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = '${BASE_URL}/integration/get_activedirectory_integration';
+      var uri = 'http://localhost:3000/integration/get_activedirectory_customer_integration?customer_id=' + customer_id;
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };
+
+  export const GetADList = async (): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      var uri = 'http://localhost:3000/integration/get_activedirectory_integration';
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);

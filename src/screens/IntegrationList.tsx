@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, Alert, Text, ScrollView, Modal, TouchableOpacity, CheckBox, Modal, ScrollView, TouchableWithoutFeedback, Dimensions} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Alert, Text, ScrollView, Modal, TouchableOpacity, CheckBox, TouchableWithoutFeedback, Dimensions} from 'react-native';
 import { TextInput, PaperProvider, Button, ActivityIndicator, IconButton, Menu, DataTable } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {Picker} from '@react-native-picker/picker';
-import {addADForCustomer, GetIntegrations} from '../database/Integration';
+import {addADForCustomer, GetADIntegrationsForCustomer} from '../database/Integration';
+import ADIntegration from './ADIntegration';
 //import {StyleSheet,View,Text,TouchableOpacity,Modal,ScrollView,Pressable,Dimensions, Alert, TouchableWithoutFeedback} from 'react-native';
 
 export type HomeStackNavigatorParamList = {
@@ -17,7 +18,7 @@ export type HomeStackNavigatorParamList = {
 
 type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
-const ADIntegration = () => {
+const IntegrationList = () => {
   const deviceWidth = Dimensions.get('window').width;
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
@@ -32,6 +33,13 @@ const ADIntegration = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedAD, setSelectedAD] = useState(null);
 
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isMenuVisible, setMenuVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [actionsVisible, setActionsVisible] = useState(false);
+  const [isAddRoleModalVisible, setAddRoleModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const OPTIONS = [
     { label: 'Microsoft', value: 'Microsoft' },
     { label: 'Okta', value: 'Okta' },
@@ -39,63 +47,62 @@ const ADIntegration = () => {
   ];
   const fetchData = async () => {
     try {
-      const response = await GetIntegrations(customerId);
+        console.log('hi')
+      const response = await GetADIntegrationsForCustomer(customerId);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') setAdList(parsedRes.data);
-      else
-        console.error(
-          'Failed to fetch AD:',
-          parsedRes.message || 'Unknown error',
-        );
+      if (parsedRes.status === 'success') 
+        setAdList(parsedRes.data);
+     // else
+        // console.error(
+        //   'Failed to fetch AD:',
+        //   parsedRes.message || 'Unknown error',
+        // );
     } catch (err) {
       console.log('Error Fetching Users', err);
     }
   };
-  const handleSave = async () => {
-    // let tempErrors: { [key: string]: string } = {};
-    console.log('hi');
-    // // Validation checks
-    // if (!ad) tempErrors.ad = 'AD is required';
-    // // if (!name) tempErrors.name = 'Integration Name is required';
-    // if (!clientId) tempErrors.clientId = 'Client ID is required';
-    // if (!clientSecret) tempErrors.clientSecret = 'Client Secret is required';
-    // if (!tenantId) tempErrors.tenantId = 'Tenant ID is required';
-
-    // setErrors(tempErrors);
-
-    // if (Object.keys(tempErrors).length > 0) return;
-
-    const payload = {
-      integration_customer_id: '',
-      integration_id:selectedAD,
-      customer_id: 1,
-      client_id: clientId,
-      client_secret: clientSecret,
-      tenant_id: tenantId,
-      created_by: '8'
-    };
-    try {
-    const response = await addADForCustomer(payload);
-      const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success')
-        console.log('AD Added succesfully');
-      else
-        console.error(
-          'Failed',
-          parsedRes.message || 'Unknown error',
-        );
-    } catch (err) {
-      console.log('Error Fetching Users', err);
-    }
-    console.log('Payload being sent:', JSON.stringify(payload));
-    setIsLoading(true);
-
-
-   
-  };
+  
   useEffect(() => {
     fetchData();
   }, []);
+//   const handleSave = async () => {
+//     // let tempErrors: { [key: string]: string } = {};
+//     console.log('hi');
+
+//     const payload = {
+//       integration_customer_id: '',
+//       integration_id:selectedAD,
+//       customer_id: 1,
+//       client_id: clientId,
+//       client_secret: clientSecret,
+//       tenant_id: tenantId,
+//       created_by: '8'
+//     };
+//     try {
+//     const response = await addADForCustomer(payload);
+//       const parsedRes = JSON.parse(response);
+//       if (parsedRes.status === 'success')
+//         console.log('AD Added succesfully');
+//       else
+//         console.error(
+//           'Failed',
+//           parsedRes.message || 'Unknown error',
+//         );
+//     } catch (err) {
+//       console.log('Error Fetching Users', err);
+//     }
+//     console.log('Payload being sent:', JSON.stringify(payload));
+//     setIsLoading(true);
+
+
+   
+//   };
+const closeModal = () => {
+    // setRoleInput('');
+    // setEditRoleIndex(null);
+    setIsModalVisible(false);
+  };
+
   return (
     <>
     
@@ -110,7 +117,7 @@ const ADIntegration = () => {
       <View style={styles.middleActions}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => setAddRoleModalVisible(true)}>
+          onPress={() => setIsModalVisible(true)}>
           <IconButton icon="plus" size={16} />
           <Text style={[styles.actionText, { color: '#044086' }]}>
             Add Intgeration
@@ -159,162 +166,108 @@ const ADIntegration = () => {
                 <Text style={styles.viewModulesText}>View Modules</Text>
               </TouchableOpacity>
               </DataTable.Cell> */}
-          <DataTable.Cell> 
-            <TouchableOpacity onPress={() => { setSelectedUser(user); setRoleInput(user.role_name); setIsActionModalVisible(true); }} >
-               <IconButton icon="dots-vertical" size={20} />
-           </TouchableOpacity> 
-           </DataTable.Cell>
+             <DataTable.Cell>
+                <Menu
+                  visible={isMenuVisible && selectedUser?.role_id === user.role_id}
+                  onDismiss={() => setMenuVisible(false)}
+                  anchor={
+                    <TouchableOpacity onPress={() => {
+                    //   setSelectedUser(user);
+                    //   setRoleInput(user.role_name);
+                    //   setIsRoleActive(user.is_active);
+                    //   setMenuVisible(true);
+                    }}>
+                      <IconButton icon="dots-vertical" size={20} />
+                    </TouchableOpacity>
+                  }
+                >
+                  <Menu.Item onPress={() => {
+                   // setIsEditModalVisible(true);
+                    //setMenuVisible(false);
+                  }} title="Edit" />
+                  <Menu.Item 
+                   // onPress={() => handleDeleteRole(user.role_id)} 
+                    title="Delete" 
+                  />
+                  <Menu.Item onPress={() => {
+                  //  setIsModalVisible(true);
+                  //  setMenuVisible(false);
+                  }} title="Assign Modules" />
+                  <Menu.Item onPress={() => {
+                  //  setIsEditPermissionModalVisible(true);
+                   // setMenuVisible(false);
+                  }} title="Edit Permission" />
+                </Menu>
+              </DataTable.Cell>
         </DataTable.Row>
       ))}
       </ScrollView>
     </DataTable>
-    <View style={styles.actions}>
-    <Modal transparent visible={isActionModalVisible} animationType="fade" style={styles.modal}>
-<View style={styles.modalOverlay}>
-  <View style={styles.modalContent}>
-    {/* Edit Button */}
-    <TouchableOpacity style={styles.modalButton} onPress={() => setIsEditModalVisible(true)}>
-      <Text style={styles.buttonText}>Edit</Text>
-    </TouchableOpacity>
-
-    {/* Assign Modules Button */}
-    <TouchableOpacity style={styles.modalButton} onPress={() => setIsModalVisible(true)}>
-      <Text style={styles.buttonText}>Assign Modules</Text>
-    </TouchableOpacity>
-
-    {/* Cancel Button */}
-    <TouchableOpacity
-      style={[styles.modalButton]}  // Background removed
-      onPress={() => setIsActionModalVisible(false)}
-    >
-      <Text style={styles.buttonText}>Cancel</Text>
-    </TouchableOpacity>
-  </View>
-</View>
-</Modal>
-</View>
-
-<Modal transparent visible={isEditModalVisible}>
-{/* Detect taps outside the modal */}
-<TouchableWithoutFeedback onPress={() => setIsEditModalVisible(false)}>
-  <View style={styles.modalOverlay}>
-    {/* Prevent closing the modal when tapping inside */}
-    <TouchableWithoutFeedback onPress={() => {}}>
-      <View style={styles.modalContent1}>
-        <Text style={styles.modalTitle}>Edit Role</Text>
-        <TextInput
-          style={styles.input}
-          value={role_name}
-          onChangeText={setRoleInput}
-          placeholder="Role Name"
-        />
-        <View style={styles.buttonContainer}>
-          <Pressable style={styles.modalButton} onPress={handleEditRole}>
-            <Text style={styles.buttonText1}>Save</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.modalButton1]}
-            onPress={() => setIsEditModalVisible(false)}>
-            <Text style={styles.buttonText1}>Cancel</Text>
-          </Pressable>
+    {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#044086" />
         </View>
-      </View>
-    </TouchableWithoutFeedback>
-  </View>
-</TouchableWithoutFeedback>
-</Modal>
+      )}
 
-
-    
-    <View style={styles.container}>
-   
-  
-
-
-  
-   
-
-
-
- 
-    <Modal visible={isAddRoleModalVisible} transparent animationType="none">
-<View style={styles.modalOverlay}>
-  <View style={styles.modalContainer}>
-    <Text style={styles.modalHeader}>
-      {editRoleIndex !== null ? 'Edit Role' : 'Add Role'}
-    </Text>
-
-    
-    <View style={styles.inputWrapper}>
-<Text style={styles.label}>* Role</Text>
-<TextInput
-  value={role_name}  
-  onChangeText={setRoleInput}  
-  placeholder="Enter role"
-  style={styles.input}
-/>
-</View>
-    <View style={styles.modalButtons}>
-      <Button
-        mode="contained"
-        onPress={handleAddOrEditRole}
-        style={styles.saveButton}
+<Modal 
+        visible={isModalVisible} 
+        transparent 
+        animationType="fade"
+        onRequestClose={() => {
+          setIsModalVisible(false)
+        }}
       >
-        Save
-      </Button>
-      <Button
-        mode="contained"
-        onPress={closeModal}
-        style={styles.cancelButton}
-      >
-        Cancel
-      </Button>
-    </View>
-  </View>
-</View>
-</Modal>
-  </View>
-  <Modal
-      visible={isModalVisible}
-      onRequestClose={() => setIsModalVisible(false)}
-      animationType="slide"
-      transparent={true}>
-      <ScrollView contentContainerStyle={styles.modalScrollContainer}>
-        <View style={styles.modalContainer}>
-        <Text style={styles.modalHeader}>View Assigned Modules</Text>
-        <View style={styles.dropdownContainer}>
+         {/* <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.modalScrollContainer}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}> */}
+        {/* <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Add AD Integration</Text>
+            
+            <View style={styles.inputWrapper}>
+              <Text style={styles.label}>* Name</Text>
+              <TextInput
+                value={integration_name}  
+                onChangeText={setRoleInput}  
+                placeholder="Enter role"
+                style={styles.input}
+                mode="outlined"
+                outlineColor="#ccc"
+                activeOutlineColor="#044086"
+              />
             </View>
-    <View style={styles.expandableContainer}>
-    <Text style={styles.expandableHeader}></Text>
-          {loading ? (
-            <Text>Loading...</Text>
-          ) : (
-            <ScrollView>{renderModules(modules)}</ScrollView>
-          )}
-           <View style={styles.buttonRow}>
-<TouchableOpacity style={styles.editButton} onPress={toggleEditMode}>
-            <Text style={styles.editButtonText}>
-              {isEditable ? 'Done' : 'Edit'}
-            </Text>
-          </TouchableOpacity>
-          {/* Close Button */}
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => setIsModalVisible(false)}>
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                onPress={closeModal}
+                style={[styles.modalButton, styles.cancelButton]}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSave}
+                style={[styles.modalButton, styles.saveButton]}
+              >
+                <Text style={styles.saveButtonText}>Save</Text>
+              </TouchableOpacity>
+            </View>
           </View>
+        </View> */}
+        <ADIntegration closeModal={closeModal}/>
+        {/* </View>
         </View>
-        </View>
-      </ScrollView>
-    </Modal>
+        </ScrollView> */}
+      </Modal>
+
+    </>
 
 
-  </>
-  );
+ );
 };
 
-export default ADIntegration;
+
+export default IntegrationList;
 const styles = StyleSheet.create({
     manageUsersContainer: {
       alignItems: 'center',
@@ -580,6 +533,14 @@ const styles = StyleSheet.create({
       justifyContent: 'space-between',  // Space out the buttons evenly
       width: '80%',  // Ensure it takes up full width
     },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,
+      },
+      
    
     
    
