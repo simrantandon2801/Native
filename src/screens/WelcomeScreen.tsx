@@ -7,13 +7,13 @@ import ADIntegration from './ADIntegration';
 const WelcomeScreen = () => {
   return (
     <View>
-      
-      
+      <ManageUsers/>
+      <FooterForge/>
      <ADIntegration/>
     </View>
   );
 };
-
+ 
 export default WelcomeScreen;
 
 const styles = StyleSheet.create({
@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0', // Optional background color
+    backgroundColor: '#f0f0f0', 
   },
   welcomeText: {
     fontSize: 24,

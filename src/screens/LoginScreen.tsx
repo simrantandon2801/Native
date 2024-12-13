@@ -26,7 +26,7 @@ export type HomeStackNavigatorParamList = {
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
 const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState<string>('customeradmin@forgeportfolioxpert.com');
+  const [email, setEmail] = useState<string>('customeradmin@gmail.com');
   const [password, setPassword] = useState<string>('lsipl');
   const navigation = useNavigation<NavigationProp>();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);  //captcha
@@ -53,17 +53,19 @@ const LoginScreen: React.FC = () => {
       
         try {
           const jsonResult = await PostAsync(uri, payload);
-        
+          console.log("login resposne", jsonResult.data)
       
           if (jsonResult.status === 'success') {
             const { accessToken, user } = jsonResult.data;
-            const { userId, userrole } = user;
+            const { userId, userrole, customer_id } = user;
       
             //setIsLoggedIn(true);
             await AsyncStorage.setItem('UserEmail', encodeBase64(email?.toLowerCase() || ''));
             await AsyncStorage.setItem('ID', encodeBase64(userId?.toString() || ''));
             await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
             //await AsyncStorage.setItem('ID', encodeBase64(userId));
+            await AsyncStorage.setItem('Customer ID', encodeBase64(customer_id?.toString() || ''));
+
             await AsyncStorage.setItem('UserType', encodeBase64(userrole.toString()));
       
            
@@ -75,7 +77,8 @@ const LoginScreen: React.FC = () => {
             if (UserType === '3' || userrole === 3) {
               console.log('Decoded UserType:', UserType);
               console.log('Navigating to Main screen');
-              navigation.replace('Main');
+              /* navigation.replace('Main'); */
+              navigate('Main', { screen: 'Adminpanel' });
             } 
             if (UserType === '1' || userrole === 1) {
               console.log('Decoded UserType:', UserType);
