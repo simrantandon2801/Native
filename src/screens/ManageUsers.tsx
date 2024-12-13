@@ -7,6 +7,7 @@ import {
   Modal,
   Dimensions,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu, Switch} from 'react-native-paper';
@@ -20,6 +21,8 @@ import {
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
 import {DeleteUser} from '../database/RestData';
 import * as Yup from 'yup';
+import { navigate } from '../navigations/RootNavigation';
+import AdComponent from './Adcomponent';
 
 interface User {
   user_id: number; // Unique ID for the user
@@ -87,7 +90,10 @@ const ManageUsers: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-
+  const [isADModalVisible, setIsADModalVisible] = useState(false); 
+  const toggleModal = () => {
+    setIsADModalVisible(!isADModalVisible); // Toggle the modal visibility
+  };
   //For Confirm password field in Add User Modal
   const handlePasswordChange = value => {
     setPassword(value);
@@ -236,7 +242,13 @@ const ManageUsers: React.FC = () => {
     fetchUser();
     fetchUserRole();
   }, []);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const loadAdComponent = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false); // Simulate loading completion after 2 seconds
+    }, 2000);
+  };
   return (
     <>
       {/* Manage Users Section */}
@@ -270,11 +282,16 @@ const ManageUsers: React.FC = () => {
               Set Columns
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={toggleModal} >
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
+            <IconButton icon="sync" size={16} color="#044086" />
+            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
+          </TouchableOpacity>
         </View>
+       
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
@@ -608,7 +625,31 @@ const ManageUsers: React.FC = () => {
           </View>
         </ScrollView>
       </Modal>
-
+      
+    {/* Sync AD */}
+    <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isADModalVisible}
+        onRequestClose={toggleModal}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer1}>
+            {/* ScrollView to make content scrollable */}
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+              {/* Show loading spinner while AdComponent is loading */}
+              {isLoading ? (
+                <ActivityIndicator size="large" color="#044086" />
+              ) : (
+                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} /> 
+              )}
+            </ScrollView>
+            <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       {/*Delete User Modal */}
       <Modal
         visible={isDeleteModalVisible}
@@ -1066,6 +1107,10 @@ const styles = StyleSheet.create({
   permissionsList: {
     marginBottom: 20,
   },
+  scrollContainer: {
+    paddingBottom: 20,
+    flexGrow: 1,
+  },
   permissionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -1085,6 +1130,38 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+  },
+  closeButton: {
+    backgroundColor: '#044086',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
+    
+    alignSelf: 'flex-end',
+   
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  },
+  modalContainer1: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '70%', 
+    height: '70%', 
+    justifyContent: 'space-between',
+
   },
 });
 

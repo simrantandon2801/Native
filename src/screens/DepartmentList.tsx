@@ -24,7 +24,7 @@ const DepartmentList = () => {
     parent_department_id: null,
     department_name: '',
     description: '',
-    department_head: selectedUser ? selectedUser.user_id : null,
+    department_head: selectedUser ? selectedUser: null,
     department_level: 1,
     is_active: true,
   });
@@ -166,7 +166,7 @@ const handleDelete = async (departmentId) => {
     setIsMenuVisible((prev) => (prev === departmentId ? null : departmentId));
   };
   const handleAddDepartment = async () => {
-    console.log('New Department:', newDepartment);
+    console.log('Selected Department Head:', selectedUser);
     if (!newDepartment.department_name.trim()) {
       Alert.alert('Validation Error', 'Department name cannot be empty');
       return;
@@ -176,7 +176,7 @@ const handleDelete = async (departmentId) => {
       // Directly set the department_head field with selected user ID
       setNewDepartment((prev) => ({
         ...prev,
-        department_head: selectedUser.user_id, // Make sure to directly set the ID
+        department_head: selectedUser, // Make sure to directly set the ID
       }));
     } else {
       Alert.alert('Validation Error', 'Please select a department head');
@@ -202,7 +202,7 @@ const handleDelete = async (departmentId) => {
           parent_department_id: null,
           department_name: '',
           description: '',
-          department_head: selectedUser?.user_id,
+          department_head: null,
           department_level: 1,
           is_active: true,
         });
@@ -483,7 +483,7 @@ const handleDelete = async (departmentId) => {
  selectedValue={selectedUser?.user_id ? String(selectedUser.user_id) : ""}
  onValueChange={(itemValue) => {
    console.log("Selected Value: ", itemValue);
-   const user = users.find(user => user.user_id === Number(itemValue)); // Convert itemValue to number
+   const user = users.find(user => user.user_id === Number(itemValue)); 
    if (user) {
      setSelectedUser(user);
    } else {
