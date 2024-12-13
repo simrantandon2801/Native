@@ -25,3 +25,21 @@ export const addADForCustomer  = async (values: Object): Promise<string> => {
        throw Error('Failed' + error);
      }
   };
+
+  export const GetIntegrations = async (customer_id:string): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      var uri = '${BASE_URL}/integration/get_activedirectory_integration';
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };

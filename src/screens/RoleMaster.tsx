@@ -38,9 +38,9 @@ const RoleMaster = () => {
   const [editRoleIndex, setEditRoleIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [allSelected, setAllSelected] = useState(false);
-    const[users,setUsers]=useState([])
-    const [isAddRoleModalVisible, setAddRoleModalVisible] = useState(false);
-const [isAssignModuleModalVisible, setAssignModuleModalVisible] = useState(false);
+  const[users,setUsers]=useState([])
+  const [isAddRoleModalVisible, setAddRoleModalVisible] = useState(false);
+  const [isAssignModuleModalVisible, setAssignModuleModalVisible] = useState(false);
   const [isEditable, setIsEditable] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);   
