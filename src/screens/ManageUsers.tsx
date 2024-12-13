@@ -7,6 +7,7 @@ import {
   Modal,
   Dimensions,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {
@@ -34,6 +35,8 @@ import {DeleteUser} from '../database/RestData';
 import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
+import AdComponent from './Adcomponent';
+import { navigate } from '../navigations/RootNavigation';
 
 interface User {
   user_id: number;
@@ -139,7 +142,17 @@ const ManageUsers: React.FC = () => {
     setSelectedDeptID(deptID); // Update the parent state with the selected department ID
     console.log(`Selected Department ID: ${deptID}`);
   };
-
+  const [isADModalVisible, setIsADModalVisible] = useState(false);
+  const toggleModal = () => {
+    setIsADModalVisible(!isADModalVisible); // Toggle the modal visibility
+  };
+  const [isLoading, setIsLoading] = useState(false);
+  const loadAdComponent = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setIsLoading(false); // Simulate loading completion after 2 seconds
+    }, 2000);
+  };
   //----------------commented the confirm password field in AddUser Modal-----------------
   // const [password, setPassword] = useState<string>('');
   // const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -502,9 +515,13 @@ const ManageUsers: React.FC = () => {
               Set Columns
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleSyncAD}>
+          <TouchableOpacity style={styles.actionButton} onPress={toggleModal}>
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
+            <IconButton icon="sync" size={16} color="#044086" />
+            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
@@ -897,6 +914,32 @@ const ManageUsers: React.FC = () => {
             </View>
           </View>
         </ScrollView>
+      </Modal>
+
+  
+    {/* Sync AD */}
+    <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isADModalVisible}
+        onRequestClose={toggleModal}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer1}>
+            {/* ScrollView to make content scrollable */}
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+              {/* Show loading spinner while AdComponent is loading */}
+              {isLoading ? (
+                <ActivityIndicator size="large" color="#044086" />
+              ) : (
+                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} /> 
+              )}
+            </ScrollView>
+            <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
       {/*Delete User Modal */}
@@ -1584,6 +1627,42 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  },
+  modalContainer1: {
+    flex: 1,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '70%', 
+    height: '70%', 
+    justifyContent: 'space-between',
+
+  },
+  closeButton: {
+    backgroundColor: '#044086',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
+    
+    alignSelf: 'flex-end',
+   
+  },
+  closeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  scrollContainer: {
+    paddingBottom: 20,
+    flexGrow: 1,
   },
 });
 

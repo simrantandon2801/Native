@@ -19,6 +19,9 @@ import Imtegration from './img/Imtegration.png'
 import Field from './img/Field.png'
 import license from './img/license.png'
 import Module from './img/Module.png'
+import Dashboard from './img/Dashboard.png'
+import RoadMap from './img/RoadMap.png'
+
 const AppImages = {
   AppVersion: packageJson.version,
   //background: background,
@@ -47,7 +50,9 @@ const AppImages = {
   Imtegration:Imtegration,
   Field:Field,
   license:license,
-  Module:Module
+  Module:Module,
+  Dashboard:Dashboard,
+  RoadMap:RoadMap,
 };
 
 export {AppImages};

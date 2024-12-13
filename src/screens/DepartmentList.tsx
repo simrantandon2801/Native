@@ -1,464 +1,652 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react-native/no-inline-styles */
-import React, {useEffect, useState} from 'react';
-import {
-  DataTable,
-  Text,
-  Button,
-  Appbar,
-  IconButton,
-  TextInput,
-} from 'react-native-paper';
-import {View, StyleSheet, TouchableOpacity} from 'react-native';
-import { GetDepartments } from '../database/Departments';
-import {useIsFocused} from '@react-navigation/native';
-import Tree from './Tree';
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert, Modal, Button, Dimensions } from 'react-native';
+import { Menu, Provider } from 'react-native-paper';
+import MenuItem from 'react-native-paper/lib/typescript/components/Menu/MenuItem';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-// Recursive Component
-const ExpandableRow = ({
-  sno,
-  item,
-  level,
-  isTopLevel,
-  onEdit,
-}: {
-  sno: any;
-  item: any;
-  level: number;
-  isTopLevel: boolean;
-  onEdit: (item: any) => void; // Callback to handle edit
-}) => {
-  const [isExpanded, setIsExpanded] = React.useState(false);
-  const [isHovered, setIsHovered] = React.useState(true);
-  const toggleExpand = () => setIsExpanded(!isExpanded);
-  //   const handleEdit = () => {
-  //     console.log(`Edit row: ${item.name}`);
-  //     // Add your edit logic here
-  //   };
+import { Picker } from '@react-native-picker/picker';
 
-  const handleDelete = () => {
-    console.log(`Delete row: ${item.name}`);
-    // Add your delete logic here
-  };
-  return (
-    <View>
-      {/* Main Row */}
-      <DataTable.Row onPress={toggleExpand} style={styles.row}>
-        <DataTable.Cell style={[styles.cell, {paddingLeft: level * 10}]}>
-          {sno}
-        </DataTable.Cell>
-        <DataTable.Cell>{item.name || '-'}</DataTable.Cell>
-        <DataTable.Cell>
-          {isHovered && isTopLevel && (
-            <View style={styles.actions}>
-              <IconButton
-                icon="pencil" // Edit icon
-                size={20}
-                onPress={() => onEdit(item)}
-              />
-              <IconButton
-                icon="delete" // Delete icon
-                size={20}
-                onPress={handleDelete}
-              />
-            </View>
-          )}
-        </DataTable.Cell>
-      </DataTable.Row>
-
-      {/* Expanded Content */}
-      {isExpanded && item.children && (
-        <View style={styles.expandedContent}>
-          {item.children.map((child: any, index: any) => (
-            <ExpandableRow
-              sno={index + 1}
-              key={child.key}
-              item={child}
-              level={level + 1}
-              isTopLevel={false}
-              onEdit={onEdit}
-            />
-          ))}
-        </View>
-      )}
-    </View>
-  );
-};
 
 const DepartmentList = () => {
-  const [editingItem, setEditingItem] = React.useState<any>(null);
-  const [departmentName, setDepartmentName] = React.useState<string>('');
-  const [departmentId, setDepartmentId] = React.useState<string>('');
-  const [expandedDepartments, setExpandedDepartments] = useState<number[]>([]); //rushil
-  const isFocused = useIsFocused();
-  const handleEdit = (item: any) => {
-    setEditingItem(item); // Set the item being edited
-    setDepartmentName(item.name);
-    setDepartmentId(item.department_id);
-  };
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const handleToggle = () => {
-    setIsCollapsed(!isCollapsed);
-    console.log(isCollapsed ? 'Expand All' : 'Collapse All');
-  };
-  const handleSave = () => {
-    console.log('Save data for:', editingItem);
-    // Implement save logic here (e.g., updating the data array)
-    setEditingItem(null); // Close the editing view
-  };
-  const [data, setData] = useState<any[]>([]); // Initialize state as empty array
-  //   const [data] = React.useState([
-  //     {
-  //       key: 1,
-  //       name: 'Cupcake',
-  //       calories: 356,
-  //       fat: 16,
-  //       children: [
-  //         {
-  //           key: 11,
-  //           name: 'Cupcake - Ingredients',
-  //           children: [
-  //             {key: 111, name: 'Flour', calories: 100, fat: 2},
-  //             {key: 112, name: 'Sugar', calories: 200, fat: 0},
-  //           ],
-  //         },
-  //         {
-  //           key: 12,
-  //           name: 'Cupcake - History',
-  //           children: [
-  //             {key: 121, name: 'Origin', calories: 50, fat: 0},
-  //             {key: 122, name: 'Popularity', calories: 60, fat: 1},
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //     {
-  //       key: 2,
-  //       name: 'Eclair',
-  //       calories: 262,
-  //       fat: 16,
-  //       children: [
-  //         {
-  //           key: 21,
-  //           name: 'Eclair - Ingredients',
-  //           children: [
-  //             {key: 211, name: 'Chocolate', calories: 150, fat: 8},
-  //             {key: 212, name: 'Cream', calories: 100, fat: 10},
-  //           ],
-  //         },
-  //       ],
-  //     },
-  //   ]);
-  const fetchDepartments = async (parent_id: string) => {
-    const departmentData = await GetDepartments(parent_id); // Assuming GetZoneData fetches the zone information
-    const departments = JSON.parse(departmentData);
-
-    const newData = departments?.data?.departments?.map((element: any) => ({
-      key: element.department_id ?? '',
-      name: element.department_name ?? '',
-      parent_department_id: element.parent_department_id ?? '',
-      description: element.description ?? '',
-    }));
-
-    setData(newData || []); // Properly set the new data
-  };
-  const fetchDepartmentJSONChilds = async (parent_id: string) => {
-    const departmentData = await GetDepartments(parent_id); 
-    const departments = JSON.parse(departmentData);
-
-    const newData = departments?.data?.departments?.map((element: any) => ({
-      key: element.department_id ?? '',
-      name: element.department_name ?? '',
-      parent_department_id: element.parent_department_id ?? '',
-      description: element.description ?? '',
-    }));
-
-    setData(newData || []); 
-  };
+  const [departments, setDepartments] = useState([]);
+  const [subDepartments, setSubDepartments] = useState([]);
+  const [editingDepartment, setEditingDepartment] = useState(null);
+  const [newDepartmentDetails, setNewDepartmentDetails] = useState({});
+  const [menuVisible, setMenuVisible] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [headingDepartment, setHeadingDepartment] = useState(null);
+  const [isMenuVisible, setIsMenuVisible] = useState(null);
+  const [users, setUsers] = useState<any[]>([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [newDepartment, setNewDepartment] = useState({
+    department_id: null,
+    customer_id: 1,
+    parent_department_id: null,
+    department_name: '',
+    description: '',
+    department_head: selectedUser ? selectedUser: null,
+    department_level: 1,
+    is_active: true,
+  });
   useEffect(() => {
-    console.log('1');
-    fetchDepartments('0');
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_users');
+        const data = await response.json();
+        if (data.status === 'success' && data.data && Array.isArray(data.data.users)) {
+          setUsers(data.data.users); // Set the users array correctly
+        } else {
+          console.error('Unexpected data format', data);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+  
+    fetchUsers();
   }, []);
+  
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setNewDepartment((prev) => ({ ...prev, user_id: user.user_id }));
+    setIsMenuVisible(false); 
+  };
+  // Fetch active parent departments from the API
   useEffect(() => {
-    fetchDepartmentJSONChilds('0'); 
-  }, [departmentId]);
-  /* useEffect(() => {
-    console.log('1');
-    fetchDepartmentJSONChilds('0');
-  }, [departmentId]); */
-  // useEffect(() => {
-  //   if (isFocused) {
-  //     (async function () {
-  //       await fetchDepartments('0');
-  //     })();
-  //     return () => {};
-  //   }
-  // }, [isFocused]);
-  // React.useEffect(() => {
-  //   if (isFocused) {
-  //     (async function () {
-  //       await fetchDepartments('0');
-  //     })();
-  //     return () => {};
-  //   }
-  // }, [isFocused]);
-  return (
-    <View>
-      <Appbar.Header>
-        <View style={styles.homeIconContainer}>
-          <IconButton
-            icon="home" // Home icon
-            onPress={() => {}} // Define your home navigation logic here
-            size={24}
-          />
-        </View>
-        <Appbar.Content
-          title="Manage Departments"
-          titleStyle={{fontWeight: 'bold'}}
-        />
-        <Appbar.Action
-          icon="refresh" // Refresh icon
-          onPress={() => {}}
-        />
-      </Appbar.Header>
-      <View style={styles.container}>
-        <View style={styles.column}>
-          <View style={styles.toolbar}>
-            <Button
-              icon="plus"
-              mode="contained"
-              onPress={() => console.log('Pressed')}>
-              Add New Department
-            </Button>
-          </View>
-          <DataTable>
-            <DataTable.Header style={styles.header}>
-              <DataTable.Title>
-                <Text variant="labelLarge"> S No.</Text>
-              </DataTable.Title>
-              <DataTable.Title>
-                <Text variant="labelLarge"> Department</Text>
-              </DataTable.Title>
-              <DataTable.Title>
-                <Text variant="labelLarge"> Actions</Text>
-              </DataTable.Title>
-            </DataTable.Header>
+    const fetchDepartments = async () => {
+      try {
+        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
+        const result = await response.json();
+        const activeParentDepartments = result.data.departments.filter(
+          (dept) => dept.is_active === true && dept.parent_department_id === null
+        );
+        setDepartments(activeParentDepartments);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch departments');
+      }
+    };
+    fetchDepartments();
+  }, []);
+  const fetchSubDepartmentsHierarchy = async (parentId) => {
+    try {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
+      const result = await response.json();
+      const departments = result.data.departments;
+  
+      // Recursive function to build hierarchy
+      const buildHierarchy = (parentId) => {
+        return departments
+          .filter((dept) => dept.parent_department_id === parentId && dept.is_active)
+          .map((dept) => ({
+            ...dept,
+            children: buildHierarchy(dept.department_id),
+          }));
+      };
+  
+      const hierarchy = buildHierarchy(parentId);
+      setSubDepartments(hierarchy);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch department hierarchy');
+    }
+  };
+  // Fetch sub-departments based on parent department ID
+  const fetchSubDepartments = async (parentId) => {
+    try {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
+      const result = await response.json();
+      const subDepts = result.data.departments.filter(
+        (dept) => dept.is_active === true && dept.parent_department_id === parentId
+      );
+      setSubDepartments(subDepts);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch sub-departments');
+    }
+  };
+const handleDelete = async (departmentId) => {
+  try {
+    const response = await fetch('https://underbuiltapi.aadhidigital.com/master/delete_department', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ department_id: departmentId }), 
+    });
 
-            {data.map((item: any, index: any) => (
-              <ExpandableRow
-                sno={index + 1}
-                key={item.key}
-                item={item}
-                level={0}
-                isTopLevel={true}
-                onEdit={handleEdit}
+    if (response.ok) {
+      Alert.alert('Success', 'Department deleted successfully');
+      setMenuVisible(null);
+      fetchSubDepartments(null); 
+    } else {
+      Alert.alert('Error', 'Failed to delete department');
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Failed to delete department');
+  }
+};
+  const handleEdit = (department) => {
+    setEditingDepartment(department);
+    setNewDepartmentDetails({ ...department });
+    setMenuVisible(null);
+  };
+  const [expanded, setExpanded] = useState({});
+  const handleUpdate = async () => {
+    if (!newDepartmentDetails.department_name.trim()) {
+      Alert.alert('Validation Error', 'Department name cannot be empty');
+      return;
+    }
+
+    try {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newDepartmentDetails),
+      });
+
+      if (response.ok) {
+        Alert.alert('Success', 'Department updated successfully');
+        setEditingDepartment(null);
+        setNewDepartmentDetails({});
+        fetchSubDepartments(newDepartmentDetails.parent_department_id || null);
+      } else {
+        Alert.alert('Error', 'Failed to update department');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update department');
+    }
+  };
+
+  const toggleMenuUser = () => {
+    console.log('Menu toggled:', !isMenuVisible); // Debug log
+    setIsMenuVisible(!isMenuVisible);
+  };
+ 
+  const toggleMenu = (departmentId) => {
+    setIsMenuVisible((prev) => (prev === departmentId ? null : departmentId));
+  };
+  const handleAddDepartment = async () => {
+    console.log('Selected Department Head:', selectedUser);
+    if (!newDepartment.department_name.trim()) {
+      Alert.alert('Validation Error', 'Department name cannot be empty');
+      return;
+    }
+    if (selectedUser) {
+      console.log('Selected user for department head:', selectedUser);
+      // Directly set the department_head field with selected user ID
+      setNewDepartment((prev) => ({
+        ...prev,
+        department_head: selectedUser, // Make sure to directly set the ID
+      }));
+    } else {
+      Alert.alert('Validation Error', 'Please select a department head');
+      return;
+    }
+  
+    try {
+      console.log("Department to be sent: ", newDepartment);
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department1', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newDepartment),
+      });
+
+      if (response.ok) {
+        Alert.alert('Success', 'New department added successfully');
+        setIsModalVisible(false);
+        setNewDepartment({
+          department_id: null,
+          customer_id: 1,
+          parent_department_id: null,
+          department_name: '',
+          description: '',
+          department_head: null,
+          department_level: 1,
+          is_active: true,
+        });
+        fetchSubDepartments(null);
+      } else {
+        Alert.alert('Error', 'Failed to add department');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to add department');
+    }
+  };
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const handleMenuLayout = (event) => {
+    const { x, y, width } = event.nativeEvent.layout; 
+    const screenWidth = Dimensions.get('window').width;
+  
+  
+    const leftPosition = x - width / 2; 
+    setMenuPosition({ top: y + 25, left: Math.max(0, leftPosition) }); 
+  };
+  const renderDropdown = (department) => {
+    if (editingDepartment && editingDepartment.department_id === department.department_id) {
+      return (
+        <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
+          <Ionicons name="save" size={20} color="#000" />
+        </TouchableOpacity>
+      );
+    }
+    
+    return (
+      <Menu
+        visible={isMenuVisible === department.department_id}
+        onDismiss={() => setIsMenuVisible(null)}
+        anchor={
+          <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(department.department_id)}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#000" />
+          </TouchableOpacity>
+        }
+      >
+        <Menu.Item title="Edit" onPress={() => handleEdit(department)} />
+        <Menu.Item title="Delete" onPress={() => handleDelete(department.department_id)} />
+        <Menu.Item title="Add Sub-Department" onPress={() => handleAddSubDepartment(department.department_id)} />
+      </Menu>
+    );
+  };
+  const handleAddSubDepartment = (parentId) => {
+    setNewDepartment({ ...newDepartment, parent_department_id: parentId });
+    setIsModalVisible(true);
+  };
+
+/*   const renderSubDepartments = (department, level = 0) => (
+    <View key={department.department_id} style={{ marginLeft: level * 20 }}>
+      <View style={styles.row}>
+        <Text style={styles.cell}>{department.department_name}</Text>
+        <TouchableOpacity
+          style={styles.actionContainer}
+          onPress={() => toggleMenu(department.department_id)}
+        >
+          <Icon name="more-vert" size={20} color="#000" />
+        </TouchableOpacity>
+      </View>
+
+      {menuVisible === department.department_id && (
+        <View style={styles.dropdownMenu}>
+          <TouchableOpacity onPress={() => handleAddSubDepartment(department.department_id)}>
+            <Text>Create Sub-Department</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Alert.alert('Feature', 'Delete Department feature coming soon!')}>
+            <Text>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => Alert.alert('Feature', 'Add Submodule feature coming soon!')}>
+            <Text>Add Submodule</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {expanded[department.department_id] &&
+        department.children?.map((child) => renderSubDepartments(child, level + 1))}
+
+      {department.children?.length > 0 && (
+        <TouchableOpacity onPress={() => toggleExpand(department.department_id)}>
+          <Text style={styles.expandToggle}>
+            {expanded[department.department_id] ? 'Collapse' : 'Expand'}
+          </Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  ); */
+  const toggleExpand = (departmentId) => {
+    setExpanded((prev) => ({
+      ...prev,
+      [departmentId]: !prev[departmentId],
+    }));
+  };
+ 
+ 
+  
+  const renderSubDepartments = (department, level = 0) => {
+    return (
+      <View key={department.department_id}>
+        <View
+          style={{
+            marginLeft: level * 20, // Indent based on hierarchy level
+            flexDirection: 'row', // Align elements in a row
+            alignItems: 'center',
+            marginVertical: 5, // Spacing between items
+          }}
+        >
+          {editingDepartment && editingDepartment.department_id === department.department_id ? (
+            <>
+              <TextInput
+                style={styles.editInput}
+                value={newDepartmentDetails.department_name}
+                onChangeText={(text) =>
+                  setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
+                }
               />
-            ))}
-          </DataTable>
-        </View>
-        <View style={styles.column}>
-          {/* Column 2: Show editable data table if an item is being edited */}
-          <View style={styles.container}>
-            <View style={styles.column}>
-              <Button 
-                icon="delete"
-                mode="text"
-                onPress={() => console.log('Pressed')}>
-                Delete Department
-              </Button>
-            </View>
-            <View style={styles.column}>
-              <View style={{display: 'flex', flexDirection: 'row'}}>
-                <Button
-                  icon="content-save"
-                  mode="contained"
-                  onPress={() => console.log('Pressed')}>
-                  Apply Changes
-                </Button>
-                <Button
-                  icon="cancel"
-                  mode="text"
-                  onPress={() => console.log('Pressed')}>
-                  Discard Changes
-                </Button>
-              </View>
-            </View>
-          </View>
-          {editingItem && (
-            <View style={styles.column}>
-              <View style={{display: 'flex', flexDirection: 'row'}}>
-                {/* <Text style={{fontWeight: 'bold', fontSize: 16}}>
-                  Department Name :{' '}
-                </Text> */}
-                <TextInput
-                  label="Department Name"
-                  value={departmentName}
-                  onChangeText={text => setDepartmentName(text)}
-                  style={{
-                    minWidth: '100%',
-                    backgroundColor: 'white',
-                    color: 'black',
-                    borderWidth: 1,
-
-                    shadowColor: 'black',
-                  }}
-                />
-              </View>
-              <View
-                style={{
-                  padding: 15,
-                  //borderColor: 'blue',
-                  // borderWidth: 1,
-                  // backgroundColor: '#f5f5f5',
-                  borderRadius: 8,
-                  //margin: 10,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}>
-                <View style={styles.buttonContainer}>
-                  <Text variant="titleSmall" style={{alignSelf: 'center'}}>
-                    Department Sub Levels
-                  </Text>
-                </View>
-
-                <View style={styles.buttonContainer}>
-                  {/* Icon */}
-                  <IconButton
-                    icon={isCollapsed ? 'chevron-down' : 'chevron-up'} // Icon based on state
-                    size={24}
-                    onPress={handleToggle}
-                  />
-                  {/* Text */}
-                  <TouchableOpacity
-                    onPress={handleToggle}
-                    style={{alignSelf: 'center'}}>
-                    <Text style={styles.buttonTextCl}>
-                      {isCollapsed ? 'Expand All' : 'Collapse All'}
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.treeContainer}>
-                <Tree
-                  department_id={departmentId}
-                  department_name={departmentName}
-                />
-              </View>
-
-              {/* <Text>Edit {editingItem.name}</Text>
-              <DataTable>
-                <DataTable.Header>
-                  <DataTable.Title>Name</DataTable.Title>
-                  <DataTable.Title>Calories</DataTable.Title>
-                  <DataTable.Title>Fat</DataTable.Title>
-                </DataTable.Header>
-                <DataTable.Row>
-                  <DataTable.Cell>
-                    <Text>{editingItem.name}</Text>
-                  </DataTable.Cell>
-                  <DataTable.Cell>
-                    <Text>{editingItem.calories}</Text>
-                  </DataTable.Cell>
-                  <DataTable.Cell>
-                    <Text>{editingItem.fat}</Text>
-                  </DataTable.Cell>
-                </DataTable.Row>
-              </DataTable>
-              <Button onPress={handleSave}>Save</Button> */}
-            </View>
+              <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
+                <Ionicons name="save" size={20} color="#000" />
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <Text style={[styles.cell, { fontWeight: 'bold', flex: 1 }]}>{department.department_name}</Text>
+              <Text style={[styles.cell, { flex: 1,textAlign:'right' }]}>
+              {department.unit_head || 'N/A'}
+            </Text>
+           
+            
+            <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(department.department_id)}>
+              {renderDropdown(department)}
+            </TouchableOpacity>
+            </>
           )}
         </View>
+  
+        {/* Recursive call to render children */}
+        {department.children?.length > 0 &&
+          department.children.map((child) => renderSubDepartments(child, level + 1))}
       </View>
+    );
+  };
+  return (
+    <Provider>
+    <View style={styles.container}>
+      {/* Left Table */}
+      <View style={styles.leftPanel}>
+        <Text style={styles.header}>Departments</Text>
+        <View style={[styles.row, styles.headingRow]}>
+      <Text style={styles.cell}>S.No</Text>
+      <Text style={styles.cell}>Name</Text>
+      <Text style={styles.cell}>Unit Head</Text>
+      <Text style={styles.cell}>Action</Text>
     </View>
+        <FlatList
+          data={departments}
+          keyExtractor={(item) => item.department_id.toString()}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+  style={styles.row}
+  onPress={() => {
+    setHeadingDepartment(item); 
+    fetchSubDepartmentsHierarchy(item.department_id); // Fetch its hierarchy
+  }}
+  
+>
+              <Text style={styles.cell}>{index + 1}</Text>
+              
+              
+              {editingDepartment && editingDepartment.department_id === item.department_id ? (
+                <TextInput
+                  style={styles.editInput}
+                  value={newDepartmentDetails.department_name}
+                  onChangeText={(text) =>
+                    setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
+                  }
+                />
+              ) : (
+                <Text style={styles.cell}>{item.department_name}</Text>
+              )}
+              <Text style={styles.cell}>{item.department_head}</Text>
+             {/*  <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
+                {menuVisible === item.department_id ? (
+                  editingDepartment && editingDepartment.department_id === item.department_id ? (
+                    <TouchableOpacity onPress={handleUpdate}>
+                      <Ionicons name="save" size={20} color="#000" />
+                    </TouchableOpacity>
+                  ) : (
+                    renderDropdown(item)
+                  )
+                ) : (
+                  <Ionicons name="ellipsis-vertical" size={20} color="#000" />
+                )}
+              </TouchableOpacity> */}
+               <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
+                  {renderDropdown(item)}
+                </TouchableOpacity>
+            </TouchableOpacity>
+          )}
+        />
+        <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
+          <Text style={styles.addText}>+ Add New Department</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Right Panel */}
+      <View style={styles.rightPanel}>
+         {/* <Text style={styles.header}>Sub-Departments</Text>
+         {subDepartments.map((department) => renderSubDepartments(department))} */}
+        {headingDepartment && (
+    <Text style={styles.header}>
+      {headingDepartment.department_name}
+    </Text>
+    
+  )}
+ <View style={[styles.row, styles.header]}>
+    <Text style={[styles.cell, { flex: 1 }]}>Name</Text>
+    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
+      <Text style={[styles.cell, { textAlign: 'right',paddingLeft:250 }]}>Unit Head</Text>
+      <Text style={[styles.cell, { textAlign: 'right' }]}>Action</Text>
+    </View>
+  </View>
+
+   {subDepartments.map((department) => renderSubDepartments(department))}
+       {/*  <FlatList
+          data={subDepartments}
+          keyExtractor={(item) => item.department_id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.row}>
+              {editingDepartment && editingDepartment.department_id === item.department_id ? (
+                <TextInput
+                  style={styles.editInput}
+                  value={newDepartmentDetails.department_name}
+                  onChangeText={(text) =>
+                    setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
+                  }
+                />
+              ) : (
+                <Text style={styles.cell}>{item.department_name}</Text>
+              )}
+              <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
+                {menuVisible === item.department_id ? (
+                  editingDepartment && editingDepartment.department_id === item.department_id ? (
+                    <TouchableOpacity onPress={handleUpdate}>
+                      <Ionicons name="save" size={20} color="#000" />
+                    </TouchableOpacity>
+                  ) : (
+                    renderDropdown(item)
+                  )
+                ) : (
+                  <Ionicons name="more-vert" size={20} color="#000" />
+                )}
+              </TouchableOpacity>
+            </View>
+          )}
+        /> */}
+      </View>
+
+      {/* Add Department Modal */}
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>Add New Department</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Department Name"
+              value={newDepartment.department_name}
+              onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, department_name: text }))}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Description"
+              value={newDepartment.description}
+              onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, description: text }))}
+            />
+       {users.length > 0 ? (
+ <Picker
+ selectedValue={selectedUser?.user_id ? String(selectedUser.user_id) : ""}
+ onValueChange={(itemValue) => {
+   console.log("Selected Value: ", itemValue);
+   const user = users.find(user => user.user_id === Number(itemValue)); 
+   if (user) {
+     setSelectedUser(user);
+   } else {
+     console.log("User not found");
+   }
+ }}
+ style={styles.picker}
+>
+ <Picker.Item label="Select a user" value="" />
+ {users.map((user) => (
+   <Picker.Item
+     key={user.user_id}
+     label={user.first_name} // Show first_name instead of username
+     value={String(user.user_id)} // Ensure the value is a string
+   />
+ ))}
+</Picker>
+) : (
+  <Text>Loading users...</Text>
+)}
+
+{selectedUser && (
+  <Text style={styles.selectedUserText}>
+    Selected Department Head: {selectedUser.first_name} {selectedUser.last_name}
+  </Text>
+)}
+            <TouchableOpacity style={styles.saveButton} onPress={handleAddDepartment}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setIsModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+    </Provider>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row', // Arrange children in a row
-    justifyContent: 'space-between', // Space between columns
-    padding: 16, // Optional: padding for the container
+    flexDirection: 'row',
+    flex: 1,
+    backgroundColor: '#f9f9f9',
   },
-  buttonContainer: {
-    flexDirection: 'row', // Align icon and text horizontally
-    //alignItems: 'center', // Vertically center items
-    //padding: 8, // Add some padding for better touch handling
+  picker: {
+    height: 50,
+    width: '100%',
+    backgroundColor: '#f0f0f0',
   },
-  treeContainer: {
-    borderWidth: 1,
-    borderColor: 'gray',
-    borderStyle: 'solid',
-    backgroundColor: '#fff', // Optional background color
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', // Adds a subtle 3D shadow
-    transform: 'translateZ(0)', // Forces GPU rendering for smoother effects
-    padding: 10, // Optional padding inside the container
-    borderRadius: 8, // Optional rounded corners
-    marginBottom: 25,
+  leftPanel: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRightWidth: 1,
+    borderColor: '#ddd',
+    padding: 10,
   },
-  buttonText: {
+  rightPanel: {
+    flex: 2,
+    padding: 10,
+  },
+  header: {
+    fontWeight: 'bold',
     fontSize: 16,
-    marginLeft: 8, // Space between icon and text
-    color: '#007BFF', // Blue color for clickable text
-    fontWeight: '500',
+    marginBottom: 10,
   },
-  buttonIcon: {
-    color: '#007BFF', // Match text color
-  },
-  homeIconContainer: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 'auto', // Align to the right
-    marginRight: 16, // Add some margin on the right
-  },
-  column: {
-    flex: 1, // Columns take equal space
-    marginHorizontal: 8, // Add spacing between columns
-    //padding: 16, // Padding inside each column
-    backgroundColor: 'white', // Optional: background color
-    borderRadius: 8, // Optional: rounded corners
-  },
-
-  row: {
+    paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderColor: '#ddd',
+    
   },
   cell: {
     flex: 1,
+    fontSize: 14,
   },
-  expandedContent: {
-    paddingLeft: 10,
-    backgroundColor: '#f9f9f9',
+  actionContainer: {
+    padding: 5,
   },
-  header: {
-    backgroundColor: '#93b3e6', // Light gray background for the header
-    borderBottomWidth: 1, // Border below the header
-    borderBottomColor: 'black', // Light gray border color
+  selectedUserText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
   },
-  headerCell: {
-    fontWeight: 'bold', // Bold text
-    textAlign: 'center', // Center alignment for cells
-    fontSize: 18,
+  dropdownMenu: {
+    position: 'absolute',
+    top: 30,
+    right: 10,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    zIndex: 10,
   },
-  toolbar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    margin: 16, // Adds spacing below the toolbar
+  addButton: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#007bff',
+    alignItems: 'center',
+    borderRadius: 5,
   },
-  button: {
-    backgroundColor: '#007BFF',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-  },
-  buttonTextCl: {
-    // color: '#fff',
+  addText: {
+    color: '#fff',
     fontWeight: 'bold',
   },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
+  editInput: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderColor: '#007bff',
+    paddingVertical: 2,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+  },
+  modalHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalInput: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  saveButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  cancelButton: {
+    padding: 10,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#007bff',
+    fontWeight: 'bold',
   },
 });
 

@@ -33,6 +33,11 @@ import RoleMaster from '../screens/RoleMaster';
 import ADIntegration from '../screens/ADIntegration';
 import IntegrationList from '../screens/IntegrationList';
 import Adminpanel from '../screens/Adminpanel';
+import AdComponent from '../screens/Adcomponent';
+import Adcomponent from '../screens/Adcomponent';
+
+import AdminDboard from '../screens/AdminDboard';
+import Roadmap from '../screens/RoadMap';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -63,8 +68,14 @@ const moduleIcons = {
   "Integrations": "link-outline",
   "Roles & Permissions": "key-outline",
   "Users": "people-outline",
-  "Admin Panel": "settings-outline"
-
+  "Admin Panel": "settings-outline",
+  "RoadMap":"map-outline",
+  "Dashboard":"grid-outline",
+  "Adcomponent":"sync-outline",
+"Intake/Backlog":"hourglass-outline",
+"Active Projects":"rocket-outline",
+"Raid Tracker":"bug-outline",
+"Closed Projects":"checkmark-done-outline",
 
 };
 
@@ -275,6 +286,9 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="ADIntegration" component={ADIntegration} />
           <Drawer.Screen name="IntegrationList" component={IntegrationList} />
           <Drawer.Screen name="Adminpanel" component={Adminpanel} />
+          <Drawer.Screen name="Adcomponent" component={Adcomponent} />
+          <Drawer.Screen name="AdminDboard" component={AdminDboard} />
+          <Drawer.Screen name="Roadmap" component={Roadmap} />
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}
