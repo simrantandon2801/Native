@@ -137,7 +137,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
         style={styles.picker}
         onValueChange={(itemValue) => setSelectedOption(itemValue)}
       >
-        <Picker.Item label="Select an option" value="" />
+        <Picker.Item label="Select" value="" />
         
         {dropdownOptions.map((option) => (
           <Picker.Item key={option.value} label={option.label} value={option.value} />
