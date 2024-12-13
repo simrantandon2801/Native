@@ -64,7 +64,7 @@ const LoginScreen: React.FC = () => {
             await AsyncStorage.setItem('ID', encodeBase64(userId?.toString() || ''));
             await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
             //await AsyncStorage.setItem('ID', encodeBase64(userId));
-            await AsyncStorage.setItem('Customer ID', encodeBase64(customer_id?.toString() || ''));
+            await AsyncStorage.setItem('Customer_ID', encodeBase64(customer_id?.toString() || ''));
 
             await AsyncStorage.setItem('UserType', encodeBase64(userrole.toString()));
       

@@ -9,39 +9,62 @@ import {
   TextInput,
 } from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
-import {DataTable, Icon, IconButton, Menu, Switch} from 'react-native-paper';
+import {
+  DataTable,
+  Icon,
+  IconButton,
+  Menu,
+  Switch,
+  Checkbox,
+} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
 import {
   GetUsers,
   addUser,
+  GetAllRoles,
   GetUserRole,
+  updateMultipleUsersDepartment,
+  updateMultipleUsersRole,
+  DeleteMultipleUsers,
   GetUserPermission,
+  GetAdIntegration,
 } from '../database/RestData';
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
 import {DeleteUser} from '../database/RestData';
 import * as Yup from 'yup';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {decodeBase64} from '../core/securedata';
 
 interface User {
-  user_id: number; // Unique ID for the user
-  username: string; // Username
-  email: string; // User's email address
-  first_name: string; // First name
-  last_name: string; // Last name
-  customer_id: number; // ID of the customer (default: 0)
-  reporting_to: number; // Reporting manager's ID (default: 0)
-  approval_limit: number; // Approval limit (default: 0)
-  is_super_admin: boolean; // Flag to indicate if the user is a super admin
-  created_at: string; // Timestamp when the user was created
-  updated_at: string; // Timestamp when the user was last updated
-  created_by: number | null; // ID of the user who created this record
-  updated_by: number | null; // ID of the user who last updated this record
+  user_id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  customer_id: number | null;
+  reporting_to: number | null;
+  approval_limit: number | null;
+  created_at: string;
+  updated_at: string;
+  created_by: number;
+  updated_by: number | null;
+  is_active: boolean;
+  is_deleted: boolean;
+  department_id: number | null;
+  average_cost: number | null;
+  phone: string | null;
+  source: string | null;
+  designation: string | null;
+  manager_name: string | null;
+  department_name: string | null;
+  role_name: string | null;
 }
 
 interface InsertOrEditUser {
   user_id: number; // ID of the user, 0 for new users
   username?: string; // Username of the user
   email: string; // Email address of the user
-  password: string; // Password for the user
+
   first_name: string; // First name of the user
   last_name: string; // Last name of the user
   customer_id: number; // ID of the customer, 0 for default
@@ -50,6 +73,10 @@ interface InsertOrEditUser {
   is_super_admin: boolean; // Whether the user is a super admin
   is_active: boolean; // Whether the user account is active
   role_id: number; // ID of the role assigned to the user
+  department_id: number;
+  average_cost: number;
+  phone: string;
+  designation: string;
 }
 
 interface UserRole {
@@ -59,12 +86,21 @@ interface UserRole {
   is_active: boolean;
 }
 
+interface UserPermission {
+  user_permission_id: number;
+  permission_id: number;
+  permission_name: string;
+  user_id: number;
+  role_id: number;
+  is_active: boolean;
+}
+
 const {height} = Dimensions.get('window');
 
 const ManageUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User>();
-
+  const [customerID, setCustomerID] = useState('');
   const [isAddUserModalVisible, setisAddUserModalVisible] = useState(false);
   const [isEditPermissionModalVisible, setisEditPermissionModalVisible] =
     useState(false);
@@ -84,35 +120,67 @@ const ManageUsers: React.FC = () => {
   const [Designation, setDesignation] = useState<string>('');
   const [approvalCurrency, setApprovalCurrency] = useState<string>('');
   const [avgCurrency, setAvgCurrency] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [confirmPassword, setConfirmPassword] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  //For Confirm password field in Add User Modal
-  const handlePasswordChange = value => {
-    setPassword(value);
-    if (value !== confirmPassword) {
-      setErrorMessage('Password does not match');
-    } else {
-      setErrorMessage('');
-    }
+  const [isMultipleDeleteModalVisible, setisMultipleDeleteModalVisible] =
+    useState(false);
+  const [
+    isMultipleAssignDeptModalVisible,
+    setisMultipleAssignDeptModalVisible,
+  ] = useState(false);
+  const [
+    isMultipleRoleAssignModalVisible,
+    setisMultipleRoleAssignModalVisible,
+  ] = useState(false);
+
+  // const [selectedDeptID, setSelectedDeptID] = useState<number>(0);
+  const [selectedDeptPath, setSelectedDeptPath] = useState<string>('');
+  const [selectedDeptID, setSelectedDeptID] = useState<number>(-1);
+  const handleDeptSelect = (deptID: number) => {
+    setSelectedDeptID(deptID); // Update the parent state with the selected department ID
+    console.log(`Selected Department ID: ${deptID}`);
   };
+
+  //----------------commented the confirm password field in AddUser Modal-----------------
+  // const [password, setPassword] = useState<string>('');
+  // const [confirmPassword, setConfirmPassword] = useState<string>('');
+  // const [errorMessage, setErrorMessage] = useState<string>('');
   //For Confirm password field in Add User Modal
-  const handleConfirmPasswordChange = value => {
-    setConfirmPassword(value);
-    if (value !== password) {
-      setErrorMessage('Password does not match');
-    } else {
-      setErrorMessage('');
-    }
-  };
+  // const handlePasswordChange = value => {
+  //   setPassword(value);
+  //   if (value !== confirmPassword) {
+  //     setErrorMessage('Password does not match');
+  //   } else {
+  //     setErrorMessage('');
+  //   }
+  // };
+  //For Confirm password field in Add User Modal
+  // const handleConfirmPasswordChange = value => {
+  //   setConfirmPassword(value);
+  //   if (value !== password) {
+  //     setErrorMessage('Password does not match');
+  //   } else {
+  //     setErrorMessage('');
+  //   }
+  // };
 
   //made independent visible menu state for each user on the basis of user_id
+
   const [visibleMenus, setVisibleMenus] = useState<{[key: number]: boolean}>(
     {},
   );
 
+  const getCustomerId = async () => {
+    try {
+      const localcustomerID = await AsyncStorage.getItem('Customer_ID');
+      const decodedCustomerID = decodeBase64(localcustomerID || '');
+      console.log('Your Customer ID is ', decodedCustomerID);
+      setCustomerID(decodedCustomerID);
+    } catch (err) {
+      console.log('Error fetching the customerID', err);
+    }
+  };
   //Toggle function for opening and closing ":" Menu inside actions table
+  // ------------------------VERY IMPORTANT-------------------------------------------------------
   const toggleMenu = (userId: number) => {
     setVisibleMenus(prev => ({
       ...prev,
@@ -120,10 +188,39 @@ const ManageUsers: React.FC = () => {
     }));
   };
 
-  const [permissions, setPermissions] = useState({});
+  const [permissions, setPermissions] = useState<UserPermission[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const togglePermission = (key: any) => {
-    setPermissions(prev => ({...prev, [key]: !prev[key]}));
+  // const togglePermission = (key: any) => {
+  //   setPermissions(prev => ({...prev, [key]: !prev[key]}));
+  // };
+
+  const HandleGetUserPermission = async (user_id: string) => {
+    // Start loading
+    try {
+      setLoading(true);
+      setPermissions([]);
+
+      const response = await GetUserPermission(user_id);
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log(
+          `Permissions of ${user_id} fetched successfully`,
+          parsedRes,
+        );
+        // Corrected the path to match the response structure
+        setPermissions(parsedRes.data.user_permissions); // Use the correct path
+      } else {
+        console.error(
+          'Failed to fetch user roles:',
+          parsedRes.message || 'Unknown error',
+        );
+      }
+    } catch (err) {
+      console.error('Error fetching user permissions:', err);
+    } finally {
+      setLoading(false); // End loading
+    }
   };
 
   const fetchUser = async () => {
@@ -142,27 +239,32 @@ const ManageUsers: React.FC = () => {
   };
 
   const handleAddorEditUser = async () => {
-    console.log(selectedRole);
+    console.log(selectedRoleID);
     const payload: InsertOrEditUser = {
-      user_id: selectedUser ? selectedUser.user_id : 0,
-      username: username || (selectedUser ? selectedUser.username : ''),
+      user_id: selectedUser ? selectedUser.user_id : 0, //
+      username: username || (selectedUser ? selectedUser.username : ''), //agar username hai then add hoga, if not then jo slected user ka email hai vo hoga
       email: email || (selectedUser ? selectedUser.email : ''),
-      password: '',
       first_name: firstname || (selectedUser ? selectedUser.first_name : ''),
       last_name: lastname || (selectedUser ? selectedUser.last_name : ''),
-      customer_id: 0,
+      customer_id: parseInt(customerID),
       reporting_to: parseInt(manager),
       approval_limit: parseInt(budgetAmount),
       is_super_admin: true,
       is_active: true,
-      role_id: selectedRole,
+      role_id: selectedRoleID,
+      department_id: selectedDeptID, //by default it will give -1
+      average_cost: parseInt(avgbudgetAmount),
+      phone: '',
+      designation: Designation,
     };
     try {
       console.log(payload);
       const response = await addUser(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success')
+      if (parsedRes.status === 'success'){
         console.log(' User Added succesfully');
+        fetchUser();
+      }
       else
         console.error(
           'Failed to fetch users:',
@@ -183,6 +285,7 @@ const ManageUsers: React.FC = () => {
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         setisDeleteModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
       } else {
         console.error('Failed to delete user:', parsedRes.message); // Handle failure
       }
@@ -191,11 +294,12 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-  const [selectedRole, setSelectedRole] = useState<number>(-1);
+  const [selectedRoleID, setSelectedRoleID] = useState<number>(-1);
   const [userRole, setUserRole] = useState<UserRole[]>([]);
-  const fetchUserRole = async () => {
+
+  const fetchAllRole = async () => {
     try {
-      const response = await GetUserRole('');
+      const response = await GetAllRoles('');
       const parsedRes =
         typeof response === 'string' ? JSON.parse(response) : response;
       if (parsedRes.status === 'success') {
@@ -211,15 +315,12 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-  const HandleGetUserPermission = async (user_id: string) => {
+  const handleSyncAD = async () => {
     try {
-      const response = await GetUserPermission(user_id);
+      const response = await GetAdIntegration('');
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
-        console.log(
-          'Permission of' + {user_id} + 'fetched succesfully',
-          parsedRes,
-        );
+        console.log('fetched succesfully');
         // setUserRole(parsedRes.data.roles);
       } else {
         console.error(
@@ -232,10 +333,117 @@ const ManageUsers: React.FC = () => {
     }
   };
 
+  // Checkbox Logic
+  const [allSelectedUsersID, setAllSelectedUsersID] = useState<number[]>([]); // Store selected user IDs
+  const [selectAllChecked, setSelectAllChecked] = useState<boolean>(false); // State for Select All checkbox
+
   useEffect(() => {
     fetchUser();
-    fetchUserRole();
+    fetchAllRole();
+    getCustomerId();
   }, []);
+
+  // Handle "Select All" checkbox
+  const handleSelectAll = () => {
+    if (selectAllChecked) {
+      setAllSelectedUsersID([]); // Deselect all users
+    } else {
+      const selectedUserIds = users.map(user => user.user_id); // Select all users
+      setAllSelectedUsersID(selectedUserIds);
+      console.log('Selected Users ID:', selectedUserIds); // Log the array
+    }
+    setSelectAllChecked(!selectAllChecked); // Toggle "Select All" checkbox state
+  };
+
+  // Handle individual user selection
+  const handleUserSelection = (user_id: number) => {
+    const isSelected = allSelectedUsersID.includes(user_id);
+
+    if (isSelected) {
+      // Deselect user
+      setAllSelectedUsersID(allSelectedUsersID.filter(id => id !== user_id));
+    } else {
+      // Select user
+      setAllSelectedUsersID([...allSelectedUsersID, user_id]);
+    }
+
+    // Log the current state of allSelectedUsersID to check if it's being updated
+    console.log('Selected User IDs:', allSelectedUsersID);
+  };
+
+
+
+
+  const handleUpdateMultipleUsersDepartment = async () => {
+    const payload = {
+      department_id: selectedDeptID,
+      user_ids: allSelectedUsersID,
+    };
+    console.log('Multiple User Department Payload', payload);
+    try {
+      const response = await updateMultipleUsersDepartment(payload); // API call to delete user
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log(
+          'All the users you selected are now assigned the selected Department',
+        );
+        //set
+        setisMultipleAssignDeptModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
+      } else {
+        console.error(
+          'Failed to assign this Department to user:',
+          parsedRes.message,
+        ); // Handle failure
+      }
+    } catch (err) {
+      console.log('There is something wrong', err);
+    }
+  };
+
+  const handleUpdateMultipleUsersRole = async () => {
+    const payload = {
+      role_id: selectedRoleID,
+      user_ids: allSelectedUsersID,
+    };
+    console.log('Multiple User Role Assigning Payload', payload);
+    try {
+      const response = await updateMultipleUsersRole(payload); // API call to delete user
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log(
+          'All the users you selected are now assigned the selected Role',
+        );
+        setisMultipleRoleAssignModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
+      } else {
+        console.error('Failed to assign this role to user:', parsedRes.message); // Handle failure
+      }
+    } catch (err) {
+      console.log('There is something wrong', err);
+    }
+  };
+
+  const handleDeleteMultipleUsers = async () => {
+    const payload = {
+      user_ids: allSelectedUsersID,
+    };
+    console.log('Multiple User Department Payload', payload);
+    try {
+      const response = await DeleteMultipleUsers(payload); // API call to delete user
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log('All the users you slected are now succesfully deleted');
+        //set
+        setisMultipleDeleteModalVisible(false); // Close the modal after successful deletion
+        fetchUser();
+      } else {
+        console.error('Failed to delete user:', parsedRes.message); // Handle failure
+      }
+    } catch (err) {
+      console.log('There is something wrong', err);
+    }
+  };
 
   return (
     <>
@@ -245,11 +453,35 @@ const ManageUsers: React.FC = () => {
       </View>
 
       {/* Action Bar */}
+
       <View style={styles.actions}>
-        <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
+        {/*Delete Button in Action Bar */}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.leftAction]}
+          onPress={() => setisMultipleDeleteModalVisible(true)}>
           <IconButton icon="trash-can-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
         </TouchableOpacity>
+        {/*Assign Department Button in Action Bar */}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.leftAction]}
+          onPress={() => setisMultipleAssignDeptModalVisible(true)}>
+          <IconButton icon="briefcase-outline" size={16} color="#344054" />
+          <Text style={[styles.actionText, {color: '#344054'}]}>
+            Assign Department
+          </Text>
+        </TouchableOpacity>
+
+        {/*Assign Role Button in Action Bar  */}
+        <TouchableOpacity
+          style={[styles.actionButton, styles.leftAction]}
+          onPress={() => setisMultipleRoleAssignModalVisible(true)}>
+          <IconButton icon="briefcase-outline" size={16} color="#344054" />
+          <Text style={[styles.actionText, {color: '#344054'}]}>
+            Assign Roles
+          </Text>
+        </TouchableOpacity>
+
         <View style={styles.middleActions}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -270,7 +502,7 @@ const ManageUsers: React.FC = () => {
               Set Columns
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity style={styles.actionButton} onPress={handleSyncAD}>
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
@@ -285,18 +517,47 @@ const ManageUsers: React.FC = () => {
       <DataTable style={styles.tableHeaderCell}>
         {/* Table Header */}
         <DataTable.Header>
-          <DataTable.Title>S. No.</DataTable.Title>
-          <DataTable.Title>Name</DataTable.Title>
-          <DataTable.Title>Username</DataTable.Title>
-          <DataTable.Title>Role</DataTable.Title>
-          <DataTable.Title>Email ID</DataTable.Title>
-          <DataTable.Title>Department</DataTable.Title>
-          <DataTable.Title>Reporting Manager</DataTable.Title>
-          <DataTable.Title>Projects Active</DataTable.Title>
-          <DataTable.Title>Approval Limit</DataTable.Title>
-          <DataTable.Title>Average Cost</DataTable.Title>
-          <DataTable.Title>Active/ Inactive</DataTable.Title>
-          <DataTable.Title>Actions</DataTable.Title>
+          <Checkbox
+            status={selectAllChecked ? 'checked' : 'unchecked'}
+            onPress={handleSelectAll}
+          />
+
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            S. No.
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Name
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Username
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Role
+          </DataTable.Title>
+          <DataTable.Title style={[{flex: 2, justifyContent: 'center'}]}>
+            Email ID
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Department
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Reporting Manager
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Projects Active
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Approval Limit
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Average Cost
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Status
+          </DataTable.Title>
+          <DataTable.Title style={{justifyContent: 'center'}}>
+            Actions
+          </DataTable.Title>
         </DataTable.Header>
 
         {/* Table Rows */}
@@ -305,30 +566,59 @@ const ManageUsers: React.FC = () => {
           style={{maxHeight: 4150}}>
           {users.map((user, index) => (
             <DataTable.Row style={styles.table} key={user.user_id}>
-              <DataTable.Cell>{index + 1}</DataTable.Cell>
-              <DataTable.Cell>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
-              {/* Name: Concatenating first and last name */}
-              <DataTable.Cell>{user.username}</DataTable.Cell>
-              {/* Assuming username as designation */}
-              <DataTable.Cell>
-                {user.is_super_admin ? 'Super Admin' : 'User'}
+              <Checkbox
+                status={
+                  allSelectedUsersID.includes(user.user_id)
+                    ? 'checked'
+                    : 'unchecked'
+                }
+                onPress={() => handleUserSelection(user.user_id)}
+              />
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {index + 1}
               </DataTable.Cell>
-              {/* Role: Based on is_super_admin */}
-              <DataTable.Cell>{user.email}</DataTable.Cell>
-              <DataTable.Cell>
-                {user.customer_id ? 'Customer' : 'No Department'}
+              {/* Name: Concatenating first and last name */}
+              <DataTable.Cell
+                style={{
+                  justifyContent: 'center',
+                }}>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
+              {/*Username*/}
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user.username}
+              </DataTable.Cell>
+              {/* Assuming username as designation */}
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user.role_name}
+              </DataTable.Cell>
+              {/* Email*/}
+              <DataTable.Cell style={[{flex: 2, justifyContent: 'center'}]}>
+                {user.email}
               </DataTable.Cell>
               {/* Placeholder for department */}
-              <DataTable.Cell>{user.reporting_to}</DataTable.Cell>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user.department_name}
+              </DataTable.Cell>
               {/* Reporting Manager: Using reporting_to (ID) */}
-              <DataTable.Cell>{'N/A'}</DataTable.Cell>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user?.manager_name}
+              </DataTable.Cell>
               {/* Placeholder for Projects Active */}
-              <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
-              <DataTable.Cell>{'N/A'}</DataTable.Cell>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {0}
+              </DataTable.Cell>
+              {/* Placeholder for Approval Limit*/}
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user.approval_limit}
+              </DataTable.Cell>
               {/* Placeholder for Average Cost */}
-              <DataTable.Cell>{'Active'}</DataTable.Cell>
-              {/* Placeholder for Active/Inactive */}
-              {/* Placeholder for Permissions */}
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user.average_cost}
+              </DataTable.Cell>
+              {/* Placeholder for Status */}
+              <DataTable.Cell>
+                {user.is_active ? 'Active' : 'Inactive'}
+              </DataTable.Cell>
+              {/* Placeholder for Actions */}
               <DataTable.Cell>
                 <Menu
                   visible={visibleMenus[user.user_id] || false}
@@ -460,14 +750,14 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-              <NestedDeptDropdown />
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
               {/*User Role*/}
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
-                    selectedValue={selectedRole}
-                    onValueChange={itemValue => setSelectedRole(itemValue)}
+                    selectedValue={selectedRoleID}
+                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
                     style={styles.input}>
                     {userRole.map(
                       (
@@ -642,7 +932,7 @@ const ManageUsers: React.FC = () => {
       </Modal>
 
       {/*Permissions Modal */}
-      <Modal
+      {/* <Modal
         visible={isEditPermissionModalVisible}
         animationType="none"
         transparent={true}
@@ -662,10 +952,10 @@ const ManageUsers: React.FC = () => {
                   />
                 </View>
               ))}
-            </View>
+            </View> */}
 
-            {/* Buttons */}
-            <View style={styles.buttonContainer}>
+      {/* Buttons */}
+      {/* <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={() => setisEditPermissionModalVisible(false)}>
@@ -675,6 +965,59 @@ const ManageUsers: React.FC = () => {
                 style={styles.submitButton}
                 onPress={() => setisEditPermissionModalVisible(false)}>
                 <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal> */}
+
+      {/* Updated Permission User Modal */}
+      <Modal
+        visible={isEditPermissionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setisEditPermissionModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, {width: '90%', maxWidth: 400}]}>
+            <Text style={styles.modalTitle}>Edit Permissions</Text>
+            <ScrollView style={{maxHeight: 300}}>
+              <View style={styles.permissionContainer}>
+                {permissions.map(permission => (
+                  <View
+                    key={permission.permission_id}
+                    style={styles.permissionItem}>
+                    <Text>{permission.permission_name}</Text>
+                    <Switch
+                      value={permission.is_active}
+                      onValueChange={value => {
+                        setPermissions(
+                          permissions.map(p =>
+                            p.permission_id === permission.permission_id
+                              ? {...p, is_active: value}
+                              : p,
+                          ),
+                        );
+                      }}
+                      disabled={loading}
+                    />
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setisEditPermissionModalVisible(false)}
+                disabled={loading}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.submitButton]}
+                // onPress={handlePermissionSubmit}
+                disabled={loading}>
+                <Text style={styles.submitButtonText}>
+                  {loading ? 'Updating...' : 'Submit'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -766,15 +1109,15 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-              <NestedDeptDropdown />
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
 
               {/*User Role*/}
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
-                    selectedValue={selectedRole}
-                    onValueChange={itemValue => setSelectedRole(itemValue)}
+                    selectedValue={selectedRoleID}
+                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
                     style={styles.input}>
                     {userRole.map(
                       (
@@ -819,7 +1162,7 @@ const ManageUsers: React.FC = () => {
                   <Text style={styles.label}>* Budget Amount</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder={`${selectedUser?.first_name} ${selectedUser?.last_name}`}
+                    placeholder={`${selectedUser?.approval_limit}`}
                     value={budgetAmount}
                     onChangeText={setBudgetAmount}
                   />
@@ -854,7 +1197,7 @@ const ManageUsers: React.FC = () => {
                   <Text style={styles.label}>* Budget Amount</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder={`${selectedUser?.customer_id}`}
+                    placeholder={`${selectedUser?.average_cost}`}
                     value={avgbudgetAmount}
                     onChangeText={setAvgBudgetAmount}
                   />
@@ -926,6 +1269,122 @@ const ManageUsers: React.FC = () => {
           </View>
         </ScrollView>
       </Modal>
+
+      {/* Multiple Delete User Modal */}
+      <Modal
+        visible={isMultipleDeleteModalVisible}
+        animationType="none"
+        transparent={true}
+        onRequestClose={() => setisMultipleDeleteModalVisible(false)}>
+        <ScrollView>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalHeader}>
+                Are you sure you want to delete
+                {` ${allSelectedUsersID.length} users`}
+              </Text>
+
+              {/* Buttons */}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handleDeleteMultipleUsers}>
+                  <Text style={styles.submitButtonText}>Delete</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => setisMultipleDeleteModalVisible(false)}>
+                  <Text style={styles.submitButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </Modal>
+
+      {/*Assign Department Modal */}
+      <Modal
+        visible={isMultipleAssignDeptModalVisible}
+        animationType="none"
+        transparent={true}
+        onRequestClose={() => setisMultipleAssignDeptModalVisible(false)}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.modalScrollContainer}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalHeader}>
+                Assign the Department to all
+                {` ${allSelectedUsersID.length} users`}
+              </Text>
+
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
+
+              {/* Buttons */}
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handleUpdateMultipleUsersDepartment}>
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => setisMultipleAssignDeptModalVisible(false)}>
+                  <Text style={styles.submitButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </Modal>
+
+      {/*Assign Role Modal */}
+      <Modal
+        visible={isMultipleRoleAssignModalVisible}
+        animationType="none"
+        transparent={true}
+        onRequestClose={() => setisMultipleRoleAssignModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalHeader}>
+              Assign the Role to all
+              {` ${allSelectedUsersID.length} users`}
+            </Text>
+
+            {/* <NestedDeptDropdown onSelect={handleDeptSelect} /> */}
+            <Picker
+              selectedValue={selectedRoleID}
+              onValueChange={itemValue => setSelectedRoleID(itemValue)}
+              style={styles.input}>
+              {userRole.map(
+                (
+                  role, // Use `userRole` here instead of `userRoles`
+                ) => (
+                  <Picker.Item
+                    key={role.role_id}
+                    label={role.role_name}
+                    value={role.role_id}
+                  />
+                ),
+              )}
+            </Picker>
+
+            {/* Buttons */}
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={handleUpdateMultipleUsersRole}>
+                <Text style={styles.submitButtonText}>Submit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => setisMultipleRoleAssignModalVisible(false)}>
+                <Text style={styles.submitButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };
@@ -976,7 +1435,7 @@ const styles = StyleSheet.create({
     //paddingVertical: 10,
   },
   tableHeaderCell: {
-    flex: 1,
+    flex: 2,
     fontWeight: 'bold',
     fontSize: 14,
     color: '#757575',
@@ -1005,6 +1464,7 @@ const styles = StyleSheet.create({
   modalScrollContainer: {
     maxHeight: 800,
     paddingBottom: 40,
+    flexGrow: 1,
   },
   modalHeader: {
     fontSize: 20,
@@ -1085,6 +1545,45 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 5,
+  },
+  //for Edit Permission Modal styles
+  modalButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 16,
+    borderRadius: 8,
+    width: '80%',
+    maxWidth: 300,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    textAlign: 'center',
+    color: '#333',
+  },
+  permissionContainer: {
+    borderWidth: 1,
+    borderColor: '#044086',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+  },
+  permissionItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
   },
 });
 
