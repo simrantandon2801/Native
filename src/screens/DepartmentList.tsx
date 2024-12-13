@@ -4,6 +4,9 @@ import { Menu, Provider } from 'react-native-paper';
 import MenuItem from 'react-native-paper/lib/typescript/components/Menu/MenuItem';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+import { Picker } from '@react-native-picker/picker';
+
+
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
   const [subDepartments, setSubDepartments] = useState([]);
@@ -13,7 +16,7 @@ const DepartmentList = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [headingDepartment, setHeadingDepartment] = useState(null);
   const [isMenuVisible, setIsMenuVisible] = useState(null);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [newDepartment, setNewDepartment] = useState({
     department_id: null,
@@ -21,28 +24,32 @@ const DepartmentList = () => {
     parent_department_id: null,
     department_name: '',
     description: '',
-    department_head: null,
+    department_head: selectedUser ? selectedUser.user_id : null,
     department_level: 1,
     is_active: true,
   });
-  
   useEffect(() => {
-    if (isModalVisible) {
-      fetch('https://underbuiltapi.aadhidigital.com/master/get_users')
-      if (!Response.ok) {
-        throw new Error(`HTTP error! status: ${Response.status}`);
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_users');
+        const data = await response.json();
+        if (data.status === 'success' && data.data && Array.isArray(data.data.users)) {
+          setUsers(data.data.users); // Set the users array correctly
+        } else {
+          console.error('Unexpected data format', data);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
       }
-      const data = await response.json();
-      setUsers(Array.isArray(data) ? data : []); 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
-      setUsers([]); 
-    }
-  }, [isModalVisible]);
+    };
+  
+    fetchUsers();
+  }, []);
+  
   const handleUserSelect = (user) => {
     setSelectedUser(user);
     setNewDepartment((prev) => ({ ...prev, user_id: user.user_id }));
-    setIsMenuVisible(false); // Close the menu after selection
+    setIsMenuVisible(false); 
   };
   // Fetch active parent departments from the API
   useEffect(() => {
@@ -150,20 +157,35 @@ const handleDelete = async (departmentId) => {
     }
   };
 
-  
-
+  const toggleMenuUser = () => {
+    console.log('Menu toggled:', !isMenuVisible); // Debug log
+    setIsMenuVisible(!isMenuVisible);
+  };
  
   const toggleMenu = (departmentId) => {
     setIsMenuVisible((prev) => (prev === departmentId ? null : departmentId));
   };
   const handleAddDepartment = async () => {
+    console.log('New Department:', newDepartment);
     if (!newDepartment.department_name.trim()) {
       Alert.alert('Validation Error', 'Department name cannot be empty');
       return;
     }
-
+    if (selectedUser) {
+      console.log('Selected user for department head:', selectedUser);
+      // Directly set the department_head field with selected user ID
+      setNewDepartment((prev) => ({
+        ...prev,
+        department_head: selectedUser.user_id, // Make sure to directly set the ID
+      }));
+    } else {
+      Alert.alert('Validation Error', 'Please select a department head');
+      return;
+    }
+  
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department', {
+      console.log("Department to be sent: ", newDepartment);
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department1', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +202,7 @@ const handleDelete = async (departmentId) => {
           parent_department_id: null,
           department_name: '',
           description: '',
-          department_head: null,
+          department_head: selectedUser?.user_id,
           department_level: 1,
           is_active: true,
         });
@@ -456,27 +478,38 @@ const handleDelete = async (departmentId) => {
               value={newDepartment.description}
               onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, description: text }))}
             />
-            <Menu
-            visible={isMenuVisible}
-            onDismiss={() => setIsMenuVisible(false)}
-            anchor={
-              <TouchableOpacity
-                style={styles.menuButton}
-                onPress={toggleMenu}
-                onLayout={handleMenuLayout} // Position the menu correctly
-              >
-                <Text>{selectedUser ? selectedUser.username : 'Select User'}</Text>
-              </TouchableOpacity>
-            }
-          >
-            {users.map((user) => (
-              <Menu.Item
-                key={user.user_id}
-                title={user.username}
-                onPress={() => handleUserSelect(user)}
-              />
-            ))}
-          </Menu>
+       {users.length > 0 ? (
+ <Picker
+ selectedValue={selectedUser?.user_id ? String(selectedUser.user_id) : ""}
+ onValueChange={(itemValue) => {
+   console.log("Selected Value: ", itemValue);
+   const user = users.find(user => user.user_id === Number(itemValue)); // Convert itemValue to number
+   if (user) {
+     setSelectedUser(user);
+   } else {
+     console.log("User not found");
+   }
+ }}
+ style={styles.picker}
+>
+ <Picker.Item label="Select a user" value="" />
+ {users.map((user) => (
+   <Picker.Item
+     key={user.user_id}
+     label={user.first_name} // Show first_name instead of username
+     value={String(user.user_id)} // Ensure the value is a string
+   />
+ ))}
+</Picker>
+) : (
+  <Text>Loading users...</Text>
+)}
+
+{selectedUser && (
+  <Text style={styles.selectedUserText}>
+    Selected Department Head: {selectedUser.first_name} {selectedUser.last_name}
+  </Text>
+)}
             <TouchableOpacity style={styles.saveButton} onPress={handleAddDepartment}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
@@ -496,6 +529,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flex: 1,
     backgroundColor: '#f9f9f9',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+    backgroundColor: '#f0f0f0',
   },
   leftPanel: {
     flex: 1,
@@ -527,6 +565,12 @@ const styles = StyleSheet.create({
   },
   actionContainer: {
     padding: 5,
+  },
+  selectedUserText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
   },
   dropdownMenu: {
     position: 'absolute',
