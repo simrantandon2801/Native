@@ -167,26 +167,26 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
               value={selectedRows.includes(item.id)}
               onValueChange={() => toggleRowSelection(item.id)}
             />
-            <Text style={styles.cell}>{index + 1}</Text>  
-            <Text style={styles.cell}>{item.displayName}</Text> 
-            <Text style={styles.cell}>{item.jobTitle || '-'}</Text> 
-            <Text style={styles.cell}>{item.mail}</Text>  
-            <Text style={styles.cell}>{item.mobilePhone || '-'}</Text> 
+            <Text style={[styles.cell, styles.columnSNo]}>{index + 1}</Text>  
+            <Text style={[styles.cell, styles.columnName]}>{item.displayName}</Text> 
+            <Text style={[styles.cell, styles.columnJobTitle]}>{item.jobTitle || '-'}</Text> 
+            <Text style={[styles.cell, styles.columnEmail]}>{item.mail}</Text>  
+            <Text style={[styles.cell, styles.columnMobilePhone]}>{item.mobilePhone || '-'}</Text> 
           </View>
         )}
         ListHeaderComponent={() => (
           <View style={styles.tableHeader}>
               <CheckBox
-               style={styles.check}
+               //style={styles.check}
                 value={selectAll}
                 onValueChange={toggleSelectAll} 
                 
               />
-            <Text style={styles.headerCell}>S.No</Text>  
-            <Text style={styles.headerCell}>Name</Text>
-            <Text style={styles.headerCell}>Job Title</Text>
-            <Text style={styles.headerCell}>Email</Text>  
-            <Text style={styles.headerCell}>Mobile Phone</Text>
+           <Text style={[styles.headerCell, styles.columnSNo]}>S.No</Text>
+    <Text style={[styles.headerCell, styles.columnName]}>Name</Text>
+    <Text style={[styles.headerCell, styles.columnJobTitle]}>Job Title</Text>
+    <Text style={[styles.headerCell, styles.columnEmail]}>Email</Text>
+    <Text style={[styles.headerCell, styles.columnMobilePhone]}>Mobile Phone</Text>
           </View>
           
         )}
@@ -245,11 +245,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#A6A6A6',
-    padding: 8,
+    paddingVertical: 8,
+  },
+  columnSNo: {
+    width: 50, 
+    textAlign: 'center',
+  },
+  columnName: {
+    flex: 2, // Allocate more space for Name
+    textAlign: 'left',
+  },
+  columnJobTitle: {
+    flex: 2, // Allocate space for Job Title
+    textAlign: 'left',
+  },
+  columnEmail: {
+    flex: 3, // Allocate more space for Email
+    textAlign: 'left',
+  },
+  columnMobilePhone: {
+    flex: 2, // Allocate space for Mobile Phone
+    textAlign: 'left',
   },
   cell: {
     flex: 1,
-    textAlign: 'center',
+    alignItems: 'center',
   },
   pickerContainer: {
     marginBottom: 20, 
