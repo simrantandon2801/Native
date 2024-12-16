@@ -5,6 +5,7 @@ import MenuItem from 'react-native-paper/lib/typescript/components/Menu/MenuItem
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { Picker } from '@react-native-picker/picker';
+import BinaryTree from './BinaryTree';
 
 
 const DepartmentList = () => {
@@ -298,7 +299,7 @@ const handleDelete = async (departmentId) => {
     }));
   };
  
- 
+//  <BinaryTree/>
   
   const renderSubDepartments = (department, level = 0) => {
     return (

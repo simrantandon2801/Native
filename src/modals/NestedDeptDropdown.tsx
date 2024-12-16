@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     color: '#000',
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
-    width: '100%',
+    minWidth: 'auto'
   },
   dropdownItem: {
     borderRadius: 5,
