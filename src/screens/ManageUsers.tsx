@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import {
   StyleSheet,
   View,
@@ -110,6 +110,8 @@ const ManageUsers: React.FC = () => {
     useState(false);
   const [isDeleteModalVisible, setisDeleteModalVisible] = useState(false);
   const [isEditModalVisible, setisEditModalVisible] = useState(false);
+  const [isFilterModalVisible, setFilterModalVisible] =
+    useState<boolean>(false);
   const [firstname, setFirstName] = useState<string>(
     selectedUser ? selectedUser?.first_name : '',
   );
@@ -203,7 +205,7 @@ const ManageUsers: React.FC = () => {
   };
 
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
-  const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
+  // const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -239,6 +241,16 @@ const ManageUsers: React.FC = () => {
       setLoading(false); // End loading
     }
   };
+
+  //used useMemo in activePermissionsIds to avoid extra rerendering
+  //as permisison state was already having user_permission_id so no need
+  const activePermissionIds = useMemo(
+    () =>
+      permissions
+        .filter(permission => permission.is_active)
+        .map(permission => permission.user_permission_id),
+    [permissions], //jab bhi permission state change hogi 2 condition ->on togging ->on fetching tab tab activePermisisonIds me jaega code
+  );
 
   const fetchUser = async () => {
     try {
@@ -386,7 +398,6 @@ const ManageUsers: React.FC = () => {
     // Log the current state of allSelectedUsersID to check if it's being updated
     console.log('Selected User IDs:', allSelectedUsersID);
   };
-
   const handleUpdateMultipleUsersDepartment = async () => {
     const payload = {
       department_id: selectedDeptID,
@@ -413,15 +424,13 @@ const ManageUsers: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-
-
-  const handleEditPermission = async()=>{
+  const handleEditPermission = async () => {
     const payload = {
       user_id: selectedUser?.user_id,
       role_id: selectedUser?.role_id,
-      user_permission_ids: activePermissionIds
-    }
-    console.log("payload of inserting user permissions",payload);
+      user_permission_ids: activePermissionIds,
+    };
+    console.log('payload of inserting user permissions', payload);
     try {
       const response = await updateUserPermissions(payload); // API call to delete user
       const parsedRes = JSON.parse(response);
@@ -442,7 +451,6 @@ const ManageUsers: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-  
   const handleUpdateMultipleUsersRole = async () => {
     const payload = {
       role_id: selectedRoleID,
@@ -465,7 +473,6 @@ const ManageUsers: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-
   const handleDeleteMultipleUsers = async () => {
     const payload = {
       user_ids: allSelectedUsersID,
@@ -486,7 +493,6 @@ const ManageUsers: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-
   return (
     <>
       {/* Manage Users Section */}
@@ -557,7 +563,9 @@ const ManageUsers: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.rightAction]}
+          onPress={() => setFilterModalVisible(true)}>
           <IconButton icon="filter" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
         </TouchableOpacity>
@@ -599,9 +607,9 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title style={{justifyContent: 'center'}}>
             Approval Limit
           </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
+          {/* <DataTable.Title style={{justifyContent: 'center'}}>
             Average Cost
-          </DataTable.Title>
+          </DataTable.Title> */}
           <DataTable.Title style={{justifyContent: 'center'}}>
             Status
           </DataTable.Title>
@@ -665,11 +673,11 @@ const ManageUsers: React.FC = () => {
                 {user.average_cost}
               </DataTable.Cell> */}
               {/* Placeholder for Status */}
-              <DataTable.Cell>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.is_active ? 'Active' : 'Inactive'}
               </DataTable.Cell>
               {/* Placeholder for Actions */}
-              <DataTable.Cell>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 <Menu
                   visible={visibleMenus[user.user_id] || false}
                   onDismiss={() => toggleMenu(user.user_id)}
@@ -810,12 +818,12 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-            
+
               {/*User Role*/}
               <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
-              </View>
+                <View style={styles.inputWrapper}>
+                  <NestedDeptDropdown onSelect={handleDeptSelect} />
+                </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
@@ -1077,14 +1085,9 @@ const ManageUsers: React.FC = () => {
                     <Switch
                       value={permission.is_active}
                       onValueChange={value => {
-                        console.log(`Permission Name: ${permission.permission_name} is ${value}`)
-                        setActivePermissionIds(prev => {
-                          if (value) {
-                            return [...prev, permission.user_permission_id];
-                          } else {
-                            return prev.filter(id => id !== permission.user_permission_id);
-                          }
-                        });
+                        console.log(
+                          `Permission Name: ${permission.permission_name} is ${value}`,
+                        );
                         setPermissions(
                           permissions.map(p =>
                             p.permission_id === permission.permission_id
@@ -1204,13 +1207,12 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-             
 
               {/*User Role*/}
               <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
-              </View>
+                <View style={styles.inputWrapper}>
+                  <NestedDeptDropdown onSelect={handleDeptSelect} />
+                </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
@@ -1483,6 +1485,178 @@ const ManageUsers: React.FC = () => {
           </View>
         </View>
       </Modal>
+
+      {/*Filter Modal */}
+      <Modal
+        visible={isFilterModalVisible}
+        animationType="none"
+        transparent={true}
+        onRequestClose={() => setFilterModalVisible(false)}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.modalScrollContainer}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalHeader}>Filter Options</Text>
+              {/* Input Fields for Name*/}
+              
+              {/* <View style={styles.inputRow}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* First Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter first name"
+                    value={firstname}
+                    onChangeText={setFirstName}
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Last Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter last name"
+                    value={lastname}
+                    onChangeText={setLastName}
+                  />
+                </View>
+              </View> */}
+              {/* Input Fields for Email*/}
+              {/* <View style={styles.inputRow}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Email ID</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Enter email"
+                    keyboardType="email-address"
+                    value={email}
+                    onChangeText={setEmail}
+                  />
+                </View>
+              </View> */}
+              {/* Designation Dropdown */}
+              {/* Reporting Manager Dropdown &&  */}
+              <View style={styles.inputRow}>
+                {/* <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Designation</Text>
+                  <Picker
+                    selectedValue={Designation}
+                    onValueChange={itemValue => setDesignation(itemValue)}
+                    style={styles.input}>
+                    <Picker.Item label="UI/UX" value="UI/UX" />
+                    <Picker.Item label="Developer" value="Developer" />
+                    <Picker.Item
+                      label="Project Manager"
+                      value="Project Manager"
+                    />
+                  </Picker>
+                </View> */}
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Reporting Manager</Text>
+                  <Picker
+                    selectedValue={reporting_to}
+                    onValueChange={itemValue => setReportingTo(itemValue)}
+                    style={styles.input}>
+                    {users.map((user, index) => (
+                      <Picker.Item
+                        key={index}
+                        label={`${user.first_name} ${user.last_name}`}
+                        value={user.user_id}
+                      />
+                    ))}
+                  </Picker>
+                </View>
+              </View>
+              {/*Nested Dropdown */}
+
+              {/*User Role*/}
+              <View style={styles.inputRow}>
+                <View style={styles.inputWrapper}>
+                  <NestedDeptDropdown onSelect={handleDeptSelect} />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* User Role</Text>
+                  <Picker
+                    selectedValue={selectedRoleID}
+                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
+                    style={styles.input}>
+                    {userRole.map(
+                      (
+                        role, // Use `userRole` here instead of `userRoles`
+                      ) => (
+                        <Picker.Item
+                          key={role.role_id}
+                          label={role.role_name}
+                          value={role.role_id}
+                        />
+                      ),
+                    )}
+                  </Picker>
+                </View>
+              </View>
+              {/*Approval Limit*/}
+              {/* <Text
+                style={{
+                  color: '#044086',
+                  fontFamily: 'Source Sans Pro',
+                  fontSize: 14,
+                  fontStyle: 'normal',
+                  fontWeight: '600',
+                  lineHeight: 22,
+                  paddingBottom: 5,
+                }}>
+                Approval Limit
+              </Text> */}
+              {/* <View style={styles.inputRow}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Currency Selection</Text>
+                  <Picker
+                    selectedValue={approvalCurrency}
+                    onValueChange={itemValue => setApprovalCurrency(itemValue)}
+                    style={styles.input}>
+                    <Picker.Item label="$ US Dollar" value="Dollar" />
+                    <Picker.Item label="₹ Rupees" value="Rupees" />
+                    <Picker.Item label="€ Euro" value="Euro" />
+                  </Picker>
+                </View>
+
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Budget Amount</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Budget Amount"
+                    value={budgetAmount}
+                    onChangeText={setBudgetAmount}
+                  />
+                </View>
+              </View> */}
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  gap: 14,
+                }}>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => {
+                    setFilterModalVisible(false);
+                    // Handle form submission logic here (e.g., save user details)
+                    handleAddorEditUser();
+                  }}>
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                </TouchableOpacity>
+
+                {/* Close Button */}
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => setFilterModalVisible(false)}>
+                  <Text style={styles.submitButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </Modal>
+     
     </>
   );
 };
@@ -1718,6 +1892,32 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     flexGrow: 1,
   },
+  filterModalOverlay: {
+    flex: 1, // Ensures the overlay takes up the full screen height
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    justifyContent: 'center', // Centers the modal vertically
+    alignItems: 'flex-end', // Aligns modal content to the right of the screen
+  },
+
+  // Modal Content
+  filterModalContent: {
+    width: 200, // Define the width of the modal
+    height: '50%', // Define the height of the modal (adjust as needed)
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10, // Add bottom left radius to make it look smoother
+    elevation: 5, // Add some shadow if needed
+  },
+
+  // Title style inside the modal
+  filterModalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+    justifyContent:"center"
+  },
+
 });
 
 export default ManageUsers;
