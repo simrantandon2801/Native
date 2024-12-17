@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useEffect } from 'react';
+import React, {ReactNode, useState, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   StyleSheet,
@@ -11,16 +11,24 @@ import {
   Dimensions,
   Alert,
   TouchableWithoutFeedback,
-  ActivityIndicator
+  ActivityIndicator,
 } from 'react-native';
-import { CheckBox } from 'react-native';
-import { IconButton, Menu, DataTable, Button, TextInput, Switch } from 'react-native-paper';
-import { AddAndEditRole } from '../database/RoleMaster';
-import { DeleteRole } from '../database/RoleMaster';
-import { decodeBase64 } from '../core/securedata';
+import {CheckBox} from 'react-native';
+import {
+  IconButton,
+  Menu,
+  DataTable,
+  Button,
+  TextInput,
+  Switch,
+} from 'react-native-paper';
+import {AddAndEditRole} from '../database/RoleMaster';
+import {DeleteRole} from '../database/RoleMaster';
+import {decodeBase64} from '../core/securedata';
 import DeleteConfirmationModal from './delete-confirmation-modal';
+import {GetRolePermission, GetAllPermission, updateRolePermissions} from '../database/RestData';
 
-const { height } = Dimensions.get('window');
+const {height} = Dimensions.get('window');
 const adjustedHeight = height * 0.9;
 
 interface User {
@@ -46,19 +54,28 @@ interface Submodule {
   is_active: boolean;
 }
 
+interface RolePermission {
+  role_permission_id: number; // ID for the specific role-permission relationship
+  permission_id: number; // ID of the permission
+  permission_name: string; // Name of the permission
+  role_id: number; // ID of the role
+  is_active: boolean; // Whether the permission is active
+}
+
 const RoleMaster = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isMenuVisible, setMenuVisible] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User>();
   const [actionsVisible, setActionsVisible] = useState(false);
   // const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [selectedModules, setSelectedModules] = useState<number[]>([]);
   const [editRoleIndex, setEditRoleIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  // const [allSelected, setAllSelected] = useState(false);
+  const [allSelected, setAllSelected] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [isAddRoleModalVisible, setAddRoleModalVisible] = useState(false);
-  // const [isAssignModuleModalVisible, setAssignModuleModalVisible] = useState(false);
+  const [isAssignModuleModalVisible, setAssignModuleModalVisible] =
+    useState(false);
   const [isEditable, setIsEditable] = useState(false);
   const [modules, setModules] = useState<Module[]>([]);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
@@ -66,15 +83,72 @@ const RoleMaster = () => {
   const [expandedModules, setExpandedModules] = useState<number[]>([]);
   const [role_name, setRoleInput] = useState('');
   const [isRoleActive, setIsRoleActive] = useState(true);
-  const [isEditPermissionModalVisible, setIsEditPermissionModalVisible] = useState(false);
+  const [isEditPermissionModalVisible, setIsEditPermissionModalVisible] =
+    useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-
+  const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
+  const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
+  
+  const handleFetchRolePermisssion = async (role_id:string) => {
+    try {
+      setLoading(true);
+      setRolePermissions([]);
+      // setActivePermissionIds([]);
+      console.log(role_id, "role id sent to get role permisson ")
+      const response = await GetRolePermission(role_id);
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        // console.log(
+        //   `Permissions of ${user_id} fetched successfully`,
+        //   parsedRes,
+        // );
+        setRolePermissions(parsedRes.data.role_permissions);
+      } else {
+        console.error(
+          'Failed to fetch user roles:',
+          parsedRes.message || 'Unknown error',
+        );
+      }
+    } catch (err) {
+      console.error('Error fetching user permissions:', err);
+    } finally {
+      setLoading(false); // End loading
+    }
+  };
+   const handleEditRolePermission = async()=>{
+      const payload = {
+        role_id: selectedUser?.role_id,
+        role_permission_ids: activePermissionIds
+      }
+      console.log("payload of inserting role permissions" ,payload);
+      try {
+        const response = await updateRolePermissions(payload); // API call to delete user
+        const parsedRes = JSON.parse(response);
+        if (parsedRes.status === 'success') {
+          console.log(
+            'All the permissions you selected are now assigned the selected user',
+          );
+          //set
+          setIsEditPermissionModalVisible(false); // Close the modal after successful deletion
+          // fetchUser();
+        } else {
+          console.error(
+            'Failed to assign permission to user:',
+            parsedRes.message,
+          ); // Handle failure
+        }
+      } catch (err) {
+        console.log('There is something wrong', err);
+      }
+    };
 
   const toggleMenu = () => setActionsVisible(!actionsVisible);
 
   const fetchModules = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/modules');
+      const response = await fetch(
+        'https://underbuiltapi.aadhidigital.com/master/modules',
+      );
       const data = await response.json();
       if (!Array.isArray(data)) {
         console.error('Modules data is not an array:', data);
@@ -92,20 +166,25 @@ const RoleMaster = () => {
     try {
       const encodedRoleId = await AsyncStorage.getItem('UserType');
       const decodedRoleId = decodeBase64(encodedRoleId ?? '');
-      const response = await fetch(`https://underbuiltapi.aadhidigital.com/master/get_role_vs_modules?role_id=${decodedRoleId}`);
+      const response = await fetch(
+        `https://underbuiltapi.aadhidigital.com/master/get_role_vs_modules?role_id=${decodedRoleId}`,
+      );
       const responseData = await response.json();
       console.log('Fetched Role:', JSON.stringify(responseData, null, 2));
-      
+
       const roleModules = responseData.data?.role_vs_modules || [];
-  
+
       if (response.ok) {
-        const moduleStatusMap = roleModules.reduce((acc: Record<number, boolean>, module: any) => {
-          acc[module.module_id] = module.is_active;
-          return acc;
-        }, {});
-  
+        const moduleStatusMap = roleModules.reduce(
+          (acc: Record<number, boolean>, module: any) => {
+            acc[module.module_id] = module.is_active;
+            return acc;
+          },
+          {},
+        );
+
         const updateModules = (moduleList: Module[]): Module[] => {
-          return moduleList.map((module) => ({
+          return moduleList.map(module => ({
             ...module,
             is_active: !!moduleStatusMap[module.module_id],
             sub_modules: module.sub_modules
@@ -113,7 +192,7 @@ const RoleMaster = () => {
               : [],
           }));
         };
-  
+
         setModules(updateModules(modules));
       } else {
         console.error('Error fetching role modules:', responseData);
@@ -131,13 +210,13 @@ const RoleMaster = () => {
   }, [isModalVisible]);
 
   const toggleExpand = (moduleId: number) => {
-    setExpandedModules((prev) =>
+    setExpandedModules(prev =>
       prev.includes(moduleId)
-        ? prev.filter((id) => id !== moduleId)
-        : [...prev, moduleId]
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId],
     );
   };
-  
+
   useEffect(() => {
     fetchModules();
   }, []);
@@ -146,75 +225,93 @@ const RoleMaster = () => {
     setIsModalVisible(true);
     fetchModules();
   };
-  
+
   const sendUpdatedData = async () => {
     const moduleIds: number[] = [];
     const submoduleIds: number[] = [];
-  
-    modules.forEach((module) => {
+
+    modules.forEach(module => {
       if (module.is_active) {
         moduleIds.push(module.module_id);
       }
-      module.sub_modules?.forEach((submodule) => {
+      module.sub_modules?.forEach(submodule => {
         if (submodule.is_active) {
           submoduleIds.push(submodule.module_id);
         }
       });
     });
-  
+
     const combinedModuleIds = [...moduleIds, ...submoduleIds];
-  
+
     console.log('Selected Module IDs:', JSON.stringify(moduleIds, null, 2));
-    console.log('Selected Submodule IDs:', JSON.stringify(submoduleIds, null, 2));
-    console.log('Combined Module IDs:', JSON.stringify(combinedModuleIds, null, 2));
-  
+    console.log(
+      'Selected Submodule IDs:',
+      JSON.stringify(submoduleIds, null, 2),
+    );
+    console.log(
+      'Combined Module IDs:',
+      JSON.stringify(combinedModuleIds, null, 2),
+    );
+
     if (combinedModuleIds.length === 0) {
       const payload = {
         id: 0,
-        modules: "",
-        role_id: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
-        created_by: decodeBase64(await AsyncStorage.getItem('UserType') ?? ''),
+        modules: '',
+        role_id: decodeBase64((await AsyncStorage.getItem('UserType')) ?? ''),
+        created_by: decodeBase64(
+          (await AsyncStorage.getItem('UserType')) ?? '',
+        ),
       };
-  
+
       try {
-        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-  
-        if (!response.ok) throw new Error(`Failed to save data. Status: ${response.status}`);
+        const response = await fetch(
+          'https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module',
+          {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload),
+          },
+        );
+
+        if (!response.ok)
+          throw new Error(`Failed to save data. Status: ${response.status}`);
         Alert.alert('Data saved successfully!');
       } catch (error) {
         console.error('Error sending data:', error);
         Alert.alert('Failed to save data. Please try again.');
       }
-  
+
       return;
     }
-  
+
     try {
       const encodedRoleId = await AsyncStorage.getItem('UserType');
       const decodedRoleId = decodeBase64(encodedRoleId ?? '');
-      const UserType = decodeBase64(await AsyncStorage.getItem('UserType') ?? '');
-  
+      const UserType = decodeBase64(
+        (await AsyncStorage.getItem('UserType')) ?? '',
+      );
+
       const payload = {
         id: 0,
         modules: combinedModuleIds.join(','),
         role_id: decodedRoleId,
         created_by: UserType,
       };
-  
+
       console.log('Sending Payload:', JSON.stringify(payload, null, 2));
-  
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-  
-      if (!response.ok) throw new Error(`Failed to save data. Status: ${response.status}`);
-  
+
+      const response = await fetch(
+        'https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module',
+        {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok)
+        throw new Error(`Failed to save data. Status: ${response.status}`);
+
       Alert.alert('Data saved successfully!');
     } catch (error) {
       console.error('Error sending data:', error);
@@ -224,10 +321,11 @@ const RoleMaster = () => {
 
   const updateModuleState = (moduleId: number, newValue: boolean) => {
     const updateModulesRecursively = (moduleList: Module[]): Module[] => {
-      return moduleList.map((module) => {
+      return moduleList.map(module => {
         const updatedModule = {
           ...module,
-          is_active: module.module_id === moduleId ? newValue : module.is_active,
+          is_active:
+            module.module_id === moduleId ? newValue : module.is_active,
           sub_modules: module.sub_modules
             ? updateModulesRecursively(module.sub_modules)
             : [],
@@ -235,23 +333,24 @@ const RoleMaster = () => {
         return updatedModule;
       });
     };
-  
-    setModules((prevModules) => updateModulesRecursively(prevModules));
+
+    setModules(prevModules => updateModulesRecursively(prevModules));
   };
 
   const renderModules = (moduleList: Module[], level = 0) => {
-    return moduleList.map((module) => (
-      <View key={module.module_id} style={[styles.moduleItem, { marginLeft: level * 20 }]}>
+    return moduleList.map(module => (
+      <View
+        key={module.module_id}
+        style={[styles.moduleItem, {marginLeft: level * 20}]}>
         <View style={styles.checkboxRow}>
           <TouchableOpacity
             style={styles.expandButton}
-            onPress={() => toggleExpand(module.module_id)}
-          >
+            onPress={() => toggleExpand(module.module_id)}>
             <Text style={styles.expandButtonText}>
               {expandedModules.includes(module.module_id) ? '-' : '+'}
             </Text>
           </TouchableOpacity>
-  
+
           <CheckBox
             value={module.is_active}
             disabled={!isEditable}
@@ -261,7 +360,7 @@ const RoleMaster = () => {
           />
           <Text style={styles.moduleText}>{module.module_name}</Text>
         </View>
-  
+
         {expandedModules.includes(module.module_id) &&
           module.sub_modules &&
           renderModules(module.sub_modules, level + 1)}
@@ -270,10 +369,10 @@ const RoleMaster = () => {
   };
 
   const handleModuleChange = (moduleId: number) => {
-    setSelectedModules((prevSelectedModules) =>
+    setSelectedModules(prevSelectedModules =>
       prevSelectedModules.includes(moduleId)
-        ? prevSelectedModules.filter((id) => id !== moduleId)
-        : [...prevSelectedModules, moduleId]
+        ? prevSelectedModules.filter(id => id !== moduleId)
+        : [...prevSelectedModules, moduleId],
     );
   };
 
@@ -281,23 +380,28 @@ const RoleMaster = () => {
     if (isEditable) {
       console.log('Edit mode is active. Preparing to save data.');
       console.log('Modules State:', JSON.stringify(modules, null, 2));
-      
+
       const activeModules = modules.filter(module => module.is_active);
       console.log('Active Modules:', JSON.stringify(activeModules, null, 2));
-  
+
       activeModules.forEach(module => {
         if (module.sub_modules?.length) {
-          const activeSubmodules = module.sub_modules.filter(submodule => submodule.is_active);
-          console.log(`Active Submodules for Module "${module.module_name}":`, JSON.stringify(activeSubmodules, null, 2));
+          const activeSubmodules = module.sub_modules.filter(
+            submodule => submodule.is_active,
+          );
+          console.log(
+            `Active Submodules for Module "${module.module_name}":`,
+            JSON.stringify(activeSubmodules, null, 2),
+          );
         }
       });
-  
+
       await sendUpdatedData();
     } else {
       console.log('Edit mode is being activated. Modules can now be edited.');
     }
-  
-    setIsEditable((prev) => !prev);
+
+    setIsEditable(prev => !prev);
   };
 
   const closeModal = () => {
@@ -305,27 +409,27 @@ const RoleMaster = () => {
     setEditRoleIndex(null);
     setAddRoleModalVisible(false);
   };
- 
+
   interface Role {
     is_active: any;
     role_level: ReactNode;
     role_name: ReactNode;
     role: string;
   }
-  
+
   const handleAddRole = async () => {
     if (!role_name.trim()) {
       Alert.alert('Error', 'Role name cannot be empty');
       return;
     }
     setLoading(true);
-    const newRole = { 
-      role_id: 0,  
+    const newRole = {
+      role_id: 0,
       role_name: role_name.trim(),
-      role_level: 0,  
-      is_active: true, 
+      role_level: 0,
+      is_active: true,
     };
-    console.log(newRole, "Adding new role");
+    console.log(newRole, 'Adding new role');
     const res = await AddAndEditRole(newRole);
     console.log(res);
     setLoading(false);
@@ -337,21 +441,21 @@ const RoleMaster = () => {
 
   const handleEditRole = async () => {
     setLoading(true);
-    
-    const payload = { 
+
+    const payload = {
       role_id: selectedUser ? selectedUser.role_id : 0,
       role_name: role_name,
       role_level: 0,
       is_active: isRoleActive,
     };
-    console.log("value2: ", payload)
+    console.log('value2: ', payload);
     const res = await AddAndEditRole(payload);
     console.log(res);
     setIsEditModalVisible(false);
     fetchData();
     setLoading(false);
   };
-  
+
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -361,16 +465,16 @@ const RoleMaster = () => {
       console.log('Fetching data from:', uri);
 
       const response = await fetch(uri, {
-        method: 'GET',  
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
-     
+
       const result = await response.json();
       console.log(result.data.roles);
       const sortedRoles = result.data.roles.sort((a, b) => {
@@ -382,71 +486,70 @@ const RoleMaster = () => {
       console.log('API response:', response.status);
     } catch (err) {
       console.error('Error fetching data:', err);
-      Alert.alert("Error", "Failed to fetch roles. Please try again.");
+      Alert.alert('Error', 'Failed to fetch roles. Please try again.');
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, []);  
+  }, []);
 
   const handleDeleteRole = async (roleId: number) => {
-    setSelectedUser(users.find(user => user.role_id === roleId) || null);
+    setSelectedUser(users.find(user => user.role_id === roleId));
     setIsDeleteModalVisible(true);
   };
-  
+
   const confirmDeleteRole = async () => {
     if (selectedUser && selectedUser.role_id) {
       setLoading(true);
       try {
-        console.log("Attempting to delete role with ID:", selectedUser.role_id);
+        console.log('Attempting to delete role with ID:', selectedUser.role_id);
         const res = await DeleteRole(selectedUser.role_id);
-        console.log("Delete API Response:", res);
+        console.log('Delete API Response:', res);
         const parsedRes = JSON.parse(res);
         if (parsedRes.status === 'success') {
-          setUsers(prevUsers => prevUsers.filter(user => user.role_id !== selectedUser.role_id));
-          Alert.alert("Success", "Role deleted successfully");
+          setUsers(prevUsers =>
+            prevUsers.filter(user => user.role_id !== selectedUser.role_id),
+          );
+          Alert.alert('Success', 'Role deleted successfully');
         } else {
           throw new Error(parsedRes.message || 'Unknown error occurred');
         }
       } catch (error) {
-        console.error("Error in confirmDeleteRole:", error);
-        Alert.alert("Error", "Failed to delete role. Please try again.");
+        console.error('Error in confirmDeleteRole:', error);
+        Alert.alert('Error', 'Failed to delete role. Please try again.');
       } finally {
         setLoading(false);
         setIsDeleteModalVisible(false);
-        setSelectedUser(null);
       }
     }
   };
-  
+
   const handleStatusToggle = async (user: User) => {
     setSelectedUser(user);
     try {
       setLoading(true);
-      const updatedUser = { ...user, is_active: !user.is_active };
+      const updatedUser = {...user, is_active: !user.is_active};
       const res = await AddAndEditRole(updatedUser);
       const response = JSON.parse(res);
       if (response.status === 'success') {
-        setUsers(prevUsers => 
-          prevUsers.map(u => u.role_id === user.role_id ? updatedUser : u)
+        setUsers(prevUsers =>
+          prevUsers.map(u => (u.role_id === user.role_id ? updatedUser : u)),
         );
       } else {
         throw new Error(response.message || 'Failed to update status');
       }
     } catch (error) {
-      console.error("Error toggling status:", error);
-      Alert.alert("Error", "Failed to update status. Please try again.");
+      console.error('Error toggling status:', error);
+      Alert.alert('Error', 'Failed to update status. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-  
-  useEffect(() => {
-    console.log('RoleMaster component mounted');
-  }, []);
+
+ 
 
   return (
     <View style={styles.container}>
@@ -456,7 +559,7 @@ const RoleMaster = () => {
       <View style={styles.actions}>
         <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
           <IconButton icon="trash-can-outline" size={16} />
-          <Text style={[styles.actionText, { color: '#344054' }]}>Delete</Text>
+          <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
         </TouchableOpacity>
         <View style={styles.middleActions}>
           <TouchableOpacity
@@ -466,27 +569,24 @@ const RoleMaster = () => {
               setAddRoleModalVisible(true);
             }}>
             <IconButton icon="plus" size={16} />
-            <Text style={[styles.actionText, { color: '#044086' }]}>
+            <Text style={[styles.actionText, {color: '#044086'}]}>
               Add Role
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionButton}>
-            <IconButton
-              icon="table-column-plus-after"
-              size={16}
-            />
-            <Text style={[styles.actionText, { color: '#044086' }]}>
+            <IconButton icon="table-column-plus-after" size={16} />
+            <Text style={[styles.actionText, {color: '#044086'}]}>
               Set Columns
             </Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
-          <IconButton icon="filter" size={16}  />
-          <Text style={[styles.actionText, { color: '#344054' }]}>Filters</Text>
+          <IconButton icon="filter" size={16} />
+          <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
         </TouchableOpacity>
       </View>
-     
+
       <DataTable style={styles.tableHeaderCell}>
         <DataTable.Header>
           <DataTable.Title>S. No.</DataTable.Title>
@@ -495,7 +595,9 @@ const RoleMaster = () => {
           <DataTable.Title>Action</DataTable.Title>
         </DataTable.Header>
 
-        <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: '100%' }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={{maxHeight: '100%'}}>
           {users.map((user, index) => (
             <DataTable.Row style={styles.table} key={user.role_id}>
               <DataTable.Cell>{index + 1}</DataTable.Cell>
@@ -505,7 +607,11 @@ const RoleMaster = () => {
                   <ActivityIndicator size="small" color="#044086" />
                 ) : (
                   <TouchableOpacity onPress={() => handleStatusToggle(user)}>
-                    <Text style={[styles.statusText, { color: user.is_active ? 'green' : 'red' }]}>
+                    <Text
+                      style={[
+                        styles.statusText,
+                        {color: user.is_active ? 'green' : 'red'},
+                      ]}>
                       {user.is_active ? 'Active' : 'Inactive'}
                     </Text>
                   </TouchableOpacity>
@@ -513,35 +619,47 @@ const RoleMaster = () => {
               </DataTable.Cell>
               <DataTable.Cell>
                 <Menu
-                  visible={isMenuVisible && selectedUser?.role_id === user.role_id}
+                  visible={
+                    isMenuVisible && selectedUser?.role_id === user.role_id
+                  }
                   onDismiss={() => setMenuVisible(false)}
                   anchor={
-                    <TouchableOpacity onPress={() => {
-                      setSelectedUser(user);
-                      setRoleInput(user.role_name);
-                      setIsRoleActive(user.is_active);
-                      setMenuVisible(true);
-                    }}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedUser(user);
+                        setRoleInput(user.role_name);
+                        setIsRoleActive(user.is_active);
+                        setMenuVisible(true);
+                      }}>
                       <IconButton icon="dots-vertical" size={20} />
                     </TouchableOpacity>
-                  }
-                >
-                  <Menu.Item onPress={() => {
-                    setIsEditModalVisible(true);
-                    setMenuVisible(false);
-                  }} title="Edit" />
-                  <Menu.Item 
-                    onPress={() => handleDeleteRole(user.role_id)} 
-                    title="Delete" 
+                  }>
+                  <Menu.Item
+                    onPress={() => {
+                      setIsEditModalVisible(true);
+                      setMenuVisible(false);
+                    }}
+                    title="Edit"
                   />
-                  <Menu.Item onPress={() => {
-                    setIsModalVisible(true);
-                    setMenuVisible(false);
-                  }} title="Assign Modules" />
-                  <Menu.Item onPress={() => {
-                    setIsEditPermissionModalVisible(true);
-                    setMenuVisible(false);
-                  }} title="Edit Permission" />
+                  <Menu.Item
+                    onPress={() => handleDeleteRole(user.role_id)}
+                    title="Delete"
+                  />
+                  <Menu.Item
+                    onPress={() => {
+                      setIsModalVisible(true);
+                      setMenuVisible(false);
+                    }}
+                    title="Assign Modules"
+                  />
+                  <Menu.Item
+                    onPress={() => {
+                      setIsEditPermissionModalVisible(true);
+                      handleFetchRolePermisssion(selectedUser?.role_id);
+                      setMenuVisible(false);
+                    }}
+                    title="Edit Permission"
+                  />
                 </Menu>
               </DataTable.Cell>
             </DataTable.Row>
@@ -579,16 +697,14 @@ const RoleMaster = () => {
                   />
                 </View>
                 <View style={styles.buttonContainer}>
-                  <TouchableOpacity 
-                    style={[styles.modalButton, styles.cancelButton]} 
-                    onPress={() => setIsEditModalVisible(false)}
-                  >
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.cancelButton]}
+                    onPress={() => setIsEditModalVisible(false)}>
                     <Text style={styles.cancelButtonText}>Cancel</Text>
                   </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={[styles.modalButton, styles.saveButton]} 
-                    onPress={handleEditRole}
-                  >
+                  <TouchableOpacity
+                    style={[styles.modalButton, styles.saveButton]}
+                    onPress={handleEditRole}>
                     <Text style={styles.saveButtonText}>Save</Text>
                   </TouchableOpacity>
                 </View>
@@ -598,24 +714,23 @@ const RoleMaster = () => {
         </TouchableWithoutFeedback>
       </Modal>
 
-      <Modal 
-        visible={isAddRoleModalVisible} 
-        transparent 
+      <Modal
+        visible={isAddRoleModalVisible}
+        transparent
         animationType="fade"
         onRequestClose={() => {
           setAddRoleModalVisible(false);
           setRoleInput('');
-        }}
-      >
+        }}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Add Role</Text>
-            
+
             <View style={styles.inputWrapper}>
               <Text style={styles.label}>* Role</Text>
               <TextInput
-                value={role_name}  
-                onChangeText={setRoleInput}  
+                value={role_name}
+                onChangeText={setRoleInput}
                 placeholder="Enter role"
                 style={styles.input}
                 mode="outlined"
@@ -626,14 +741,12 @@ const RoleMaster = () => {
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 onPress={closeModal}
-                style={[styles.modalButton, styles.cancelButton]}
-              >
+                style={[styles.modalButton, styles.cancelButton]}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleAddRole}
-                style={[styles.modalButton, styles.saveButton]}
-              >
+                style={[styles.modalButton, styles.saveButton]}>
                 <Text style={styles.saveButtonText}>Save</Text>
               </TouchableOpacity>
             </View>
@@ -649,8 +762,7 @@ const RoleMaster = () => {
         <ScrollView contentContainerStyle={styles.modalScrollContainer}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>View Assigned Modules</Text>
-            <View style={styles.dropdownContainer}>
-            </View>
+            <View style={styles.dropdownContainer}></View>
             <View style={styles.expandableContainer}>
               <Text style={styles.expandableHeader}></Text>
               {loading ? (
@@ -659,7 +771,9 @@ const RoleMaster = () => {
                 <ScrollView>{renderModules(modules)}</ScrollView>
               )}
               <View style={styles.buttonRow}>
-                <TouchableOpacity style={styles.editButton} onPress={toggleEditMode}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={toggleEditMode}>
                   <Text style={styles.editButtonText}>
                     {isEditable ? 'Done' : 'Edit'}
                   </Text>
@@ -674,43 +788,70 @@ const RoleMaster = () => {
           </View>
         </ScrollView>
       </Modal>
+
+      {/* Edit Role Permission Modal  */}
       <Modal
         visible={isEditPermissionModalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setIsEditPermissionModalVisible(false)}
-      >
+        onRequestClose={() => setIsEditPermissionModalVisible(false)}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Edit Permission</Text>
-            <View style={styles.permissionContainer}>
-              {['Viewing', 'Editing', 'Deleting', 'Get Notification'].map((permission, index) => (
-                <View key={index} style={styles.permissionItem}>
-                  <Text>{permission}</Text>
-                  <Switch value={false} onValueChange={() => {}} />
+                  <View style={[styles.modalContent, {width: '90%', maxWidth: 400}]}>
+                    <Text style={styles.modalTitle}>Edit Permissions</Text>
+                    <ScrollView style={{maxHeight: 300}}>
+                      <View style={styles.permissionContainer}>
+                        {rolePermissions.map(permission => (
+                          <View
+                            key={permission.permission_id}
+                            style={styles.permissionItem}>
+                            <Text>{permission.permission_name}</Text>
+                            <Switch
+                              value={permission.is_active}
+                              onValueChange={value => {
+                                console.log(`Permission Name: ${permission.permission_name} is ${value}`)
+                                setActivePermissionIds(prev => {
+                                  if (value) {
+                                    return [...prev, permission.role_permission_id];
+                                  } else {
+                                    return prev.filter(id => id !== permission.role_permission_id);
+                                  }
+                                });
+                                setRolePermissions(
+                                  rolePermissions.map(p =>
+                                    p.permission_id === permission.permission_id
+                                      ? {...p, is_active: value}
+                                      : p,
+                                  ),
+                                );
+                              }}
+                              disabled={loading}
+                            />
+                          </View>
+                        ))}
+                      </View>
+                    </ScrollView>
+                    <View style={styles.buttonContainer}>
+                      <TouchableOpacity
+                        style={[styles.modalButton, styles.cancelButton]}
+                        onPress={() => setIsEditPermissionModalVisible(false)}
+                        disabled={loading}>
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.modalButton, styles.submitButton]}
+                        onPress={handleEditRolePermission}
+                        disabled={loading}>
+                        <Text style={styles.submitButtonText}>
+                          {loading ? 'Updating...' : 'Submit'}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-              ))}
-            </View>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setIsEditPermissionModalVisible(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.submitButton]}
-                onPress={() => {
-                  // Handle submit logic here
-                  setIsEditPermissionModalVisible(false);
-                }}
-              >
-                <Text style={styles.submitButtonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
       </Modal>
+
+
+      {/*Delete Role Modal */}
       <Modal
         visible={isDeleteModalVisible}
         transparent
@@ -738,6 +879,10 @@ const RoleMaster = () => {
           </View>
         </View>
       </Modal>
+
+
+
+
     </View>
   );
 };
@@ -785,7 +930,7 @@ const styles = StyleSheet.create({
   modalButton1: {
     padding: 20,
     marginTop: -10,
-    width: 30
+    width: 30,
   },
   modalScrollContainer: {
     justifyContent: 'center',
@@ -811,7 +956,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     width: '30%',
-    alignSelf: 'center'
+    alignSelf: 'center',
   },
   modalHeader: {
     fontSize: 18,
@@ -930,7 +1075,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     color: '#333',
-  },  
+  },
   modal: {
     flex: 1,
     justifyContent: 'center',
@@ -946,9 +1091,9 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'white'
+    color: 'white',
   },
-  
+
   buttonTextSave: {
     color: 'white',
     fontWeight: 'bold',
@@ -985,21 +1130,19 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#333',
     fontWeight: 'bold',
-    
-
   },
   saveButtonText: {
     color: 'white',
     fontWeight: 'bold',
   },
   modalContent1: {
-    width: '30%', 
-    padding: 20,     
+    width: '30%',
+    padding: 20,
     backgroundColor: '#fff',
     margin: 70,
     borderRadius: 10,
     alignItems: 'center',
-    maxHeight: 250,  
+    maxHeight: 250,
   },
   moduleItem: {
     marginBottom: 10,
@@ -1066,4 +1209,3 @@ const styles = StyleSheet.create({
 });
 
 export default RoleMaster;
-

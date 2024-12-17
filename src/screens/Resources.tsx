@@ -20,24 +20,23 @@ import {
 } from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
 import {
-  GetUsers,
-  addUser,
-  GetAllRoles,
-  GetUserRole,
+  GetResources,
+  AddResource,
+  GetResourceType,
+  DeleteResource,
   updateMultipleUsersDepartment,
   updateMultipleUsersRole,
   DeleteMultipleUsers,
   GetUserPermission,
   GetAdIntegration,
-  updateUserPermissions,
-} from '../database/RestData';
+} from '../database/Resource';
+import {GetUsers} from '../database/RestData';
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
-import {DeleteUser} from '../database/RestData';
 import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
 import AdComponent from './Adcomponent';
-import {navigate} from '../navigations/RootNavigation';
+import { navigate } from '../navigations/RootNavigation';
 
 interface User {
   user_id: number;
@@ -45,30 +44,31 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  customer_id: number;
-  reporting_to: number;
-  approval_limit: number;
+  customer_id: number | null;
+  reporting_to: number | null;
+  approval_limit: number | null;
   created_at: string;
   updated_at: string;
   created_by: number;
-  updated_by: number;
+  updated_by: number | null;
   is_active: boolean;
   is_deleted: boolean;
-  department_id: number;
-  average_cost: number;
-  phone: string;
-  source: string;
-  designation: string;
-  manager_name: string;
-  department_name: string;
-  role_name: string;
-  role_id: number;
+  department_id: number | null;
+  average_cost: number | null;
+  phone: string | null;
+  source: string | null;
+  designation: string | null;
+  manager_name: string | null;
+  department_name: string | null;
+  role_name: string | null;
 }
 
 interface InsertOrEditUser {
+  resource_id: number; // ID of the user, 0 for new users
   user_id: number; // ID of the user, 0 for new users
   username?: string; // Username of the user
   email: string; // Email address of the user
+
   first_name: string; // First name of the user
   last_name: string; // Last name of the user
   customer_id: number; // ID of the customer, 0 for default
@@ -81,6 +81,7 @@ interface InsertOrEditUser {
   average_cost: number;
   phone: string;
   designation: string;
+  resource_type_id: number
 }
 
 interface UserRole {
@@ -101,7 +102,7 @@ interface UserPermission {
 
 const {height} = Dimensions.get('window');
 
-const ManageUsers: React.FC = () => {
+const Resources: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User>();
   const [customerID, setCustomerID] = useState('');
@@ -118,7 +119,7 @@ const ManageUsers: React.FC = () => {
   );
   const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [reporting_to, setReportingTo] = useState<number>(-1);
+  const [manager, setManager] = useState<string>('');
   const [budgetAmount, setBudgetAmount] = useState<string>('');
   const [avgbudgetAmount, setAvgBudgetAmount] = useState<string>('');
   const [Designation, setDesignation] = useState<string>('');
@@ -182,7 +183,6 @@ const ManageUsers: React.FC = () => {
   const [visibleMenus, setVisibleMenus] = useState<{[key: number]: boolean}>(
     {},
   );
-  
 
   const getCustomerId = async () => {
     try {
@@ -204,8 +204,6 @@ const ManageUsers: React.FC = () => {
   };
 
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
-  const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
-
   const [loading, setLoading] = useState(false);
 
   // const togglePermission = (key: any) => {
@@ -217,7 +215,6 @@ const ManageUsers: React.FC = () => {
     try {
       setLoading(true);
       setPermissions([]);
-      // setActivePermissionIds([]);
 
       const response = await GetUserPermission(user_id);
       const parsedRes = JSON.parse(response);
@@ -243,9 +240,10 @@ const ManageUsers: React.FC = () => {
 
   const fetchUser = async () => {
     try {
-      const response = await GetUsers('');
+      const response = await GetResources('');
+      console.log(response)
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') setUsers(parsedRes.data.users);
+      if (parsedRes.status === 'success') setUsers(parsedRes.data.resources);
       else
         console.error(
           'Failed to fetch users:',
@@ -259,17 +257,17 @@ const ManageUsers: React.FC = () => {
   const handleAddorEditUser = async () => {
     console.log(selectedRoleID);
     const payload: InsertOrEditUser = {
-      user_id: selectedUser ? selectedUser.user_id : 0, //
-      username: username || (selectedUser ? selectedUser.username : ''), //agar username hai then add hoga, if not then jo slected user ka email hai vo hoga
+      resource_id: selectedUser ? selectedUser.user_id : 0, //
+      //username: username || (selectedUser ? selectedUser.username : ''), //agar username hai then add hoga, if not then jo slected user ka email hai vo hoga
       email: email || (selectedUser ? selectedUser.email : ''),
       first_name: firstname || (selectedUser ? selectedUser.first_name : ''),
       last_name: lastname || (selectedUser ? selectedUser.last_name : ''),
       customer_id: parseInt(customerID),
-      reporting_to: reporting_to,
-      approval_limit: parseInt(budgetAmount),
+      reporting_to: parseInt(manager),
+     // approval_limit: parseInt(budgetAmount),
       is_super_admin: true,
       is_active: true,
-      role_id: selectedRoleID,
+      resource_type_id: selectedRoleID,
       department_id: selectedDeptID, //by default it will give -1
       average_cost: parseInt(avgbudgetAmount),
       phone: '',
@@ -277,12 +275,13 @@ const ManageUsers: React.FC = () => {
     };
     try {
       console.log(payload);
-      const response = await addUser(payload);
+      const response = await AddResource(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') {
+      if (parsedRes.status === 'success'){
         console.log(' User Added succesfully');
         fetchUser();
-      } else
+      }
+      else
         console.error(
           'Failed to fetch users:',
           parsedRes.message || 'Unknown error',
@@ -295,10 +294,10 @@ const ManageUsers: React.FC = () => {
   const handleDelete = async (user_id: number) => {
     console.log(user_id);
     const payload = {
-      user_ids: [user_id],
+      user_id: user_id,
     };
     try {
-      const response = await DeleteUser(payload); // API call to delete user
+      const response = await DeleteResource(payload); // API call to delete user
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         setisDeleteModalVisible(false); // Close the modal after successful deletion
@@ -316,11 +315,12 @@ const ManageUsers: React.FC = () => {
 
   const fetchAllRole = async () => {
     try {
-      const response = await GetAllRoles('');
+      const response = await GetResourceType('');
       const parsedRes =
         typeof response === 'string' ? JSON.parse(response) : response;
+        console.log(parsedRes.data.resource_types)
       if (parsedRes.status === 'success') {
-        setUserRole(parsedRes.data.roles);
+        setUserRole(parsedRes.data.resource_types);
       } else {
         console.error(
           'Failed to fetch user roles:',
@@ -388,6 +388,9 @@ const ManageUsers: React.FC = () => {
     console.log('Selected User IDs:', allSelectedUsersID);
   };
 
+
+
+
   const handleUpdateMultipleUsersDepartment = async () => {
     const payload = {
       department_id: selectedDeptID,
@@ -415,35 +418,6 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-
-  const handleEditPermission = async()=>{
-    const payload = {
-      user_id: selectedUser?.user_id,
-      role_id: selectedUser?.role_id,
-      user_permission_ids: activePermissionIds
-    }
-    console.log("payload of inserting user permissions",payload);
-    try {
-      const response = await updateUserPermissions(payload); // API call to delete user
-      const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') {
-        console.log(
-          'All the permissions you selected are now assigned the selected user',
-        );
-        //set
-        setisEditPermissionModalVisible(false); // Close the modal after successful deletion
-        fetchUser();
-      } else {
-        console.error(
-          'Failed to assign permission to user:',
-          parsedRes.message,
-        ); // Handle failure
-      }
-    } catch (err) {
-      console.log('There is something wrong', err);
-    }
-  };
-  
   const handleUpdateMultipleUsersRole = async () => {
     const payload = {
       role_id: selectedRoleID,
@@ -492,7 +466,7 @@ const ManageUsers: React.FC = () => {
     <>
       {/* Manage Users Section */}
       <View style={styles.manageUsersContainer}>
-        <Text style={styles.heading}>Manage Users</Text>
+        <Text style={styles.heading}>Manage Resources</Text>
       </View>
 
       {/* Action Bar */}
@@ -506,24 +480,24 @@ const ManageUsers: React.FC = () => {
           <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
         </TouchableOpacity>
         {/*Assign Department Button in Action Bar */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => setisMultipleAssignDeptModalVisible(true)}>
           <IconButton icon="briefcase-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>
             Assign Department
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         {/*Assign Role Button in Action Bar  */}
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => setisMultipleRoleAssignModalVisible(true)}>
           <IconButton icon="briefcase-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>
             Assign Roles
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
 
         <View style={styles.middleActions}>
           <TouchableOpacity
@@ -531,11 +505,11 @@ const ManageUsers: React.FC = () => {
             onPress={() => setisAddUserModalVisible(true)}>
             <IconButton icon="plus" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>
-              Add User
+              Add Resource
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
+          {/* <TouchableOpacity style={styles.actionButton}>
             <IconButton
               icon="table-column-plus-after"
               size={16}
@@ -544,19 +518,15 @@ const ManageUsers: React.FC = () => {
             <Text style={[styles.actionText, {color: '#044086'}]}>
               Set Columns
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity style={styles.actionButton} onPress={toggleModal}>
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigate('Excel')}>
+          {/* <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
             <IconButton icon="sync" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Import Excel
-            </Text>
-          </TouchableOpacity>
+            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
+          </TouchableOpacity> */}
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} color="#344054" />
@@ -597,9 +567,9 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title style={{justifyContent: 'center'}}>
             Projects Active
           </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
+          {/* <DataTable.Title style={{justifyContent: 'center'}}>
             Approval Limit
-          </DataTable.Title>
+          </DataTable.Title> */}
           <DataTable.Title style={{justifyContent: 'center'}}>
             Average Cost
           </DataTable.Title>
@@ -658,13 +628,13 @@ const ManageUsers: React.FC = () => {
                 {0}
               </DataTable.Cell>
               {/* Placeholder for Approval Limit*/}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {user.approval_limit}
-              </DataTable.Cell>
-              {/* Placeholder for Average Cost */}
               {/* <DataTable.Cell style={{justifyContent: 'center'}}>
-                {user.average_cost}
+                {user.approval_limit}
               </DataTable.Cell> */}
+              {/* Placeholder for Average Cost */}
+              <DataTable.Cell style={{justifyContent: 'center'}}>
+                {user.average_cost}
+              </DataTable.Cell>
               {/* Placeholder for Status */}
               <DataTable.Cell>
                 {user.is_active ? 'Active' : 'Inactive'}
@@ -677,18 +647,8 @@ const ManageUsers: React.FC = () => {
                   anchor={
                     <TouchableOpacity
                       onPress={() => {
-                        console.log('Selected User:', user); // Log the user for debugging
                         toggleMenu(user.user_id);
                         setSelectedUser(user);
-                        setFirstName(user.first_name);
-                        setLastName(user.last_name);
-                        setEmail(user.email);
-                        setDesignation(user.designation);
-                        setReportingTo(user.reporting_to);
-                        setSelectedDeptID(user.department_id);
-                        setSelectedRoleID(user.role_id);
-                        setAvgBudgetAmount(user.average_cost.toString());
-                        setBudgetAmount(user.approval_limit.toString());
                       }}>
                       <IconButton icon="dots-vertical" size={20} />
                     </TouchableOpacity>
@@ -743,7 +703,7 @@ const ManageUsers: React.FC = () => {
           contentContainerStyle={styles.modalScrollContainer}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
-              <Text style={styles.modalHeader}>Add New User</Text>
+              <Text style={styles.modalHeader}>Add New Resource</Text>
               {/* Input Fields for Name and Email */}
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
@@ -780,7 +740,7 @@ const ManageUsers: React.FC = () => {
               {/* Designation Dropdown */}
               {/* Reporting Manager Dropdown &&  */}
               <View style={styles.inputRow}>
-                <View style={styles.inputWrapper}>
+                {/* <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Designation</Text>
                   <Picker
                     selectedValue={Designation}
@@ -793,12 +753,32 @@ const ManageUsers: React.FC = () => {
                       value="Project Manager"
                     />
                   </Picker>
+                </View> */}
+                    {/* <View style={styles.inputRow}> */}
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Resource Type</Text>
+                  <Picker
+                    selectedValue={selectedRoleID}
+                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
+                    style={styles.input}>
+                    {userRole.map(
+                      (
+                        role, // Use `userRole` here instead of `userRoles`
+                      ) => (
+                        <Picker.Item
+                          key={role.resource_type_id}
+                          label={role.resource_type}
+                          value={role.resource_type_id}
+                        />
+                      ),
+                    )}
+                  </Picker>
                 </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
-                    selectedValue={reporting_to}
-                    onValueChange={itemValue => setReportingTo(itemValue)}
+                    selectedValue={manager}
+                    onValueChange={itemValue => setManager(itemValue)}
                     style={styles.input}>
                     {users.map((user, index) => (
                       <Picker.Item
@@ -809,36 +789,18 @@ const ManageUsers: React.FC = () => {
                     ))}
                   </Picker>
                 </View>
-              </View>
+              {/* </View> */}
               {/*Nested Dropdown */}
-            
+             
               {/*User Role*/}
-              <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
+          
+              </View>
+
+              <View>
               <NestedDeptDropdown onSelect={handleDeptSelect} />
               </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* User Role</Text>
-                  <Picker
-                    selectedValue={selectedRoleID}
-                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
-                    style={styles.input}>
-                    {userRole.map(
-                      (
-                        role, // Use `userRole` here instead of `userRoles`
-                      ) => (
-                        <Picker.Item
-                          key={role.role_id}
-                          label={role.role_name}
-                          value={role.role_id}
-                        />
-                      ),
-                    )}
-                  </Picker>
-                </View>
-              </View>
               {/*User Role*/}
-              <Text
+              {/*  <Text
                 style={{
                   color: '#044086',
                   fontFamily: 'Source Sans Pro',
@@ -850,7 +812,7 @@ const ManageUsers: React.FC = () => {
                 }}>
                 Approval Limit
               </Text>
-              <View style={styles.inputRow}>
+             <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -872,9 +834,9 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setBudgetAmount}
                   />
                 </View>
-              </View>
+              </View> */}
               {/*Average Costing*/}
-              {/* <Text
+              <Text
                 style={{
                   color: '#044086',
                   fontFamily: 'Source Sans Pro',
@@ -883,10 +845,11 @@ const ManageUsers: React.FC = () => {
                   fontWeight: '600',
                   lineHeight: 22,
                   paddingBottom: 5,
+                  paddingTop: 15,
                 }}>
                 Average Costing
-              </Text> */}
-              {/* <View style={styles.inputRow}>
+              </Text>
+              <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -899,42 +862,15 @@ const ManageUsers: React.FC = () => {
                   </Picker>
                 </View>
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Budget Amount</Text>
+                  <Text style={styles.label}>* Cost/hour</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Budget Amount"
+                    placeholder="Cost/hour"
                     value={avgbudgetAmount}
                     onChangeText={setAvgBudgetAmount}
                   />
                 </View>
-              </View> */}
-              {/*Username */}
-              {/* Password Enter + Confirmation */}
-              {/* <View style={styles.inputRow}>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={handlePasswordChange}
-                    secureTextEntry={true} // To hide the password input
-                  />
-                </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Confirm Password</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChangeText={handleConfirmPasswordChange}
-                    secureTextEntry={true} // To hide the confirm password input
-                  />
-                </View>
-                {errorMessage ? (
-                  <Text style={styles.errorText}>{errorMessage}</Text>
-                ) : null}
-              </View> */}
+              </View>
               <View
                 style={{
                   flexDirection: 'row',
@@ -963,12 +899,14 @@ const ManageUsers: React.FC = () => {
         </ScrollView>
       </Modal>
 
-      {/* Sync AD */}
-      <Modal
+  
+    {/* Sync AD */}
+    <Modal
         animationType="slide"
         transparent={true}
         visible={isADModalVisible}
-        onRequestClose={toggleModal}>
+        onRequestClose={toggleModal}
+      >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer1}>
             {/* ScrollView to make content scrollable */}
@@ -977,7 +915,7 @@ const ManageUsers: React.FC = () => {
               {isLoading ? (
                 <ActivityIndicator size="large" color="#044086" />
               ) : (
-                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} />
+                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} /> 
               )}
             </ScrollView>
             <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
@@ -1059,7 +997,7 @@ const ManageUsers: React.FC = () => {
         </View>
       </Modal> */}
 
-      {/* Edit User Permission  Modal */}
+      {/* Updated Permission User Modal */}
       <Modal
         visible={isEditPermissionModalVisible}
         transparent
@@ -1070,34 +1008,7 @@ const ManageUsers: React.FC = () => {
             <Text style={styles.modalTitle}>Edit Permissions</Text>
             <ScrollView style={{maxHeight: 300}}>
               <View style={styles.permissionContainer}>
-                {permissions.map(permission => (
-                  <View
-                    key={permission.permission_id}
-                    style={styles.permissionItem}>
-                    <Text>{permission.permission_name}</Text>
-                    <Switch
-                      value={permission.is_active}
-                      onValueChange={value => {
-                        console.log(`Permission Name: ${permission.permission_name} is ${value}`)
-                        setActivePermissionIds(prev => {
-                          if (value) {
-                            return [...prev, permission.user_permission_id];
-                          } else {
-                            return prev.filter(id => id !== permission.user_permission_id);
-                          }
-                        });
-                        setPermissions(
-                          permissions.map(p =>
-                            p.permission_id === permission.permission_id
-                              ? {...p, is_active: value}
-                              : p,
-                          ),
-                        );
-                      }}
-                      disabled={loading}
-                    />
-                  </View>
-                ))}
+              
               </View>
             </ScrollView>
             <View style={styles.buttonContainer}>
@@ -1109,7 +1020,7 @@ const ManageUsers: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.submitButton]}
-                onPress={handleEditPermission}
+                // onPress={handlePermissionSubmit}
                 disabled={loading}>
                 <Text style={styles.submitButtonText}>
                   {loading ? 'Updating...' : 'Submit'}
@@ -1174,7 +1085,7 @@ const ManageUsers: React.FC = () => {
 
               {/* Reporting Manager Dropdown &&  */}
               <View style={styles.inputRow}>
-                <View style={styles.inputWrapper}>
+                {/* <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Designation</Text>
                   <Picker
                     selectedValue={Designation}
@@ -1187,12 +1098,35 @@ const ManageUsers: React.FC = () => {
                       value="Project Manager"
                     />
                   </Picker>
+                </View> */}
+                              {/*User Role*/}
+             
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>* Resource Type</Text>
+                  <Picker
+                    selectedValue={selectedRoleID}
+                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
+                    style={styles.input}>
+                    {userRole.map(
+                      (
+                        role, // Use `userRole` here instead of `userRoles`
+                      ) => (
+                        <Picker.Item
+                          key={role.resource_type_id}
+                          label={role.resource_type}
+                          value={role.resource_type_id}
+                        />
+                      ),
+                    )}
+                  </Picker>
                 </View>
+          
+              {/*User Role*/}
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
-                    selectedValue={reporting_to}
-                    onValueChange={itemValue => setReportingTo(itemValue)}
+                    selectedValue={manager}
+                    onValueChange={itemValue => setManager(itemValue)}
                     style={styles.input}>
                     {users.map((user, index) => (
                       <Picker.Item
@@ -1205,35 +1139,12 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-             
-
-              {/*User Role*/}
               <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
               <NestedDeptDropdown onSelect={handleDeptSelect} />
               </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* User Role</Text>
-                  <Picker
-                    selectedValue={selectedRoleID}
-                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
-                    style={styles.input}>
-                    {userRole.map(
-                      (
-                        role, // Use `userRole` here instead of `userRoles`
-                      ) => (
-                        <Picker.Item
-                          key={role.role_id}
-                          label={role.role_name}
-                          value={role.role_id}
-                        />
-                      ),
-                    )}
-                  </Picker>
-                </View>
-              </View>
-              {/*User Role*/}
-              <Text
+
+
+              {/* <Text
                 style={{
                   color: '#044086',
                   fontFamily: 'Source Sans Pro',
@@ -1266,9 +1177,9 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setBudgetAmount}
                   />
                 </View>
-              </View>
+              </View> */}
               {/*Average Costing*/}
-              {/* <Text
+              <Text
                 style={{
                   color: '#044086',
                   fontFamily: 'Source Sans Pro',
@@ -1279,8 +1190,8 @@ const ManageUsers: React.FC = () => {
                   paddingBottom: 5,
                 }}>
                 Average Costing
-              </Text> */}
-              {/* <View style={styles.inputRow}>
+              </Text>
+              <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -1293,7 +1204,7 @@ const ManageUsers: React.FC = () => {
                   </Picker>
                 </View>
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Budget Amount</Text>
+                  <Text style={styles.label}>* Cost/hour</Text>
                   <TextInput
                     style={styles.input}
                     placeholder={`${selectedUser?.average_cost}`}
@@ -1301,7 +1212,7 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setAvgBudgetAmount}
                   />
                 </View>
-              </View> */}
+              </View>
               {/*Username */}
               {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
@@ -1575,7 +1486,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
-    gap: 20,
   },
   inputWrapper: {
     flex: 1,
@@ -1689,16 +1599,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
   },
   modalContainer1: {
     flex: 1,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '70%',
-    height: '70%',
+    width: '70%', 
+    height: '70%', 
     justifyContent: 'space-between',
+
   },
   closeButton: {
     backgroundColor: '#044086',
@@ -1707,8 +1618,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginRight: 10,
     paddingHorizontal: 16,
-
+    
     alignSelf: 'flex-end',
+   
   },
   closeButtonText: {
     color: 'white',
@@ -1721,4 +1633,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ManageUsers;
+export default Resources;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { TextInput, PaperProvider, Button, ActivityIndicator, IconButton } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
@@ -6,7 +6,7 @@ import { Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Menu } from 'react-native-paper'; // Using Menu from react-native-paper instead of Dropdown
 import {Picker} from '@react-native-picker/picker';
-import {addADForCustomer} from '../database/Integration';
+import {AddADForCustomer, GetADList} from '../database/Integration';
 
 export type HomeStackNavigatorParamList = {
   LoginScreen: {};
@@ -17,12 +17,12 @@ export type HomeStackNavigatorParamList = {
 
 type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
-const ADIntegration = () => {
+const ADIntegration = ({ closeModal }) => {
   const deviceWidth = Dimensions.get('window').width;
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const [ad, setAd] = useState('');
+  const [ad, setAd] = useState([]);
   const [integrationId, setIntegrationId] = useState('');
   const [customerId, setCustomerId] = useState('');
   const [clientId, setClientId] = useState('');
@@ -64,7 +64,7 @@ const ADIntegration = () => {
       created_by: '8'
     };
     try {
-    const response = await addADForCustomer(payload);
+    const response = await AddADForCustomer(payload);
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success')
         console.log('AD Added succesfully');
@@ -78,11 +78,27 @@ const ADIntegration = () => {
     }
     console.log('Payload being sent:', JSON.stringify(payload));
     setIsLoading(true);
-
-
    
   };
-
+  const fetchADList = async () => {
+    try {
+        console.log('hi')
+      const response = await GetADList();
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') 
+        setAd(parsedRes.data);
+     // else
+        // console.error(
+        //   'Failed to fetch AD:',
+        //   parsedRes.message || 'Unknown error',
+        // );
+    } catch (err) {
+      console.log('Error Fetching Users', err);
+    }
+  };
+  useEffect(() => {
+    fetchADList();
+  }, []);
   return (
     <PaperProvider>
       <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
@@ -135,12 +151,17 @@ const ADIntegration = () => {
                       selectedValue={selectedAD}
                       onValueChange={itemValue =>
                         setSelectedAD(itemValue)
+                        
                       }
                       style={styles.picker}>
-                      <Picker.Item label="Microsoft" value="Microsoft" />
-                      <Picker.Item label="Google" value="Google" />
-                      <Picker.Item label="Okta" value="Okta" />
-                    </Picker>
+                        {ad.map((item, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={item.integration_name}
+                            value={item.integration_id}
+                          />
+                    ))}
+          </Picker>
                   </View>
           <TextInput
             style={styles.input}
@@ -197,7 +218,7 @@ const ADIntegration = () => {
           onPress={()=>handleSave()}>
          <Text>Close</Text>
           </TouchableOpacity> */}
-          <View>
+          {/* <View>
                 <Button
                   onPress={() => {
                     handleSave();
@@ -205,6 +226,28 @@ const ADIntegration = () => {
                 >
                   Submit
                 </Button>
+              </View> */}
+                  <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  gap: 14,
+                }}>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => {
+                    // Handle form submission logic here (e.g., save user details)
+                    handleSave();
+                  }}>
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                </TouchableOpacity>
+
+                {/* Close Button */}
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={closeModal}>
+                  <Text style={styles.submitButtonText}>Close</Text>
+                </TouchableOpacity>
               </View>
         </View>
       </ScrollView>
@@ -266,5 +309,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
     backgroundColor: 'transparent',
+  },
+  submitButton: {
+    backgroundColor: '#044086',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
