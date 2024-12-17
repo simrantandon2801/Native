@@ -22,7 +22,7 @@ const gridData: GridItem[] = [
   { id: '7', image: AppImages.Imtegration, text: 'Manage Integration', component: 'IntegrationList'  },
   { id: '8', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
   { id: '9', image: AppImages.license, text: 'License details', component: 'ManageCompany'  },
-  { id: '10', image: AppImages.Module, text: 'Modules', component: 'ManageCompany'  },
+  { id: '10', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
 ];
 
 const Adminpanel: React.FC = () => {
