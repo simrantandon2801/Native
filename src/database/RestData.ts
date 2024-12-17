@@ -7,7 +7,7 @@ export const GetUsers = async (query:string): Promise<string> => {
   try {
     //debugger;
     //const UserID = await AsyncStorage.getItem('UserID');
-    var uri = 'https://underbuiltapi.aadhidigital.com/master/get_users';
+    var uri = `${BASE_URL}/master/get_users`;
     //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
     const token = await AsyncStorage.getItem('Token');
     console.log(uri);
@@ -24,7 +24,7 @@ export const GetUserRole = async (query:string): Promise<string> => {
   try {
     //debugger;
     //const UserID = await AsyncStorage.getItem('UserID');
-    var uri = 'https://underbuiltapi.aadhidigital.com/master/get_user_role';
+    var uri = `${BASE_URL}/master/get_user_role`;
     //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
     const token = await AsyncStorage.getItem('Token');
     console.log(uri);
@@ -41,7 +41,7 @@ export const GetAllRoles = async (query:string): Promise<string> => {
   try {
     //debugger;
     //const UserID = await AsyncStorage.getItem('UserID');
-    var uri = 'https://underbuiltapi.aadhidigital.com/master/get_roles';
+    var uri = `${BASE_URL}/master/get_roles`;
     //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
     const token = await AsyncStorage.getItem('Token');
     console.log(uri);
@@ -58,7 +58,7 @@ export const addUser  = async (values: Object): Promise<string> => {
   try {
     // 
      //const UserID = await AsyncStorage.getItem('UserID');
-     var uri = `https://underbuiltapi.aadhidigital.com/master/insert_users_with_role`;
+     var uri = `${BASE_URL}/master/insert_users_with_role`;
      //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
      const token = await AsyncStorage.getItem('Token');  
      console.log(uri);
@@ -79,7 +79,7 @@ export const DeleteUser = async (values: Object): Promise<string> => {
   try {
     // 
      //const UserID = await AsyncStorage.getItem('UserID');
-     var uri = 'https://underbuiltapi.aadhidigital.com/master/delete_users';
+     var uri = `${BASE_URL}/master/delete_users`;
      //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
      const token = await AsyncStorage.getItem('Token');  
      console.log(uri);
@@ -99,7 +99,7 @@ export const GetUserPermission = async (query:string): Promise<string> => {
   try {
     //debugger;
     //const UserID = await AsyncStorage.getItem('UserID');
-    var uri = `https://underbuiltapi.aadhidigital.com/master/get_user_permissions?user_id=${query}`;
+    var uri = `${BASE_URL}/master/get_user_permissions?user_id=${query}`;
     //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
     const token = await AsyncStorage.getItem('Token');
     console.log(uri);
@@ -116,7 +116,7 @@ export const GetAdIntegration = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = 'https://underbuiltapi.aadhidigital.com/integration/get_users';
+      var uri = `${BASE_URL}/integration/get_users`;
       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -133,7 +133,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = 'https://underbuiltapi.aadhidigital.com/master/get_department';
+      var uri = `${BASE_URL}/master/get_department`;
       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -151,7 +151,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = `https://underbuiltapi.aadhidigital.com/customeradmin/update_user_department`;
+       var uri = `${BASE_URL}/customeradmin/update_user_department`;
        //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -172,7 +172,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = `https://underbuiltapi.aadhidigital.com/customeradmin/update_user_role`;
+       var uri = `${BASE_URL}/customeradmin/update_user_role`;
        //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -193,7 +193,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = `https://underbuiltapi.aadhidigital.com/master/delete_users`;
+       var uri = `${BASE_URL}/master/delete_users`;
        //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -213,7 +213,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = `https://underbuiltapi.aadhidigital.com/master/update_multiple_user_permissions`;
+       var uri = `${BASE_URL}/master/update_multiple_user_permissions`;
        //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -233,7 +233,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = `https://underbuiltapi.aadhidigital.com//master/get_modules${query}`;
+      var uri = `${BASE_URL}//master/get_modules${query}`;
       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -251,7 +251,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = `https://underbuiltapi.aadhidigital.com//master/insert_modules`;
+       var uri = `${BASE_URL}//master/insert_modules`;
        //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -271,7 +271,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = `https://underbuiltapi.aadhidigital.com/master/get_role_permissions?role_id=${query}` ;
+      var uri = `${BASE_URL}/master/get_role_permissions?role_id=${query}` ;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -288,7 +288,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = 'https://underbuiltapi.aadhidigital.com/master/get_role_permissions';
+      var uri = `${BASE_URL}/master/get_role_permissions`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -306,7 +306,7 @@ export const GetUserDept = async (query:string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = `https://underbuiltapi.aadhidigital.com/master/update_multiple_role_permissions`;
+       var uri = `${BASE_URL}/master/update_multiple_role_permissions`;
        //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -324,23 +324,24 @@ export const GetUserDept = async (query:string): Promise<string> => {
   };
 
 
-  export const GetZoneData = async (query:string): Promise<string> => {
-    try {
-      //debugger;
-      //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = 'https://underbuiltapi.aadhidigital.com/GetMasters/ZoneList';
-      //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
-      const token = await AsyncStorage.getItem('Token');
-      console.log(uri);
-      var jsonResult = await GetAsync_with_token(uri, token);
-      console.log(jsonResult);
-      //debugger;
-      return JSON.stringify(jsonResult ?? '');
-    } catch (error) {
-      console.error(error);
-      throw Error('Failed' + error);
-    }
-  };
+  // export const GetZoneData = async (query:string): Promise<string> => {
+  //   try {
+  //     //debugger;
+  //     //const UserID = await AsyncStorage.getItem('UserID');
+  //     var uri = `${BASE_URL}/GetMasters/ZoneList`;
+  //     //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+  //     const token = await AsyncStorage.getItem('Token');
+  //     console.log(uri);
+  //     var jsonResult = await GetAsync_with_token(uri, token);
+  //     console.log(jsonResult);
+  //     //debugger;
+  //     return JSON.stringify(jsonResult ?? '');
+  //   } catch (error) {
+  //     console.error(error);
+  //     throw Error('Failed' + error);
+  //   }
+  // };
+  
   export const GetZoneProcessingList = async (query:string): Promise<string> => {
     try {
       //debugger;
