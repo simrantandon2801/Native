@@ -181,6 +181,7 @@ const ManageUsers: React.FC = () => {
   const [visibleMenus, setVisibleMenus] = useState<{[key: number]: boolean}>(
     {},
   );
+  
 
   const getCustomerId = async () => {
     try {

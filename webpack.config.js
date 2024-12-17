@@ -12,9 +12,14 @@ const compileNodeModules = [
   'react-native-reanimated',
   'react-native-maps',
   '@types/geojson',
+  'react-native-gifted-charts',
+  'react-native-linear-gradient',
+  'react-native-svg'
+  
 ].map(moduleName => path.resolve(appDirectory, `node_modules/${moduleName}`));
 
 module.exports = {
+  
   mode: 'production',
   entry: {
     app: path.join(__dirname, 'index.web.js'),
@@ -33,7 +38,8 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.js$|tsx?$/,
+       /*  test: /\.js$|tsx?$/, */
+       test: /\.(js|jsx|ts|tsx)$/,
         include: [
           path.resolve(__dirname, 'index.web.js'),
           path.resolve(__dirname, 'App.web.tsx'),
@@ -57,6 +63,10 @@ module.exports = {
             ],
           },
         },
+      },
+      {
+        test: /\.d\.ts$/, // Handle type definition files
+        use: 'ignore-loader', // Ignore them as they are not needed for runtime
       },
       {
         test: /\.svg$/,
@@ -108,4 +118,5 @@ module.exports = {
       __DEV__: JSON.stringify(true),
     }),
   ],
+  stats: 'errors-warnings',
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Image, StyleSheet, ScrollView } from 'react-native';
 import { AppImages } from '../assets'; // Is path ko verify karein
 
-const RoadMap: React.FC = () => {
+const Roadmap: React.FC = () => {
   return (
     <View style={styles.container}>
      
@@ -34,4 +34,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RoadMap;
+export default Roadmap;

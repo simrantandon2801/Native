@@ -9,3 +9,5 @@ declare module "*.svg" {
     const ReCaptchaV3: any;
     export default ReCaptchaV3;
   }
+
+  declare module 'react-tree-graph';
