@@ -578,9 +578,9 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title style={{justifyContent: 'center'}}>
             Name
           </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
+          {/* <DataTable.Title style={{justifyContent: 'center'}}>
             Username
-          </DataTable.Title>
+          </DataTable.Title> */}
           <DataTable.Title style={{justifyContent: 'center'}}>
             Role
           </DataTable.Title>
@@ -633,9 +633,9 @@ const ManageUsers: React.FC = () => {
                   justifyContent: 'center',
                 }}>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
               {/*Username*/}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
+              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.username}
-              </DataTable.Cell>
+              </DataTable.Cell> */}
               {/* Assuming username as designation */}
               <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.role_name}
@@ -810,9 +810,12 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
+            
               {/*User Role*/}
               <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
+              </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
@@ -882,7 +885,7 @@ const ManageUsers: React.FC = () => {
                 }}>
                 Average Costing
               </Text> */}
-              <View style={styles.inputRow}>
+              {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -903,7 +906,7 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setAvgBudgetAmount}
                   />
                 </View>
-              </View>
+              </View> */}
               {/*Username */}
               {/* Password Enter + Confirmation */}
               {/* <View style={styles.inputRow}>
@@ -1201,10 +1204,13 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
+             
 
               {/*User Role*/}
               <View style={styles.inputRow}>
+              <View style={styles.inputWrapper}>
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
+              </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
@@ -1273,7 +1279,7 @@ const ManageUsers: React.FC = () => {
                 }}>
                 Average Costing
               </Text> */}
-              <View style={styles.inputRow}>
+              {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -1294,7 +1300,7 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setAvgBudgetAmount}
                   />
                 </View>
-              </View>
+              </View> */}
               {/*Username */}
               {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>

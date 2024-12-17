@@ -64,6 +64,7 @@ interface User {
 }
 
 interface InsertOrEditUser {
+  resource_id: number; // ID of the user, 0 for new users
   user_id: number; // ID of the user, 0 for new users
   username?: string; // Username of the user
   email: string; // Email address of the user
@@ -80,6 +81,7 @@ interface InsertOrEditUser {
   average_cost: number;
   phone: string;
   designation: string;
+  resource_type_id: number
 }
 
 interface UserRole {
@@ -255,17 +257,17 @@ const Resources: React.FC = () => {
   const handleAddorEditUser = async () => {
     console.log(selectedRoleID);
     const payload: InsertOrEditUser = {
-      user_id: selectedUser ? selectedUser.user_id : 0, //
-      username: username || (selectedUser ? selectedUser.username : ''), //agar username hai then add hoga, if not then jo slected user ka email hai vo hoga
+      resource_id: selectedUser ? selectedUser.user_id : 0, //
+      //username: username || (selectedUser ? selectedUser.username : ''), //agar username hai then add hoga, if not then jo slected user ka email hai vo hoga
       email: email || (selectedUser ? selectedUser.email : ''),
       first_name: firstname || (selectedUser ? selectedUser.first_name : ''),
       last_name: lastname || (selectedUser ? selectedUser.last_name : ''),
       customer_id: parseInt(customerID),
       reporting_to: parseInt(manager),
-      approval_limit: parseInt(budgetAmount),
+     // approval_limit: parseInt(budgetAmount),
       is_super_admin: true,
       is_active: true,
-      role_id: selectedRoleID,
+      resource_type_id: selectedRoleID,
       department_id: selectedDeptID, //by default it will give -1
       average_cost: parseInt(avgbudgetAmount),
       phone: '',
@@ -273,7 +275,7 @@ const Resources: React.FC = () => {
     };
     try {
       console.log(payload);
-      const response = await addUser(payload);
+      const response = await AddResource(payload);
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success'){
         console.log(' User Added succesfully');
@@ -843,7 +845,7 @@ const Resources: React.FC = () => {
                   fontWeight: '600',
                   lineHeight: 22,
                   paddingBottom: 5,
-                  paddingTop: 5,
+                  paddingTop: 15,
                 }}>
                 Average Costing
               </Text>
@@ -1111,7 +1113,7 @@ const Resources: React.FC = () => {
                       ) => (
                         <Picker.Item
                           key={role.resource_type_id}
-                          label={role.resource_name}
+                          label={role.resource_type}
                           value={role.resource_type_id}
                         />
                       ),
