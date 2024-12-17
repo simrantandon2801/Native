@@ -493,6 +493,48 @@ const ManageUsers: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
+
+  const handleFilterSubmit = async () => {
+    try {
+      // Initialize the query parameter (if needed)
+      let query = ''; // Use this if you have a search term for the query
+  
+      // Initialize variables for the parameters to pass into GetUsers
+      let reporting_toParam = undefined;
+      let department_idParam = undefined;
+      let role_idParam = undefined;
+  
+      // Check if reporting_to has been set and is not the default value (-1)
+      if (reporting_to !== -1) {
+        reporting_toParam = reporting_to;
+      }
+  
+      // Check if department_id has been set and is not the default value (-1)
+      if (selectedDeptID !== -1) {
+        department_idParam = selectedDeptID;
+      }
+  
+      // Check if role_id has been set and is not the default value (-1)
+      if (selectedRoleID !== -1) {
+        role_idParam = selectedRoleID;
+      }
+  
+      // Call GetUsers with the respective parameters if valid
+      const result = await GetUsers(query, reporting_toParam, department_idParam, role_idParam);
+  
+      // Log or handle the result if needed
+      console.log("Filtered Users: ", result);
+  
+      // Optionally, close the modal or reset states
+      setFilterModalVisible(false);
+  
+    } catch (err) {
+      console.error("Error in handleFilterSubmit:", err);
+      // Optionally, handle any error notifications or UI updates
+    }
+  };
+  
+
   return (
     <>
       {/* Manage Users Section */}
@@ -565,7 +607,13 @@ const ManageUsers: React.FC = () => {
         </View>
         <TouchableOpacity
           style={[styles.actionButton, styles.rightAction]}
-          onPress={() => setFilterModalVisible(true)}>
+          onPress={() => {
+            // Reset all the states here
+            setFilterModalVisible(true);
+            // setSelectedRoleID(undefined); // Reset role_id state to undefined
+            // setReportingTo(undefined); // Reset reporting_to state to undefined
+            // setSelectedDeptID(undefined); // Reset department_id state to undefined
+          }}>
           <IconButton icon="filter" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
         </TouchableOpacity>
@@ -1499,7 +1547,7 @@ const ManageUsers: React.FC = () => {
             <View style={styles.modalContainer}>
               <Text style={styles.modalHeader}>Filter Options</Text>
               {/* Input Fields for Name*/}
-              
+
               {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* First Name</Text>
@@ -1554,7 +1602,10 @@ const ManageUsers: React.FC = () => {
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
                     selectedValue={reporting_to}
-                    onValueChange={itemValue => setReportingTo(itemValue)}
+                    onValueChange={itemValue => {
+                      setReportingTo(itemValue);
+                      console.log('Selected Reporting Manager ID:', itemValue); // Log the selected value
+                    }}
                     style={styles.input}>
                     {users.map((user, index) => (
                       <Picker.Item
@@ -1577,11 +1628,14 @@ const ManageUsers: React.FC = () => {
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
                     selectedValue={selectedRoleID}
-                    onValueChange={itemValue => setSelectedRoleID(itemValue)}
+                    onValueChange={itemValue => {
+                      setSelectedRoleID(itemValue);
+                      console.log('Selected Role ID:', itemValue); // Log the selected value
+                    }}
                     style={styles.input}>
                     {userRole.map(
                       (
-                        role, // Use `userRole` here instead of `userRoles`
+                        role, 
                       ) => (
                         <Picker.Item
                           key={role.role_id}
@@ -1638,9 +1692,8 @@ const ManageUsers: React.FC = () => {
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={() => {
-                    setFilterModalVisible(false);
-                    // Handle form submission logic here (e.g., save user details)
-                    handleAddorEditUser();
+                    // setFilterModalVisible(false);
+                    handleFilterSubmit();
                   }}>
                   <Text style={styles.submitButtonText}>Submit</Text>
                 </TouchableOpacity>
@@ -1656,7 +1709,6 @@ const ManageUsers: React.FC = () => {
           </View>
         </ScrollView>
       </Modal>
-     
     </>
   );
 };
@@ -1915,9 +1967,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 15,
-    justifyContent:"center"
+    justifyContent: 'center',
   },
-
 });
 
 export default ManageUsers;
