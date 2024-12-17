@@ -19,6 +19,9 @@ import Excel from '../screens/Excel';
 import DepartmentList from '../screens/DepartmentList';
 import RoleMaster from '../screens/RoleMaster';
 import ADIntegration from '../screens/ADIntegration';
+import IntakeList from '../screens/IntakeList';
+import AdminDashBoard from '../screens/AdminDashboard';
+import ManageGoals from '../screens/ManageGoals';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'"
@@ -231,6 +234,10 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="RoleMaster" component={RoleMaster} />
           <Drawer.Screen name="Excel" component={Excel} /> 
           <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
+          <Drawer.Screen name="IntakeList" component={IntakeList} />
+          <Drawer.Screen name="AdminDashboard" component={AdminDashBoard} />
+          <Drawer.Screen name="ManageGoals" component={ManageGoals} />
+
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}
