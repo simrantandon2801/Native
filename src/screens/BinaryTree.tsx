@@ -1,87 +1,223 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import React, { useEffect, useState } from "react";
+import { Alert, Dimensions, ScrollView, View } from "react-native";
 
-// Node Component
-const Node = ({ value, left, right, onToggle, x, y }) => {
-  return (
-    <View style={[styles.node, { left: x, top: y }]}>
-      <Text style={styles.nodeText}>{value}</Text>
-      <View style={styles.children}>
-        {left && (
-          <TouchableOpacity onPress={() => onToggle(left)}>
-            <Node {...left} onToggle={onToggle} x={x - 60} y={y + 60} />
-          </TouchableOpacity>
-        )}
-        {right && (
-          <TouchableOpacity onPress={() => onToggle(right)}>
-            <Node {...right} onToggle={onToggle} x={x + 60} y={y + 60} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
+const Node = ({
+  value,
+  children,
+  offsetX,
+  offsetY,
+  nodeWidth,
+  nodeHeight,
+  spacing,
+  horizontalSpacing,
+}) => {
+  const renderLine = (fromX, fromY, toX, toY) => (
+    <line
+      x1={fromX}
+      y1={fromY}
+      x2={toX}
+      y2={toY}
+      stroke="black"
+      strokeWidth="2"
+    />
   );
-};
 
-// Binary Tree Component
-const BinaryTree = () => {
-  const [tree] = useState({
-    value: 1,
-    left: {
-      value: 2,
-      left: { value: 4 },
-      right: { value: 5 },
-    },
-    right: {
-      value: 3,
-      left: { value: 6 },
-      right: { value: 7 },
-    },
-  });
+  const renderChildren = () => {
+    const newOffsetY = offsetY + nodeHeight + spacing;
+    const childrenComponents = [];
 
-  // Toggle function for node expansion
-  const toggleNode = (node) => {
-    console.log('Node clicked:', node);
+    if (children && children.length > 0) {
+      const totalWidth = (children.length - 1) * horizontalSpacing;
+      let childOffsetX = offsetX - totalWidth / 2;
+
+      children.forEach((child, index) => {
+        // Line connecting to the child node
+        childrenComponents.push(
+          renderLine(
+            offsetX + nodeWidth / 2,
+            offsetY + nodeHeight,
+            childOffsetX + nodeWidth / 2,
+            newOffsetY
+          )
+        );
+
+        // Render the child node
+        childrenComponents.push(
+          <Node
+            key={`${value}-${index}`}
+            value={child.department_name} // Fix: Use department_name for rendering
+            children={child.children}
+            offsetX={childOffsetX}
+            offsetY={newOffsetY}
+            nodeWidth={nodeWidth}
+            nodeHeight={nodeHeight}
+            spacing={spacing}
+            horizontalSpacing={horizontalSpacing / 1.5} // Reduce spacing as the tree grows
+          />
+        );
+
+        childOffsetX += horizontalSpacing; // Move to the next sibling position
+      });
+    }
+
+    return childrenComponents;
   };
 
   return (
-    <View style={styles.container}>
-      <Svg height="300" width="100%">
-        {/* Lines between nodes */}
-        <Line x1="50%" y1="20%" x2="40%" y2="50%" stroke="black" strokeWidth="2" />
-        <Line x1="50%" y1="20%" x2="60%" y2="50%" stroke="black" strokeWidth="2" />
-        <Line x1="40%" y1="50%" x2="30%" y2="80%" stroke="black" strokeWidth="2" />
-        <Line x1="40%" y1="50%" x2="50%" y2="80%" stroke="black" strokeWidth="2" />
-        <Line x1="60%" y1="50%" x2="50%" y2="80%" stroke="black" strokeWidth="2" />
-        <Line x1="60%" y1="50%" x2="70%" y2="80%" stroke="black" strokeWidth="2" />
-      </Svg>
-      <Node value={tree.value} left={tree.left} right={tree.right} onToggle={toggleNode} x="50%" y="20%" />
+    <>
+      <rect
+        x={offsetX}
+        y={offsetY}
+        width={nodeWidth}
+        height={nodeHeight}
+        fill="lightblue"
+        stroke="black"
+        strokeWidth="2"
+      />
+      <text
+        x={offsetX + nodeWidth / 2}
+        y={offsetY + nodeHeight / 2}
+        fill="black"
+        fontSize="12"
+        textAnchor="middle"
+        dy=".3em"
+      >
+        {value}
+      </text>
+      {renderChildren()}
+    </>
+  );
+};
+interface BinaryTree {
+  shouldFetch: boolean;
+  setShouldFetch: React.Dispatch<React.SetStateAction<boolean>>;
+}
+const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
+  const [tree, setTree] = useState<any>(null);
+  const [maxWidth, setMaxWidth] = useState(0);
+  const screenWidth = Dimensions.get("window").width; // Get screen width dynamically
+  const parentWidth = screenWidth / 2; 
+ 
+
+    const fetchDepartments = async () => {
+      try {
+        const response = await fetch(
+          "https://underbuiltapi.aadhidigital.com/master/get_department"
+        );
+        const result = await response.json();
+
+        console.log("API Response:", result);
+
+        // Filter active departments
+        const activeDepartments = result.data.departments.filter(
+          (dept) => dept.is_active === true
+        );
+
+        // Create a map of department_id to department object
+        const departmentMap = new Map(
+          activeDepartments.map((dept) => [
+            dept.department_id,
+            { ...dept, children: [] }, // Retain department_name and other properties
+          ])
+        );
+
+        // Map children to their respective parents
+        activeDepartments.forEach((dept) => {
+          if (dept.parent_department_id) {
+            const parent = departmentMap.get(dept.parent_department_id);
+            if (parent) {
+              parent.children.push(departmentMap.get(dept.department_id));
+            }
+          }
+        });
+
+        // Get the root departments (those without a parent)
+        const rootDepartments = activeDepartments
+          .filter((dept) => dept.parent_department_id === null)
+          .map((dept) => departmentMap.get(dept.department_id));
+
+        // Build the final tree
+        const forgeTree = {
+          department_name: "Forge",
+          children: rootDepartments,
+        };
+
+        setTree(forgeTree);
+      } catch (error) {
+        console.error("Error fetching departments:", error);
+        Alert.alert("Error", "Failed to fetch departments");
+      }
+    };
+
+    useEffect(() => {
+      fetchDepartments();
+      if (shouldFetch) {
+        fetchDepartments();
+        setShouldFetch(false); // Reset shouldFetch after fetching
+      }
+    }, [shouldFetch, setShouldFetch]);
+
+    const calculateMaxWidth = (children) => {
+      if (!children || children.length === 0) return 0;
+  
+      let width = 0;
+      children.forEach((child) => {
+        const childWidth = calculateMaxWidth(child.children) + 200; // 200 is the horizontalSpacing
+        if (childWidth > width) {
+          width = childWidth;
+        }
+      });
+  
+      return width;
+    };
+
+    useEffect(() => {
+      if (tree) {
+        const maxWidth = calculateMaxWidth(tree.children);
+        setMaxWidth(maxWidth);
+      }
+    }, [tree]);
+ 
+  const nodeWidth = 100; // Width of a single node
+  const rootOffsetX = parentWidth / 2 - nodeWidth / 2;
+  const verticalSpacing = 100;
+  const horizontalSpacing = 200;
+  return (
+    <View style={{ flex: 2,overflow: 'hidden',justifyContent:'center' }}>
+      <ScrollView
+        horizontal
+        contentContainerStyle={{
+          width: maxWidth + 350, // 50px for some margin
+          justifyContent: 'center', // Center the content horizontally
+        }}
+        showsHorizontalScrollIndicator={true}
+      >
+    <svg
+    width={maxWidth + 300}
+      height="500"
+      style={{ border: "1px solid #000" }}
+    >
+      {tree ? (
+        <Node
+          value={tree.department_name} // Adjust the field name to match your API data
+          children={tree.children}
+          offsetX={rootOffsetX} // Center dynamically based on screen width
+          offsetY={50}
+          nodeWidth={nodeWidth}
+          spacing={verticalSpacing}
+          nodeHeight={40}
+          
+          horizontalSpacing={horizontalSpacing}
+        />
+      ) : (
+        <text x="50%" y="50%" textAnchor="middle" fill="black">
+          Loading tree...
+        </text>
+      )}
+    </svg>
+    </ScrollView>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  node: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  nodeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  children: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-});
-
-export default BinaryTree
+export default BinaryTree;

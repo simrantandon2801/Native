@@ -5,7 +5,7 @@ import MenuItem from 'react-native-paper/lib/typescript/components/Menu/MenuItem
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { Picker } from '@react-native-picker/picker';
-import BinaryTree from './BinaryTree';
+import BinaryTree from './Tree/BinaryTree';
 
 
 const DepartmentList = () => {
