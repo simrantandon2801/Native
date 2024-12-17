@@ -7,7 +7,6 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import BinaryTree from './BinaryTree';
 
-
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
   const [subDepartments, setSubDepartments] = useState([]);
@@ -16,6 +15,8 @@ const DepartmentList = () => {
   const [menuVisible, setMenuVisible] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [headingDepartment, setHeadingDepartment] = useState(null);
+  const [expandedDepartments, setExpandedDepartments] = useState<{ [key: string]: boolean }>({});
+
   const [isMenuVisible, setIsMenuVisible] = useState(null);
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -35,7 +36,7 @@ const DepartmentList = () => {
         const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_users');
         const data = await response.json();
         if (data.status === 'success' && data.data && Array.isArray(data.data.users)) {
-          setUsers(data.data.users); // Set the users array correctly
+          setUsers(data.data.users);
         } else {
           console.error('Unexpected data format', data);
         }
@@ -68,6 +69,18 @@ const DepartmentList = () => {
     };
     fetchDepartments();
   }, []);
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
+      const result = await response.json();
+      const activeParentDepartments = result.data.departments.filter(
+        (dept) => dept.is_active === true && dept.parent_department_id === null
+      );
+      setDepartments(activeParentDepartments);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch departments');
+    }
+  };
   const fetchSubDepartmentsHierarchy = async (parentId) => {
     try {
       const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
@@ -117,6 +130,7 @@ const handleDelete = async (departmentId) => {
       Alert.alert('Success', 'Department deleted successfully');
       setMenuVisible(null);
       fetchSubDepartments(null); 
+      fetchDepartments();
     } else {
       Alert.alert('Error', 'Failed to delete department');
     }
@@ -150,6 +164,8 @@ const handleDelete = async (departmentId) => {
         setEditingDepartment(null);
         setNewDepartmentDetails({});
         fetchSubDepartments(newDepartmentDetails.parent_department_id || null);
+        fetchDepartments();
+        
       } else {
         Alert.alert('Error', 'Failed to update department');
       }
@@ -208,6 +224,9 @@ const handleDelete = async (departmentId) => {
           is_active: true,
         });
         fetchSubDepartments(null);
+        fetchDepartments();
+        
+       
       } else {
         Alert.alert('Error', 'Failed to add department');
       }
@@ -250,7 +269,7 @@ const handleDelete = async (departmentId) => {
     );
   };
   const handleAddSubDepartment = (parentId) => {
-    setNewDepartment({ ...newDepartment, parent_department_id: parentId });
+    setNewDepartment({ ...newDepartment, parent_department_id: parentId,department_head: selectedUser ? selectedUser: null });
     setIsModalVisible(true);
   };
 
@@ -292,24 +311,47 @@ const handleDelete = async (departmentId) => {
       )}
     </View>
   ); */
-  const toggleExpand = (departmentId) => {
-    setExpanded((prev) => ({
+  const toggleExpand = (departmentId: string) => {
+    setExpandedDepartments((prev) => ({
       ...prev,
-      [departmentId]: !prev[departmentId],
+      [departmentId]: !prev[departmentId], 
     }));
   };
  
-//  <BinaryTree/>
   
   const renderSubDepartments = (department, level = 0) => {
-    return (
-      <View key={department.department_id}>
+    const isExpanded = expandedDepartments[department.department_id];
+    const renderHierarchyLines = (level, isChild = false) => {
+      if (level === 0) return null; // No line for the root level
+  
+      const verticalLineHeight = 20;
+      const horizontalLineHeight = 1;
+      const horizontalLineWidth = 50;
+      return (
         <View
           style={{
-            marginLeft: level * 20, // Indent based on hierarchy level
+            position: 'absolute',
+          top: isChild ? verticalLineHeight : 0, // For child, position the line horizontally
+          left: -2, // Position to connect the line to the department (on the left side)
+          height: isChild ? horizontalLineHeight : '100%', // Horizontal line height for child, vertical for parent
+          width: isChild ? horizontalLineWidth : 2, // Horizontal line width for child, vertical for parent
+          backgroundColor: '#000', // Line color
+          zIndex: -1, // Ensure the line is behind the department content
+          }}
+        />
+      );
+    };
+    return (
+      <View key={department.department_id} style={{ position: 'relative' }}>
+         {renderHierarchyLines(level, false)}
+        <View
+          style={{
+            marginLeft: level * 50, // Indent based on hierarchy level
             flexDirection: 'row', // Align elements in a row
             alignItems: 'center',
             marginVertical: 5, // Spacing between items
+            position: 'relative', // To allow lines to be placed behind it
+            zIndex: 1, // Ensure it's above the lines
           }}
         >
           {editingDepartment && editingDepartment.department_id === department.department_id ? (
@@ -321,31 +363,146 @@ const handleDelete = async (departmentId) => {
                   setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
                 }
               />
+              <Picker
+              selectedValue={newDepartmentDetails.department_head}
+              onValueChange={(itemValue) => {
+                setNewDepartmentDetails((prev) => ({ ...prev, department_head: itemValue }));
+              }}
+              style={styles.picker}
+            >
+              <Picker.Item label="Select a user" value="" />
+              {users.map((user) => (
+                <Picker.Item
+                  key={user.user_id}
+                  label={`${user.first_name} ${user.last_name}`}
+                  value={user.user_id}
+                />
+              ))}
+            </Picker>
               <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
                 <Ionicons name="save" size={20} color="#000" />
               </TouchableOpacity>
             </>
           ) : (
             <>
-              <Text style={[styles.cell, { fontWeight: 'bold', flex: 1 }]}>{department.department_name}</Text>
-              <Text style={[styles.cell, { flex: 1,textAlign:'right' }]}>
-              {department.unit_head || 'N/A'}
+            {/* Expand/Collapse Arrow */}
+            {department.children?.length > 0 && (
+              <TouchableOpacity onPress={() => toggleExpand(department.department_id)}>
+                <Ionicons
+                  name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+                  size={20}
+                  color="#000"
+                  style={{ marginRight: 10 }}
+                />
+              </TouchableOpacity>
+            )}
+
+            {/* Department Name */}
+            <Text style={[styles.cell, { fontWeight: 'bold', flex: 1 }]}>{department.department_name}</Text>
+
+            {/* Department Head (If Not Editable) */}
+            <Text style={[styles.cell, { flex: 1, textAlign: 'right' }]}>
+              {department.department_head
+                ? `${users.find((user) => user.user_id === department.department_head)?.first_name} ${users.find((user) => user.user_id === department.department_head)?.last_name}`
+                : 'Not Assigned'}
             </Text>
-           
-            
+
+            {/* Action Menu */}
             <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(department.department_id)}>
               {renderDropdown(department)}
             </TouchableOpacity>
-            </>
-          )}
-        </View>
-  
-        {/* Recursive call to render children */}
-        {department.children?.length > 0 &&
-          department.children.map((child) => renderSubDepartments(child, level + 1))}
+            
+          </>
+        )}
+
       </View>
+
+      {/* Recursively render children if expanded */}
+      {isExpanded && department.children?.length > 0 && (
+        <View style={{ marginLeft: 20, position: 'relative' }}>
+          {department.children.map((child) => (
+            <View key={child.department_id} style={{ position: 'relative', marginLeft: 20 }}>
+              {/* Render line connecting child to the parent */}
+              {renderHierarchyLines(level + 1, true)} {/* Horizontal line for child */}
+              
+              {/* Render the child department */}
+              {renderSubDepartments(child, level + 1)}
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
+
+const renderTree = (department, level = 0, users) => {
+  // Function to render hierarchy lines
+  const renderHierarchyLines = (level, isChild = false) => {
+    if (level === 0) return null; // No line for the root level
+
+    const verticalLineHeight = 20;
+    const horizontalLineHeight = 1;
+    const horizontalLineWidth = 50;
+    return (
+      <View
+        style={{
+          position: 'absolute',
+          top: isChild ? verticalLineHeight : 0, // For child, position the line horizontally
+          left: -2, // Position to connect the line to the department (on the left side)
+          height: isChild ? horizontalLineHeight : '100%', // Horizontal line height for child, vertical for parent
+          width: isChild ? horizontalLineWidth : 2, // Horizontal line width for child, vertical for parent
+          backgroundColor: '#000', // Line color
+          zIndex: -1, // Ensure the line is behind the department content
+        }}
+      />
     );
   };
+
+  return (
+    <View key={department.department_id} style={{ position: 'relative' }}>
+      {/* Render hierarchy lines */}
+      {renderHierarchyLines(level, false)}
+
+      {/* Department Box */}
+      <View
+        style={{
+          marginLeft: level * 50, // Indent based on hierarchy level
+          flexDirection: 'column', // Column layout to stack the content inside the box
+          alignItems: 'center',
+          position: 'relative', // To allow lines to be placed behind it
+          zIndex: 1, // Ensure it's above the lines
+        }}
+      >
+        <View style={styles.departmentBox}>
+          {/* Department Name */}
+          <Text style={[styles.cell, { fontWeight: 'bold' }]}>{department.department_name}</Text>
+
+          {/* Department Head */}
+          <Text style={[styles.cell]}>
+            {department.department_head
+              ? `${users.find((user) => user.user_id === department.department_head)?.first_name} ${users.find((user) => user.user_id === department.department_head)?.last_name}`
+              : 'Not Assigned'}
+          </Text>
+        </View>
+      </View>
+
+      {/* Recursively render children */}
+      {department.children && department.children.length > 0 && (
+        <View style={{ marginLeft: 20, position: 'relative' }}>
+          {department.children.map((child) => (
+            <View key={child.department_id} style={{ position: 'relative', marginLeft: 20 }}>
+              {/* Render line connecting child to the parent */}
+              {renderHierarchyLines(level + 1, true)} {/* Horizontal line for child */}
+
+              {/* Render the child department */}
+              {renderTree(child, level + 1, users)}
+            </View>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
   return (
     <Provider>
     <View style={styles.container}>
@@ -358,52 +515,84 @@ const handleDelete = async (departmentId) => {
       <Text style={styles.cell}>Unit Head</Text>
       <Text style={styles.cell}>Action</Text>
     </View>
-        <FlatList
-          data={departments}
-          keyExtractor={(item) => item.department_id.toString()}
-          renderItem={({ item, index }) => (
-            <TouchableOpacity
-  style={styles.row}
-  onPress={() => {
-    setHeadingDepartment(item); 
-    fetchSubDepartmentsHierarchy(item.department_id); // Fetch its hierarchy
-  }}
-  
->
-              <Text style={styles.cell}>{index + 1}</Text>
-              
-              
-              {editingDepartment && editingDepartment.department_id === item.department_id ? (
-                <TextInput
-                  style={styles.editInput}
-                  value={newDepartmentDetails.department_name}
-                  onChangeText={(text) =>
-                    setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
-                  }
-                />
-              ) : (
-                <Text style={styles.cell}>{item.department_name}</Text>
-              )}
-              <Text style={styles.cell}>{item.department_head}</Text>
-             {/*  <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
-                {menuVisible === item.department_id ? (
-                  editingDepartment && editingDepartment.department_id === item.department_id ? (
-                    <TouchableOpacity onPress={handleUpdate}>
-                      <Ionicons name="save" size={20} color="#000" />
-                    </TouchableOpacity>
-                  ) : (
-                    renderDropdown(item)
-                  )
-                ) : (
-                  <Ionicons name="ellipsis-vertical" size={20} color="#000" />
-                )}
-              </TouchableOpacity> */}
-               <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
-                  {renderDropdown(item)}
-                </TouchableOpacity>
-            </TouchableOpacity>
+    <FlatList
+  data={departments}
+  keyExtractor={(item) => item.department_id.toString()}
+  renderItem={({ item, index }) => {
+    const isExpanded = headingDepartment && headingDepartment.department_id === item.department_id;
+    return (
+      <>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => {
+            setHeadingDepartment(item); 
+            fetchSubDepartmentsHierarchy(item.department_id); // Fetch its hierarchy
+          }}
+        >
+          <Text style={styles.cell}>{index + 1}</Text>
+
+          {editingDepartment && editingDepartment.department_id === item.department_id ? (
+            <TextInput
+              style={styles.editInput}
+              value={newDepartmentDetails.department_name}
+              onChangeText={(text) =>
+                setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
+              }
+            />
+          ) : (
+            <Text style={styles.cell}>{item.department_name}</Text>
           )}
-        />
+
+          {editingDepartment && editingDepartment.department_id === item.department_id ? (
+            <Picker
+              selectedValue={newDepartmentDetails.department_head}
+              onValueChange={(itemValue) => {
+                setNewDepartmentDetails((prev) => ({ ...prev, department_head: itemValue }));
+              }}
+              style={styles.picker}
+            >
+              <Picker.Item label="Select a user" value="" />
+              {users.map((user) => (
+                <Picker.Item
+                  key={user.user_id}
+                  label={`${user.first_name} ${user.last_name}`}
+                  value={user.user_id}
+                />
+              ))}
+            </Picker>
+          ) : (
+            <Text style={styles.cell}>
+              {users.find((user) => user.user_id === item.department_head)?.first_name || 'Not Assigned'}
+            </Text>
+          )}
+
+          <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
+            {renderDropdown(item)}
+          </TouchableOpacity>
+        </TouchableOpacity>
+
+        {isExpanded && subDepartments && subDepartments.length > 0 && (
+            <View style={styles.subDepartmentsContainer}>
+              <Text style={styles.subDeptHeader}>Sub-Departments</Text>
+              {subDepartments.map((subDept, subIndex) => (
+                <View key={subDept.department_id} style={styles.row}>
+                  <Text style={styles.cell}>{subIndex + 1}</Text>
+                  <Text style={styles.cell}>{subDept.department_name}</Text>
+                  <Text style={styles.cell}>
+                    {users.find((user) => user.user_id === subDept.department_head)?.first_name || 'Not Assigned'}
+                  </Text>
+                  <TouchableOpacity style={styles.actionContainer}>
+                    {renderDropdown(subDept)}
+                  </TouchableOpacity>
+          </View>
+        ))}
+        </View>
+        )}
+      </>
+    );
+  }}
+/>
+
         <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
           <Text style={styles.addText}>+ Add New Department</Text>
         </TouchableOpacity>
@@ -411,23 +600,24 @@ const handleDelete = async (departmentId) => {
 
       {/* Right Panel */}
       <View style={styles.rightPanel}>
-         {/* <Text style={styles.header}>Sub-Departments</Text>
-         {subDepartments.map((department) => renderSubDepartments(department))} */}
-        {headingDepartment && (
-    <Text style={styles.header}>
-      {headingDepartment.department_name}
-    </Text>
-    
-  )}
- <View style={[styles.row, styles.header]}>
-    <Text style={[styles.cell, { flex: 1 }]}>Name</Text>
-    <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
-      <Text style={[styles.cell, { textAlign: 'right',paddingLeft:250 }]}>Unit Head</Text>
-      <Text style={[styles.cell, { textAlign: 'right' }]}>Action</Text>
-    </View>
-  </View>
 
-   {subDepartments.map((department) => renderSubDepartments(department))}
+      <BinaryTree />
+      {/* Heading */}
+    {/*   {headingDepartment && (
+        <Text style={styles.header}>{headingDepartment.department_name}</Text>
+      )} */}
+
+      {/* Table-like Header */}
+      {/* <View style={[styles.row, styles.header]}>
+        <Text style={[styles.cell, { flex: 1 }]}>Name</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
+          <Text style={[styles.cell, { textAlign: 'right', paddingLeft: 250 }]}>Unit Head</Text>
+          <Text style={[styles.cell, { textAlign: 'right' }]}>Action</Text>
+        </View>
+      </View> */}
+
+      {/* Department Tree */}
+      {/* {subDepartments.map((department) => renderTree(department, 0, users))} */}
        {/*  <FlatList
           data={subDepartments}
           keyExtractor={(item) => item.department_id.toString()}
@@ -544,13 +734,25 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   rightPanel: {
-    flex: 2,
-    padding: 10,
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    marginLeft: 20,
   },
   header: {
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
     marginBottom: 10,
+  },
+  departmentBox: {
+    width: 200,
+    padding: 10,
+    backgroundColor: '#e3e3e3',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignItems: 'center',
   },
   row: {
     flexDirection: 'row',

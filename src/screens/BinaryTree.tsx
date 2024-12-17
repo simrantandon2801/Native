@@ -1,87 +1,106 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
 
-// Node Component
-const Node = ({ value, left, right, onToggle, x, y }) => {
-  return (
-    <View style={[styles.node, { left: x, top: y }]}>
-      <Text style={styles.nodeText}>{value}</Text>
-      <View style={styles.children}>
-        {left && (
-          <TouchableOpacity onPress={() => onToggle(left)}>
-            <Node {...left} onToggle={onToggle} x={x - 60} y={y + 60} />
-          </TouchableOpacity>
-        )}
-        {right && (
-          <TouchableOpacity onPress={() => onToggle(right)}>
-            <Node {...right} onToggle={onToggle} x={x + 60} y={y + 60} />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-};
+const Node = ({ value, left, right, level, offsetX, offsetY }) => {
+  const nodeWidth = 100; // Width of the node (box)
+  const nodeHeight = 40; // Height of the node (box)
+  const spacing = 80; // Spacing between parent and child nodes (vertical space)
+  const horizontalSpacing = 150; // Horizontal space between sibling nodes
 
-// Binary Tree Component
-const BinaryTree = () => {
-  const [tree] = useState({
-    value: 1,
-    left: {
-      value: 2,
-      left: { value: 4 },
-      right: { value: 5 },
-    },
-    right: {
-      value: 3,
-      left: { value: 6 },
-      right: { value: 7 },
-    },
-  });
+  const renderLine = (fromX, fromY, toX, toY) => {
+    return (
+      <line
+        x1={fromX}
+        y1={fromY}
+        x2={toX}
+        y2={toY}
+        stroke="black"
+        strokeWidth="2"
+      />
+    );
+  };
 
-  // Toggle function for node expansion
-  const toggleNode = (node) => {
-    console.log('Node clicked:', node);
+  const renderChildren = () => {
+    const children = [];
+    const newOffsetY = offsetY + nodeHeight + spacing;
+
+    if (left) {
+      // Left child line (vertical line)
+      children.push(renderLine(offsetX + nodeWidth / 2, offsetY + nodeHeight, offsetX + nodeWidth / 2 - horizontalSpacing / 2, newOffsetY));
+      children.push(
+        <Node
+          key={left.value}
+          value={left.value}
+          left={left.left}
+          right={left.right}
+          level={level + 1}
+          offsetX={offsetX - horizontalSpacing / 2}
+          offsetY={newOffsetY}
+        />
+      );
+    }
+
+    if (right) {
+      // Right child line (vertical line)
+      children.push(renderLine(offsetX + nodeWidth / 2, offsetY + nodeHeight, offsetX + nodeWidth / 2 + horizontalSpacing / 2, newOffsetY));
+      children.push(
+        <Node
+          key={right.value}
+          value={right.value}
+          left={right.left}
+          right={right.right}
+          level={level + 1}
+          offsetX={offsetX + horizontalSpacing / 2}
+          offsetY={newOffsetY}
+        />
+      );
+    }
+
+    return children;
   };
 
   return (
-    <View style={styles.container}>
-      <Svg height="300" width="100%">
-        {/* Lines between nodes */}
-        <Line x1="50%" y1="20%" x2="40%" y2="50%" stroke="black" strokeWidth="2" />
-        <Line x1="50%" y1="20%" x2="60%" y2="50%" stroke="black" strokeWidth="2" />
-        <Line x1="40%" y1="50%" x2="30%" y2="80%" stroke="black" strokeWidth="2" />
-        <Line x1="40%" y1="50%" x2="50%" y2="80%" stroke="black" strokeWidth="2" />
-        <Line x1="60%" y1="50%" x2="50%" y2="80%" stroke="black" strokeWidth="2" />
-        <Line x1="60%" y1="50%" x2="70%" y2="80%" stroke="black" strokeWidth="2" />
-      </Svg>
-      <Node value={tree.value} left={tree.left} right={tree.right} onToggle={toggleNode} x="50%" y="20%" />
-    </View>
+    <>
+      <rect
+        x={offsetX}
+        y={offsetY}
+        width={nodeWidth}
+        height={nodeHeight}
+        fill="lightblue"
+        stroke="black"
+        strokeWidth="2"
+      />
+      <text x={offsetX + nodeWidth / 2} y={offsetY + nodeHeight / 2} fill="black" fontSize="12" textAnchor="middle" dy=".3em">
+        {value}
+      </text>
+      {renderChildren()}
+    </>
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  node: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  nodeText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  children: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-});
+const BinaryTree = () => {
+  const [tree] = useState({
+    value: 'forgeppm',
+    left: {
+      value: 'Finance',
+      left: { value: 'CAO Office' },
+    
+    },
+    right: {
+      value: 'Technology',
+      left: { value: 'IT infra' },
+      right: { value: 'Software services' },
+    },
+  });
 
-export default BinaryTree
+  return (
+    <svg width="100%" height="500" style={{ border: '1px solid #000' }}>
+      {tree ? (
+        <Node value={tree.value} left={tree.left} right={tree.right} level={0} offsetX={250} offsetY={50} />
+      ) : (
+        'No tree available'
+      )}
+    </svg>
+  );
+};
+
+export default BinaryTree;
