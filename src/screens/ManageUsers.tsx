@@ -499,32 +499,39 @@ const ManageUsers: React.FC = () => {
   const handleFilterSubmit = async () => {
     try {
       // Initialize the query parameter (if needed)
-      let query = ''; //Use this if you have a search term for the query
+      let query = ''; // Use this if you have a search term for the query
+  
       // Initialize variables for the parameters to pass into GetUsers
-      let reporting_toParam = undefined;
-      let department_idParam = undefined;
-      let role_idParam = undefined;
+      let reporting_toParam: number | undefined = undefined;
+      let department_idParam: number | undefined = undefined;
+      let role_idParam: number | undefined = undefined;
+  
       // Check if reporting_to has been set and is not the default value (-1)
       if (reporting_to !== -1) {
-        reporting_toParam = reporting_to;
+        reporting_toParam = (reporting_to); // Convert number to 
       }
+  
       // Check if department_id has been set and is not the default value (-1)
       if (selectedDeptID !== -1) {
-        department_idParam = selectedDeptID;
+        department_idParam = (selectedDeptID); // Convert number to 
       }
+  
       // Check if role_id has been set and is not the default value (-1)
       if (selectedRoleID !== -1) {
-        role_idParam = selectedRoleID;
+        role_idParam = (selectedRoleID); // Convert number to string
       }
+  
       const result = await GetUsers(
+        customerID,
         query,
         reporting_toParam,
         department_idParam,
-        role_idParam,
+        role_idParam
       );
+  
       // Log or handle the result if needed
       console.log('Filtered Users: ', result);
-
+  
       const parsedResult = JSON.parse(result);
       if (parsedResult.status === 'success') {
         setUsers(parsedResult.data.users);

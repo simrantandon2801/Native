@@ -28,7 +28,7 @@ export const GetUsers = async (
     // Convert params to search string
     const queryString = new URLSearchParams(params as any).toString();
     // Final URI with search params
-    if (queryString) uri += `?${queryString}`;
+    if (queryString) uri += `&${queryString}`;
     // Retrieve token from AsyncStorage
     const token = await AsyncStorage.getItem('Token');
 
