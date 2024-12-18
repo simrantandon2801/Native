@@ -30,13 +30,13 @@ import {
   GetUserPermission,
   GetAdIntegration,
 } from '../database/Resource';
-import {GetUsers} from '../database/RestData';
+import {GetUsers} from '../database/Users';
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
 import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
 import AdComponent from './Adcomponent';
-import { navigate } from '../navigations/RootNavigation';
+import {navigate} from '../navigations/RootNavigation';
 
 interface User {
   user_id: number;
@@ -81,7 +81,7 @@ interface InsertOrEditUser {
   average_cost: number;
   phone: string;
   designation: string;
-  resource_type_id: number
+  resource_type_id: number;
 }
 
 interface UserRole {
@@ -241,7 +241,7 @@ const Resources: React.FC = () => {
   const fetchUser = async () => {
     try {
       const response = await GetResources('');
-      console.log(response)
+      console.log(response);
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') setUsers(parsedRes.data.resources);
       else
@@ -264,7 +264,7 @@ const Resources: React.FC = () => {
       last_name: lastname || (selectedUser ? selectedUser.last_name : ''),
       customer_id: parseInt(customerID),
       reporting_to: parseInt(manager),
-     // approval_limit: parseInt(budgetAmount),
+      // approval_limit: parseInt(budgetAmount),
       is_super_admin: true,
       is_active: true,
       resource_type_id: selectedRoleID,
@@ -277,11 +277,10 @@ const Resources: React.FC = () => {
       console.log(payload);
       const response = await AddResource(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success'){
+      if (parsedRes.status === 'success') {
         console.log(' User Added succesfully');
         fetchUser();
-      }
-      else
+      } else
         console.error(
           'Failed to fetch users:',
           parsedRes.message || 'Unknown error',
@@ -318,7 +317,7 @@ const Resources: React.FC = () => {
       const response = await GetResourceType('');
       const parsedRes =
         typeof response === 'string' ? JSON.parse(response) : response;
-        console.log(parsedRes.data.resource_types)
+      console.log(parsedRes.data.resource_types);
       if (parsedRes.status === 'success') {
         setUserRole(parsedRes.data.resource_types);
       } else {
@@ -387,9 +386,6 @@ const Resources: React.FC = () => {
     // Log the current state of allSelectedUsersID to check if it's being updated
     console.log('Selected User IDs:', allSelectedUsersID);
   };
-
-
-
 
   const handleUpdateMultipleUsersDepartment = async () => {
     const payload = {
@@ -461,7 +457,7 @@ const Resources: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-
+  const {width: screenWidth} = Dimensions.get('window');
   return (
     <>
       {/* Manage Users Section */}
@@ -643,6 +639,10 @@ const Resources: React.FC = () => {
               <DataTable.Cell>
                 <Menu
                   visible={visibleMenus[user.user_id] || false}
+                  style={{
+                    flexGrow: 1,
+                    left: screenWidth - 260,
+                  }}
                   onDismiss={() => toggleMenu(user.user_id)}
                   anchor={
                     <TouchableOpacity
@@ -754,7 +754,7 @@ const Resources: React.FC = () => {
                     />
                   </Picker>
                 </View> */}
-                    {/* <View style={styles.inputRow}> */}
+                {/* <View style={styles.inputRow}> */}
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Resource Type</Text>
                   <Picker
@@ -789,15 +789,14 @@ const Resources: React.FC = () => {
                     ))}
                   </Picker>
                 </View>
-              {/* </View> */}
-              {/*Nested Dropdown */}
-             
-              {/*User Role*/}
-          
+                {/* </View> */}
+                {/*Nested Dropdown */}
+
+                {/*User Role*/}
               </View>
 
               <View>
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
+                <NestedDeptDropdown onSelect={handleDeptSelect} />
               </View>
               {/*User Role*/}
               {/*  <Text
@@ -899,14 +898,12 @@ const Resources: React.FC = () => {
         </ScrollView>
       </Modal>
 
-  
-    {/* Sync AD */}
-    <Modal
+      {/* Sync AD */}
+      <Modal
         animationType="slide"
         transparent={true}
         visible={isADModalVisible}
-        onRequestClose={toggleModal}
-      >
+        onRequestClose={toggleModal}>
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer1}>
             {/* ScrollView to make content scrollable */}
@@ -915,7 +912,7 @@ const Resources: React.FC = () => {
               {isLoading ? (
                 <ActivityIndicator size="large" color="#044086" />
               ) : (
-                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} /> 
+                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} />
               )}
             </ScrollView>
             <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
@@ -1007,9 +1004,7 @@ const Resources: React.FC = () => {
           <View style={[styles.modalContent, {width: '90%', maxWidth: 400}]}>
             <Text style={styles.modalTitle}>Edit Permissions</Text>
             <ScrollView style={{maxHeight: 300}}>
-              <View style={styles.permissionContainer}>
-              
-              </View>
+              <View style={styles.permissionContainer}></View>
             </ScrollView>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
@@ -1099,8 +1094,8 @@ const Resources: React.FC = () => {
                     />
                   </Picker>
                 </View> */}
-                              {/*User Role*/}
-             
+                {/*User Role*/}
+
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Resource Type</Text>
                   <Picker
@@ -1120,8 +1115,8 @@ const Resources: React.FC = () => {
                     )}
                   </Picker>
                 </View>
-          
-              {/*User Role*/}
+
+                {/*User Role*/}
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
@@ -1140,9 +1135,8 @@ const Resources: React.FC = () => {
               </View>
               {/*Nested Dropdown */}
               <View style={styles.inputRow}>
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
+                <NestedDeptDropdown onSelect={handleDeptSelect} />
               </View>
-
 
               {/* <Text
                 style={{
@@ -1599,17 +1593,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContainer1: {
     flex: 1,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '70%', 
-    height: '70%', 
+    width: '70%',
+    height: '70%',
     justifyContent: 'space-between',
-
   },
   closeButton: {
     backgroundColor: '#044086',
@@ -1618,9 +1611,8 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginRight: 10,
     paddingHorizontal: 16,
-    
+
     alignSelf: 'flex-end',
-   
   },
   closeButtonText: {
     color: 'white',

@@ -1,4 +1,4 @@
-import React, {ReactNode, useState, useEffect} from 'react';
+import React, {ReactNode, useState, useEffect, useMemo} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   StyleSheet,
@@ -26,10 +26,14 @@ import {AddAndEditRole} from '../database/RoleMaster';
 import {DeleteRole} from '../database/RoleMaster';
 import {decodeBase64} from '../core/securedata';
 import DeleteConfirmationModal from './delete-confirmation-modal';
-import {GetRolePermission, GetAllPermission, updateRolePermissions} from '../database/RestData';
+import {
+  GetRolePermission,
+  GetAllPermission,
+  updateRolePermissions,
+} from '../database/Users';
 
 const {height} = Dimensions.get('window');
-const adjustedHeight = height * 0.9;
+// const adjustedHeight = height * 0.9;
 
 interface User {
   id: number;
@@ -87,14 +91,23 @@ const RoleMaster = () => {
     useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
-  const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
-  
-  const handleFetchRolePermisssion = async (role_id:string) => {
+  // const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
+
+  //I did not made a extra state to avoid uneccesar renders intead used a var and used useMemo hook
+  const activePermissionIds = useMemo(() => {
+    return rolePermissions
+      .filter(permission => {
+        return permission.is_active; // Properly filters by `is_active`
+      })
+      .map(item => item.role_permission_id); // Maps to the role_permission_id
+  }, [rolePermissions]);
+
+  const handleFetchRolePermisssion = async (role_id: string) => {
     try {
       setLoading(true);
       setRolePermissions([]);
       // setActivePermissionIds([]);
-      console.log(role_id, "role id sent to get role permisson ")
+      console.log(role_id, 'role id sent to get role permisson ');
       const response = await GetRolePermission(role_id);
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
@@ -115,32 +128,33 @@ const RoleMaster = () => {
       setLoading(false); // End loading
     }
   };
-   const handleEditRolePermission = async()=>{
-      const payload = {
-        role_id: selectedUser?.role_id,
-        role_permission_ids: activePermissionIds
-      }
-      console.log("payload of inserting role permissions" ,payload);
-      try {
-        const response = await updateRolePermissions(payload); // API call to delete user
-        const parsedRes = JSON.parse(response);
-        if (parsedRes.status === 'success') {
-          console.log(
-            'All the permissions you selected are now assigned the selected user',
-          );
-          //set
-          setIsEditPermissionModalVisible(false); // Close the modal after successful deletion
-          // fetchUser();
-        } else {
-          console.error(
-            'Failed to assign permission to user:',
-            parsedRes.message,
-          ); // Handle failure
-        }
-      } catch (err) {
-        console.log('There is something wrong', err);
-      }
+
+  const handleEditRolePermission = async () => {
+    const payload = {
+      role_id: selectedUser?.role_id,
+      role_permission_ids: activePermissionIds,
     };
+    console.log('payload of inserting role permissions', payload);
+    try {
+      const response = await updateRolePermissions(payload); // API call to delete user
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        console.log(
+          'All the permissions you selected are now assigned the selected user',
+        );
+        //set
+        setIsEditPermissionModalVisible(false); // Close the modal after successful deletion
+        // fetchUser();
+      } else {
+        console.error(
+          'Failed to assign permission to user:',
+          parsedRes.message,
+        ); // Handle failure
+      }
+    } catch (err) {
+      console.log('There is something wrong', err);
+    }
+  };
 
   const toggleMenu = () => setActionsVisible(!actionsVisible);
 
@@ -549,8 +563,6 @@ const RoleMaster = () => {
     }
   };
 
- 
-
   return (
     <View style={styles.container}>
       <View style={styles.manageUsersContainer}>
@@ -597,7 +609,7 @@ const RoleMaster = () => {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          style={{maxHeight: '100%'}}>
+          style={{maxHeight: height * 0.5}}>
           {users.map((user, index) => (
             <DataTable.Row style={styles.table} key={user.role_id}>
               <DataTable.Cell>{index + 1}</DataTable.Cell>
@@ -641,10 +653,10 @@ const RoleMaster = () => {
                     }}
                     title="Edit"
                   />
-                  <Menu.Item
+                  {/* <Menu.Item
                     onPress={() => handleDeleteRole(user.role_id)}
                     title="Delete"
-                  />
+                  /> */}
                   <Menu.Item
                     onPress={() => {
                       setIsModalVisible(true);
@@ -796,93 +808,83 @@ const RoleMaster = () => {
         animationType="fade"
         onRequestClose={() => setIsEditPermissionModalVisible(false)}>
         <View style={styles.modalOverlay}>
-                  <View style={[styles.modalContent, {width: '90%', maxWidth: 400}]}>
-                    <Text style={styles.modalTitle}>Edit Permissions</Text>
-                    <ScrollView style={{maxHeight: 300}}>
-                      <View style={styles.permissionContainer}>
-                        {rolePermissions.map(permission => (
-                          <View
-                            key={permission.permission_id}
-                            style={styles.permissionItem}>
-                            <Text>{permission.permission_name}</Text>
-                            <Switch
-                              value={permission.is_active}
-                              onValueChange={value => {
-                                console.log(`Permission Name: ${permission.permission_name} is ${value}`)
-                                setActivePermissionIds(prev => {
-                                  if (value) {
-                                    return [...prev, permission.role_permission_id];
-                                  } else {
-                                    return prev.filter(id => id !== permission.role_permission_id);
-                                  }
-                                });
-                                setRolePermissions(
-                                  rolePermissions.map(p =>
-                                    p.permission_id === permission.permission_id
-                                      ? {...p, is_active: value}
-                                      : p,
-                                  ),
-                                );
-                              }}
-                              disabled={loading}
-                            />
-                          </View>
-                        ))}
-                      </View>
-                    </ScrollView>
-                    <View style={styles.buttonContainer}>
-                      <TouchableOpacity
-                        style={[styles.modalButton, styles.cancelButton]}
-                        onPress={() => setIsEditPermissionModalVisible(false)}
-                        disabled={loading}>
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.modalButton, styles.submitButton]}
-                        onPress={handleEditRolePermission}
-                        disabled={loading}>
-                        <Text style={styles.submitButtonText}>
-                          {loading ? 'Updating...' : 'Submit'}
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
+          <View style={[styles.modalContent, {width: '90%', maxWidth: 400}]}>
+            <Text style={styles.modalTitle}>Edit Permissions</Text>
+            <ScrollView style={{maxHeight: 300}}>
+              <View style={styles.permissionContainer}>
+                {rolePermissions.map(permission => (
+                  <View
+                    key={permission.permission_id}
+                    style={styles.permissionItem}>
+                    <Text>{permission.permission_name}</Text>
+                    <Switch
+                      value={permission.is_active}
+                      onValueChange={value => {
+                        console.log(
+                          `Permission Name: ${permission.permission_name} is ${value}`,
+                        );
+
+                        setRolePermissions(
+                          rolePermissions.map(p =>
+                            p.permission_id === permission.permission_id
+                              ? {...p, is_active: value}
+                              : p,
+                          ),
+                        );
+                      }}
+                      disabled={loading}
+                    />
                   </View>
-                </View>
-      </Modal>
-
-
-      {/*Delete Role Modal */}
-      <Modal
-        visible={isDeleteModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsDeleteModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirm Delete</Text>
-            <Text style={styles.modalText}>Are you sure you want to delete this role?</Text>
+                ))}
+              </View>
+            </ScrollView>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setIsDeleteModalVisible(false)}
-              >
+                onPress={() => setIsEditPermissionModalVisible(false)}
+                disabled={loading}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.deleteButton]}
-                onPress={confirmDeleteRole}
-              >
-                <Text style={styles.deleteButtonText}>Delete</Text>
+                style={[styles.modalButton, styles.submitButton]}
+                onPress={handleEditRolePermission}
+                disabled={loading}>
+                <Text style={styles.submitButtonText}>
+                  {loading ? 'Updating...' : 'Submit'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-
-
-
+      {/*Delete Role Modal */}
+      <Modal
+        visible={isDeleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsDeleteModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Confirm Delete</Text>
+            <Text style={styles.modalText}>
+              Are you sure you want to delete this role?
+            </Text>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setIsDeleteModalVisible(false)}>
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.deleteButton]}
+                onPress={confirmDeleteRole}>
+                <Text style={styles.deleteButtonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

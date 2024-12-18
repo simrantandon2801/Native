@@ -14,7 +14,7 @@ import {
 import {ScrollView} from 'react-native-gesture-handler';
 import {DataTable, Icon, IconButton, Menu} from 'react-native-paper';
 import {Picker} from '@react-native-picker/picker';
-import {addmodule, fetchModules} from '../database/RestData';
+import {addmodule, fetchModules} from '../database/Users';
 // Define the User type to ensure type safety
 import Header from '../header/header';
 interface User {
@@ -41,14 +41,20 @@ const ManageList: React.FC = () => {
   const [parentModules, setParentModules] = useState<any[]>([]);
   const fetchParentModules = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_modules');
+      const response = await fetch(
+        'https://underbuiltapi.aadhidigital.com/master/get_modules',
+      );
       const data = await response.json();
       console.log('Raw API Response:', data);
-  
-      if (data.status === 'success' && data.data && Array.isArray(data.data.modules)) {
-        const parentModules = data.data.modules.map((module) => ({
-          label: module.module_name || 'Unnamed Module', 
-          value: module.module_id.toString(), 
+
+      if (
+        data.status === 'success' &&
+        data.data &&
+        Array.isArray(data.data.modules)
+      ) {
+        const parentModules = data.data.modules.map(module => ({
+          label: module.module_name || 'Unnamed Module',
+          value: module.module_id.toString(),
         }));
         console.log('Mapped Parent Modules:', parentModules);
         setParentModules(parentModules);
@@ -59,7 +65,7 @@ const ManageList: React.FC = () => {
       console.error('Error fetching parent modules:', error);
     }
   };
-  
+
   useEffect(() => {
     console.log('Calling fetchParentModules...');
     fetchParentModules();
@@ -69,14 +75,11 @@ const ManageList: React.FC = () => {
   const submitHandler = async () => {
     try {
       const requestBody = {
-        
-        module_name: modulename, 
-        module_level: 'Level 1', 
+        module_name: modulename,
+        module_level: 'Level 1',
         parent_module_id: parentmodule,
-        url:url,
-        order_id:display
-
-        
+        url: url,
+        order_id: display,
       };
 
       const response = await addmodule(requestBody);
@@ -121,7 +124,7 @@ const ManageList: React.FC = () => {
 
       {/* Action Bar */}
       <View style={styles.actions}>
-      {/*   <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
+        {/*   <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
           <IconButton icon="trash-can-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, { color: '#344054' }]}>Delete</Text>
         </TouchableOpacity> */}
@@ -135,7 +138,7 @@ const ManageList: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-       {/*  <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
+        {/*  <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} color="#344054" />
           <Text style={[styles.actionText, { color: '#344054' }]}>Filters</Text>
         </TouchableOpacity> */}
@@ -151,38 +154,44 @@ const ManageList: React.FC = () => {
           <DataTable.Title>URL</DataTable.Title>
           <DataTable.Title>Status</DataTable.Title>
           <DataTable.Title>Created at</DataTable.Title>
-        {/*   <DataTable.Title>Action</DataTable.Title> */}
+          {/*   <DataTable.Title>Action</DataTable.Title> */}
           {/* <DataTable.Title>Updated at</DataTable.Title>
           <DataTable.Title>Created by</DataTable.Title>
           <DataTable.Title>Updated by</DataTable.Title> */}
         </DataTable.Header>
 
-        <ScrollView style={{maxHeight:500,}} >
-        {modules.map((module, index) => (
-  <DataTable.Row key={module.module_id}>
-    <DataTable.Cell>{index + 1}</DataTable.Cell>
-    <DataTable.Cell>
-      {module.module_name === "string" ? "No Name Provided" : module.module_name}
-    </DataTable.Cell>
-    {/* <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell> */}
-    <DataTable.Cell>
-  {module.parent_module === "root module" ? "-------" : module.parent_module || "N/A"}
-    </DataTable.Cell>
+        <ScrollView style={{maxHeight: 500}}>
+          {modules.map((module, index) => (
+            <DataTable.Row key={module.module_id}>
+              <DataTable.Cell>{index + 1}</DataTable.Cell>
+              <DataTable.Cell>
+                {module.module_name === 'string'
+                  ? 'No Name Provided'
+                  : module.module_name}
+              </DataTable.Cell>
+              {/* <DataTable.Cell>{module.module_level || "N/A"}</DataTable.Cell> */}
+              <DataTable.Cell>
+                {module.parent_module === 'root module'
+                  ? '-------'
+                  : module.parent_module || 'N/A'}
+              </DataTable.Cell>
 
-    <DataTable.Cell>{module.url || "N/A"}</DataTable.Cell>
-    <DataTable.Cell>
-      {module.is_active ? "Active" : "Inactive"}
-    </DataTable.Cell>
-    <DataTable.Cell>
-      {module.created_at ? new Date(module.created_at).toLocaleString() : "N/A"}
-    </DataTable.Cell>
-   {/*  <DataTable.Cell>
+              <DataTable.Cell>{module.url || 'N/A'}</DataTable.Cell>
+              <DataTable.Cell>
+                {module.is_active ? 'Active' : 'Inactive'}
+              </DataTable.Cell>
+              <DataTable.Cell>
+                {module.created_at
+                  ? new Date(module.created_at).toLocaleString()
+                  : 'N/A'}
+              </DataTable.Cell>
+              {/*  <DataTable.Cell>
       {module.updated_at ? new Date(module.updated_at).toLocaleString() : "N/A"}
     </DataTable.Cell>
     <DataTable.Cell>{module.created_by || "N/A"}</DataTable.Cell>
     <DataTable.Cell>{module.updated_by || "N/A"}</DataTable.Cell> */}
 
-{/* <DataTable.Cell>
+              {/* <DataTable.Cell>
                 <Menu
                   visible={actionsVisible}
                   onDismiss={toggleMenu}
@@ -205,9 +214,8 @@ const ManageList: React.FC = () => {
                   />
                 </Menu>
               </DataTable.Cell> */}
-  </DataTable.Row>
-))}
-
+            </DataTable.Row>
+          ))}
         </ScrollView>
       </DataTable>
 
@@ -224,19 +232,18 @@ const ManageList: React.FC = () => {
 
             <View style={styles.inputRow}>
               <View style={styles.inputWrapper}>
-                <Text style={styles.label} >* Parent Module</Text>
+                <Text style={styles.label}>* Parent Module</Text>
                 <Picker
-  selectedValue={parentmodule} 
-  onValueChange={(itemValue) => setParentmodule(itemValue)} 
->
-  {parentModules.map((module) => (
-    <Picker.Item 
-      key={module.module_name} 
-      label={module.label}  
-      value={module.parent_module_id}  
-    />
-  ))}
-</Picker>
+                  selectedValue={parentmodule}
+                  onValueChange={itemValue => setParentmodule(itemValue)}>
+                  {parentModules.map(module => (
+                    <Picker.Item
+                      key={module.module_name}
+                      label={module.label}
+                      value={module.parent_module_id}
+                    />
+                  ))}
+                </Picker>
               </View>
             </View>
             <View style={styles.inputRow}>

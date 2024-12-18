@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, Text, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, Alert, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { TextInput, PaperProvider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
@@ -103,6 +103,7 @@ const SignupScreen = () => {
   return (
     <PaperProvider>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        
         <Text style={styles.heading}>Customer Registration</Text>
 
         <View style={[styles.paperContainer, { width: deviceWidth > 600 ? '50%' : '90%' }]}>
@@ -245,11 +246,7 @@ const SignupScreen = () => {
           <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Username <Text style={{ color: 'red' }}>*</Text></Text>}
-              value={username}
-              onChangeText={(text) => {
-                setUsername(text);
-                setErrors({ ...errors, username: '' });
-              }}
+              value={techAdminEmail}
               underlineColor="#044086"
               theme={{
                 colors: {
