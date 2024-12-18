@@ -15,7 +15,7 @@ interface GridItem {
 const gridData: GridItem[] = [
   { id: '1', image: AppImages.Frame, text: 'Manage Company', component: 'ManageCompany' },
   { id: '2', image: AppImages.Goal, text: 'Manage Goals', component: 'ManageGoals'  },
-  { id: '3', image: AppImages.Program, text: 'Manage Programs', component: 'ManageCompany'  },
+  { id: '3', image: AppImages.Program, text: 'Manage Programs', component: 'ManagePrograms'  },
   { id: '4', image: AppImages.ManageP, text: 'Manage Departments', component: 'DepartmentList'  },
   { id: '5', image: AppImages.USers, text: 'Manage Users', component: 'ManageUsers'  },
   { id: '6', image: AppImages.RoleM, text: 'Role Master', component: 'RoleMaster' },

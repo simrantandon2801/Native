@@ -644,6 +644,11 @@ const Resources: React.FC = () => {
                     left: screenWidth - 260,
                   }}
                   onDismiss={() => toggleMenu(user.user_id)}
+                  style={{
+                    flexGrow: 1,
+                    left : screenWidth - 260,
+                    
+                  }}
                   anchor={
                     <TouchableOpacity
                       onPress={() => {

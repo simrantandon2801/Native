@@ -38,7 +38,7 @@ import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
 import AdComponent from './Adcomponent';
-import {navigate} from '../navigations/RootNavigation';
+import { navigate } from '../navigations/RootNavigation';
 
 interface FormValues {
   firstname: string;
@@ -56,30 +56,30 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  customer_id: number;
-  reporting_to: number;
-  approval_limit: number;
+  customer_id: number | null;
+  reporting_to: number | null;
+  approval_limit: number | null;
   created_at: string;
   updated_at: string;
   created_by: number;
-  updated_by: number;
+  updated_by: number | null;
   is_active: boolean;
   is_deleted: boolean;
-  department_id: number;
-  average_cost: number;
-  phone: string;
-  source: string;
-  designation: string;
-  manager_name: string;
-  department_name: string;
-  role_name: string;
-  role_id: number;
+  department_id: number | null;
+  average_cost: number | null;
+  phone: string | null;
+  source: string | null;
+  designation: string | null;
+  manager_name: string | null;
+  department_name: string | null;
+  role_name: string | null;
 }
 
 interface InsertOrEditUser {
   user_id: number; // ID of the user, 0 for new users
   username?: string; // Username of the user
   email: string; // Email address of the user
+
   first_name: string; // First name of the user
   last_name: string; // Last name of the user
   customer_id: number; // ID of the customer, 0 for default
@@ -131,7 +131,7 @@ const ManageUsers: React.FC = () => {
   );
   // const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [reporting_to, setReportingTo] = useState<number>(-1);
+  const [manager, setManager] = useState<string>('');
   const [budgetAmount, setBudgetAmount] = useState<string>('');
   // const [avgbudgetAmount, setAvgBudgetAmount] = useState<string>('');
   const [Designation, setDesignation] = useState<string>('');
@@ -222,7 +222,6 @@ const ManageUsers: React.FC = () => {
       [userId]: !prev[userId],
     }));
   };
-
   const [loading, setLoading] = useState(false);
 
   // const togglePermission = (key: any) => {
@@ -234,7 +233,6 @@ const ManageUsers: React.FC = () => {
     try {
       setLoading(true);
       setPermissions([]);
-      // setActivePermissionIds([]);
 
       const response = await GetUserPermission(user_id);
       const parsedRes = JSON.parse(response);
@@ -325,7 +323,7 @@ const ManageUsers: React.FC = () => {
   const handleDelete = async (user_id: number) => {
     console.log(user_id);
     const payload = {
-      user_ids: [user_id],
+      user_id: user_id,
     };
     try {
       const response = await DeleteUser(payload); // API call to delete user
@@ -647,13 +645,9 @@ const ManageUsers: React.FC = () => {
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigate('Excel')}>
+          <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
             <IconButton icon="sync" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Import Excel
-            </Text>
+            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity
@@ -684,7 +678,7 @@ const ManageUsers: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
-
+      
       {/* Table Section */}
       <DataTable style={styles.tableHeaderCell}>
         {/* Table Header */}
@@ -700,9 +694,9 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title style={{justifyContent: 'center'}}>
             Name
           </DataTable.Title>
-          {/* <DataTable.Title style={{justifyContent: 'center'}}>
+          <DataTable.Title style={{justifyContent: 'center'}}>
             Username
-          </DataTable.Title> */}
+          </DataTable.Title>
           <DataTable.Title style={{justifyContent: 'center'}}>
             Role
           </DataTable.Title>
@@ -755,9 +749,9 @@ const ManageUsers: React.FC = () => {
                   justifyContent: 'center',
                 }}>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
               {/*Username*/}
-              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.username}
-              </DataTable.Cell> */}
+              </DataTable.Cell>
               {/* Assuming username as designation */}
               <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.role_name}
@@ -783,9 +777,9 @@ const ManageUsers: React.FC = () => {
                 {user.approval_limit}
               </DataTable.Cell>
               {/* Placeholder for Average Cost */}
-              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.average_cost}
-              </DataTable.Cell> */}
+              </DataTable.Cell>
               {/* Placeholder for Status */}
               <DataTable.Cell style={{justifyContent: 'center'}}>
                 {loading && selectedUser?.user_id === user.user_id ? (
@@ -814,10 +808,11 @@ const ManageUsers: React.FC = () => {
                     left: screenWidth - 265,
                   }}
                   onDismiss={() => toggleMenu(user.user_id)}
+                  c
                   anchor={
                     <TouchableOpacity
                       onPress={() => {
-                        console.log('Selected User:', user); // Log the user for debugging
+                        
                         toggleMenu(user.user_id);
                         setSelectedUser(user);
                         setFirstName(user.first_name);
@@ -838,6 +833,7 @@ const ManageUsers: React.FC = () => {
                       console.log('Edit Details');
                       toggleMenu(user.user_id); // Close menu after selection
                       setisEditModalVisible(true);
+                      
                     }}
                     title="Edit Details"
                   />
@@ -1862,7 +1858,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
-    gap: 20,
   },
   inputWrapper: {
     flex: 1,
@@ -1976,16 +1971,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
   },
   modalContainer1: {
     flex: 1,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '70%',
-    height: '70%',
+    width: '70%', 
+    height: '70%', 
     justifyContent: 'space-between',
+
   },
   closeButton: {
     backgroundColor: '#044086',
@@ -1994,8 +1990,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginRight: 10,
     paddingHorizontal: 16,
-
+    
     alignSelf: 'flex-end',
+   
   },
   closeButtonText: {
     color: 'white',

@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
 
-export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
+  import { BASE_URL } from "@env";
 export const GetResources = async (query:string): Promise<string> => {
     try {
       //debugger;

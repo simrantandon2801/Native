@@ -42,8 +42,9 @@ import RoadmapOverview from '../screens/RoadmapOverview';
 import Resources from '../screens/Resources';
 import IntakeList from '../screens/IntakeList';
 import AdminDashBoard from '../screens/AdminDashboard';
-import ManageGoals from '../screens/ManageGoals';
 import NewIntake from '../screens/NewIntake';
+import ManageGoals from '../screens/Goals/ManageGoals';
+import ManagePrograms from '../screens/Goals/ManagePrograms';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -302,6 +303,8 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="ManageGoals" component={ManageGoals} />
           <Drawer.Screen name="NewIntake" component={NewIntake} />
 
+          <Drawer.Screen name="ManagePrograms" component={ManagePrograms} />
+        
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}
