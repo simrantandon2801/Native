@@ -79,7 +79,7 @@ const Node = ({ value, left, right, level, offsetX, offsetY }) => {
 
 const BinaryTree = () => {
   const [tree] = useState({
-    value: 'forgeppm',
+    value: 'Forge',
     left: {
       value: 'Finance',
       left: { value: 'CAO Office' },

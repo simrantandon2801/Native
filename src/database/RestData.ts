@@ -57,6 +57,7 @@ export const addUser  = async (values: Object): Promise<string> => {
     // 
      //const UserID = await AsyncStorage.getItem('UserID');
      var uri = `https://underbuiltapi.aadhidigital.com/master/insert_users_with_role`;
+     //var uri = `http://localhost:3000/master/insert_users_with_role`;
      //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
      const token = await AsyncStorage.getItem('Token');  
      console.log(uri);
