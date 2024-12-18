@@ -7,13 +7,14 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ScrollView,
 import { Checkbox, Menu, Provider as PaperProvider, IconButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Picker } from '@react-native-picker/picker';
-import { GetGoals,  InsertGoal } from '../../database/Goals';
+import { DeleteGoal, GetGoals,  InsertGoal } from '../../database/Goals';
 interface CreateNewIntakeModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (newGoal: any) => void; 
+  editGoal?: any;
 }
-const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, onClose, onSubmit }) => {
+const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, onClose, onSubmit,editGoal }) => {
  
   const [selectedStakeholder, setSelectedStakeholder] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
@@ -22,13 +23,35 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
   const [goalName, setGoalName] = useState('');
   const [description, setDescription] = useState('');
   const [intakeData, setIntakeData] = useState<any[]>([]);
-  
+  const [goalId, setGoalId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    console.log('Edit Goal:', editGoal);
+    if (editGoal) {
+      setGoalId(editGoal.goal_id);
+      setGoalName(editGoal.goal_name || '');
+      setDescription(editGoal.description || '');
+      setSelectedStakeholder(editGoal.stakeholders || '');
+      setSelectedYear(editGoal.target_year || '');
+      setSelectedStatus(editGoal.status || '');
+      setSelectedGoalOwner(editGoal.goal_owner || '');
+    } else {
+      setGoalId(undefined);
+      setGoalName('');
+      setDescription('');
+      setSelectedStakeholder('');
+      setSelectedYear('');
+      setSelectedStatus('');
+      setSelectedGoalOwner('');
+    }
+  }, [editGoal]);
   
   const handleSubmit = async () => {
     if (goalName && selectedStatus && selectedGoalOwner && description && selectedStakeholder && selectedYear) {
       const newGoal = {
+        goal_id: goalId,
         goal_name: goalName,
-        description,
+        description:description,
         stakeholders: selectedStakeholder,
         goal_owner: selectedGoalOwner,
         target_year: selectedYear,
@@ -46,6 +69,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
           Alert.alert('Goal created successfully');
           onSubmit(newGoal); 
           onClose();  
+          
         } else {
           Alert.alert('Failed to create goal. Please try again.');
           onClose(); 
@@ -65,6 +89,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
       transparent={true}
       visible={visible}
       onRequestClose={onClose}
+      
     >
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
@@ -191,6 +216,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
 const ManageGoals: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [goalData, setGoalData] = useState<any[]>([]);
+  const [editGoal, setEditGoal] = useState<any | null>(null);
   const fetchGoals = async () => {
     try {
       const response = await GetGoals('');
@@ -216,23 +242,56 @@ const ManageGoals: React.FC = () => {
     fetchGoals();
    
   }, []);
+  const HandleDeleteGoal = async (goal_id) => {
+    const GoalDel = {
+      goal_id: goal_id,
+      
+    };
+    try {
+      
+        const response = await DeleteGoal(GoalDel);
+        
+        //const result = JSON.parse(response);
+        const result = await JSON.parse(response);
+        fetchGoals();
+        
+       
+      } catch (error) {
+        console.error("Error Deleting Goals:", error);
+       
+      }
+    };
 
-
-
-  const openModal = () => {
+    const handleDeletePress = (goal_id) => {
+      console.log(goal_id)
+      HandleDeleteGoal(goal_id);  
+    };
+  const openModal = (goal = null) => {
     setModalVisible(true);
+    setEditGoal(goal); 
   };
 
   const closeModal = () => {
     setModalVisible(false);
+    setEditGoal(null);
   };
-
+  const handleSubmit = (newGoal: any) => {
+    if (editGoal) {
+      setGoalData((prevData) =>
+        prevData.map((goal) =>
+          goal.goal_id === editGoal.goal_id ? { ...goal, ...newGoal } : goal
+        )
+      );
+    } else {
+      setGoalData((prevData) => [...prevData, newGoal]);
+    }
+  };
   return (
     <PaperProvider>
       <View style={styles.container}>
         <Text style={styles.heading}>Strategic Goals</Text>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={openModal}>
+          <TouchableOpacity style={styles.button} onPress={() => openModal()}>
             <Text style={styles.buttonText}>
               <Icon name="plus" size={14} color="#044086" style={styles.buttonIcon} /> Create New
             </Text>
@@ -247,6 +306,7 @@ const ManageGoals: React.FC = () => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View>
             <View style={styles.headerRow}>
+              
               {['', 'S.No.', 'ID', 'Goal', 'Description', 'Impacted Stakeholders', 'Goal Owner', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
                 <Text key={index} style={styles.headerCell}>{header}</Text>
               ))}
@@ -296,8 +356,8 @@ const ManageGoals: React.FC = () => {
                         top: goal.menuY ? goal.menuY - 40 : 0, // Adjust top position to appear higher
                       }}
                     >
-                      <Menu.Item onPress={() => {}} title="Edit" />
-                      <Menu.Item onPress={() => {}} title="Delete" />
+                      <Menu.Item onPress={() => openModal(goal)} title="Edit" />
+                      <Menu.Item onPress={() => handleDeletePress(goal.goal_id)} title="Delete" />
                       <Menu.Item onPress={() => {}} title="Create Program" />
                     </Menu>
                   </View>
@@ -307,7 +367,12 @@ const ManageGoals: React.FC = () => {
           </View>
         </ScrollView>
       </View>
-      <CreateNewIntakeModal visible={modalVisible} onClose={closeModal} />
+      <CreateNewIntakeModal
+        visible={modalVisible}
+        onClose={closeModal}
+        onSubmit={handleSubmit}
+        editGoal={editGoal} // Pass the goal being edited
+      />
     </PaperProvider>
   );
 };

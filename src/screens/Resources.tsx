@@ -461,7 +461,7 @@ const Resources: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-
+  const { width: screenWidth } = Dimensions.get('window'); 
   return (
     <>
       {/* Manage Users Section */}
@@ -644,6 +644,11 @@ const Resources: React.FC = () => {
                 <Menu
                   visible={visibleMenus[user.user_id] || false}
                   onDismiss={() => toggleMenu(user.user_id)}
+                  style={{
+                    flexGrow: 1,
+                    left : screenWidth - 260,
+                    
+                  }}
                   anchor={
                     <TouchableOpacity
                       onPress={() => {

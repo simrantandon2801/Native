@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   StyleSheet,
   View,
@@ -29,7 +29,6 @@ import {
   DeleteMultipleUsers,
   GetUserPermission,
   GetAdIntegration,
-  updateUserPermissions,
 } from '../database/RestData';
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
 import {DeleteUser} from '../database/RestData';
@@ -37,7 +36,7 @@ import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
 import AdComponent from './Adcomponent';
-import {navigate} from '../navigations/RootNavigation';
+import { navigate } from '../navigations/RootNavigation';
 
 interface User {
   user_id: number;
@@ -45,30 +44,30 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  customer_id: number;
-  reporting_to: number;
-  approval_limit: number;
+  customer_id: number | null;
+  reporting_to: number | null;
+  approval_limit: number | null;
   created_at: string;
   updated_at: string;
   created_by: number;
-  updated_by: number;
+  updated_by: number | null;
   is_active: boolean;
   is_deleted: boolean;
-  department_id: number;
-  average_cost: number;
-  phone: string;
-  source: string;
-  designation: string;
-  manager_name: string;
-  department_name: string;
-  role_name: string;
-  role_id: number;
+  department_id: number | null;
+  average_cost: number | null;
+  phone: string | null;
+  source: string | null;
+  designation: string | null;
+  manager_name: string | null;
+  department_name: string | null;
+  role_name: string | null;
 }
 
 interface InsertOrEditUser {
   user_id: number; // ID of the user, 0 for new users
   username?: string; // Username of the user
   email: string; // Email address of the user
+
   first_name: string; // First name of the user
   last_name: string; // Last name of the user
   customer_id: number; // ID of the customer, 0 for default
@@ -118,7 +117,7 @@ const ManageUsers: React.FC = () => {
   );
   const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [reporting_to, setReportingTo] = useState<number>(-1);
+  const [manager, setManager] = useState<string>('');
   const [budgetAmount, setBudgetAmount] = useState<string>('');
   const [avgbudgetAmount, setAvgBudgetAmount] = useState<string>('');
   const [Designation, setDesignation] = useState<string>('');
@@ -138,6 +137,7 @@ const ManageUsers: React.FC = () => {
 
   // const [selectedDeptID, setSelectedDeptID] = useState<number>(0);
   const [selectedDeptPath, setSelectedDeptPath] = useState<string>('');
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   const [selectedDeptID, setSelectedDeptID] = useState<number>(-1);
   const handleDeptSelect = (deptID: number) => {
     setSelectedDeptID(deptID); // Update the parent state with the selected department ID
@@ -202,10 +202,8 @@ const ManageUsers: React.FC = () => {
       [userId]: !prev[userId],
     }));
   };
-
+  const { width: screenWidth } = Dimensions.get('window'); 
   const [permissions, setPermissions] = useState<UserPermission[]>([]);
-  const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
-
   const [loading, setLoading] = useState(false);
 
   // const togglePermission = (key: any) => {
@@ -217,7 +215,6 @@ const ManageUsers: React.FC = () => {
     try {
       setLoading(true);
       setPermissions([]);
-      // setActivePermissionIds([]);
 
       const response = await GetUserPermission(user_id);
       const parsedRes = JSON.parse(response);
@@ -265,7 +262,7 @@ const ManageUsers: React.FC = () => {
       first_name: firstname || (selectedUser ? selectedUser.first_name : ''),
       last_name: lastname || (selectedUser ? selectedUser.last_name : ''),
       customer_id: parseInt(customerID),
-      reporting_to: reporting_to,
+      reporting_to: parseInt(manager),
       approval_limit: parseInt(budgetAmount),
       is_super_admin: true,
       is_active: true,
@@ -279,10 +276,11 @@ const ManageUsers: React.FC = () => {
       console.log(payload);
       const response = await addUser(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') {
+      if (parsedRes.status === 'success'){
         console.log(' User Added succesfully');
         fetchUser();
-      } else
+      }
+      else
         console.error(
           'Failed to fetch users:',
           parsedRes.message || 'Unknown error',
@@ -295,7 +293,7 @@ const ManageUsers: React.FC = () => {
   const handleDelete = async (user_id: number) => {
     console.log(user_id);
     const payload = {
-      user_ids: [user_id],
+      user_id: user_id,
     };
     try {
       const response = await DeleteUser(payload); // API call to delete user
@@ -388,6 +386,9 @@ const ManageUsers: React.FC = () => {
     console.log('Selected User IDs:', allSelectedUsersID);
   };
 
+
+
+
   const handleUpdateMultipleUsersDepartment = async () => {
     const payload = {
       department_id: selectedDeptID,
@@ -415,35 +416,6 @@ const ManageUsers: React.FC = () => {
     }
   };
 
-
-  const handleEditPermission = async()=>{
-    const payload = {
-      user_id: selectedUser?.user_id,
-      role_id: selectedUser?.role_id,
-      user_permission_ids: activePermissionIds
-    }
-    console.log("payload of inserting user permissions",payload);
-    try {
-      const response = await updateUserPermissions(payload); // API call to delete user
-      const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') {
-        console.log(
-          'All the permissions you selected are now assigned the selected user',
-        );
-        //set
-        setisEditPermissionModalVisible(false); // Close the modal after successful deletion
-        fetchUser();
-      } else {
-        console.error(
-          'Failed to assign permission to user:',
-          parsedRes.message,
-        ); // Handle failure
-      }
-    } catch (err) {
-      console.log('There is something wrong', err);
-    }
-  };
-  
   const handleUpdateMultipleUsersRole = async () => {
     const payload = {
       role_id: selectedRoleID,
@@ -487,7 +459,18 @@ const ManageUsers: React.FC = () => {
       console.log('There is something wrong', err);
     }
   };
-
+  const iconRefs = useRef({});
+  const handleOpenMenu = (userId, ref) => {
+    if (ref) {
+      ref.measure((fx, fy, width, height, px, py) => {
+        setMenuPosition((prevPositions) => ({
+          ...prevPositions,
+          [userId]: { x: px, y: py + height }, 
+        }));
+        toggleMenu(userId);
+      });
+    }
+  };
   return (
     <>
       {/* Manage Users Section */}
@@ -549,13 +532,9 @@ const ManageUsers: React.FC = () => {
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigate('Excel')}>
+          <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
             <IconButton icon="sync" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Import Excel
-            </Text>
+            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
@@ -563,7 +542,7 @@ const ManageUsers: React.FC = () => {
           <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
         </TouchableOpacity>
       </View>
-
+      
       {/* Table Section */}
       <DataTable style={styles.tableHeaderCell}>
         {/* Table Header */}
@@ -579,9 +558,9 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title style={{justifyContent: 'center'}}>
             Name
           </DataTable.Title>
-          {/* <DataTable.Title style={{justifyContent: 'center'}}>
+          <DataTable.Title style={{justifyContent: 'center'}}>
             Username
-          </DataTable.Title> */}
+          </DataTable.Title>
           <DataTable.Title style={{justifyContent: 'center'}}>
             Role
           </DataTable.Title>
@@ -634,9 +613,9 @@ const ManageUsers: React.FC = () => {
                   justifyContent: 'center',
                 }}>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
               {/*Username*/}
-              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.username}
-              </DataTable.Cell> */}
+              </DataTable.Cell>
               {/* Assuming username as designation */}
               <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.role_name}
@@ -662,33 +641,27 @@ const ManageUsers: React.FC = () => {
                 {user.approval_limit}
               </DataTable.Cell>
               {/* Placeholder for Average Cost */}
-              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.average_cost}
-              </DataTable.Cell> */}
+              </DataTable.Cell>
               {/* Placeholder for Status */}
-              <DataTable.Cell>
+              <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.is_active ? 'Active' : 'Inactive'}
               </DataTable.Cell>
               {/* Placeholder for Actions */}
               <DataTable.Cell>
+             
                 <Menu
                   visible={visibleMenus[user.user_id] || false}
                   onDismiss={() => toggleMenu(user.user_id)}
+                  c
                   anchor={
                     <TouchableOpacity
                       onPress={() => {
-                        console.log('Selected User:', user); // Log the user for debugging
+                        
                         toggleMenu(user.user_id);
                         setSelectedUser(user);
-                        setFirstName(user.first_name);
-                        setLastName(user.last_name);
-                        setEmail(user.email);
-                        setDesignation(user.designation);
-                        setReportingTo(user.reporting_to);
-                        setSelectedDeptID(user.department_id);
-                        setSelectedRoleID(user.role_id);
-                        setAvgBudgetAmount(user.average_cost.toString());
-                        setBudgetAmount(user.approval_limit.toString());
+                        
                       }}>
                       <IconButton icon="dots-vertical" size={20} />
                     </TouchableOpacity>
@@ -698,6 +671,7 @@ const ManageUsers: React.FC = () => {
                       console.log('Edit Details');
                       toggleMenu(user.user_id); // Close menu after selection
                       setisEditModalVisible(true);
+                      
                     }}
                     title="Edit Details"
                   />
@@ -797,8 +771,8 @@ const ManageUsers: React.FC = () => {
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
-                    selectedValue={reporting_to}
-                    onValueChange={itemValue => setReportingTo(itemValue)}
+                    selectedValue={manager}
+                    onValueChange={itemValue => setManager(itemValue)}
                     style={styles.input}>
                     {users.map((user, index) => (
                       <Picker.Item
@@ -811,12 +785,9 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-            
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
               {/*User Role*/}
               <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
-              </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
@@ -874,7 +845,7 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Average Costing*/}
-              {/* <Text
+              <Text
                 style={{
                   color: '#044086',
                   fontFamily: 'Source Sans Pro',
@@ -885,8 +856,8 @@ const ManageUsers: React.FC = () => {
                   paddingBottom: 5,
                 }}>
                 Average Costing
-              </Text> */}
-              {/* <View style={styles.inputRow}>
+              </Text>
+              <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -907,7 +878,7 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setAvgBudgetAmount}
                   />
                 </View>
-              </View> */}
+              </View>
               {/*Username */}
               {/* Password Enter + Confirmation */}
               {/* <View style={styles.inputRow}>
@@ -963,12 +934,14 @@ const ManageUsers: React.FC = () => {
         </ScrollView>
       </Modal>
 
-      {/* Sync AD */}
-      <Modal
+  
+    {/* Sync AD */}
+    <Modal
         animationType="slide"
         transparent={true}
         visible={isADModalVisible}
-        onRequestClose={toggleModal}>
+        onRequestClose={toggleModal}
+      >
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer1}>
             {/* ScrollView to make content scrollable */}
@@ -977,7 +950,7 @@ const ManageUsers: React.FC = () => {
               {isLoading ? (
                 <ActivityIndicator size="large" color="#044086" />
               ) : (
-                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} />
+                <AdComponent closeModal={toggleModal} fetchUser={fetchUser} /> 
               )}
             </ScrollView>
             <TouchableOpacity style={styles.closeButton} onPress={toggleModal}>
@@ -1059,7 +1032,7 @@ const ManageUsers: React.FC = () => {
         </View>
       </Modal> */}
 
-      {/* Edit User Permission  Modal */}
+      {/* Updated Permission User Modal */}
       <Modal
         visible={isEditPermissionModalVisible}
         transparent
@@ -1078,14 +1051,6 @@ const ManageUsers: React.FC = () => {
                     <Switch
                       value={permission.is_active}
                       onValueChange={value => {
-                        console.log(`Permission Name: ${permission.permission_name} is ${value}`)
-                        setActivePermissionIds(prev => {
-                          if (value) {
-                            return [...prev, permission.user_permission_id];
-                          } else {
-                            return prev.filter(id => id !== permission.user_permission_id);
-                          }
-                        });
                         setPermissions(
                           permissions.map(p =>
                             p.permission_id === permission.permission_id
@@ -1109,7 +1074,7 @@ const ManageUsers: React.FC = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.submitButton]}
-                onPress={handleEditPermission}
+                // onPress={handlePermissionSubmit}
                 disabled={loading}>
                 <Text style={styles.submitButtonText}>
                   {loading ? 'Updating...' : 'Submit'}
@@ -1191,8 +1156,8 @@ const ManageUsers: React.FC = () => {
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
-                    selectedValue={reporting_to}
-                    onValueChange={itemValue => setReportingTo(itemValue)}
+                    selectedValue={manager}
+                    onValueChange={itemValue => setManager(itemValue)}
                     style={styles.input}>
                     {users.map((user, index) => (
                       <Picker.Item
@@ -1205,13 +1170,10 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Nested Dropdown */}
-             
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
 
               {/*User Role*/}
               <View style={styles.inputRow}>
-              <View style={styles.inputWrapper}>
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
-              </View>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* User Role</Text>
                   <Picker
@@ -1268,7 +1230,7 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               {/*Average Costing*/}
-              {/* <Text
+              <Text
                 style={{
                   color: '#044086',
                   fontFamily: 'Source Sans Pro',
@@ -1279,8 +1241,8 @@ const ManageUsers: React.FC = () => {
                   paddingBottom: 5,
                 }}>
                 Average Costing
-              </Text> */}
-              {/* <View style={styles.inputRow}>
+              </Text>
+              <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
                   <Text style={styles.label}>* Currency Selection</Text>
                   <Picker
@@ -1301,7 +1263,7 @@ const ManageUsers: React.FC = () => {
                     onChangeText={setAvgBudgetAmount}
                   />
                 </View>
-              </View> */}
+              </View>
               {/*Username */}
               {/* <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
@@ -1575,7 +1537,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 15,
-    gap: 20,
   },
   inputWrapper: {
     flex: 1,
@@ -1689,16 +1650,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
   },
   modalContainer1: {
     flex: 1,
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 10,
-    width: '70%',
-    height: '70%',
+    width: '70%', 
+    height: '70%', 
     justifyContent: 'space-between',
+
   },
   closeButton: {
     backgroundColor: '#044086',
@@ -1707,8 +1669,9 @@ const styles = StyleSheet.create({
     marginTop: 15,
     marginRight: 10,
     paddingHorizontal: 16,
-
+    
     alignSelf: 'flex-end',
+   
   },
   closeButtonText: {
     color: 'white',

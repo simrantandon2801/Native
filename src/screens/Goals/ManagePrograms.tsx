@@ -1,18 +1,93 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ScrollView, Alert } from 'react-native';
 import { Checkbox, Menu, Provider as PaperProvider, IconButton } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Picker } from '@react-native-picker/picker';
-
-const CreateNewIntakeModal: React.FC<{ visible: boolean; onClose: () => void }> = ({ visible, onClose }) => {
-  const handleSubmit = () => {
-    onClose();
-  };
+import { DeleteProgram, GetPrograms, InsertProgram } from '../../database/ManageProgram';
+interface CreateNewIntakeModalProps {
+  visible: boolean;
+  onClose: () => void;
+  onSubmit: (newGoal: any) => void; 
+  EditProgram?: any;
+}
+const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, onClose, onSubmit ,EditProgram}) => {
   const [selectedProgramOwner, setSelectedProgramOwner] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedApprovalReqd, setSelectedApprovalReqd] = useState('');
   const [selectedApprovalStatus, setSelectedApprovalStatus] = useState('');
+  const [Programname, setProgramname] = useState('');
+  const [Description, setDescription] = useState('');
+  const [programData, setProgramData] = useState<any>([]); 
+  const [programId, setprogramId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    console.log()
+    console.log('Edit Program:', EditProgram);
+    if (EditProgram) {
+      setprogramId(EditProgram.program_id);
+      setProgramname(EditProgram.program_name || '');
+      setDescription(EditProgram.description || '');
+      //setSelectedStakeholder(editGoal.stakeholders || '');
+      setSelectedYear(EditProgram.target_year || '');
+      setSelectedStatus(EditProgram.status || '');
+      setSelectedProgramOwner(EditProgram.
+        program_owner
+         || '');
+    } else {
+      setprogramId(undefined);
+      setProgramname('');
+      setDescription('');
+      //setSelectedStakeholder('');
+      setSelectedYear('');
+      setSelectedStatus('');
+      setSelectedProgramOwner('');
+    }
+  }, [EditProgram]);
+
+  const handleSubmit = async () => {
+    console.log('Submit inside modal triggered');
+    if (!Programname || !selectedStatus || !selectedApprovalReqd || !selectedApprovalStatus || !Description) {
+      Alert.alert('Error', 'Please fill out all required fields.');
+      return;
+    }
+    const programDataToSubmit = {
+      program_id:programId,
+      program_name:Programname,
+      description:Description,
+      //stakeholders:,
+      program_owner: selectedProgramOwner,
+      target_year : selectedYear,
+      //start_date:,
+      //end_date:,
+      status: selectedStatus,
+      year: selectedYear,
+      approvalReqd: selectedApprovalReqd,
+      approvalStatus: selectedApprovalStatus,
+    };
+    console.log(programDataToSubmit);
+
+    try {
+      const response = await InsertProgram(programDataToSubmit); // Ensure InsertProgram is an async function
+      const parsedResponse = JSON.parse(response);
+      
+      if (parsedResponse.status === 'success') {
+        Alert.alert('Goal created successfully');
+        onSubmit(programDataToSubmit);
+        onClose(); // Close the modal after successful submission
+      } else {
+        Alert.alert('Failed to create goal. Please try again.');
+        onClose(); // Close the modal even if there is an error
+      }
+    } catch (error) {
+      console.error('Error creating goal:', error);
+      Alert.alert('An error occurred. Please try again.');
+    }
+  };
+
+
+  
+
   return (
     <Modal
       animationType="fade"
@@ -29,7 +104,9 @@ const CreateNewIntakeModal: React.FC<{ visible: boolean; onClose: () => void }> 
                 <Text style={styles.inputLabel}>
                   Name/Title <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <TextInput style={styles.input} />
+                <TextInput style={styles.input}
+                value={Programname}
+                onChangeText={setProgramname} />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -87,7 +164,8 @@ const CreateNewIntakeModal: React.FC<{ visible: boolean; onClose: () => void }> 
                 </Text>
                 <TextInput
                   style={[styles.input, styles.textArea]}
-                />
+                  value={Description}
+                  onChangeText={setDescription}/>
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -141,20 +219,85 @@ const CreateNewIntakeModal: React.FC<{ visible: boolean; onClose: () => void }> 
 
 const ManagePrograms: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [intakeData, setIntakeData] = useState([
+  const [ProgramData, setProgramData] = useState<any[]>([]);
+  const [EditProgram, setEditProgram] = useState<any | null>(null);
+  const fetchPrograms = async () => {
+    try {
+      const response = await GetPrograms('');
+      console.log("unparsed Response:", response);
+      const result = JSON.parse(response);
+      //const result = await JSON.parse(response);
+
+      console.log("API Response:", result);
+      if (result?.data?.programs && Array.isArray(result.data.programs)) {
+        setProgramData(result.data.programs);  // Set the goals array from the data object
+      } else {
+        console.error("Invalid programs data");
+        Alert.alert("Error", "Invalid goals data received");
+      }
+    
+     
+    } catch (error) {
+      console.error("Error fetching programs:", error);
+      Alert.alert("Error", "Failed to fetch programs");
+    }
+  };
+  useEffect(() => {
+    fetchPrograms();
+   
+  }, []);
+/*   const [intakeData, setIntakeData] = useState([
     { id: 1, programName: 'Program A', goal: 'To gain Progress', description: 'A detailed project overview crafted by the PMO, outlining objectives, scope, and strategies within the PPM framework.', impactedStakeholders: 'Business Function - Finance', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2024, createdOn: '13/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
     { id: 2, programName: 'Program B', goal: 'Goal1', description: 'A detailed project overview...', impactedStakeholders: 'Tower- Product & Development', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2025, createdOn: '14/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
     { id: 3, programName: 'Program C', goal: 'Goal2', description: 'A detailed project overview...', impactedStakeholders: 'Business Function - Finance', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2026, createdOn: '15/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
-  ]);
+  ]); */
 
-  const openModal = () => {
+  const handleDeletePress = (program_id) => {
+    console.log(program_id)
+    HandleDeleteProgram(program_id);  
+  };
+  const HandleDeleteProgram = async (program_id) => {
+    console.log('Deleting program with ID:', program_id);
+    const GoalDel = {
+     
+      program_id: program_id,
+      
+    };
+    try {
+      
+      const response = await DeleteProgram(GoalDel);
+      
+      //const result = JSON.parse(response);
+      const result = await JSON.parse(response);
+      fetchPrograms();
+      
+     
+    } catch (error) {
+      console.error("Error Deleting Goals:", error);
+     
+    }
+  };
+  const openModal = (program=null) => {
+    console.log('Opening modal with program:', program);
     setModalVisible(true);
+    setEditProgram(program); 
   };
 
   const closeModal = () => {
     setModalVisible(false);
+    setEditProgram(null); 
   };
-
+  const handleSubmit = (programDataToSubmit: any) => {
+    if (EditProgram) {
+      setProgramData((prevData) =>
+        prevData.map((program) =>
+          program.program_id === EditProgram.program_id ? { ...program, ...programDataToSubmit } : program
+        )
+      );
+    } else {
+      setProgramData((prevData) => [...prevData, programDataToSubmit]);
+    }
+  };      
   return (
     <PaperProvider>
       <View style={styles.container}>
@@ -175,46 +318,47 @@ const ManagePrograms: React.FC = () => {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View>
             <View style={styles.headerRow}>
-              {['', 'S.No.', 'P.ID', 'Program Name', 'Goal', 'Description', 'Program Owner', 'Approval Reqd', 'Approval Status', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
+              {['', 'S.No.', 'P.ID', 'Program Name', 'Goal', 'Description', 'Program Owner', 'Approval Reqd',
+               'Approval Status', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
                 <Text key={index} style={styles.headerCell}>{header}</Text>
               ))}
             </View>
             <ScrollView>
-              {intakeData.map((intake, index) => (
-                <View key={intake.id} style={styles.row}>
+              {ProgramData.map((programs, index) => (
+                <View key={programs.program_id} style={styles.row}>
                   <View style={styles.cell}>
                     <Checkbox status="unchecked" />
                   </View>
                   <Text style={styles.cell}>{index + 1}</Text>
-                  <Text style={styles.cell}>{intake.id}</Text>
-                  <Text style={styles.cell}>{intake.programName}</Text>
-                  <Text style={styles.cell}>{intake.goal}</Text>
-                  <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{intake.description}</Text>
-                  <Text style={styles.cell}>{intake.impactedStakeholders}</Text>
-                  <Text style={styles.cell}>{intake.approvalRead}</Text>
-                  <Text style={styles.cell}>{intake.approvalStatus}</Text>
-                  <Text style={styles.cell}>{intake.targetYear}</Text>
-                  <Text style={styles.cell}>{intake.createdOn}</Text>
-                  <Text style={styles.cell}>{intake.status}</Text>
+                  <Text style={styles.cell}>{programs.program_id}</Text>
+                  <Text style={styles.cell}>{programs.program_name}</Text>
+                  <Text style={styles.cell}>{programs.goal}</Text>
+                  <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{programs.description}</Text>
+                  <Text style={styles.cell}>{programs.program_owner}</Text>
+                  <Text style={styles.cell}>{programs.approvalRead}</Text>
+                  <Text style={styles.cell}>{programs.approvalStatus}</Text>
+                  <Text style={styles.cell}>{programs.target_year}</Text>
+                  <Text style={styles.cell}>{programs.created_at}</Text>
+                  <Text style={styles.cell}>{programs.status}</Text>
                   <View style={[styles.cell, styles.actionCell]}>
                     <Menu
-                      visible={intake.menuVisible}
+                      visible={programs.menuVisible}
                       onDismiss={() => {
-                        const updatedIntakeData = intakeData.map(item =>
-                          item.id === intake.id ? { ...item, menuVisible: false } : item
+                        const updatedIntakeData = ProgramData.map(item =>
+                          item.id === programs.id ? { ...item, menuVisible: false } : item
                         );
-                        setIntakeData(updatedIntakeData);
+                        setProgramData(updatedIntakeData);
                       }}
                       anchor={
                         <TouchableOpacity
                           onPress={(event) => {
                             const { pageX, pageY } = event.nativeEvent;
-                            const updatedIntakeData = intakeData.map(item =>
-                              item.id === intake.id
+                            const updatedIntakeData = ProgramData.map(item =>
+                              item.program_id === programs.program_id
                                 ? { ...item, menuVisible: true, menuX: pageX, menuY: pageY }
                                 : { ...item, menuVisible: false }
                             );
-                            setIntakeData(updatedIntakeData);
+                            setProgramData(updatedIntakeData);
                           }}
                         >
                           <IconButton icon="dots-vertical" size={20} style={{ margin: 0, padding: 0 }} />
@@ -222,12 +366,12 @@ const ManagePrograms: React.FC = () => {
                       }
                       style={{
                         position: 'absolute',
-                        left: intake.menuX ? intake.menuX - 120 : 0, 
-                        top: intake.menuY ? intake.menuY - 40 : 0, 
+                        left: programs.menuX ? programs.menuX - 120 : 0, 
+                        top: programs.menuY ? programs.menuY - 40 : 0, 
                       }}
                     >
-                      <Menu.Item onPress={() => {}} title="Edit" />
-                      <Menu.Item onPress={() => {}} title="Delete" />
+                      <Menu.Item  onPress={() => openModal(programs)} title="Edit" />
+                      <Menu.Item onPress={() => handleDeletePress(programs.program_id)} title="Delete" />
                       <Menu.Item onPress={() => {}} title="Create Program" />
                     </Menu>
                   </View>
@@ -237,7 +381,7 @@ const ManagePrograms: React.FC = () => {
           </View>
         </ScrollView>
       </View>
-      <CreateNewIntakeModal visible={modalVisible} onClose={closeModal} />
+      <CreateNewIntakeModal visible={modalVisible} onClose={closeModal} EditProgram={EditProgram} onSubmit={handleSubmit}/>
     </PaperProvider>
   );
 };
