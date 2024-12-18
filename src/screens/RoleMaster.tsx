@@ -30,7 +30,7 @@ import {
   GetRolePermission,
   GetAllPermission,
   updateRolePermissions,
-} from '../database/RestData';
+} from '../database/Users';
 
 const {height} = Dimensions.get('window');
 // const adjustedHeight = height * 0.9;
@@ -93,13 +93,14 @@ const RoleMaster = () => {
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
   // const [activePermissionIds, setActivePermissionIds] = useState<number[]>([]);
 
+  //I did not made a extra state to avoid uneccesar renders intead used a var and used useMemo hook
   const activePermissionIds = useMemo(() => {
     return rolePermissions
       .filter(permission => {
-        return permission.is_active;  // Properly filters by `is_active`
+        return permission.is_active; // Properly filters by `is_active`
       })
       .map(item => item.role_permission_id); // Maps to the role_permission_id
-}, [rolePermissions]);
+  }, [rolePermissions]);
 
   const handleFetchRolePermisssion = async (role_id: string) => {
     try {
@@ -652,10 +653,10 @@ const RoleMaster = () => {
                     }}
                     title="Edit"
                   />
-                  <Menu.Item
+                  {/* <Menu.Item
                     onPress={() => handleDeleteRole(user.role_id)}
                     title="Delete"
-                  />
+                  /> */}
                   <Menu.Item
                     onPress={() => {
                       setIsModalVisible(true);

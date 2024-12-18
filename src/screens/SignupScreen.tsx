@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, Text, ScrollView, Modal } from 'react-native';
+import { View, StyleSheet, Alert, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { TextInput, PaperProvider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
@@ -31,28 +31,28 @@ const SignupScreen = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSignup = async () => {
-    let tempErrors: { [key: string]: string } = {};
+    // let tempErrors: { [key: string]: string } = {};
 
-    // Validation checks
-    if (!FirstName) tempErrors.FirstName = 'First Name is required';
-    if (!LastName) tempErrors.LastName = 'Last Name is required';
-    if (!techAdminEmail || !/\S+@\S+\.\S+/.test(techAdminEmail)) {
-      tempErrors.techAdminEmail = 'Valid email is required';
-    }
-    if (!companyName) tempErrors.companyName = 'Company Name is required';
-    if (!companyEmail || !/\S+@\S+\.\S+/.test(companyEmail)) {
-      tempErrors.companyEmail = 'Valid email is required';
-    }
-    if (!companyContact || !/^\d{10}$/.test(companyContact)) {
-      tempErrors.companyContact = 'Valid 10-digit contact is required';
-    }
+    // // Validation checks
+    // if (!FirstName) tempErrors.FirstName = 'First Name is required';
+    // if (!LastName) tempErrors.LastName = 'Last Name is required';
+    // if (!techAdminEmail || !/\S+@\S+\.\S+/.test(techAdminEmail)) {
+    //   tempErrors.techAdminEmail = 'Valid email is required';
+    // }
+    // if (!companyName) tempErrors.companyName = 'Company Name is required';
+    // if (!companyEmail || !/\S+@\S+\.\S+/.test(companyEmail)) {
+    //   tempErrors.companyEmail = 'Valid email is required';
+    // }
+    // if (!companyContact || !/^\d{10}$/.test(companyContact)) {
+    //   tempErrors.companyContact = 'Valid 10-digit contact is required';
+    // }
 
-    setErrors(tempErrors);
+    // setErrors(tempErrors);
 
-    if (Object.keys(tempErrors).length > 0) return;
+    // if (Object.keys(tempErrors).length > 0) return;
 
     const payload = {
-      username: username,
+      username: techAdminEmail,
       contact_first_name: FirstName,
       contact_last_name: LastName,
       tech_admin_email: techAdminEmail,
@@ -103,6 +103,7 @@ const SignupScreen = () => {
   return (
     <PaperProvider>
       <ScrollView contentContainerStyle={styles.container} showsVerticalScrollIndicator={false}>
+        
         <Text style={styles.heading}>Customer Registration</Text>
 
         <View style={[styles.paperContainer, { width: deviceWidth > 600 ? '50%' : '90%' }]}>
@@ -145,7 +146,7 @@ const SignupScreen = () => {
           <View style={styles.row}>
           <TextInput
               style={[styles.input, { marginLeft: 10 }]}
-              label={<Text style={{ color: '#044086' }}>Company Contact Number <Text style={{ color: 'red' }}>*</Text></Text>}
+              label={<Text style={{ color: '#044086' }}>Company Contact Number </Text>}
               value={companyContact}
               onChangeText={(text) => {
                 setCompanyContact(text);
@@ -227,11 +228,7 @@ const SignupScreen = () => {
           <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Username <Text style={{ color: 'red' }}>*</Text></Text>}
-              value={username}
-              onChangeText={(text) => {
-                setUsername(text);
-                setErrors({ ...errors, username: '' });
-              }}
+              value={techAdminEmail}
               underlineColor="#044086"
               theme={{
                 colors: {

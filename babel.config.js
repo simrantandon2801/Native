@@ -13,6 +13,7 @@ module.exports = {
     ['@babel/plugin-transform-private-methods', { loose: true }],
     ['@babel/plugin-transform-private-property-in-object', { loose: true }],
     ['module:react-native-dotenv'],
+   
   ],
   env: {
     production: {

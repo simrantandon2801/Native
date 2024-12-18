@@ -7,7 +7,7 @@ import {
   TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {GetUserDept} from '../database/RestData'; // Assuming this is a custom function to fetch data
+import {GetUserDept} from '../database/Users'; // Assuming this is a custom function to fetch data
 
 // TypeScript types
 type Department = {
@@ -64,7 +64,7 @@ const buildHierarchyPath = (
 
   while (currentDept) {
     path.unshift(
-      `${currentDept.department_id} - ${currentDept.department_name}`,
+      `${currentDept.department_name}`,
     ); // Add to the start of the path
     currentDept = departments.find(
       dept => dept.department_id === currentDept.parent_department_id,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     color: '#000',
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
-    minWidth: 'auto'
+    minWidth: 'auto',
   },
   dropdownItem: {
     borderRadius: 5,
