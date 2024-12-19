@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Dimensions, ScrollView, View } from "react-native";
+import { Alert, Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import { GetDept } from "../../database/Tree";
 
 const Node = ({
@@ -161,7 +161,7 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
   
       let width = 0;
       children.forEach((child) => {
-        const childWidth = calculateMaxWidth(child.children) + 200; // 200 is the horizontalSpacing
+        const childWidth = calculateMaxWidth(child.children) + 200; 
         if (childWidth > width) {
           width = childWidth;
         }
@@ -177,19 +177,26 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
       }
     }, [tree]);
  
-  const nodeWidth = 100; // Width of a single node
+  const nodeWidth = 100; 
   const rootOffsetX = parentWidth / 2 - nodeWidth / 2;
   const verticalSpacing = 100;
   const horizontalSpacing = 200;
   return (
     <View style={{ flex: 2,overflow: 'hidden',justifyContent:'center' }}>
+       <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{
+        width: maxWidth + 350,
+        justifyContent: 'center',
+        alignItems: 'center', // Align content centrally
+      }}
+      horizontal
+      showsHorizontalScrollIndicator={true}
+    >
       <ScrollView
-        horizontal
-        contentContainerStyle={{
-          width: maxWidth + 350, // 50px for some margin
-          justifyContent: 'center', // Center the content horizontally
-        }}
-        showsHorizontalScrollIndicator={true}
+        contentContainerStyle={styles.verticalScrollContent}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={true}
       >
     <svg
     width={maxWidth + 300}
@@ -215,8 +222,17 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
       )}
     </svg>
     </ScrollView>
+    </ScrollView>
     </View>
   );
 };
 
 export default BinaryTree;
+const styles = StyleSheet.create({
+  verticalScrollContent: {
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    paddingBottom: 20,
+   maxHeight:'100%'
+  },
+});
