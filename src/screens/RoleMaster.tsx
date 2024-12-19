@@ -569,10 +569,10 @@ const RoleMaster = () => {
         <Text style={styles.heading}>Manage Role</Text>
       </View>
       <View style={styles.actions}>
-        <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
+        {/* <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
           <IconButton icon="trash-can-outline" size={16} />
           <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <View style={styles.middleActions}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -586,12 +586,12 @@ const RoleMaster = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
+          {/* <TouchableOpacity style={styles.actionButton}>
             <IconButton icon="table-column-plus-after" size={16} />
             <Text style={[styles.actionText, {color: '#044086'}]}>
               Set Columns
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} />
@@ -653,10 +653,10 @@ const RoleMaster = () => {
                     }}
                     title="Edit"
                   />
-                  {/* <Menu.Item
+                  <Menu.Item
                     onPress={() => handleDeleteRole(user.role_id)}
                     title="Delete"
-                  /> */}
+                  /> */
                   <Menu.Item
                     onPress={() => {
                       setIsModalVisible(true);

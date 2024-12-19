@@ -30,7 +30,7 @@ export const AddADForCustomer  = async (values: Object): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = 'https://underbuiltapi.aadhidigital.com/integration/get_activedirectory_customer_integration?customer_id=' + customer_id;
+      var uri = `${BASE_URL}/integration/get_activedirectory_customer_integration?customer_id=${customer_id}`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);

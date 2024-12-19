@@ -27,16 +27,14 @@ const DepartmentList = () => {
     parent_department_id: null,
     department_name: '',
     description: '',
-    department_head: selectedUser ? selectedUser : null,
+    department_head: selectedUser ? selectedUser: null,
     department_level: 1,
     is_active: true,
   });
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch(
-          'https://underbuiltapi.aadhidigital.com/master/get_users',
-        );
+        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_users');
         const data = await response.json();
         if (data.status === 'success' && data.data && Array.isArray(data.data.users)) {
           setUsers(data.data.users);
@@ -47,29 +45,26 @@ const DepartmentList = () => {
         console.error('Error fetching users:', error);
       }
     };
-
+  
     fetchUsers();
   }, []);
-
-  const handleUserSelect = user => {
+  
+  const handleUserSelect = (user) => {
     setSelectedUser(user);
-    setNewDepartment(prev => ({...prev, user_id: user.user_id}));
-    setIsMenuVisible(false);
+    setNewDepartment((prev) => ({ ...prev, user_id: user.user_id }));
+    setIsMenuVisible(false); 
   };
   // Fetch active parent departments from the API
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const result = await GetUserDept('');
-        const parsedResult = JSON.parse(result);
-        // Filter active parent departments
-        const activeParentDepartments = parsedResult.data.departments.filter(
-          dept => dept.is_active === true && dept.parent_department_id === null,
+        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
+        const result = await response.json();
+        const activeParentDepartments = result.data.departments.filter(
+          (dept) => dept.is_active === true && dept.parent_department_id === null
         );
-        // Update the state with filtered departments
         setDepartments(activeParentDepartments);
       } catch (error) {
-        console.error('Error fetching departments:', error);
         Alert.alert('Error', 'Failed to fetch departments');
       }
     };
@@ -89,24 +84,20 @@ const DepartmentList = () => {
   };
   const fetchSubDepartmentsHierarchy = async (parentId) => {
     try {
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/get_department',
-      );
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
       const result = await response.json();
       const departments = result.data.departments;
-
+  
       // Recursive function to build hierarchy
-      const buildHierarchy = parentId => {
+      const buildHierarchy = (parentId) => {
         return departments
-          .filter(
-            dept => dept.parent_department_id === parentId && dept.is_active,
-          )
-          .map(dept => ({
+          .filter((dept) => dept.parent_department_id === parentId && dept.is_active)
+          .map((dept) => ({
             ...dept,
             children: buildHierarchy(dept.department_id),
           }));
       };
-
+  
       const hierarchy = buildHierarchy(parentId);
       setSubDepartments(hierarchy);
     } catch (error) {
@@ -114,33 +105,27 @@ const DepartmentList = () => {
     }
   };
   // Fetch sub-departments based on parent department ID
-  const fetchSubDepartments = async parentId => {
+  const fetchSubDepartments = async (parentId) => {
     try {
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/get_department',
-      );
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/get_department');
       const result = await response.json();
       const subDepts = result.data.departments.filter(
-        dept =>
-          dept.is_active === true && dept.parent_department_id === parentId,
+        (dept) => dept.is_active === true && dept.parent_department_id === parentId
       );
       setSubDepartments(subDepts);
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch sub-departments');
     }
   };
-  const handleDelete = async departmentId => {
-    try {
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/delete_department',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({department_id: departmentId}),
-        },
-      );
+const handleDelete = async (departmentId) => {
+  try {
+    const response = await fetch('https://underbuiltapi.aadhidigital.com/master/delete_department', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ department_id: departmentId }), 
+    });
 
     if (response.ok) {
       Alert.alert('Success', 'Department deleted successfully');
@@ -151,10 +136,13 @@ const DepartmentList = () => {
     } else {
       Alert.alert('Error', 'Failed to delete department');
     }
-  };
-  const handleEdit = department => {
+  } catch (error) {
+    Alert.alert('Error', 'Failed to delete department');
+  }
+};
+  const handleEdit = (department) => {
     setEditingDepartment(department);
-    setNewDepartmentDetails({...department});
+    setNewDepartmentDetails({ ...department });
     setMenuVisible(null);
   };
   const [expanded, setExpanded] = useState({});
@@ -166,16 +154,13 @@ const DepartmentList = () => {
     }
 
     try {
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/insert_department',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newDepartmentDetails),
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(newDepartmentDetails),
+      });
 
       if (response.ok) {
         Alert.alert('Success', 'Department updated successfully');
@@ -196,9 +181,9 @@ const DepartmentList = () => {
     console.log('Menu toggled:', !isMenuVisible); // Debug log
     setIsMenuVisible(!isMenuVisible);
   };
-
-  const toggleMenu = departmentId => {
-    setIsMenuVisible(prev => (prev === departmentId ? null : departmentId));
+ 
+  const toggleMenu = (departmentId) => {
+    setIsMenuVisible((prev) => (prev === departmentId ? null : departmentId));
   };
   const handleAddDepartment = async () => {
     console.log('Selected Department Head:', selectedUser);
@@ -209,7 +194,7 @@ const DepartmentList = () => {
     if (selectedUser) {
       console.log('Selected user for department head:', selectedUser);
       // Directly set the department_head field with selected user ID
-      setNewDepartment(prev => ({
+      setNewDepartment((prev) => ({
         ...prev,
         department_head: selectedUser, // Make sure to directly set the ID
       }));
@@ -217,19 +202,16 @@ const DepartmentList = () => {
       Alert.alert('Validation Error', 'Please select a department head');
       return;
     }
-
+  
     try {
-      console.log('Department to be sent: ', newDepartment);
-      const response = await fetch(
-        'https://underbuiltapi.aadhidigital.com/master/insert_department',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(newDepartment),
+      console.log("Department to be sent: ", newDepartment);
+      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_department', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify(newDepartment),
+      });
 
       if (response.ok) {
         Alert.alert('Success', 'New department added successfully');
@@ -255,46 +237,37 @@ const DepartmentList = () => {
       Alert.alert('Error', 'Failed to add department');
     }
   };
-  const [menuPosition, setMenuPosition] = useState({top: 0, left: 0});
-  const handleMenuLayout = event => {
-    const {x, y, width} = event.nativeEvent.layout;
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const handleMenuLayout = (event) => {
+    const { x, y, width } = event.nativeEvent.layout; 
     const screenWidth = Dimensions.get('window').width;
-
-    const leftPosition = x - width / 2;
-    setMenuPosition({top: y + 25, left: Math.max(0, leftPosition)});
+  
+  
+    const leftPosition = x - width / 2; 
+    setMenuPosition({ top: y + 25, left: Math.max(0, leftPosition) }); 
   };
-  const renderDropdown = department => {
-    if (
-      editingDepartment &&
-      editingDepartment.department_id === department.department_id
-    ) {
+  const renderDropdown = (department) => {
+    if (editingDepartment && editingDepartment.department_id === department.department_id) {
       return (
         <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
           <Ionicons name="save" size={20} color="#000" />
         </TouchableOpacity>
       );
     }
-
+    
     return (
       <Menu
         visible={isMenuVisible === department.department_id}
         onDismiss={() => setIsMenuVisible(null)}
         anchor={
-          <TouchableOpacity
-            style={styles.actionContainer}
-            onPress={() => toggleMenu(department.department_id)}>
+          <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(department.department_id)}>
             <Ionicons name="ellipsis-vertical" size={20} color="#000" />
           </TouchableOpacity>
-        }>
+        }
+      >
         <Menu.Item title="Edit" onPress={() => handleEdit(department)} />
-        <Menu.Item
-          title="Delete"
-          onPress={() => handleDelete(department.department_id)}
-        />
-        <Menu.Item
-          title="Add Sub-Department"
-          onPress={() => handleAddSubDepartment(department.department_id)}
-        />
+        <Menu.Item title="Delete" onPress={() => handleDelete(department.department_id)} />
+        <Menu.Item title="Add Sub-Department" onPress={() => handleAddSubDepartment(department.department_id)} />
       </Menu>
     );
   };
@@ -303,7 +276,7 @@ const DepartmentList = () => {
     setIsModalVisible(true);
   };
 
-  /*   const renderSubDepartments = (department, level = 0) => (
+/*   const renderSubDepartments = (department, level = 0) => (
     <View key={department.department_id} style={{ marginLeft: level * 20 }}>
       <View style={styles.row}>
         <Text style={styles.cell}>{department.department_name}</Text>
@@ -347,7 +320,9 @@ const DepartmentList = () => {
       [departmentId]: !prev[departmentId], 
     }));
   };
-
+ 
+//  <BinaryTree/>
+  
   const renderSubDepartments = (department, level = 0) => {
     const isExpanded = expandedDepartments[department.department_id];
     const renderHierarchyLines = (level, isChild = false) => {
@@ -388,11 +363,8 @@ const DepartmentList = () => {
               <TextInput
                 style={styles.editInput}
                 value={newDepartmentDetails.department_name}
-                onChangeText={text =>
-                  setNewDepartmentDetails(prev => ({
-                    ...prev,
-                    department_name: text,
-                  }))
+                onChangeText={(text) =>
+                  setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
                 }
               />
               <Picker
@@ -683,79 +655,67 @@ const renderTree = (department, level = 0, users) => {
             </View>
           )}
         /> */}
-        </View>
-
-        {/* Add Department Modal */}
-        <Modal visible={isModalVisible} animationType="slide" transparent>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalHeader}>Add New Department</Text>
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Department Name"
-                value={newDepartment.department_name}
-                onChangeText={text =>
-                  setNewDepartment(prev => ({...prev, department_name: text}))
-                }
-              />
-              <TextInput
-                style={styles.modalInput}
-                placeholder="Description"
-                value={newDepartment.description}
-                onChangeText={text =>
-                  setNewDepartment(prev => ({...prev, description: text}))
-                }
-              />
-              {users.length > 0 ? (
-                <Picker
-                  selectedValue={
-                    selectedUser?.user_id ? String(selectedUser.user_id) : ''
-                  }
-                  onValueChange={itemValue => {
-                    console.log('Selected Value: ', itemValue);
-                    const user = users.find(
-                      user => user.user_id === Number(itemValue),
-                    );
-                    if (user) {
-                      setSelectedUser(user);
-                    } else {
-                      console.log('User not found');
-                    }
-                  }}
-                  style={styles.picker}>
-                  <Picker.Item label="Select a user" value="" />
-                  {users.map(user => (
-                    <Picker.Item
-                      key={user.user_id}
-                      label={user.first_name} // Show first_name instead of username
-                      value={String(user.user_id)} // Ensure the value is a string
-                    />
-                  ))}
-                </Picker>
-              ) : (
-                <Text>Loading users...</Text>
-              )}
-
-              {selectedUser && (
-                <Text style={styles.selectedUserText}>
-                  Selected Department Head: {selectedUser.first_name}{' '}
-                  {selectedUser.last_name}
-                </Text>
-              )}
-              <TouchableOpacity
-                style={styles.saveButton}
-                onPress={handleAddDepartment}>
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setIsModalVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
       </View>
+
+      {/* Add Department Modal */}
+      <Modal visible={isModalVisible} animationType="slide" transparent>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeader}>Add New Department</Text>
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Department Name"
+              value={newDepartment.department_name}
+              onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, department_name: text }))}
+            />
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Description"
+              value={newDepartment.description}
+              onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, description: text }))}
+            />
+       {users.length > 0 ? (
+ <Picker
+ selectedValue={selectedUser?.user_id ? String(selectedUser.user_id) : ""}
+ onValueChange={(itemValue) => {
+   console.log("Selected Value: ", itemValue);
+   const user = users.find(user => user.user_id === Number(itemValue)); 
+   if (user) {
+     setSelectedUser(user);
+   } else {
+     console.log("User not found");
+   }
+ }}
+ style={styles.picker}
+>
+ <Picker.Item label="Select a user" value="" />
+ {users.map((user) => (
+   <Picker.Item
+     key={user.user_id}
+     label={user.first_name} // Show first_name instead of username
+     value={String(user.user_id)} // Ensure the value is a string
+   />
+ ))}
+</Picker>
+) : (
+  <Text>Loading users...</Text>
+)}
+
+{selectedUser && (
+  <Text style={styles.selectedUserText}>
+    Selected Department Head: {selectedUser.first_name} {selectedUser.last_name}
+  </Text>
+)}
+            <TouchableOpacity style={styles.saveButton} onPress={handleAddDepartment}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => setIsModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
     </Provider>
   );
 };
@@ -805,6 +765,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderBottomWidth: 1,
     borderColor: '#ddd',
+    
   },
   cell: {
     flex: 1,

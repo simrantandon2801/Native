@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
-export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
+import { BASE_URL } from "@env";
+//export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
 
   export const AddAndEditRole = async (values: Object): Promise<string> => {
     console.log(values,"ap vay")
@@ -8,7 +9,7 @@ export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
-       var uri = 'https://underbuiltapi.aadhidigital.com/master/insert_roles';
+       var uri = `${BASE_URL}/master/insert_roles`;
        //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
        const token = await AsyncStorage.getItem('Token');  
        console.log(uri);
@@ -28,7 +29,7 @@ export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
   export const DeleteRole = async (roleId: number): Promise<string> => {
     console.log(`Deleting role with ID: ${roleId}`);
     try {
-      const uri = 'https://underbuiltapi.aadhidigital.com/master/delete_roles';
+      const uri = `${BASE_URL}/master/delete_roles`
       const token = await AsyncStorage.getItem('Token');
       
       // Create payload with role_id
@@ -46,13 +47,3 @@ export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
     }
   };
 
-
-
-  
-  
-  
-  
-  
-  
-  
- 
