@@ -59,7 +59,7 @@ import { BASE_URL } from "@env";
     }
   };
 
-  export const DeleteDept  = async (values: Object): Promise<string> => {
+  export const DeleteDept  = async (values: string): Promise<string> => {
     try {
       // 
        //const UserID = await AsyncStorage.getItem('UserID');
@@ -70,8 +70,7 @@ import { BASE_URL } from "@env";
        var payload = JSON.stringify(values);
        console.log(payload);
        var jsonResult = await PostAsync_with_token(uri, payload,token);
-       //  
-       //
+       
        console.log(jsonResult);
        return JSON.stringify(jsonResult ?? '');
      } catch (error) {
