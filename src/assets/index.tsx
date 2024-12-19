@@ -23,6 +23,7 @@ import Dashboard from './img/Dashboard.png'
 import RoadMap from './img/RoadMap.png'
 import RoadmapOverview from './img/RoadmapOverview.jpeg'
 import RoadmapProjects from './img/RoadmapProjects.jpeg'
+import NewIntake from './img/NewIntake.png'
 
 const AppImages = {
   AppVersion: packageJson.version,
@@ -56,7 +57,8 @@ const AppImages = {
   Dashboard:Dashboard,
   RoadMap:RoadMap,
   RoadmapProjects:RoadmapProjects,
-  RoadmapOverview:RoadmapOverview
+  RoadmapOverview:RoadmapOverview,
+  NewIntake:NewIntake
 };
 
 export {AppImages};

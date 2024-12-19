@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Alert, Dimensions, ScrollView, View } from "react-native";
+import { GetDept } from "../../database/Tree";
 
 const Node = ({
   value,
@@ -101,10 +102,8 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
 
     const fetchDepartments = async () => {
       try {
-        const response = await fetch(
-          "https://underbuiltapi.aadhidigital.com/master/get_department"
-        );
-        const result = await response.json();
+        const response = await GetDept('');
+        const result = await JSON.parse(response);
 
         console.log("API Response:", result);
 

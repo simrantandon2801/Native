@@ -38,7 +38,6 @@ import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
 import AdComponent from './Adcomponent';
-import {navigate} from '../navigations/RootNavigation';
 
 interface FormValues {
   firstname: string;
@@ -500,38 +499,38 @@ const ManageUsers: React.FC = () => {
     try {
       // Initialize the query parameter (if needed)
       let query = ''; // Use this if you have a search term for the query
-  
+
       // Initialize variables for the parameters to pass into GetUsers
       let reporting_toParam: number | undefined = undefined;
       let department_idParam: number | undefined = undefined;
       let role_idParam: number | undefined = undefined;
-  
+
       // Check if reporting_to has been set and is not the default value (-1)
       if (reporting_to !== -1) {
-        reporting_toParam = (reporting_to); // Convert number to 
+        reporting_toParam = reporting_to; // Convert number to
       }
-  
+
       // Check if department_id has been set and is not the default value (-1)
       if (selectedDeptID !== -1) {
-        department_idParam = (selectedDeptID); // Convert number to 
+        department_idParam = selectedDeptID; // Convert number to
       }
-  
+
       // Check if role_id has been set and is not the default value (-1)
       if (selectedRoleID !== -1) {
-        role_idParam = (selectedRoleID); // Convert number to string
+        role_idParam = selectedRoleID; // Convert number to string
       }
-  
+
       const result = await GetUsers(
         customerID,
         query,
         reporting_toParam,
         department_idParam,
-        role_idParam
+        role_idParam,
       );
-  
+
       // Log or handle the result if needed
       console.log('Filtered Users: ', result);
-  
+
       const parsedResult = JSON.parse(result);
       if (parsedResult.status === 'success') {
         setUsers(parsedResult.data.users);
@@ -577,6 +576,9 @@ const ManageUsers: React.FC = () => {
     budgetAmount: Yup.number()
       // .required('Budget amount is required')
       .positive('Budget amount must be positive'),
+    selectedDeptID: Yup.number()
+      .required('Department is required') // Make sure it is required
+      .notOneOf([-1], 'Please select a valid department'),
   });
 
   useEffect(() => {
@@ -654,41 +656,17 @@ const ManageUsers: React.FC = () => {
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigate('Excel')}>
-            <IconButton icon="sync" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Import Excel
-            </Text>
-          </TouchableOpacity>
         </View>
         <TouchableOpacity
           style={[styles.actionButton, styles.rightAction]}
           onPress={() => {
-            // Reset all the states here
             setFilterModalVisible(true);
-            setSelectedRoleID(-1); // Reset role_id state to -1
-            setReportingTo(-1); // Reset reporting_to state to -1
+            setSelectedRoleID(-1);
+            setReportingTo(-1);
             setSelectedDeptID(-1); // Reset department_id state to -1
           }}>
           <IconButton icon="filter" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.rightAction]}
-          onPress={() => {
-            // Reset all the states here
-            // setFilterModalVisible(true);
-            setSelectedRoleID(-1); // Reset role_id state to -1
-            setReportingTo(-1); // Reset reporting_to state to -1
-            setSelectedDeptID(-1); // Reset department_id state to -1
-            fetchUser();
-          }}>
-          <IconButton icon="filter" size={16} color="#344054" />
-          <Text style={[styles.actionText, {color: '#344054'}]}>
-            Clear Filters
-          </Text>
         </TouchableOpacity>
       </View>
 
@@ -701,42 +679,22 @@ const ManageUsers: React.FC = () => {
             onPress={handleSelectAllCheckbox}
           />
 
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            S. No.
-          </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Name
-          </DataTable.Title>
-          {/* <DataTable.Title style={{justifyContent: 'center'}}>
+          <DataTable.Title>S. No.</DataTable.Title>
+          <DataTable.Title>Name</DataTable.Title>
+          {/* <DataTable.Title >
             Username
           </DataTable.Title> */}
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Role
-          </DataTable.Title>
-          <DataTable.Title style={[{flex: 2, justifyContent: 'center'}]}>
-            Email ID
-          </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Department
-          </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Reporting Manager
-          </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Projects Active
-          </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Approval Limit
-          </DataTable.Title>
-          {/* <DataTable.Title style={{justifyContent: 'center'}}>
+          <DataTable.Title>Role</DataTable.Title>
+          <DataTable.Title style={[{flex: 2}]}>Email ID</DataTable.Title>
+          <DataTable.Title>Department</DataTable.Title>
+          <DataTable.Title>Reporting Manager</DataTable.Title>
+          <DataTable.Title>Projects Active</DataTable.Title>
+          <DataTable.Title>Approval Limit</DataTable.Title>
+          {/* <DataTable.Title >
             Average Cost
           </DataTable.Title> */}
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Status
-          </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
-            Actions
-          </DataTable.Title>
+          <DataTable.Title>Status</DataTable.Title>
+          <DataTable.Title>Actions</DataTable.Title>
         </DataTable.Header>
 
         {/* Table Rows */}
@@ -753,48 +711,33 @@ const ManageUsers: React.FC = () => {
                 }
                 onPress={() => handleUserSelection(user.user_id)}
               />
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {index + 1}
-              </DataTable.Cell>
+              <DataTable.Cell>{index + 1}</DataTable.Cell>
               {/* Name: Concatenating first and last name */}
-              <DataTable.Cell
-                style={{
-                  justifyContent: 'center',
-                }}>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
+              <DataTable.Cell>
+                {`${user.first_name} ${user.last_name}`}
+              </DataTable.Cell>{' '}
               {/*Username*/}
-              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
+              {/* <DataTable.Cell >
                 {user.username}
               </DataTable.Cell> */}
               {/* Assuming username as designation */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {user.role_name}
-              </DataTable.Cell>
+              <DataTable.Cell>{user.role_name}</DataTable.Cell>
               {/* Email*/}
-              <DataTable.Cell style={[{flex: 2, justifyContent: 'center'}]}>
-                {user.email}
-              </DataTable.Cell>
+              <DataTable.Cell style={[{flex: 2}]}>{user.email}</DataTable.Cell>
               {/* Placeholder for department */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {user.department_name}
-              </DataTable.Cell>
+              <DataTable.Cell>{user.department_name}</DataTable.Cell>
               {/* Reporting Manager: Using reporting_to (ID) */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {user?.manager_name}
-              </DataTable.Cell>
+              <DataTable.Cell>{user?.manager_name}</DataTable.Cell>
               {/* Placeholder for Projects Active */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {0}
-              </DataTable.Cell>
+              <DataTable.Cell>{0}</DataTable.Cell>
               {/* Placeholder for Approval Limit*/}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
-                {user.approval_limit}
-              </DataTable.Cell>
+              <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
               {/* Placeholder for Average Cost */}
-              {/* <DataTable.Cell style={{justifyContent: 'center'}}>
+              {/* <DataTable.Cell >
                 {user.average_cost}
               </DataTable.Cell> */}
               {/* Placeholder for Status */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell>
                 {loading && selectedUser?.user_id === user.user_id ? (
                   <ActivityIndicator size="small" color="#044086" />
                 ) : (
@@ -813,11 +756,10 @@ const ManageUsers: React.FC = () => {
                 )}
               </DataTable.Cell>
               {/* Placeholder for Actions */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell>
                 <Menu
                   visible={visibleMenus[user.user_id] || false}
                   style={{
-                    flexGrow: 1,
                     left: screenWidth - 265,
                   }}
                   onDismiss={() => toggleMenu(user.user_id)}
@@ -858,13 +800,6 @@ const ManageUsers: React.FC = () => {
                   />
                   <Menu.Item
                     onPress={() => {
-                      console.log('Activate/Deactivate');
-                      toggleMenu(user.user_id); // Close menu after selection
-                    }}
-                    title="Activate/Deactivate"
-                  />
-                  <Menu.Item
-                    onPress={() => {
                       console.log('Delete');
                       toggleMenu(user.user_id); // Close menu after selection
 
@@ -902,6 +837,7 @@ const ManageUsers: React.FC = () => {
                   selectedRoleID: '',
                   approvalCurrency: '',
                   budgetAmount: '',
+                  selectedDeptID: -1,
                 }}
                 validationSchema={validationSchema} // Use validation schema if needed
                 onSubmit={values => {
@@ -913,6 +849,7 @@ const ManageUsers: React.FC = () => {
                   handleChange,
                   handleBlur,
                   handleSubmit,
+                  setFieldValue,
                   errors,
                   touched,
                 }) => (
@@ -920,7 +857,12 @@ const ManageUsers: React.FC = () => {
                     {/* Input Fields for Name and Email */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* First Name</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          First Name
+                        </Text>
                         <TextInput
                           style={styles.input}
                           placeholder="Enter first name"
@@ -935,7 +877,12 @@ const ManageUsers: React.FC = () => {
                         )}
                       </View>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Last Name</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          Last Name
+                        </Text>
                         <TextInput
                           style={styles.input}
                           placeholder="Enter last name"
@@ -953,7 +900,12 @@ const ManageUsers: React.FC = () => {
 
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Email ID</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          Email ID
+                        </Text>
                         <TextInput
                           style={styles.input}
                           placeholder="Enter email"
@@ -971,12 +923,22 @@ const ManageUsers: React.FC = () => {
                     {/* Designation Dropdown */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Designation</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          Designation
+                        </Text>
                         <Picker
                           selectedValue={values.designation}
                           onValueChange={handleChange('designation')}
                           onBlur={handleBlur('designation')}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select Designation"
+                            value=""
+                            color="#aaa"
+                          />
                           <Picker.Item label="UI/UX" value="UI/UX" />
                           <Picker.Item label="Developer" value="Developer" />
                           <Picker.Item
@@ -991,12 +953,26 @@ const ManageUsers: React.FC = () => {
                         )}
                       </View>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Reporting Manager</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          Reporting Manager
+                        </Text>
                         <Picker
                           selectedValue={values.reporting_to}
-                          onValueChange={handleChange('reporting_to')}
+                          onValueChange={value => {
+                            if (value !== '') {
+                              handleChange('reporting_to')(value);
+                            }
+                          }}
                           onBlur={handleBlur('reporting_to')}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select a user"
+                            value=""
+                            color="#aaa"
+                          />
                           {users.map((user, index) => (
                             <Picker.Item
                               key={index}
@@ -1013,18 +989,44 @@ const ManageUsers: React.FC = () => {
                       </View>
                     </View>
 
+                    <View style={{paddingVertical: 15}}>
+                      <NestedDeptDropdown
+                        onSelect={value => setFieldValue('selectedDeptID', value)} // Set value to Formik
+                        selectedValue={values.selectedDeptID} // Pass current value from Formik
+                      />
+                      {touched.selectedDeptID && errors.selectedDeptID && (
+                        <Text style={styles.errorText}>
+                          {errors.selectedDeptID}
+                        </Text> // Show error if touched and invalid
+                      )}
+                    </View>
+
                     {/* User Role Picker */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <NestedDeptDropdown onSelect={handleDeptSelect} />
-                      </View>
-                      <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* User Role</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          User Role
+                        </Text>
                         <Picker
                           selectedValue={values.selectedRoleID}
-                          onValueChange={handleChange('selectedRoleID')}
+                          onValueChange={value => {
+                            if (value !== '') {
+                              handleChange('selectedRoleID')(value);
+                            }
+                          }}
                           onBlur={handleBlur('selectedRoleID')}
                           style={styles.input}>
+                          {/* Placeholder Option */}
+                          <Picker.Item
+                            label="Select a role"
+                            value=""
+                            color="#aaa"
+                          />
+
+                          {/* Actual Options */}
                           {userRole.map(role => (
                             <Picker.Item
                               key={role.role_id}
@@ -1033,6 +1035,7 @@ const ManageUsers: React.FC = () => {
                             />
                           ))}
                         </Picker>
+
                         {touched.selectedRoleID && errors.selectedRoleID && (
                           <Text style={styles.errorText}>
                             {errors.selectedRoleID}
@@ -1040,7 +1043,6 @@ const ManageUsers: React.FC = () => {
                         )}
                       </View>
                     </View>
-
                     {/* Approval Limit */}
                     <Text
                       style={{
@@ -1056,16 +1058,32 @@ const ManageUsers: React.FC = () => {
                     </Text>
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Currency Selection</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          Currency Selection
+                        </Text>
                         <Picker
                           selectedValue={values.approvalCurrency}
-                          onValueChange={handleChange('approvalCurrency')}
+                          onValueChange={value => {
+                            if (value !== '') {
+                              handleChange('approvalCurrency')(value);
+                            }
+                          }}
                           onBlur={handleBlur('approvalCurrency')}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select Currency"
+                            value=""
+                            color="#aaa"
+                          />
+
                           <Picker.Item label="$ US Dollar" value="Dollar" />
                           <Picker.Item label="₹ Rupees" value="Rupees" />
                           <Picker.Item label="€ Euro" value="Euro" />
                         </Picker>
+
                         {touched.approvalCurrency &&
                           errors.approvalCurrency && (
                             <Text style={styles.errorText}>
@@ -1074,7 +1092,12 @@ const ManageUsers: React.FC = () => {
                           )}
                       </View>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Budget Amount</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                          Budget Amount
+                        </Text>
                         <TextInput
                           style={styles.input}
                           placeholder="Budget Amount"
@@ -1175,46 +1198,6 @@ const ManageUsers: React.FC = () => {
         </View>
       </Modal>
 
-      {/*Permissions Modal */}
-      {/* <Modal
-        visible={isEditPermissionModalVisible}
-        animationType="none"
-        transparent={true}
-        onRequestClose={() => setisEditPermissionModalVisible(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalHeader}>Edit Permissions</Text>
-            <View style={styles.permissionsList}>
-              {Object.entries(permissions).map(([key, value]) => (
-                <View key={key} style={styles.permissionRow}>
-                  <Text style={styles.permissionLabel}>
-                    {key.charAt(0).toUpperCase() + key.slice(1)}
-                  </Text>
-                  <Switch
-                    value={value}
-                    onValueChange={() => togglePermission(key)}
-                  />
-                </View>
-              ))}
-            </View> */}
-
-      {/* Buttons */}
-      {/* <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={() => setisEditPermissionModalVisible(false)}>
-                <Text style={styles.submitButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={() => setisEditPermissionModalVisible(false)}>
-                <Text style={styles.submitButtonText}>Submit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal> */}
-
       {/* Edit User Permission  Modal */}
       <Modal
         visible={isEditPermissionModalVisible}
@@ -1296,6 +1279,7 @@ const ManageUsers: React.FC = () => {
                   selectedRoleID: selectedRoleID || '',
                   approvalCurrency: '',
                   budgetAmount: selectedUser?.approval_limit?.toString() || '',
+                  selectedDeptID: -1,
                 }}
                 validationSchema={validationSchema}
                 onSubmit={values => {
@@ -1314,7 +1298,9 @@ const ManageUsers: React.FC = () => {
                     {/* Input Fields for Name and Email */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* First Name</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>First Name
+                        </Text>
                         <TextInput
                           style={styles.input}
                           value={values.firstname}
@@ -1327,7 +1313,9 @@ const ManageUsers: React.FC = () => {
                         )}
                       </View>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Last Name</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>Last Name
+                        </Text>
                         <TextInput
                           style={styles.input}
                           value={values.lastname}
@@ -1344,7 +1332,9 @@ const ManageUsers: React.FC = () => {
                     {/* Email Section */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Email ID</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>Email ID
+                        </Text>
                         <TextInput
                           style={styles.input}
                           value={values.email}
@@ -1359,13 +1349,22 @@ const ManageUsers: React.FC = () => {
                     {/* Designation and Reporting Manager */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Designation</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>Designation
+                        </Text>
                         <Picker
                           selectedValue={values.designation}
-                          onValueChange={value =>
-                            setFieldValue('designation', value)
-                          }
+                          onValueChange={value => {
+                            if (value !== '') {
+                              setFieldValue('designation', value);
+                            }
+                          }}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select a designation"
+                            value=""
+                            color="#aaa"
+                          />
                           <Picker.Item label="UI/UX" value="UI/UX" />
                           <Picker.Item label="Developer" value="Developer" />
                           <Picker.Item
@@ -1380,13 +1379,23 @@ const ManageUsers: React.FC = () => {
                         )}
                       </View>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Reporting Manager</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>Reporting
+                          Manager
+                        </Text>
                         <Picker
                           selectedValue={values.reporting_to}
-                          onValueChange={value =>
-                            setFieldValue('reporting_to', value)
-                          }
+                          onValueChange={value => {
+                            if (value !== '') {
+                              setFieldValue('reporting_to', value);
+                            }
+                          }}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select a manager"
+                            value=""
+                            color="#aaa"
+                          />
                           {users.map((user, index) => (
                             <Picker.Item
                               key={index}
@@ -1402,17 +1411,36 @@ const ManageUsers: React.FC = () => {
                         )}
                       </View>
                     </View>
-
+                    <View style={{paddingVertical: 15}}>
+                      <NestedDeptDropdown
+                        onSelect={value => setFieldValue('selectedDeptID', value)} // Set value to Formik
+                        selectedValue={values.selectedDeptID} // Pass current value from Formik
+                      />
+                      {touched.selectedDeptID && errors.selectedDeptID && (
+                        <Text style={styles.errorText}>
+                          {errors.selectedDeptID}
+                        </Text> // Show error if touched and invalid
+                      )}
+                    </View>
                     {/* User Role */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* User Role</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>User Role
+                        </Text>
                         <Picker
                           selectedValue={values.selectedRoleID}
-                          onValueChange={value =>
-                            setFieldValue('selectedRoleID', value)
-                          }
+                          onValueChange={value => {
+                            if (value !== '') {
+                              setFieldValue('selectedRoleID', value);
+                            }
+                          }}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select a role"
+                            value=""
+                            color="#aaa"
+                          />
                           {userRole.map(role => (
                             <Picker.Item
                               key={role.role_id}
@@ -1433,13 +1461,23 @@ const ManageUsers: React.FC = () => {
                     <Text style={styles.sectionHeader}>Approval Limit</Text>
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Currency Selection</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>Currency
+                          Selection
+                        </Text>
                         <Picker
                           selectedValue={values.approvalCurrency}
-                          onValueChange={value =>
-                            setFieldValue('approvalCurrency', value)
-                          }
+                          onValueChange={value => {
+                            if (value !== '') {
+                              setFieldValue('approvalCurrency', value);
+                            }
+                          }}
                           style={styles.input}>
+                          <Picker.Item
+                            label="Select a currency"
+                            value=""
+                            color="#aaa"
+                          />
                           <Picker.Item label="$ US Dollar" value="Dollar" />
                           <Picker.Item label="₹ Rupees" value="Rupees" />
                           <Picker.Item label="€ Euro" value="Euro" />
@@ -1452,7 +1490,9 @@ const ManageUsers: React.FC = () => {
                           )}
                       </View>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>* Budget Amount</Text>
+                        <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>* </Text>Budget Amount
+                        </Text>
                         <TextInput
                           style={styles.input}
                           value={values.budgetAmount}
@@ -1509,7 +1549,12 @@ const ManageUsers: React.FC = () => {
               </Text>
 
               {/* Buttons */}
-              <View style={styles.buttonContainer}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  gap: 14,
+                }}>
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={handleDeleteMultipleUsers}>
@@ -1545,7 +1590,12 @@ const ManageUsers: React.FC = () => {
               <NestedDeptDropdown onSelect={handleDeptSelect} />
 
               {/* Buttons */}
-              <View style={styles.buttonContainer}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  gap: 14,
+                }}>
                 <TouchableOpacity
                   style={styles.submitButton}
                   onPress={handleUpdateMultipleUsersDepartment}>
@@ -1594,7 +1644,12 @@ const ManageUsers: React.FC = () => {
             </Picker>
 
             {/* Buttons */}
-            <View style={styles.buttonContainer}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 14,
+              }}>
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={handleUpdateMultipleUsersRole}>
@@ -1603,7 +1658,7 @@ const ManageUsers: React.FC = () => {
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={() => setisMultipleRoleAssignModalVisible(false)}>
-                <Text style={styles.submitButtonText}>Cancel</Text>
+                <Text style={styles.submitButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1620,53 +1675,18 @@ const ManageUsers: React.FC = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.modalScrollContainer}>
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
+            <View style={styles.modalContainerRight}>
               <Text style={styles.modalHeader}>Filter Options</Text>
-              {/* Input Fields for Name*/}
-
-              {/* <View style={styles.inputRow}>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* First Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter first name"
-                    value={firstname}
-                    onChangeText={setFirstName}
-                  />
-                </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Last Name</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter last name"
-                    value={lastname}
-                    onChangeText={setLastName}
-                  />
-                </View>
-              </View> */}
-              {/* Input Fields for Email*/}
-              {/* <View style={styles.inputRow}>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Email ID</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Enter email"
-                    keyboardType="email-address"
-                    value={email}
-                    onChangeText={setEmail}
-                  />
-                </View>
-              </View> */}
-              {/* Designation Dropdown */}
-              {/*Nested Dropdown */}
 
               {/*User Role*/}
               <View style={styles.inputRow}>
                 <View style={styles.inputWrapper}>
-                  <NestedDeptDropdown onSelect={handleDeptSelect} />
-                </View>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* User Role</Text>
+                  <Text style={styles.label}>
+                    <Text style={{color: 'red'}}>
+                      <Text style={{color: 'red'}}>*</Text>{' '}
+                    </Text>{' '}
+                    User Role
+                  </Text>
                   <Picker
                     selectedValue={selectedRoleID}
                     onValueChange={itemValue => {
@@ -1686,22 +1706,13 @@ const ManageUsers: React.FC = () => {
               </View>
               {/* Reporting Manager Dropdown &&  */}
               <View style={styles.inputRow}>
-                {/* <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Designation</Text>
-                  <Picker
-                    selectedValue={Designation}
-                    onValueChange={itemValue => setDesignation(itemValue)}
-                    style={styles.input}>
-                    <Picker.Item label="UI/UX" value="UI/UX" />
-                    <Picker.Item label="Developer" value="Developer" />
-                    <Picker.Item
-                      label="Project Manager"
-                      value="Project Manager"
-                    />
-                  </Picker>
-                </View> */}
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Reporting Manager</Text>
+                  <Text style={styles.label}>
+                    <Text style={{color: 'red'}}>
+                      <Text style={{color: 'red'}}>*</Text>{' '}
+                    </Text>{' '}
+                    Reporting Manager
+                  </Text>
                   <Picker
                     selectedValue={reporting_to}
                     onValueChange={itemValue => {
@@ -1719,43 +1730,9 @@ const ManageUsers: React.FC = () => {
                   </Picker>
                 </View>
               </View>
-              
-              {/*Approval Limit*/}
-              {/* <Text
-                style={{
-                  color: '#044086',
-                  fontFamily: 'Source Sans Pro',
-                  fontSize: 14,
-                  fontStyle: 'normal',
-                  fontWeight: '600',
-                  lineHeight: 22,
-                  paddingBottom: 5,
-                }}>
-                Approval Limit
-              </Text> */}
-              {/* <View style={styles.inputRow}>
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Currency Selection</Text>
-                  <Picker
-                    selectedValue={approvalCurrency}
-                    onValueChange={itemValue => setApprovalCurrency(itemValue)}
-                    style={styles.input}>
-                    <Picker.Item label="$ US Dollar" value="Dollar" />
-                    <Picker.Item label="₹ Rupees" value="Rupees" />
-                    <Picker.Item label="€ Euro" value="Euro" />
-                  </Picker>
-                </View>
-
-                <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Budget Amount</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Budget Amount"
-                    value={budgetAmount}
-                    onChangeText={setBudgetAmount}
-                  />
-                </View>
-              </View> */}
+              <View style={styles.nestedDropDownContainer}>
+                <NestedDeptDropdown onSelect={handleDeptSelect} />
+              </View>
               <View
                 style={{
                   flexDirection: 'row',
@@ -1774,8 +1751,15 @@ const ManageUsers: React.FC = () => {
                 {/* Close Button */}
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={() => setFilterModalVisible(false)}>
-                  <Text style={styles.submitButtonText}>Close</Text>
+                  onPress={() => {
+                    // Reset all the states here
+                    setSelectedRoleID(-1);
+                    setReportingTo(-1);
+                    setSelectedDeptID(-1); // Reset department_id state to -1
+                    fetchUser(); // Call fetchUser to refresh the data
+                    setFilterModalVisible(false); // Close the filter modal
+                  }}>
+                  <Text style={styles.submitButtonText}>Clear Filter</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1817,7 +1801,12 @@ const styles = StyleSheet.create({
   leftAction: {
     marginRight: 2,
   },
-  rightAction: {},
+  rightAction: {
+    marginLeft: 'auto', // To push the element to the right
+    justifyContent: 'center', // Center content vertically if needed
+    alignItems: 'center', // Aligns items horizontally if necessary
+    padding: 10, // Padding for better spacing
+  },
   table: {
     marginTop: 10,
     paddingHorizontal: 10,
@@ -1840,6 +1829,16 @@ const styles = StyleSheet.create({
   },
   center: {
     textAlign: 'center',
+  },
+  modalContainerSmall: {
+    width: '25%', // Adjust this width to be even smaller (25% of the screen width)
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 15, // Reduced padding to make the modal smaller and compact
+    position: 'absolute',
+    top: '20%',  // Position it below the desired section
+    right: 0,    // Keep it on the right side
+    zIndex: 100, // Ensure it's above other content
   },
 
   modalOverlay: {
@@ -1864,6 +1863,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 60,
+  },
+  modalContainerRight: {
+    width: '25%', // Adjust width if needed
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 40,
+    position: 'absolute',
+    top: '20%',  // Adjust to make the modal appear below a specific section (like "Filter Options")
+    right: 0,    // Position it on the right side
+    zIndex: 100, // Ensure it's above other content
+    flexGrow: 1,
   },
   inputRow: {
     flexDirection: 'row',
@@ -2037,6 +2047,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     justifyContent: 'center',
+  },
+  nestedDropDownContainer: {
+    width: '80%', // or you can use any fixed value like 350
+    backgroundColor: 'white',
+    borderRadius: 5,
+    padding: 10,
   },
 });
 

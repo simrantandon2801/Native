@@ -644,6 +644,11 @@ const Resources: React.FC = () => {
                     left: screenWidth - 260,
                   }}
                   onDismiss={() => toggleMenu(user.user_id)}
+                  style={{
+                    flexGrow: 1,
+                    left : screenWidth - 260,
+                    
+                  }}
                   anchor={
                     <TouchableOpacity
                       onPress={() => {
@@ -661,14 +666,14 @@ const Resources: React.FC = () => {
                     }}
                     title="Edit Details"
                   />
-                  <Menu.Item
+                  {/* <Menu.Item
                     onPress={() => {
                       toggleMenu(user.user_id); // Close menu after selection
                       setisEditPermissionModalVisible(true);
                       HandleGetUserPermission(user.user_id.toString());
                     }}
                     title="Edit Permissions"
-                  />
+                  /> */}
                   <Menu.Item
                     onPress={() => {
                       console.log('Activate/Deactivate');

@@ -31,25 +31,25 @@ const SignupScreen = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const handleSignup = async () => {
-    // let tempErrors: { [key: string]: string } = {};
+    let tempErrors: { [key: string]: string } = {};
 
-    // // Validation checks
-    // if (!FirstName) tempErrors.FirstName = 'First Name is required';
-    // if (!LastName) tempErrors.LastName = 'Last Name is required';
-    // if (!techAdminEmail || !/\S+@\S+\.\S+/.test(techAdminEmail)) {
-    //   tempErrors.techAdminEmail = 'Valid email is required';
-    // }
-    // if (!companyName) tempErrors.companyName = 'Company Name is required';
-    // if (!companyEmail || !/\S+@\S+\.\S+/.test(companyEmail)) {
-    //   tempErrors.companyEmail = 'Valid email is required';
-    // }
+    // Validation checks
+    if (!FirstName) tempErrors.FirstName = 'First Name is required';
+    if (!LastName) tempErrors.LastName = 'Last Name is required';
+    if (!techAdminEmail || !/\S+@\S+\.\S+/.test(techAdminEmail)) {
+      tempErrors.techAdminEmail = 'Valid email is required';
+    }
+    if (!companyName) tempErrors.companyName = 'Company Name is required';
+    if (!companyEmail || !/\S+@\S+\.\S+/.test(companyEmail)) {
+      tempErrors.companyEmail = 'Valid email is required';
+    }
     // if (!companyContact || !/^\d{10}$/.test(companyContact)) {
     //   tempErrors.companyContact = 'Valid 10-digit contact is required';
     // }
 
-    // setErrors(tempErrors);
+    setErrors(tempErrors);
 
-    // if (Object.keys(tempErrors).length > 0) return;
+    if (Object.keys(tempErrors).length > 0) return;
 
     const payload = {
       username: techAdminEmail,
@@ -107,8 +107,9 @@ const SignupScreen = () => {
         <Text style={styles.heading}>Customer Registration</Text>
 
         <View style={[styles.paperContainer, { width: deviceWidth > 600 ? '50%' : '90%' }]}>
-          <View style={styles.row}>
-          <TextInput
+          <View style={styles.inputRow}>
+            <View style={styles.inputWrapper}>
+                  <TextInput
               style={[styles.input, { marginLeft: 10 }]}
               label={<Text style={{ color: '#044086' }}>Company Name <Text style={{ color: 'red' }}>*</Text></Text>}
               value={companyName}
@@ -124,6 +125,9 @@ const SignupScreen = () => {
                 },
               }}
             />
+            {errors.companyName && <Text style={styles.errorText}>{errors.companyName}</Text>}
+            </View>
+            <View style={styles.inputWrapper}>
              <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Company Email<Text style={{ color: 'red' }}>*</Text></Text>}
@@ -141,9 +145,12 @@ const SignupScreen = () => {
                 },
               }}
             />
-           
+            {errors.companyEmail && <Text style={styles.errorText}>{errors.companyEmail}</Text>}
+
+           </View>
           </View>
-          <View style={styles.row}>
+          <View style={styles.inputRow}>
+          <View style={styles.inputWrapper}>
           <TextInput
               style={[styles.input, { marginLeft: 10 }]}
               label={<Text style={{ color: '#044086' }}>Company Contact Number </Text>}
@@ -161,6 +168,10 @@ const SignupScreen = () => {
                 },
               }}
             />
+             {errors.companyContact && <Text style={styles.errorText}>{errors.companyContact}</Text>}
+
+            </View>
+            <View style={styles.inputWrapper}>
             <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Admin Email <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -178,11 +189,14 @@ const SignupScreen = () => {
                 },
               }}
             />
-           
+             {errors.techAdminEmail && <Text style={styles.errorText}>{errors.techAdminEmail}</Text>}
+
+           </View>
           </View>
 
 
-          <View style={styles.row}>
+          <View style={styles.inputRow}>
+            <View style={styles.inputWrapper}>
           <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Admin First Name <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -202,7 +216,10 @@ const SignupScreen = () => {
                 },
               }}
             />
+            {errors.FirstName && <Text style={styles.errorText}>{errors.FirstName}</Text>}
 
+          </View>
+          <View style={styles.inputWrapper}>
             <TextInput
               style={[styles.input, { marginLeft: 10 }]}
               label={<Text style={{ color: '#044086' }}>Admin Last Name <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -219,12 +236,13 @@ const SignupScreen = () => {
                 },
               }}
             />
-            
+            {errors.LastName && <Text style={styles.errorText}>{errors.LastName}</Text>}
 
-           
+            </View>
           </View>
 
-          <View style={styles.row}>
+          {/* <View style={styles.inputRow}>
+            <View style={styles.inputWrapper}>
           <TextInput
               style={[styles.input, { marginRight: 10 }]}
               label={<Text style={{ color: '#044086' }}>Username <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -237,7 +255,8 @@ const SignupScreen = () => {
                 },
               }}
             />
-
+</View>
+<View style={styles.inputWrapper}>
             <TextInput
               style={[styles.input, { marginLeft: 10 }]}
               label={<Text style={{ color: '#044086' }}>Password <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -255,9 +274,9 @@ const SignupScreen = () => {
                 },
               }}
             />
-
-            
           </View>
+            
+          </View> */}
 
           <Button
             mode="contained"
@@ -344,6 +363,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 10,
   },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    gap: 20,
+  },
+  inputWrapper: {
+    flex: 1,
+    alignItems: 'left', // Centers the label above the input
+  },
+  
 });
 
 export default SignupScreen;

@@ -30,12 +30,13 @@ const LoginScreen: React.FC = () => {
   const [password, setPassword] = useState<string>('lsipl');
   const navigation = useNavigation<NavigationProp>();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);  //captcha
+   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   /*  const handleLogin = () => {
      Handle login logic here
       console.log('Email:', email);
       console.log('Password:', password);
     }; */
-
+    let tempErrors: { [key: string]: string } = {};
 
     const recaptchaSiteKey = '6LdZ3ZQqAAAAAO4wf3jkq1Q_PXV49IwSwYb4ziq4'; 
     const handleLogin = async () => {
@@ -45,6 +46,13 @@ const LoginScreen: React.FC = () => {
       }else{ */
         //console.log('Email:', email);
         //console.log('Password:', password);
+        if (!email) tempErrors.email = 'Email/User name is required';
+    if (!password) tempErrors.password = 'Password is required';
+    setErrors(tempErrors);
+
+    if (Object.keys(tempErrors).length > 0) return;
+
+
         const uri = 'https://underbuiltapi.aadhidigital.com/auth/login';
         const payload = JSON.stringify({
           email: email,
@@ -130,6 +138,7 @@ const LoginScreen: React.FC = () => {
             <Text style={styles.heading}>Log in to ForgePortfolioXpert</Text>
 
             {/* Email Input */}
+            <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
               placeholder="Email Address or Username"
@@ -137,6 +146,9 @@ const LoginScreen: React.FC = () => {
               value={email}
               onChangeText={setEmail}
             />
+          
+             {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+             </View>
 
             {/* Password Input */}
             <View style={styles.passwordContainer}>
@@ -151,6 +163,7 @@ const LoginScreen: React.FC = () => {
               <TouchableOpacity style={styles.showPasswordButton}>
                 <Text style={styles.showPasswordText}>👁</Text>
               </TouchableOpacity>
+              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
             </View>
          {/*    <ReCaptchaV3 style={styles.captchaContainer}
         siteKey={recaptchaSiteKey}
@@ -299,6 +312,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     width: '100%',
   },
+  inputContainer: {
+    position: 'relative',
+    width: '100%',
+  },
   passwordInput: {
     fontFamily: '"Source Sans Pro"',
     paddingRight: 50,
@@ -397,6 +414,21 @@ const styles = StyleSheet.create({
 
     color: '#0056b3',
     textDecorationLine: 'underline',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    gap: 20,
+  },
+  inputWrapper: {
+    flex: 1,
+    alignItems: 'left', // Centers the label above the input
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 5,
   },
 });
 export default LoginScreen;

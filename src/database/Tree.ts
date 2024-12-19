@@ -1,14 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
-import { BASE_URL } from "@env";
-//export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
+export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
 
-
-  export const GetDepartments = async (query:string): Promise<string> => {
+export const GetDept = async (query:string): Promise<string> => {
     try {
-      debugger;
+      //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = `${BASE_URL}/master/get_department?parent_department_id=${query}`;
+      var uri = `${BASE_URL}/master/get_department`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -21,4 +19,6 @@ import { BASE_URL } from "@env";
       throw Error('Failed' + error);
     }
   };
+
+
   

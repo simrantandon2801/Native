@@ -1,12 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
 
-export const BASE_URL = 'https://underbuiltapi.aadhidigital.com';
+  import { BASE_URL } from "@env";
 export const GetResources = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = `${BASE_URL}/customeradmin/get_resources_including_users`;
+      var uri = `${BASE_URL}/customeradmin/get_resources`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);
@@ -102,7 +102,7 @@ export const GetResources = async (query:string): Promise<string> => {
       try {
         //debugger;
         //const UserID = await AsyncStorage.getItem('UserID');
-        var uri = 'https://underbuiltapi.aadhidigital.com/integration/get_users';
+        var uri = `${BASE_URL}/integration/get_users`;
         //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
         const token = await AsyncStorage.getItem('Token');
         console.log(uri);
@@ -119,7 +119,7 @@ export const GetResources = async (query:string): Promise<string> => {
       try {
         //debugger;
         //const UserID = await AsyncStorage.getItem('UserID');
-        var uri = 'https://underbuiltapi.aadhidigital.com/master/get_department';
+        var uri = `${BASE_URL}/master/get_department`;
         //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
         const token = await AsyncStorage.getItem('Token');
         console.log(uri);
@@ -138,7 +138,7 @@ export const GetResources = async (query:string): Promise<string> => {
       try {
         // 
          //const UserID = await AsyncStorage.getItem('UserID');
-         var uri = `https://underbuiltapi.aadhidigital.com/customeradmin/update_user_department`;
+         var uri =`${BASE_URL}/customeradmin/update_user_department`;
          //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
          const token = await AsyncStorage.getItem('Token');  
          console.log(uri);
@@ -159,7 +159,7 @@ export const GetResources = async (query:string): Promise<string> => {
       try {
         // 
          //const UserID = await AsyncStorage.getItem('UserID');
-         var uri = `https://underbuiltapi.aadhidigital.com/customeradmin/update_user_role`;
+         var uri = `${BASE_URL}/customeradmin/update_user_role`;
          //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
          const token = await AsyncStorage.getItem('Token');  
          console.log(uri);
@@ -180,7 +180,7 @@ export const GetResources = async (query:string): Promise<string> => {
       try {
         // 
          //const UserID = await AsyncStorage.getItem('UserID');
-         var uri = `https://underbuiltapi.aadhidigital.com/master/delete_users`;
+         var uri =`${BASE_URL}/master/delete_users`;
          //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
          const token = await AsyncStorage.getItem('Token');  
          console.log(uri);

@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, Image, StyleSheet, ScrollView } from 'react-native';
-import { AppImages } from '../assets'; // Is path ko verify karein
+import { AppImages } from '../assets';  // Is path ko verify karein
 
-const Roadmap: React.FC = () => {
+const NewIntake: React.FC = () => {
   return (
     <View style={styles.container}>
-     
+      <ScrollView
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={true}
+      >
         <Image
-          source={AppImages.RoadmapProjects}
+          source={AppImages.NewIntake}
           style={styles.image}
           resizeMode="contain"
         />
-     
+      </ScrollView>
     </View>
   );
 };
@@ -19,7 +22,8 @@ const Roadmap: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    // backgroundColor: '#f5f5f5',
+    marginTop:-30
   },
   scrollViewContent: {
     flexGrow: 1,
@@ -28,10 +32,10 @@ const styles = StyleSheet.create({
    
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: '90%',
+    height: '90%',
     aspectRatio: 1,
   },
 });
 
-export default Roadmap;
+export default NewIntake;
