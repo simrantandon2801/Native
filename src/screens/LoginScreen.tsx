@@ -31,11 +31,6 @@ const LoginScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);  //captcha
    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  /*  const handleLogin = () => {
-     Handle login logic here
-      console.log('Email:', email);
-      console.log('Password:', password);
-    }; */
     let tempErrors: { [key: string]: string } = {};
 
     const recaptchaSiteKey = '6LdZ3ZQqAAAAAO4wf3jkq1Q_PXV49IwSwYb4ziq4'; 
@@ -53,7 +48,7 @@ const LoginScreen: React.FC = () => {
     if (Object.keys(tempErrors).length > 0) return;
 
 
-        const uri = 'https://underbuiltapi.aadhidigital.com/auth/login';
+        const uri = 'https://forge-testing-api.aadhidigital.com/auth/login';
         const payload = JSON.stringify({
           email: email,
           password: password,

@@ -991,8 +991,14 @@ const ManageUsers: React.FC = () => {
 
                     <View style={{paddingVertical: 15}}>
                       <NestedDeptDropdown
-                        onSelect={value => setFieldValue('selectedDeptID', value)} // Set value to Formik
-                        selectedValue={values.selectedDeptID} // Pass current value from Formik
+                        onSelect={(newValue) => {
+                          setFieldValue('selectedDeptID', newValue)}}
+                        selectedValue={values.selectedDeptID.toString()} // Pass current value from Formik
+                        placeholder={
+                          selectedUser
+                            ? selectedUser.department_name
+                            : 'Select a department'
+                        }
                       />
                       {touched.selectedDeptID && errors.selectedDeptID && (
                         <Text style={styles.errorText}>
@@ -1120,18 +1126,18 @@ const ManageUsers: React.FC = () => {
                         justifyContent: 'center',
                         gap: 14,
                       }}>
+                      {/* Close Button */}
+                      <TouchableOpacity
+                        style={styles.closeButton}
+                        onPress={() => setisAddUserModalVisible(false)}>
+                        <Text style={styles.closeButtonText}>Close</Text>
+                      </TouchableOpacity>
+
                       <TouchableOpacity
                         style={styles.submitButton}
                         onPress={handleSubmit} // Formik submit function
                       >
                         <Text style={styles.submitButtonText}>Submit</Text>
-                      </TouchableOpacity>
-
-                      {/* Close Button */}
-                      <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={() => setisAddUserModalVisible(false)}>
-                        <Text style={styles.submitButtonText}>Close</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -1182,16 +1188,17 @@ const ManageUsers: React.FC = () => {
             {/* Buttons */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setisDeleteModalVisible(false)}>
+                <Text style={styles.closeButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 style={styles.submitButton}
                 onPress={() =>
                   selectedUser?.user_id && handleDelete(selectedUser.user_id)
                 }>
                 <Text style={styles.submitButtonText}>Delete</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={() => setisDeleteModalVisible(false)}>
-                <Text style={styles.submitButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1236,7 +1243,7 @@ const ManageUsers: React.FC = () => {
             </ScrollView>
             <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
+                style={[styles.modalButton, styles.closeButton]}
                 onPress={() => setisEditPermissionModalVisible(false)}
                 disabled={loading}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
@@ -1279,7 +1286,7 @@ const ManageUsers: React.FC = () => {
                   selectedRoleID: selectedRoleID || '',
                   approvalCurrency: '',
                   budgetAmount: selectedUser?.approval_limit?.toString() || '',
-                  selectedDeptID: -1,
+                  selectedDeptID: selectedUser?.department_id,
                 }}
                 validationSchema={validationSchema}
                 onSubmit={values => {
@@ -1413,8 +1420,15 @@ const ManageUsers: React.FC = () => {
                     </View>
                     <View style={{paddingVertical: 15}}>
                       <NestedDeptDropdown
-                        onSelect={value => setFieldValue('selectedDeptID', value)} // Set value to Formik
-                        selectedValue={values.selectedDeptID} // Pass current value from Formik
+                        onSelect={value =>
+                          setFieldValue('selectedDeptID', selectedUser?.department_id)
+                        } 
+                        selectedValue={values.selectedDeptID.toString()}
+                        placeholder={
+                          selectedUser
+                            ? selectedUser.department_name
+                            : 'Select a department'
+                        }
                       />
                       {touched.selectedDeptID && errors.selectedDeptID && (
                         <Text style={styles.errorText}>
@@ -1514,14 +1528,14 @@ const ManageUsers: React.FC = () => {
                         gap: 14,
                       }}>
                       <TouchableOpacity
-                        style={styles.submitButton}
-                        onPress={handleSubmit}>
-                        <Text style={styles.submitButtonText}>Submit</Text>
+                        style={styles.closeButton}
+                        onPress={() => setisEditModalVisible(false)}>
+                        <Text style={styles.closeButtonText}>Close</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={styles.submitButton}
-                        onPress={() => setisEditModalVisible(false)}>
-                        <Text style={styles.submitButtonText}>Close</Text>
+                        onPress={handleSubmit}>
+                        <Text style={styles.submitButtonText}>Submit</Text>
                       </TouchableOpacity>
                     </View>
                   </>
@@ -1556,14 +1570,14 @@ const ManageUsers: React.FC = () => {
                   gap: 14,
                 }}>
                 <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={handleDeleteMultipleUsers}>
-                  <Text style={styles.submitButtonText}>Delete</Text>
+                  style={styles.closeButton}
+                  onPress={() => setisMultipleDeleteModalVisible(false)}>
+                  <Text style={styles.closeButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={() => setisMultipleDeleteModalVisible(false)}>
-                  <Text style={styles.submitButtonText}>Cancel</Text>
+                  onPress={handleDeleteMultipleUsers}>
+                  <Text style={styles.submitButtonText}>Delete</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1587,7 +1601,14 @@ const ManageUsers: React.FC = () => {
                 {` ${allSelectedUsersID.length} users`}
               </Text>
 
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
+              <NestedDeptDropdown
+                onSelect={handleDeptSelect} // Set value to Formik
+                placeholder={
+                  selectedUser
+                    ? selectedUser.department_name
+                    : 'Select a department'
+                }
+              />
 
               {/* Buttons */}
               <View
@@ -1597,14 +1618,14 @@ const ManageUsers: React.FC = () => {
                   gap: 14,
                 }}>
                 <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={handleUpdateMultipleUsersDepartment}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
+                  style={styles.closeButton}
+                  onPress={() => setisMultipleAssignDeptModalVisible(false)}>
+                  <Text style={styles.closeButtonText}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={() => setisMultipleAssignDeptModalVisible(false)}>
-                  <Text style={styles.submitButtonText}>Cancel</Text>
+                  onPress={handleUpdateMultipleUsersDepartment}>
+                  <Text style={styles.submitButtonText}>Submit</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1651,14 +1672,14 @@ const ManageUsers: React.FC = () => {
                 gap: 14,
               }}>
               <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleUpdateMultipleUsersRole}>
-                <Text style={styles.submitButtonText}>Submit</Text>
+                style={styles.closeButton}
+                onPress={() => setisMultipleRoleAssignModalVisible(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.submitButton}
-                onPress={() => setisMultipleRoleAssignModalVisible(false)}>
-                <Text style={styles.submitButtonText}>Close</Text>
+                onPress={handleUpdateMultipleUsersRole}>
+                <Text style={styles.submitButtonText}>Submit</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1694,6 +1715,7 @@ const ManageUsers: React.FC = () => {
                       console.log('Selected Role ID:', itemValue); // Log the selected value
                     }}
                     style={styles.input}>
+                    <Picker.Item label="Select a user" value="" color="#aaa" />
                     {userRole.map(role => (
                       <Picker.Item
                         key={role.role_id}
@@ -1720,6 +1742,7 @@ const ManageUsers: React.FC = () => {
                       console.log('Selected Reporting Manager ID:', itemValue); // Log the selected value
                     }}
                     style={styles.input}>
+                    <Picker.Item label="Select a user" value="" color="#aaa" />
                     {users.map((user, index) => (
                       <Picker.Item
                         key={index}
@@ -1731,7 +1754,14 @@ const ManageUsers: React.FC = () => {
                 </View>
               </View>
               <View style={styles.nestedDropDownContainer}>
-                <NestedDeptDropdown onSelect={handleDeptSelect} />
+                <NestedDeptDropdown
+                  onSelect={handleDeptSelect} // Set value to Formik
+                  placeholder={
+                    selectedUser
+                      ? selectedUser.department_name
+                      : 'Select a department'
+                  }
+                />
               </View>
               <View
                 style={{
@@ -1739,18 +1769,9 @@ const ManageUsers: React.FC = () => {
                   justifyContent: 'center',
                   gap: 14,
                 }}>
-                <TouchableOpacity
-                  style={styles.submitButton}
-                  onPress={() => {
-                    // setFilterModalVisible(false);
-                    handleFilterSubmit();
-                  }}>
-                  <Text style={styles.submitButtonText}>Submit</Text>
-                </TouchableOpacity>
-
                 {/* Close Button */}
                 <TouchableOpacity
-                  style={styles.submitButton}
+                  style={styles.closeButton}
                   onPress={() => {
                     // Reset all the states here
                     setSelectedRoleID(-1);
@@ -1759,7 +1780,15 @@ const ManageUsers: React.FC = () => {
                     fetchUser(); // Call fetchUser to refresh the data
                     setFilterModalVisible(false); // Close the filter modal
                   }}>
-                  <Text style={styles.submitButtonText}>Clear Filter</Text>
+                  <Text style={styles.closeButtonText}>Clear Filter</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => {
+                    // setFilterModalVisible(false);
+                    handleFilterSubmit();
+                  }}>
+                  <Text style={styles.submitButtonText}>Submit</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1836,8 +1865,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 15, // Reduced padding to make the modal smaller and compact
     position: 'absolute',
-    top: '20%',  // Position it below the desired section
-    right: 0,    // Keep it on the right side
+    top: '20%', // Position it below the desired section
+    right: 0, // Keep it on the right side
     zIndex: 100, // Ensure it's above other content
   },
 
@@ -1870,10 +1899,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 40,
     position: 'absolute',
-    top: '20%',  // Adjust to make the modal appear below a specific section (like "Filter Options")
-    right: 0,    // Position it on the right side
+    top: '20%', // Adjust to make the modal appear below a specific section (like "Filter Options")
+    right: 10, // Position it on the right side
     zIndex: 100, // Ensure it's above other content
     flexGrow: 1,
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)',
   },
   inputRow: {
     flexDirection: 'row',
@@ -2004,18 +2034,19 @@ const styles = StyleSheet.create({
     height: '70%',
     justifyContent: 'space-between',
   },
+
   closeButton: {
-    backgroundColor: '#044086',
     paddingVertical: 10,
     borderRadius: 5,
     marginTop: 15,
     marginRight: 10,
     paddingHorizontal: 16,
-
+    color: '#232323',
     alignSelf: 'flex-end',
   },
+
   closeButtonText: {
-    color: 'white',
+    color: '#232323',
     fontSize: 16,
     textAlign: 'center',
   },
