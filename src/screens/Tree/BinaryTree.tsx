@@ -96,7 +96,9 @@ interface BinaryTree {
 const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
   const [tree, setTree] = useState<any>(null);
   const [maxWidth, setMaxWidth] = useState(0);
-  const screenWidth = Dimensions.get("window").width; // Get screen width dynamically
+  const [maxHeight, setMaxHeight] = useState(0);
+  const screenWidth = Dimensions.get("window").width;
+  const Height = Dimensions.get("window").height; // Get screen width dynamically
   const parentWidth = screenWidth / 2; 
  
 
@@ -182,9 +184,11 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
   const verticalSpacing = 100;
   const horizontalSpacing = 200;
   return (
-    <View style={{ flex: 2,overflow: 'hidden',justifyContent:'center' }}>
+    
+    <View style={{ flex: 1, overflow: 'hidden', justifyContent: 'center'  }}>
        <ScrollView
-      style={{ flex: 1 }}
+       
+      style={{ flex: 1   }}
       contentContainerStyle={{
         width: maxWidth + 350,
         justifyContent: 'center',
@@ -193,14 +197,20 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
       horizontal
       showsHorizontalScrollIndicator={true}
     >
-      <ScrollView
-        contentContainerStyle={styles.verticalScrollContent}
+      {/* <ScrollView
         style={{ flex: 1 }}
-        showsVerticalScrollIndicator={true}
-      >
+        contentContainerStyle={{
+          width: maxWidth + 350,
+          justifyContent: 'center',
+          alignItems: 'center', 
+          minHeight: Height + 300 // Align content centrally
+        }}
+        showsVerticalScrollIndicator={true} // Enable vertical scroll indicator
+        //contentContainerStyle={{ minHeight: Height + 300 }}
+      > */}
     <svg
     width={maxWidth + 300}
-      height="500"
+      height={Height+300}
       style={{ border: "1px solid #000" }}
     >
       {tree ? (
@@ -222,17 +232,19 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
       )}
     </svg>
     </ScrollView>
-    </ScrollView>
+   
     </View>
   );
 };
 
 export default BinaryTree;
-const styles = StyleSheet.create({
+/* const styles = StyleSheet.create({
   verticalScrollContent: {
-    flexDirection: 'column',
+    flex: 1,
+    //flexDirection: 'column',
     justifyContent: 'flex-start',
-    paddingBottom: 20,
-   maxHeight:'100%'
-  },
-});
+    //paddingBottom: 20,
+   maxHeight:'100%',
+   flexGrow:1 
+  }, */
+/* }); */

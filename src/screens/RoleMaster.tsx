@@ -481,7 +481,7 @@ const RoleMaster = () => {
       const response = await fetch(uri, {
         method: 'GET',
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `${token}`,
         },
       });
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, TextInput, StyleSheet, Alert, Modal, Button, Dimensions, ScrollView } from 'react-native';
-import { Menu, Provider } from 'react-native-paper';
+import { IconButton, Menu, Provider } from 'react-native-paper';
 import MenuItem from 'react-native-paper/lib/typescript/components/Menu/MenuItem';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { Picker } from '@react-native-picker/picker';
 import BinaryTree from './Tree/BinaryTree';
-import { DeleteDept, GetDept, GetUsers, InsertDept } from '../database/Departments';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const DepartmentList = () => {
@@ -32,12 +32,26 @@ const DepartmentList = () => {
     department_level: 1,
     is_active: true,
   });
-
+  
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await GetUsers('');
-        const data = JSON.parse(response);
+        const token = await AsyncStorage.getItem('Token');  // Get token from AsyncStorage
+
+        if (!token) {
+          console.error('No token found in AsyncStorage');
+          return;
+        }
+        const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_users',
+          {
+            method: 'GET',  
+            headers: {
+              'Content-Type': 'application/json', 
+              'Authorization': `${token}`,  
+            },
+          }
+        );
+        const data = await response.json();
         if (data.status === 'success' && data.data && Array.isArray(data.data.users)) {
           setUsers(data.data.users);
         } else {
@@ -60,8 +74,17 @@ const DepartmentList = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await GetDept('');
-        const result = JSON.parse(response);
+        const token = await AsyncStorage.getItem('Token'); 
+        const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+          , {
+            method: 'GET',  
+            headers: {
+              'Content-Type': 'application/json',  
+              'Authorization': `${token}`, 
+            },
+          }
+        );
+        const result = await response.json();
         const activeParentDepartments = result.data.departments.filter(
           (dept) => dept.is_active === true && dept.parent_department_id === null
         );
@@ -74,8 +97,17 @@ const DepartmentList = () => {
   }, []);
   const fetchDepartments = async () => {
     try {
-      const response = await GetDept('');
-      const result = JSON.parse(response);
+      const token = await AsyncStorage.getItem('Token'); 
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+        , {
+          method: 'GET',  // Make sure the method is GET
+          headers: {
+            'Content-Type': 'application/json',  // Set content type
+            'Authorization': `${token}`,  // Add the token to Authorization header
+          },
+        }
+      );
+      const result = await response.json();
       const activeParentDepartments = result.data.departments.filter(
         (dept) => dept.is_active === true && dept.parent_department_id === null
       );
@@ -86,8 +118,17 @@ const DepartmentList = () => {
   };
   const fetchSubDepartmentsHierarchy = async (parentId) => {
     try {
-      const response = await GetDept('');
-      const result = JSON.parse(response);
+      const token = await AsyncStorage.getItem('Token'); 
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+        , {
+          method: 'GET',  // Make sure the method is GET
+          headers: {
+            'Content-Type': 'application/json',  // Set content type
+            'Authorization': `${token}`,  // Add the token to Authorization header
+          },
+        }
+      );
+      const result = await response.json();
       const departments = result.data.departments;
   
       // Recursive function to build hierarchy
@@ -109,8 +150,17 @@ const DepartmentList = () => {
   // Fetch sub-departments based on parent department ID
   const fetchSubDepartments = async (parentId) => {
     try {
-      const response = await GetDept('');
-      const result = JSON.parse(response);
+      const token = await AsyncStorage.getItem('Token'); 
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+        , {
+          method: 'GET',  // Make sure the method is GET
+          headers: {
+            'Content-Type': 'application/json',  // Set content type
+            'Authorization': ` ${token}`,  // Add the token to Authorization header
+          },
+        }
+      );
+      const result = await response.json();
       const subDepts = result.data.departments.filter(
         (dept) => dept.is_active === true && dept.parent_department_id === parentId
       );
@@ -121,10 +171,17 @@ const DepartmentList = () => {
   };
 const handleDelete = async (departmentId) => {
   try {
-    const response = await DeleteDept({ department_id: departmentId })
-      const result = JSON.parse(response);
+    const token = await AsyncStorage.getItem('Token'); 
+    const response = await fetch('https://forge-testing-api.aadhidigital.com/master/delete_department', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${token}`, 
+      },
+      body: JSON.stringify({ department_id: departmentId }), 
+    });
 
-    if (result.message==="success") {
+    if (response.ok) {
       Alert.alert('Success', 'Department deleted successfully');
       setMenuVisible(null);
       fetchSubDepartments(null); 
@@ -141,7 +198,7 @@ const handleDelete = async (departmentId) => {
     setEditingDepartment(department);
     setNewDepartmentDetails({ ...department });
     setMenuVisible(null);
-    setHeadingDepartment(null);
+    //setHeadingDepartment(null);
   };
   const [expanded, setExpanded] = useState({});
   const [shouldFetch, setShouldFetch] = useState(false);
@@ -153,9 +210,17 @@ const handleDelete = async (departmentId) => {
     }
 
     try {
-      const response = await InsertDept({newDepartmentDetails})
-       const result = JSON.parse(response);
-      if (result.message==="success") {
+      const token = await AsyncStorage.getItem('Token'); 
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/insert_department', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`, 
+        },
+        body: JSON.stringify(newDepartmentDetails),
+      });
+
+      if (response.ok) {
         Alert.alert('Success', 'Department updated successfully');
         setEditingDepartment(null);
         setNewDepartmentDetails({});
@@ -202,11 +267,18 @@ const handleDelete = async (departmentId) => {
       department_head: selectedUser.user_id, // Directly use the user_id from selectedUser
     };
     try {
+      const token = await AsyncStorage.getItem('Token'); 
       console.log("Department to be sent: ", departmentToSend);
-      const response = await InsertDept({departmentToSend}) 
-      const result = JSON.parse(response);
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/insert_department', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`, 
+        },
+        body: JSON.stringify(departmentToSend),
+      });
 
-      if (result.message==="success") {
+      if (response.ok) {
         Alert.alert('Success', 'New department added successfully');
         setIsModalVisible(false);
         setNewDepartment({
@@ -249,6 +321,7 @@ const handleDelete = async (departmentId) => {
         </TouchableOpacity>
       );
     }
+    const { width: screenWidth } = Dimensions.get('window'); 
     
     return (
       <Menu
@@ -259,6 +332,7 @@ const handleDelete = async (departmentId) => {
             <Ionicons name="ellipsis-vertical" size={20} color="#000" />
           </TouchableOpacity>
         }
+        
       >
         <Menu.Item title="Edit" onPress={() => handleEdit(department)} />
         <Menu.Item title="Delete" onPress={() => handleDelete(department.department_id)} />
@@ -442,18 +516,29 @@ const renderSubDepartments = (department, level = 0) => {
 
   return (
     <Provider>
+      <ScrollView >
     <View style={styles.container}>
       {/* Left Table */}
       
       <View style={styles.leftPanel}>
+      <View style={styles.top}>
   <Text style={styles.header}>Departments</Text>
+  <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => setIsModalVisible(true)}>
+            <IconButton icon="plus" size={16} color="#044086" />
+            <Text style={[styles.actionText, {color: '#044086'}]}>
+              Add Department
+            </Text>
+          </TouchableOpacity>
+          </View>
   <ScrollView contentContainerStyle={styles.scrollViewContentDept}>
   <View style={styles.mainRow}>
-  <View style={[styles.row, styles.headingRow]}>
+  <View style={[styles.row]}>
     <Text style={styles.cell}>S.No</Text>
-    <Text style={styles.cell}>Name</Text>
-    <Text style={styles.cell}>Unit Head</Text>
-    <Text style={styles.cell}>Action</Text>
+    <Text style={[styles.cell,{ textAlign: 'right',paddingRight:25 }]}>Name</Text>
+    <Text style={[styles.cell,{ textAlign: 'right',paddingLeft:100 }]}>Department Head</Text>
+    <Text style={[styles.cell,{ textAlign: 'right' }]}>Action</Text>
   </View>
   <FlatList
     data={departments}
@@ -519,9 +604,9 @@ const renderSubDepartments = (department, level = 0) => {
       <Text style={styles.header}>{headingDepartment.department_name}</Text>
       
       <View style={[styles.row, styles.header]}>
-        <Text style={[styles.cell, { flex: 1 }]}>Name</Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
-          <Text style={[styles.cell, { textAlign: 'right' }]}>Unit Head</Text>
+        <Text style={[styles.cell, { }]}>Name</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', }}>
+          <Text style={[styles.cell, { textAlign: 'right' },{paddingLeft:30} ]}>Unit Head</Text>
           <Text style={[styles.cell, { textAlign: 'right' }]}>Action</Text>
         </View>
       </View>
@@ -534,9 +619,9 @@ const renderSubDepartments = (department, level = 0) => {
     </View>
     </ScrollView>
   
-  <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
+  {/* <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
     <Text style={styles.addText}>+ Add New Department</Text>
-  </TouchableOpacity>
+  </TouchableOpacity> */}
 </View>
 
 
@@ -544,18 +629,22 @@ const renderSubDepartments = (department, level = 0) => {
       {/* Right Panel */}
       <View style={styles.rightPanel}>
       {/* {subDepartments.map((department) => renderSubDepartments(department))} */}
-      <ScrollView 
-    contentContainerStyle={styles.scrollViewContent} 
-    horizontal={true} // Enable horizontal scrolling
-    style={{flex: 1}}  // Ensure this takes up available space
+     {/*  <ScrollView 
+  contentContainerStyle={styles.scrollViewContent} 
+  horizontal={true}  // Enable horizontal scrolling
+  style={{flex: 1}}   // Ensure this takes up available space
+> */}
+  <ScrollView 
+    contentContainerStyle={styles.verticalScrollContent} 
+    style={{flex: 1}}  // Ensure vertical scroll works independently
   >
-    <ScrollView 
-      contentContainerStyle={styles.verticalScrollContent} 
-      style={{flex: 1}}
-    >
-      <BinaryTree shouldFetch={shouldFetch} setShouldFetch={setShouldFetch} />
-    </ScrollView>
+    <View style={{flex: 1}}>  {/* Ensure BinaryTree component fills available space */}
+        <BinaryTree 
+          shouldFetch={shouldFetch} 
+          setShouldFetch={setShouldFetch} 
+        /></View>
   </ScrollView>
+{/* </ScrollView> */}
       {/* Heading */}
     {/*   {headingDepartment && (
         <Text style={styles.header}>{headingDepartment.department_name}</Text>
@@ -613,7 +702,7 @@ const renderSubDepartments = (department, level = 0) => {
             <Text style={styles.modalHeader}>Add New </Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="Department Name"
+              placeholder="Name"
               value={newDepartment.department_name}
               onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, department_name: text }))}
             />
@@ -665,7 +754,9 @@ const renderSubDepartments = (department, level = 0) => {
         </View>
       </Modal>
     </View>
+    </ScrollView>
     </Provider>
+    
   );
 };
 
@@ -685,7 +776,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRightWidth: 1,
     borderColor: '#ddd',
-    //padding: 10,
+    padding: 10,
   },
   rightPanel: {
     flex: 2,
@@ -713,6 +804,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
+    //paddingLeft:20,
     borderBottomWidth: 1,
     borderColor: '#ddd',
     
@@ -720,6 +812,8 @@ const styles = StyleSheet.create({
   cell: {
     flex: 1,
     fontSize: 14,
+    paddingLeft:20,
+    alignItems: 'flex-start'
   },
   actionContainer: {
     padding: 5,
@@ -833,8 +927,24 @@ const styles = StyleSheet.create({
     //padding: 10,
     backgroundColor: '#f5f5f5',
     borderRadius: 8,
-    //marginLeft: 20,
+   //alignItems: 'flex-start'
   },
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+  },
+  actionText: {
+    fontSize: 14,
+  },
+  top:{
+    paddingTop:20,
+    flexDirection: 'row',
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    paddingHorizontal: 16,
+    paddingBottom:20,
+  }
 });
 
 export default DepartmentList;

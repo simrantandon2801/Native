@@ -47,7 +47,7 @@ const IntegrationList = () => {
   ];
   const fetchData = async () => {
     try {
-        console.log('hi')
+        
       const response = await GetADIntegrationsForCustomer(customerId);
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') 

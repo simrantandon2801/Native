@@ -246,12 +246,6 @@ const ManagePrograms: React.FC = () => {
     fetchPrograms();
    
   }, []);
-/*   const [intakeData, setIntakeData] = useState([
-    { id: 1, programName: 'Program A', goal: 'To gain Progress', description: 'A detailed project overview crafted by the PMO, outlining objectives, scope, and strategies within the PPM framework.', impactedStakeholders: 'Business Function - Finance', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2024, createdOn: '13/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
-    { id: 2, programName: 'Program B', goal: 'Goal1', description: 'A detailed project overview...', impactedStakeholders: 'Tower- Product & Development', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2025, createdOn: '14/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
-    { id: 3, programName: 'Program C', goal: 'Goal2', description: 'A detailed project overview...', impactedStakeholders: 'Business Function - Finance', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2026, createdOn: '15/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
-  ]); */
-
   const handleDeletePress = (program_id) => {
     console.log(program_id)
     HandleDeleteProgram(program_id);  
@@ -302,84 +296,104 @@ const ManagePrograms: React.FC = () => {
     <PaperProvider>
       <View style={styles.container}>
         <Text style={styles.heading}>Strategic Programs</Text>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={openModal}>
-            <Text style={styles.buttonText}>
-              <Icon name="plus" size={14} color="#044086" style={styles.buttonIcon} /> Create New
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <View style={styles.buttonContent}>
-              <Icon name="table-column-plus-after" size={18} color="#044086" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>Set Column</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
-            <View style={styles.headerRow}>
-              {['', 'S.No.', 'P.ID', 'Program Name', 'Goal', 'Description', 'Program Owner', 'Approval Reqd',
-               'Approval Status', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
-                <Text key={index} style={styles.headerCell}>{header}</Text>
-              ))}
-            </View>
-            <ScrollView>
-              {ProgramData.map((programs, index) => (
-                <View key={programs.program_id} style={styles.row}>
-                  <View style={styles.cell}>
-                    <Checkbox status="unchecked" />
-                  </View>
-                  <Text style={styles.cell}>{index + 1}</Text>
-                  <Text style={styles.cell}>{programs.program_id}</Text>
-                  <Text style={styles.cell}>{programs.program_name}</Text>
-                  <Text style={styles.cell}>{programs.goal}</Text>
-                  <Text style={styles.cell} numberOfLines={1} ellipsizeMode="tail">{programs.description}</Text>
-                  <Text style={styles.cell}>{programs.program_owner}</Text>
-                  <Text style={styles.cell}>{programs.approvalRead}</Text>
-                  <Text style={styles.cell}>{programs.approvalStatus}</Text>
-                  <Text style={styles.cell}>{programs.target_year}</Text>
-                  <Text style={styles.cell}>{programs.created_at}</Text>
-                  <Text style={styles.cell}>{programs.status}</Text>
-                  <View style={[styles.cell, styles.actionCell]}>
-                    <Menu
-                      visible={programs.menuVisible}
-                      onDismiss={() => {
-                        const updatedIntakeData = ProgramData.map(item =>
-                          item.id === programs.id ? { ...item, menuVisible: false } : item
-                        );
-                        setProgramData(updatedIntakeData);
-                      }}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={(event) => {
-                            const { pageX, pageY } = event.nativeEvent;
-                            const updatedIntakeData = ProgramData.map(item =>
-                              item.program_id === programs.program_id
-                                ? { ...item, menuVisible: true, menuX: pageX, menuY: pageY }
-                                : { ...item, menuVisible: false }
-                            );
-                            setProgramData(updatedIntakeData);
-                          }}
-                        >
-                          <IconButton icon="dots-vertical" size={20} style={{ margin: 0, padding: 0 }} />
-                        </TouchableOpacity>
-                      }
-                      style={{
-                        position: 'absolute',
-                        left: programs.menuX ? programs.menuX - 120 : 0, 
-                        top: programs.menuY ? programs.menuY - 40 : 0, 
-                      }}
-                    >
-                      <Menu.Item  onPress={() => openModal(programs)} title="Edit" />
-                      <Menu.Item onPress={() => handleDeletePress(programs.program_id)} title="Delete" />
-                      <Menu.Item onPress={() => {}} title="Create Program" />
-                    </Menu>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
+        <View style={styles.buttonContainer1}>
+          <View style={styles.leftButtons}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="check-circle-outline" size={20} color="#C4C4C4" />
+              <Text style={styles.buttonText6}>Approve</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="delete-outline" size={20} color="#C4C4C4" />
+              <Text style={styles.buttonText6}>Delete</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="export" size={20} color="#C4C4C4" />
+              <Text style={styles.buttonText6}>Export</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
+          <View style={styles.centerButtons}>
+            <TouchableOpacity style={styles.button} onPress={openModal}>
+              <Text style={styles.buttonText}>
+                <Icon name="plus" size={14} color="#044086" style={styles.buttonIcon} /> Create New
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.button}>
+              <View style={styles.buttonContent}>
+                <Icon name="table-column-plus-after" size={18} color="#044086" style={styles.buttonIcon} />
+                <Text style={styles.buttonText}>Set Column</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.rightButtons}>
+            <TouchableOpacity style={styles.iconButton}>
+              <Icon name="filter-outline" size={20} color="#044086" />
+              <Text style={styles.buttonText}>Filter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.tableContainer}>
+          <View style={styles.headerRow}>
+            {['', 'S.No.', 'P.ID', 'Program Name', 'Goal', 'Description', 'Program Owner', 'Approval Reqd',
+             'Approval Status', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
+              <Text key={index} style={[styles.headerCell, styles.headerCellText, { flex: index < 3 ? 0.5 : index === 5 ? 1.5 : 1 }]}>{header}</Text>
+            ))}
+          </View>
+          <ScrollView>
+            {ProgramData.map((programs, index) => (
+              <View key={programs.program_id} style={styles.row}>
+                <View style={[styles.cell, { flex: 0.5 }]}>
+                  <Checkbox status="unchecked" />
+                </View>
+                <Text style={[styles.cell, { flex: 0.5 }]}>{index + 1}</Text>
+                <Text style={[styles.cell, { flex: 0.5 }]}>{programs.program_id}</Text>
+                <Text style={[styles.cell, { flex: 1 }]}>{programs.program_name}</Text>
+                <Text style={[styles.cell, { flex: 1 }]}>{programs.goal}</Text>
+                <Text style={[styles.cell, { flex: 1.5 }]} numberOfLines={1} ellipsizeMode="tail">{programs.description}</Text>
+                <Text style={[styles.cell, { flex: 1 }]}>{programs.program_owner}</Text>
+                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.approvalRead}</Text>
+                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.approvalStatus}</Text>
+                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.target_year}</Text>
+                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.created_at}</Text>
+                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.status}</Text>
+                <View style={[styles.cell, styles.actionCell, { flex: 0.5 }]}>
+                  <Menu
+                    visible={programs.menuVisible}
+                    onDismiss={() => {
+                      const updatedIntakeData = ProgramData.map(item =>
+                        item.id === programs.id ? { ...item, menuVisible: false } : item
+                      );
+                      setProgramData(updatedIntakeData);
+                    }}
+                    anchor={
+                      <TouchableOpacity
+                        onPress={(event) => {
+                          const { pageX, pageY } = event.nativeEvent;
+                          const updatedIntakeData = ProgramData.map(item =>
+                            item.program_id === programs.program_id
+                              ? { ...item, menuVisible: true, menuX: pageX, menuY: pageY }
+                              : { ...item, menuVisible: false }
+                          );
+                          setProgramData(updatedIntakeData);
+                        }}
+                      >
+                        <IconButton icon="dots-vertical" size={20} style={{ margin: 0, padding: 0 }} />
+                      </TouchableOpacity>
+                    }
+                    style={{
+                      position: 'absolute',
+                      left: programs.menuX ? programs.menuX - 120 : 0, 
+                      top: programs.menuY ? programs.menuY - 40 : 0, 
+                    }}
+                  >
+                    <Menu.Item  onPress={() => openModal(programs)} title="Edit" />
+                    <Menu.Item onPress={() => handleDeletePress(programs.program_id)} title="Delete" />
+                    <Menu.Item onPress={() => {}} title="Create Program" />
+                  </Menu>
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </View>
       <CreateNewIntakeModal visible={modalVisible} onClose={closeModal} EditProgram={EditProgram} onSubmit={handleSubmit}/>
     </PaperProvider>
@@ -397,9 +411,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
+  buttonContainer1: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: 10,
   },
   button: {
@@ -413,9 +434,26 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#044086',
     fontSize: 14,
+    marginLeft: 5,
   },
   buttonIcon: {
     marginRight: 5,
+  },
+  leftButtons: {
+    flexDirection: 'row',
+  },
+  centerButtons: {
+    flexDirection: 'row',
+    marginRight:178
+  },
+  rightButtons: {
+    flexDirection: 'row',
+  },
+  iconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    marginHorizontal: 5,
   },
   headerRow: {
     flexDirection: 'row',
@@ -425,10 +463,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   headerCell: {
-    width: 120,
-    fontWeight: 'bold',
+    flex: 1,
+    fontWeight: '600',
     fontSize: 12,
     paddingHorizontal: 5,
+    color: '#044086', 
+  },
+  headerCellText: {
+    color: '#757575', 
+    fontWeight: '600',
+    fontSize: 12,
   },
   row: {
     flexDirection: 'row',
@@ -437,7 +481,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   cell: {
-    width: 120,
+    flex: 1,
     fontSize: 12,
     paddingHorizontal: 5,
   },
@@ -534,6 +578,16 @@ const styles = StyleSheet.create({
   menuContainer: {
     maxHeight: 100, 
     maxWidth: 100,
+  },
+  icon: {
+    marginRight: 5,
+  },
+  buttonText6:{
+    color:'#C4C4C4'
+  },
+  tableContainer: {
+    flexDirection: 'column',
+    width: '100%',
   },
 });
 
