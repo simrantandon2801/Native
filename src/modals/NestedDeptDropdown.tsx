@@ -25,7 +25,9 @@ type DepartmentDropdownProps = {
 };
 
 type NestedDeptDropdownProps = {
-  onSelect: (departmentID: number) => void;
+  onSelect: (value: number) => void;
+  selectedValue: number; // Make sure it's included her
+
 };
 
 // Function to build Heiarchy
@@ -171,7 +173,7 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
   return (
     <View>
       <View style={styles.inputWrapper}>
-        <Text style={styles.label}>* Department</Text>
+        <Text style={styles.label}><Text style={{color: 'red'}}>*</Text> Department</Text>
 
         <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
           <View style={{flexDirection: 'row'}}>
@@ -213,9 +215,10 @@ const styles = StyleSheet.create({
     color: '#000',
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
-    minWidth: 'auto',
+    width: 420 ,
+    minWidth: 100,
   },
-  dropdownItem: {
+  dropdownItem: { 
     borderRadius: 5,
     padding: 10,
     fontSize: 16,
