@@ -1,12 +1,14 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
+import {getCustomerId} from '../core/Utils';
 
-  import { BASE_URL } from "@env";
+import { BASE_URL } from "@env";
 export const GetResources = async (query:string): Promise<string> => {
     try {
       //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
-      var uri = `${BASE_URL}/customeradmin/get_resources`;
+      let customerId = await getCustomerId();
+      var uri = `${BASE_URL}/customeradmin/get_resources?customer_id=${customerId}`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
       const token = await AsyncStorage.getItem('Token');
       console.log(uri);

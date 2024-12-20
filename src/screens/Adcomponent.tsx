@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, Text, View, FlatList, Button, CheckBox } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { TextInput } from 'react-native-paper';
+import { BASE_URL } from "@env";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {decodeBase64} from '../core/securedata';
 
 interface UserData {
   id: string;  
@@ -33,10 +36,27 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
   const [selectAll, setSelectAll] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchEnabled, setIsSearchEnabled] = useState(false);
+  const [customerID, setCustomerID] = useState('');
+  
+
+
+  let decodedCustomerID = '';
+  const getCustomerId = async () => {
+    try {
+      const localcustomerID = await AsyncStorage.getItem('Customer_ID');
+      decodedCustomerID = decodeBase64(localcustomerID || '');
+      console.log('Your Customer ID is ', decodedCustomerID);
+      setCustomerID(decodedCustomerID);
+      console.log('Your Customer ID is ', customerID);
+    } catch (err) {
+      console.log('Error fetching the customerID', err);
+    }
+  };
+
 
   const fetchDropdownOptions = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/integration/get_activedirectory_customer_integration?customer_id=1');
+      const response = await fetch(`${BASE_URL}/integration/get_activedirectory_customer_integration?customer_id=${decodedCustomerID}`);
       const result = await response.json();
       if (result.status === 'success' && Array.isArray(result.data)) {
         setDropdownOptions(result.data.map((item: any) => ({
@@ -119,15 +139,34 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
     item.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.mail?.toLowerCase().includes(searchQuery.toLowerCase()) 
   );
-  useEffect(() => {
-    fetchDropdownOptions();
-  }, []);
+  // useEffect(() => {
+  //   await getCustomerId(); // Wait for the customer ID to be fetched
+  //   fetchDropdownOptions();
+  // }, []);
 
-  useEffect(() => {
-    if (selectedOption) {
-      fetchData(selectedOption);
-    }
-  }, [selectedOption]);
+  // useEffect(() => {
+  //   if (selectedOption) {
+  //     fetchData(selectedOption);
+  //   }
+  // }, [selectedOption]);
+  // const fetchData1 = useCallback(async()=> {
+  //   await getCustomerId(); 
+  //   if (selectedOption) {
+  //     fetchData(selectedOption);
+  //   }
+  // }, [selectedOption])
+
+   useEffect(() => {
+      const fetch = async () => {
+        await getCustomerId(); // Wait for the customer ID to be fetched
+        fetchDropdownOptions();
+        if (selectedOption) {
+          fetchData(selectedOption);
+        }
+      };
+      fetch(); // Call the async function
+    }, []);
+  
 
   return (
     <View style={styles.container}>
