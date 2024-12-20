@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 import { Button, ActivityIndicator } from 'react-native-paper';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { BASE_URL } from "@env";
 
 export type HomeStackNavigatorParamList = {
   LoginScreen: {};
@@ -69,7 +70,7 @@ const SignupScreen = () => {
 
     async function registerUser() {
       try {
-        const response = await fetch('https://underbuiltapi.aadhidigital.com/auth/Register', {
+        const response = await fetch(`${BASE_URL}/auth/Register`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
