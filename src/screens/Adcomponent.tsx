@@ -5,6 +5,7 @@ import { TextInput } from 'react-native-paper';
 import { BASE_URL } from "@env";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
+import {getCustomerId} from '../core/Utils';
 
 interface UserData {
   id: string;  
@@ -40,22 +41,13 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
   
 
 
-  let decodedCustomerID = '';
-  const getCustomerId = async () => {
-    try {
-      const localcustomerID = await AsyncStorage.getItem('Customer_ID');
-      decodedCustomerID = decodeBase64(localcustomerID || '');
-      console.log('Your Customer ID is ', decodedCustomerID);
-      setCustomerID(decodedCustomerID);
-      console.log('Your Customer ID is ', customerID);
-    } catch (err) {
-      console.log('Error fetching the customerID', err);
-    }
-  };
+ 
+
 
 
   const fetchDropdownOptions = async () => {
     try {
+      let decodedCustomerID = await getCustomerId();
       const response = await fetch(`${BASE_URL}/integration/get_activedirectory_customer_integration?customer_id=${decodedCustomerID}`);
       const result = await response.json();
       if (result.status === 'success' && Array.isArray(result.data)) {
@@ -74,7 +66,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
 
   const fetchData = async (optionValue: string) => {
     try {
-      const response = await fetch(`https://underbuiltapi.aadhidigital.com/integration/get_users?Integration_customer_id=${optionValue}`);
+      const response = await fetch(`${BASE_URL}/integration/get_users?Integration_customer_id=${optionValue}`);
       const result = await response.json();
       if (result.status === 'success' && result.data?.users) {
         setData(result.data.users);  // Access the users array inside the data object
@@ -102,7 +94,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
         userPrincipalName: item.userPrincipalName,
         id: item.id,
       }));
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/integration/addUpdate_ADUsers', {
+      const response = await fetch(`${BASE_URL}/integration/addUpdate_ADUsers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -158,7 +150,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
 
    useEffect(() => {
       const fetch = async () => {
-        await getCustomerId(); // Wait for the customer ID to be fetched
+        //await getCustomerId(); // Wait for the customer ID to be fetched
         fetchDropdownOptions();
         if (selectedOption) {
           fetchData(selectedOption);
