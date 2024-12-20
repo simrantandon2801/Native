@@ -25,9 +25,7 @@ type DepartmentDropdownProps = {
 };
 
 type NestedDeptDropdownProps = {
-  onSelect: (value: number) => void;
-  selectedValue: number; // Make sure it's included her
-
+  onSelect: (departmentID: number) => void;
 };
 
 // Function to build Heiarchy
@@ -129,7 +127,7 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
 };
 
 // Main Component
-const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
+const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hierarchy, setHierarchy] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -173,7 +171,7 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
   return (
     <View>
       <View style={styles.inputWrapper}>
-        <Text style={styles.label}><Text style={{color: 'red'}}>*</Text> Department</Text>
+       
 
         <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
           <View style={{flexDirection: 'row'}}>
@@ -215,10 +213,9 @@ const styles = StyleSheet.create({
     color: '#000',
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
-    width: 420 ,
-    minWidth: 100,
+    minWidth: 'auto',
   },
-  dropdownItem: { 
+  dropdownItem: {
     borderRadius: 5,
     padding: 10,
     fontSize: 16,
@@ -233,4 +230,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NestedDeptDropdown;
+export default NestedDeptDropdownGoals;

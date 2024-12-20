@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Dimensions, ScrollView, View } from "react-native";
+import { Alert, Dimensions, ScrollView, StyleSheet, View } from "react-native";
 import { GetDept } from "../../database/Tree";
 
 const Node = ({
@@ -96,7 +96,9 @@ interface BinaryTree {
 const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
   const [tree, setTree] = useState<any>(null);
   const [maxWidth, setMaxWidth] = useState(0);
-  const screenWidth = Dimensions.get("window").width; // Get screen width dynamically
+  const [maxHeight, setMaxHeight] = useState(0);
+  const screenWidth = Dimensions.get("window").width;
+  const Height = Dimensions.get("window").height; // Get screen width dynamically
   const parentWidth = screenWidth / 2; 
  
 
@@ -161,7 +163,7 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
   
       let width = 0;
       children.forEach((child) => {
-        const childWidth = calculateMaxWidth(child.children) + 200; // 200 is the horizontalSpacing
+        const childWidth = calculateMaxWidth(child.children) + 200; 
         if (childWidth > width) {
           width = childWidth;
         }
@@ -177,23 +179,38 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
       }
     }, [tree]);
  
-  const nodeWidth = 100; // Width of a single node
+  const nodeWidth = 100; 
   const rootOffsetX = parentWidth / 2 - nodeWidth / 2;
   const verticalSpacing = 100;
   const horizontalSpacing = 200;
   return (
-    <View style={{ flex: 2,overflow: 'hidden',justifyContent:'center' }}>
-      <ScrollView
-        horizontal
+    
+    <View style={{ flex: 1, overflow: 'hidden', justifyContent: 'center'  }}>
+       <ScrollView
+       
+      style={{ flex: 1   }}
+      contentContainerStyle={{
+        width: maxWidth + 350,
+        justifyContent: 'center',
+        alignItems: 'center', // Align content centrally
+      }}
+      horizontal
+      showsHorizontalScrollIndicator={true}
+    >
+      {/* <ScrollView
+        style={{ flex: 1 }}
         contentContainerStyle={{
-          width: maxWidth + 350, // 50px for some margin
-          justifyContent: 'center', // Center the content horizontally
+          width: maxWidth + 350,
+          justifyContent: 'center',
+          alignItems: 'center', 
+          minHeight: Height + 300 // Align content centrally
         }}
-        showsHorizontalScrollIndicator={true}
-      >
+        showsVerticalScrollIndicator={true} // Enable vertical scroll indicator
+        //contentContainerStyle={{ minHeight: Height + 300 }}
+      > */}
     <svg
     width={maxWidth + 300}
-      height="500"
+      height={Height+300}
       style={{ border: "1px solid #000" }}
     >
       {tree ? (
@@ -215,8 +232,19 @@ const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
       )}
     </svg>
     </ScrollView>
+   
     </View>
   );
 };
 
 export default BinaryTree;
+/* const styles = StyleSheet.create({
+  verticalScrollContent: {
+    flex: 1,
+    //flexDirection: 'column',
+    justifyContent: 'flex-start',
+    //paddingBottom: 20,
+   maxHeight:'100%',
+   flexGrow:1 
+  }, */
+/* }); */

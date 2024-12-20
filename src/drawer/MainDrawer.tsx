@@ -42,9 +42,10 @@ import RoadmapOverview from '../screens/RoadmapOverview';
 import Resources from '../screens/Resources';
 import IntakeList from '../screens/IntakeList';
 import AdminDashBoard from '../screens/AdminDashboard';
-import NewIntake from '../screens/NewIntake';
 import ManageGoals from '../screens/Goals/ManageGoals';
 import ManagePrograms from '../screens/Goals/ManagePrograms';
+import { MainDrawerNav } from '../database/MainDrawer';
+import BinaryTree from '../screens/Tree/BinaryTree';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -191,10 +192,10 @@ const MainDrawer: React.FC = () => {
       const decodedRoleId = decodeBase64(encodedRoleId ?? '');
       console.log('Decoded Role ID:', decodedRoleId);
 
-      const response = await fetch(
-        `https://underbuiltapi.aadhidigital.com/master/role_modules?role_id=${decodedRoleId}`,
-      );
-      const responseData: Module[] = await response.json();
+      const response = await 
+        MainDrawerNav (decodedRoleId)
+       
+        const responseData: Module[] = JSON.parse(response);
 
       console.log('Fetched Role Data:', JSON.stringify(responseData, null, 2)); // Log the full response
 
@@ -301,9 +302,8 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="IntakeList" component={IntakeList} />
           {/* <Drawer.Screen name="AdminDashboard" component={AdminDashBoard} /> */}
           <Drawer.Screen name="ManageGoals" component={ManageGoals} />
-          <Drawer.Screen name="NewIntake" component={NewIntake} />
-
           <Drawer.Screen name="ManagePrograms" component={ManagePrograms} />
+          <Drawer.Screen name="BinaryTree" component={BinaryTree} />
         
           {dynamicModules.map((module) => (
             <Drawer.Screen
