@@ -54,7 +54,7 @@ const LoginScreen: React.FC = () => {
     if (Object.keys(tempErrors).length > 0) return;
 
 
-        const uri = `${BASE_URL}auth/login`;
+        const uri = `${BASE_URL}/auth/login`;
         const payload = JSON.stringify({
           email: email,
           password: password,

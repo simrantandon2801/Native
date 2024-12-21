@@ -17,7 +17,7 @@ import { GetGoals } from '../../database/Goals';
 import { GetPrograms } from '../../database/ManageProgram';
 import { GetDept, GetUsers } from '../../database/Departments';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import { GetSequence, InsertDraft, InsertReview } from '../../database/Intake';
+import { GetSequence, InsertDraft, InsertReview, InsertSequence } from '../../database/Intake';
 import * as Yup from 'yup';
 
 const NewIntake = () => {
@@ -65,11 +65,35 @@ const NewIntake = () => {
   const [steps, setSteps] = useState([{ id: 1, forwardTo: '', designation: '', action: '' }]);
   const[sequence,setSequence]= useState([]);
   const [users, setUsers] = useState([]);
-/* 
+  const [sequenceName, setSequenceName] = useState('');
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
-  }; */
+  };
+  const [modalText, setModalText] = useState('Sending for Review');  // Default modal text
 
+  // Handlers to change modal text and show the popup
+  const handleApprovalClick = () => {
+    setModalText('Sending for Approval');
+    setIsPopupVisible(true);  // Show the popup
+  };
+
+  const handleReviewClick = () => {
+    setModalText('Sending for Review');
+    setIsPopupVisible(true);  // Show the popup
+  };
+  const [isNewButtonVisible, setIsNewButtonVisible] = useState(false);
+/*   const addStep = () => {
+    setSteps((prevSteps) => [
+      ...prevSteps,
+      { 
+        id: prevSteps.length + 1, 
+        forwardTo: '', 
+        department: '', // Add department field
+        designation: '', 
+        action: '' 
+      },
+    ]);
+  }; */
   const removeStep = (id) => {
     if (steps.length > 1) {
       const newSteps = steps.filter(step => step.id !== id).map((step, index) => ({
@@ -214,6 +238,23 @@ const NewIntake = () => {
     fetchBusinessOwner();
     fetchProjectOwner();
   }, []);
+   const fetchSequence = async () => {
+        try {
+          const response = await GetSequence('');
+          const result = JSON.parse(response);
+  
+          // Ensure the response format is correct and contains data
+          if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
+            setSequence(result.data); 
+          } else {
+            console.error("Invalid goals data");
+            Alert.alert("Error", "Invalid goals data received");
+          }
+        } catch (error) {
+          console.error('Error fetching sequences:', error);
+          Alert.alert("Error", "Error fetching sequences");
+        }
+      };
   const handleBusinessOwnerDept = (deptID: number) => {
     setBusinessOwnerDept(deptID); 
     console.log(`Selected Stakeholder: ${deptID}`);
@@ -305,36 +346,71 @@ const NewIntake = () => {
       }
     }
   };
-  const handleSubmit = async () => {
-    /* if (isCreatingSequence) {
-        // Call the sequence creation API
-        try {
-          //await createSequence(); // Replace with your actual API call
-          console.log('Sequence created successfully');
-    
-       
-          // Continue with submit logic
-          //await submitApproval(); // Replace with your submit logic
-        } catch (error) {
-          console.error('Error creating sequence:', error);
-        } finally {
-          setIsCreatingSequence(false);
+  /* const handleSubmit = async () => {
+    if (isCreatingSequence) {
+      // Step 1: Call the sequence creation API when creating a new sequence
+      const approvalSequenceDetails = steps.map((step, index) => ({
+        sequence_no: index + 1,  
+        user_id: step.forwardTo,  
+      }));
+      const payload1 = {
+        aprvl_seq_name: sequenceName,  // Set the sequence name dynamically as needed
+        approval_sequence_details: approvalSequenceDetails,  // Array of user IDs and their sequence numbers
+      };
+      console.log(payload1);
+      try {
+        await InsertSequence(payload1); 
+        console.log('Sequence created successfully');
+  
+        // Step 2: Proceed with submitting the approval once the sequence is created
+        //await submitApproval(); // Replace with your actual logic to submit approval after sequence creation
+        console.log('Approval submitted successfully');
+        
+        Alert.alert('Sequence created and approval submitted successfully!');
+        setIsPopupVisible(false); // Close the modal on success
+  
+      } catch (error) {
+        console.error('Error creating sequence or submitting approval:', error);
+        Alert.alert('Error occurred. Please try again.');
+      } finally {
+        setIsCreatingSequence(false); // Reset the flag
+      }
+    } else {
+      
+      const payload = {
+        aprvl_seq_id: approvalPathid,  // Send the selected approval sequence ID
+        // Add any other necessary data to the payload (e.g., project ID)
+      };
+  
+      try {
+        const response = await InsertReview(payload);  // Replace with your submit logic
+        const result = JSON.parse(response);
+  
+        if (result.status === 'success') {
+          Alert.alert('Submission successful!');
+          setIsPopupVisible(false); // Close the modal
+        } else {
+          Alert.alert('Failed to submit. Please try again.');
         }
-      } else { */
-    const payload = {
-        //project_id:,
-      aprvl_seq_id: approvalPathid,  // Sending the selected sequence ID
-      // Add any other necessary data here
+      } catch (error) {
+        console.error('Error submitting:', error);
+        Alert.alert('An error occurred while submitting. Please try again.');
+      }
+    }
+  }; */
+  const handleSubmit = async () => {
+    const payload2 = {
+      aprvl_seq_id: approvalPathid,  // Send the selected approval sequence ID
+      // Add any other necessary data here for the approval submission
     };
-
+  
     try {
-    
-      const response = await InsertReview(payload);
+      const response = await InsertReview(payload2);  // Replace with your actual API call
       const result = JSON.parse(response);
-
+  
       if (result.status === 'success') {
         Alert.alert('Submission successful!');
-        setIsPopupVisible(false);
+        setIsPopupVisible(false); // Close the modal on success
       } else {
         Alert.alert('Failed to submit. Please try again.');
       }
@@ -343,7 +419,32 @@ const NewIntake = () => {
       Alert.alert('An error occurred while submitting. Please try again.');
     }
   };
- 
+  const createSequence = async () => {
+    const approvalSequenceDetails = steps.map((step, index) => ({
+      sequence_no: index + 1,  // Sequence number based on index
+      user_id: step.forwardTo,  // User ID selected for each step
+    }));
+  
+    const payload1 = {
+      aprvl_seq_name: sequenceName,  // Name of the approval sequence (from input)
+      approval_sequence_details: approvalSequenceDetails,  // Array of user IDs with sequence numbers
+    };
+    console.log('Creating sequence with payload:', payload1);
+  
+    try {
+      // Call the API to create the sequence
+      await InsertSequence(payload1);  // Replace with your actual API call
+      console.log('Sequence created successfully');
+      Alert.alert('Sequence created successfully!');
+      setShowNewApprovalForm(false);
+      fetchSequence()
+      return true;  // Return true to indicate sequence creation success
+    } catch (error) {
+      console.error('Error creating sequence:', error);
+      Alert.alert('Error creating sequence. Please try again.');
+      return false;  // Return false if there was an error
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -744,20 +845,38 @@ const NewIntake = () => {
 
           {/* Bottom Buttons */}
           <View style={styles.bottomButtonsContainer}>
-            <TouchableOpacity style={styles.saveAsDraftButton} onPress={handleSaveAsDraft}>
-              <Icon name="save-outline" size={18} color="#044086" style={styles.saveIcon} />
-              <Text style={styles.saveAsDraftButtonText}>Save as draft</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.sendForReviewButton}
-              onPress={() => setIsPopupVisible(true)}
-            >
-              <Icon name="paper-plane-outline" size={18} color="#fff" style={styles.sendIcon} />
-              <Text style={styles.sendForReviewButtonText}>Send for review</Text>
-              <View style={styles.verticalLine} />
-                <Icon name={isApprovalButtonVisible ? "chevron-down" : "chevron-up"} size={18} color="#fff" style={styles.arrowIcon} />
-            </TouchableOpacity>
-          </View>
+          <View style={styles.leftButtonContainer}>
+  <TouchableOpacity style={styles.saveAsDraftButton}>
+    <Icon name="save-outline" size={18} color="#044086" style={styles.saveIcon} />
+    <Text style={styles.saveAsDraftButtonText}>Save as draft</Text>
+  </TouchableOpacity>
+  </View>
+
+  <View style={styles.rightButtonsContainer}>
+    {isNewButtonVisible && (
+      <TouchableOpacity 
+        style={styles.newButton}
+        onPress={handleApprovalClick}
+        /* onPress={() => setIsApprovalPopupVisible(true)} */
+      >
+        <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
+        <Text style={styles.newButtonText}>Send for Approval</Text>
+      </TouchableOpacity>
+    )}
+    <TouchableOpacity 
+      style={styles.sendForReviewButton}
+      onPress={handleReviewClick}
+    >
+      <Icon name="paper-plane-outline" size={18} color="#fff" style={styles.sendIcon} />
+      <Text style={styles.sendForReviewButtonText}>Send for review</Text>
+      <View style={styles.verticalLine} />
+      <TouchableOpacity onPress={() => setIsNewButtonVisible(!isNewButtonVisible)}>
+        <Icon name={isNewButtonVisible ? "chevron-up" : "chevron-down"} size={18} color="#fff" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  </View>
+</View>
+
         </View>
       </ScrollView>
 
@@ -775,7 +894,7 @@ const NewIntake = () => {
             >
               <Icon name="close" size={24} color="#000" />
             </TouchableOpacity>
-            <Text style={styles.popupHeading}>Sending for Approval</Text>
+            <Text style={styles.popupHeading}>{modalText}</Text>
             
             <ScrollView 
               style={styles.modalScrollView}
@@ -810,9 +929,11 @@ const NewIntake = () => {
                       </View>
 
                       <TextInput
-                        style={styles.newApprovalInput}
-                        placeholder="Enter text"
-                      />
+  style={styles.newApprovalInput}
+  placeholder="Enter text"
+  value={sequenceName}  
+  onChangeText={(text) => setSequenceName(text)}  
+/>
 
                       <View style={styles.columnsContainer}>
                         <View style={styles.columnsHeader}>
@@ -864,10 +985,15 @@ const NewIntake = () => {
                             </View>
                           </View>
                         ))}
+                         <View style={styles.popupButtonContainer}>
                         <TouchableOpacity style={styles.addStepButton} onPress={addStep}>
                           <Icon name="add" size={18} color="#044086" />
                           <Text style={styles.addStepButtonText}>Add Step</Text>
                         </TouchableOpacity>
+                        <TouchableOpacity style={styles.sequence} onPress={createSequence}>
+                <Text style={styles.popupSubmitButtonText}>Create Sequence</Text>
+              </TouchableOpacity>
+              </View>
                       </View>
                     </>
                   ) : (
@@ -878,23 +1004,27 @@ const NewIntake = () => {
                             Pick Approval Path <Text style={styles.asterisk}>*</Text>
                           </Text>
                           <View style={styles.approvalPathInput}>
-                            <Picker
-                              selectedValue={approvalPath}
-                              onValueChange={(itemValue) => setApprovalPathid(itemValue)}
-                              style={styles.input}
-                            >
-                               {sequence.length > 0 ? (
-        sequence.map((projectItem) => (
-          <Picker.Item 
-            key={projectItem.aprvl_seq_id} 
-            label={projectItem.aprvl_seq_name} 
-            value={projectItem.aprvl_seq_id} 
-          />
-        ))
-      ) : (
-        <Picker.Item label="No Approval path available" value="" />
-      )}
-                            </Picker>
+                          <Picker
+  key={approvalPath}
+  selectedValue={approvalPath}
+  onValueChange={(itemValue) => {
+    console.log("Selected Value:", itemValue);
+    setApprovalPathid(itemValue);
+  }}
+  style={styles.input}
+>
+  {sequence.length > 0 ? (
+    sequence.map((projectItem) => (
+      <Picker.Item
+        key={projectItem.aprvl_seq_id}
+        label={projectItem.aprvl_seq_name}
+        value={projectItem.aprvl_seq_id}
+      />
+    ))
+  ) : (
+    <Picker.Item label="No Approval path available" value="" />
+  )}
+</Picker>
                           </View>
                         </View>
                         <TouchableOpacity 
@@ -915,7 +1045,7 @@ const NewIntake = () => {
             </RadioButton.Group>
             </ScrollView>
             <View style={styles.popupButtonContainer}>
-              <TouchableOpacity style={styles.popupSubmitButton} onPress={handleSubmit}>
+              <TouchableOpacity style={styles.popupSubmitButton} onPress={createSequence}>
                 <Text style={styles.popupSubmitButtonText}>Submit</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.popupCancelButton} onPress={() => setIsPopupVisible(false)}>
@@ -1402,6 +1532,29 @@ const styles = StyleSheet.create({
       borderRadius: 5,
       paddingHorizontal: 10,
     },
+    rightButtonsContainer: {
+        // flex: 1,
+        gap: 8,
+      },
+      leftButtonContainer:{
+        alignSelf:'flex-start'
+      },  newButton: {
+        backgroundColor: '#fff',
+        padding: 10,
+        borderRadius: 5,
+        marginBottom: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        border:'1px solid #044086'
+      },
+      newButtonText: {
+        color: '#044086',
+        fontSize: 14,
+        fontWeight: '500',
+      },
+      newButtonIcon: {
+        marginRight: 5,
+      },
     pickerContainer: {
       width: '25%',
       height: 40,
@@ -1472,7 +1625,7 @@ const styles = StyleSheet.create({
     },
     addStepButton: {
       flexDirection: 'row',
-      alignItems: 'center',
+      //alignItems: 'center',
       justifyContent: 'center',
       borderRadius: 5,
       borderWidth: 1,
@@ -1482,6 +1635,19 @@ const styles = StyleSheet.create({
       marginTop: 10,
       alignSelf: 'center',
     },
+    sequence: {
+        flexDirection: 'row',
+        //alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 5,
+        borderWidth: 1,
+        borderColor: '#044086',
+        backgroundColor: '#044086',
+        padding: 7,
+        marginTop: 10,
+        alignSelf: 'center',
+        
+      },
     addStepButtonText: {
       color: '#044086',
       fontFamily: 'Source Sans Pro',

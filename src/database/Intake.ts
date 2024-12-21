@@ -67,3 +67,27 @@ export const InsertDraft = async (values: Object): Promise<string> => {
        throw Error('Failed' + error);
      }
   };
+
+
+
+  export const InsertSequence = async (values: Object): Promise<string> => {
+    try {
+      // 
+       //const UserID = await AsyncStorage.getItem('UserID');
+       var uri = `${BASE_URL}/utils/insert_sequence`;
+       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+       const token = await AsyncStorage.getItem('Token');  
+       console.log(uri);
+       var payload = JSON.stringify(values);
+       console.log(payload);
+       var jsonResult = await PostAsync_with_token(uri, payload,token);
+       //  
+       //
+       console.log(jsonResult);
+       return JSON.stringify(jsonResult ?? '');
+     } catch (error) {
+       console.error(error);
+       throw Error('Failed' + error);
+     }
+  };
+
