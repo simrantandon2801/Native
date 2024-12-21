@@ -6,7 +6,7 @@ import { BASE_URL } from "@env";
 
   export const GetDepartments = async (query:string): Promise<string> => {
     try {
-      debugger;
+      //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
       var uri = `${BASE_URL}/master/get_department?parent_department_id=${query}`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
@@ -21,9 +21,9 @@ import { BASE_URL } from "@env";
       throw Error('Failed' + error);
     }
   };
+  
 
-
-  export const GetUsers = async (query:string): Promise<string> => {
+  export const GetDept = async (query:string): Promise<string> => {
     try {
       debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
@@ -41,9 +41,9 @@ import { BASE_URL } from "@env";
     }
   };
 
-  export const GetDept = async (query:string): Promise<string> => {
+  export const GetUsers = async (query:string): Promise<string> => {
     try {
-      debugger;
+      //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
       var uri = `${BASE_URL}/master/get_users`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';

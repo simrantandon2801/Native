@@ -24,11 +24,11 @@ type DepartmentDropdownProps = {
   parentPath?: string;
 };
 
-type NestedDeptDropdownProps = {
+interface NestedDeptDropdownProps {
   onSelect: (value: number) => void;
-  selectedValue: number; // Make sure it's included her
-
-};
+  selectedValue: string;
+  placeholder: string;
+}
 
 // Function to build Heiarchy
 const createHierarchy = (departments: Department[]): Department[] => {
@@ -69,7 +69,7 @@ const buildHierarchyPath = (
       `${currentDept.department_name}`,
     ); // Add to the start of the path
     currentDept = departments.find(
-      dept => dept.department_id === currentDept.parent_department_id,
+      dept => dept.department_id === currentDept?.parent_department_id,
     );
   }
 
@@ -129,7 +129,7 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
 };
 
 // Main Component
-const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
+const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({ onSelect, selectedValue, placeholder }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hierarchy, setHierarchy] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -181,7 +181,7 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
               style={[styles.textInput, {cursor: 'pointer'}]}
               value={selectedDepartment}
               editable={false}
-              placeholder="Select a department"
+              placeholder={placeholder}
             />
             <Icon name="chevron-down" size={20} />
           </View>

@@ -380,18 +380,14 @@ const Resources: React.FC = () => {
   };
 
   // Handle individual user selection
-  const handleUserSelection = (user_id: number) => {
-    const isSelected = allSelectedUsersID.includes(user_id);
+  const handleUserSelection = (resource_id: number) => {
+    const isSelected = allSelectedUsersID.includes(resource_id);
 
     if (isSelected) {
-      // Deselect user
-      setAllSelectedUsersID(allSelectedUsersID.filter(id => id !== user_id));
+      setAllSelectedUsersID(allSelectedUsersID.filter(id => id !== resource_id));
     } else {
-      // Select user
-      setAllSelectedUsersID([...allSelectedUsersID, user_id]);
+      setAllSelectedUsersID([...allSelectedUsersID, resource_id]);
     }
-
-    // Log the current state of allSelectedUsersID to check if it's being updated
     console.log('Selected User IDs:', allSelectedUsersID);
   };
 
@@ -402,14 +398,14 @@ const Resources: React.FC = () => {
     };
     console.log('Multiple User Department Payload', payload);
     try {
-      const response = await updateMultipleUsersDepartment(payload); // API call to delete user
+      const response = await updateMultipleUsersDepartment(payload); 
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         console.log(
           'All the users you selected are now assigned the selected Department',
         );
         //set
-        setisMultipleAssignDeptModalVisible(false); // Close the modal after successful deletion
+        setisMultipleAssignDeptModalVisible(false); 
         fetchUser();
       } else {
         console.error(
@@ -429,13 +425,13 @@ const Resources: React.FC = () => {
     };
     console.log('Multiple User Role Assigning Payload', payload);
     try {
-      const response = await updateMultipleUsersRole(payload); // API call to delete user
+      const response = await updateMultipleUsersRole(payload); 
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         console.log(
           'All the users you selected are now assigned the selected Role',
         );
-        setisMultipleRoleAssignModalVisible(false); // Close the modal after successful deletion
+        setisMultipleRoleAssignModalVisible(false); 
         fetchUser();
       } else {
         console.error('Failed to assign this role to user:', parsedRes.message); // Handle failure
