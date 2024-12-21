@@ -39,27 +39,30 @@ import AdComponent from './Adcomponent';
 import {navigate} from '../navigations/RootNavigation';
 
 interface User {
-  user_id: number;
-  username: string;
-  email: string;
+  resource_id: number;
+  customer_id: number;
+  department_id: number;
   first_name: string;
   last_name: string;
-  customer_id: number | null;
-  reporting_to: number | null;
-  approval_limit: number | null;
-  created_at: string;
-  updated_at: string;
-  created_by: number;
-  updated_by: number | null;
+  email: string;
+  designation: string;
+  user_id: number | null;
+  reporting_to: number;
+  start_date: string | null;
+  end_date: string | null;
+  availability_percentage: number | null;
+  average_cost: number;
   is_active: boolean;
-  is_deleted: boolean;
-  department_id: number | null;
-  average_cost: number | null;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+  updated_by: string | null;
+  external_resource: boolean;
+  resource_type_id: number | null;
+  role_id: number | null;
   phone: string | null;
-  source: string | null;
-  designation: string | null;
   manager_name: string | null;
-  department_name: string | null;
+  department_name: string;
   role_name: string | null;
 }
 
@@ -364,7 +367,7 @@ const Resources: React.FC = () => {
     if (selectAllChecked) {
       setAllSelectedUsersID([]); // Deselect all users
     } else {
-      const selectedUserIds = users.map(user => user.user_id); // Select all users
+      const selectedUserIds = users.map(user => user.resource_id); // Select all users
       setAllSelectedUsersID(selectedUserIds);
       console.log('Selected Users ID:', selectedUserIds); // Log the array
     }
@@ -372,18 +375,14 @@ const Resources: React.FC = () => {
   };
 
   // Handle individual user selection
-  const handleUserSelection = (user_id: number) => {
-    const isSelected = allSelectedUsersID.includes(user_id);
+  const handleUserSelection = (resource_id: number) => {
+    const isSelected = allSelectedUsersID.includes(resource_id);
 
     if (isSelected) {
-      // Deselect user
-      setAllSelectedUsersID(allSelectedUsersID.filter(id => id !== user_id));
+      setAllSelectedUsersID(allSelectedUsersID.filter(id => id !== resource_id));
     } else {
-      // Select user
-      setAllSelectedUsersID([...allSelectedUsersID, user_id]);
+      setAllSelectedUsersID([...allSelectedUsersID, resource_id]);
     }
-
-    // Log the current state of allSelectedUsersID to check if it's being updated
     console.log('Selected User IDs:', allSelectedUsersID);
   };
 
@@ -394,14 +393,14 @@ const Resources: React.FC = () => {
     };
     console.log('Multiple User Department Payload', payload);
     try {
-      const response = await updateMultipleUsersDepartment(payload); // API call to delete user
+      const response = await updateMultipleUsersDepartment(payload); 
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         console.log(
           'All the users you selected are now assigned the selected Department',
         );
         //set
-        setisMultipleAssignDeptModalVisible(false); // Close the modal after successful deletion
+        setisMultipleAssignDeptModalVisible(false); 
         fetchUser();
       } else {
         console.error(
@@ -421,13 +420,13 @@ const Resources: React.FC = () => {
     };
     console.log('Multiple User Role Assigning Payload', payload);
     try {
-      const response = await updateMultipleUsersRole(payload); // API call to delete user
+      const response = await updateMultipleUsersRole(payload); 
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
         console.log(
           'All the users you selected are now assigned the selected Role',
         );
-        setisMultipleRoleAssignModalVisible(false); // Close the modal after successful deletion
+        setisMultipleRoleAssignModalVisible(false); 
         fetchUser();
       } else {
         console.error('Failed to assign this role to user:', parsedRes.message); // Handle failure
@@ -585,11 +584,11 @@ const Resources: React.FC = () => {
             <DataTable.Row style={styles.table} key={user.user_id}>
               <Checkbox
                 status={
-                  allSelectedUsersID.includes(user.user_id)
+                  allSelectedUsersID.includes(user.resource_id)
                     ? 'checked'
                     : 'unchecked'
                 }
-                onPress={() => handleUserSelection(user.user_id)}
+                onPress={() => handleUserSelection(user.resource_id)}
               />
               <DataTable.Cell style={{justifyContent: 'center'}}>
                 {index + 1}
