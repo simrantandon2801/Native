@@ -9,6 +9,7 @@ import {
   ScrollView,
   Modal,
   Alert,
+  Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
@@ -17,8 +18,14 @@ import { GetGoals } from '../../database/Goals';
 import { GetPrograms } from '../../database/ManageProgram';
 import { GetDept, GetUsers } from '../../database/Departments';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import { GetSequence, InsertDraft, InsertReview, InsertSequence } from '../../database/Intake';
+import { GetSequence, InsertApproval, InsertDraft, InsertReview, InsertSequence } from '../../database/Intake';
 import * as Yup from 'yup';
+import { Formik } from 'formik';
+import DatePicker from 'react-datepicker'; 
+import 'react-datepicker/dist/react-datepicker.css';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+
 
 const NewIntake = () => {
   // States
@@ -37,7 +44,9 @@ const NewIntake = () => {
   const [budget, setBudget] = useState('');
   const [projectSize, setProjectSize] = useState('');
   const [startDate, setStartDate] = useState('');
+  //const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState('');
+  //const [endDate, setEndDate] = useState<Date | null>(null);
   const [goLiveDate, setGoLiveDate] = useState('');
   const [businessProblem, setBusinessProblem] = useState('');
   const [scopeDefinition, setScopeDefinition] = useState('');
@@ -47,8 +56,11 @@ const NewIntake = () => {
   const [isChecked, setIsChecked] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
+  const [selectedOptionApp, setSelectedOptionApp] = useState('');
   const [approvalPath, setApprovalPath] = useState('');
+  const [approvalPathidApp, setApprovalPathidApp] = useState('');
   const [approvalPathid, setApprovalPathid] = useState('');
+  const [approvalPathOther, setApprovalPathOther] = useState('');
   const [goals, setGoals] = useState([]);
   const [goalSelected, setGoalSelected] = useState('');
   const[programData,setProgramData]= useState([]);
@@ -57,7 +69,7 @@ const NewIntake = () => {
   const[projectMgr,setprojectMgr]= useState([]);
   const [roi, setRoi] = useState('');
   const [risk, setRisk] = useState('');
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
   const [designation, setDesignation] = useState('');
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
@@ -66,6 +78,13 @@ const NewIntake = () => {
   const[sequence,setSequence]= useState([]);
   const [users, setUsers] = useState([]);
   const [sequenceName, setSequenceName] = useState('');
+  const [projectId, setProjectId] = useState('');
+  const [isApprovalPopupVisible, setIsApprovalPopupVisible] = useState(false);
+  
+  const [rawStartDate, setRawStartDate] = useState(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [rawEndDate, setRawEndDate] = useState(null); 
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
   };
@@ -74,12 +93,12 @@ const NewIntake = () => {
   // Handlers to change modal text and show the popup
   const handleApprovalClick = () => {
     setModalText('Sending for Approval');
-    setIsPopupVisible(true);  // Show the popup
+    setIsPopupVisible(true);  
   };
 
   const handleReviewClick = () => {
     setModalText('Sending for Review');
-    setIsPopupVisible(true);  // Show the popup
+    setIsPopupVisible(true); 
   };
   const [isNewButtonVisible, setIsNewButtonVisible] = useState(false);
 /*   const addStep = () => {
@@ -269,23 +288,33 @@ const NewIntake = () => {
 
 
   const validationSchema = Yup.object().shape({
-    project_name: Yup.string().required('Project Name is required'),
+    nameTitle: Yup.string().required('Name/Title is required'),
     classification: Yup.string().required('Classification is required'),
-    goal_id: Yup.string().required('Goal is required'),
-    program_id: Yup.string().required('Program is required'),
-    start_date: Yup.string().required('Start Date is required'),
-    end_date: Yup.string().required('End Date is required'),
-    golive_date: Yup.string().required('Go Live Date is required'),
-    business_stakeholder_dept: Yup.number()
-      .min(0, 'Please select a Business Owner Department')
-      .required('Business Owner Department is required'),
-    project_owner_dept: Yup.number()
-      .min(0, 'Please select a Project Owner Department')
-      .required('Project Owner Department is required'),
+    goalSelected: Yup.string().required('Goal is required'),
+    program: Yup.string().required('Program is required'),
+    businessOwner: Yup.string().required('Business Owner is required'),
+    businessOwnerDept: Yup.string().required('Business Owner Department is required'),
+    projectOwner: Yup.string().required('Project Owner is required'),
+    projectOwnerDept: Yup.string().required('Project Owner Department is required'),
+    projectManager: Yup.string().required('Project Manager is required'),
+    impactedFunction: Yup.string().required('Impacted Function is required'),
+    impactedApp: Yup.string().required('Impacted Application is required'),
+    priority: Yup.string().required('Priority is required'),
+    budget: Yup.string().required('Budget is required'),
+    projectSize: Yup.string().required('Project Size is required'),
+    startDate: Yup.date().required('Project Start Date is required'),
+    endDate: Yup.date().required('Project End Date is required'),
+    goLiveDate: Yup.date().required('Go Live Date is required'),
+    roi: Yup.number().required('ROI is required').positive('ROI must be a positive number'),
+    businessProblem: Yup.string().required('Business Problem/Description is required'),
+    scopeDefinition: Yup.string().required('Scope Definition is required'),
+    keyAssumption: Yup.string().required('Key Assumption is required'),
+    benefitsROI: Yup.string().required('Benefits/ROI is required'),
+    risk: Yup.string().required('Risk is required'),
   });
+  
 
-
-  const handleSaveAsDraft = async () => {
+  const handleSubmit = async () => {
     try {
       // Validate required fields
       if (!nameTitle || !classification || !goalSelected || !program || !startDate || !endDate || !goLiveDate) {
@@ -331,6 +360,38 @@ const NewIntake = () => {
   
       if (parsedResponse.status === 'success') {
         Alert.alert('Draft saved successfully');
+        const projectId = parsedResponse.data.project_id;
+      console.log('Project ID:', projectId);
+
+
+      setProjectId(projectId);
+      
+
+      setNameTitle('');
+      setClassification('');
+      setGoalSelected('');
+      setProgram('');
+      setBusinessOwner('');
+      setBusinessOwnerDept(0);
+      setProjectOwner('');
+      setProjectOwnerDept(0);
+      setProjectManager('');
+      setImpactedFunction('');
+      setImpactedApp('');
+      setPriority('');
+      setBudget('');
+      setProjectSize('');
+      setStartDate('');
+      setEndDate('');
+      setGoLiveDate('');
+      setRoi('');
+      setBusinessProblem('');
+      setScopeDefinition('');
+      setKeyAssumption('');
+      setBenefitsROI('');
+      setRisk('');
+
+      return projectId;
       } else {
         Alert.alert('Failed to save draft. Please try again.');
       }
@@ -398,31 +459,81 @@ const NewIntake = () => {
       }
     }
   }; */
-  const handleSubmit = async () => {
-    const payload2 = {
-      aprvl_seq_id: approvalPathid,  // Send the selected approval sequence ID
-      // Add any other necessary data here for the approval submission
-    };
-  
+  const handlereview = async () => {
     try {
-      const response = await InsertReview(payload2);  // Replace with your actual API call
-      const result = JSON.parse(response);
+      let currentProjectId = projectId;
   
-      if (result.status === 'success') {
-        Alert.alert('Submission successful!');
-        setIsPopupVisible(false); // Close the modal on success
+      if (!currentProjectId) {
+        currentProjectId = await handleSubmit(); 
+      }
+  
+      if (currentProjectId) {
+        const payload = {
+          aprvl_seq_id: Number(approvalPathid),
+          project_id: Number(currentProjectId),
+          type: "review",
+          approval_type: Number(selectedOption),
+        };
+  
+        const response = await InsertReview(payload); 
+        const result = JSON.parse(response);
+  
+        if (result.status === 'success') {
+          Alert.alert('Submission successful!');
+          setIsPopupVisible(false); 
+        } else {
+          Alert.alert('Failed to submit. Please try again.');
+        }
       } else {
-        Alert.alert('Failed to submit. Please try again.');
+        Alert.alert('Unable to retrieve project ID. Submission aborted.');
       }
     } catch (error) {
       console.error('Error submitting:', error);
       Alert.alert('An error occurred while submitting. Please try again.');
     }
   };
+  
+  const handleapproval = async () => {
+    try {
+      let currentProjectId = projectId;
+  
+      if (!currentProjectId) {
+        currentProjectId = await handleSubmit(); 
+      }
+  
+      if (currentProjectId) {
+        const payload = {
+          aprvl_seq_id: Number(approvalPathidApp),
+          project_id: Number(currentProjectId),
+          sento: "review",
+          approval_type: Number(selectedOptionApp),
+        };
+  
+        const response = await InsertApproval(payload); 
+        const result = JSON.parse(response);
+  
+        if (result.status === 'success') {
+          Alert.alert('Submission successful!');
+          setIsPopupVisible(false); 
+          setIsApprovalPopupVisible(false)
+        } else {
+          Alert.alert('Failed to submit. Please try again.');
+        }
+      } else {
+        Alert.alert('Unable to retrieve project ID. Submission aborted.');
+      }
+    } catch (error) {
+      console.error('Error submitting:', error);
+      Alert.alert('An error occurred while submitting. Please try again.');
+    }
+  };
+  
+  
   const createSequence = async () => {
     const approvalSequenceDetails = steps.map((step, index) => ({
       sequence_no: index + 1,  // Sequence number based on index
-      user_id: step.forwardTo,  // User ID selected for each step
+      user_id: step.forwardTo,
+      is_active: true,  // User ID selected for each step
     }));
   
     const payload1 = {
@@ -445,7 +556,56 @@ const NewIntake = () => {
       return false;  // Return false if there was an error
     }
   };
-  return (
+  const handleDateChange = (date) => {
+    setRawStartDate(date);
+    setStartDate(format(date, 'MMMM d, yyyy')); // Format date for the input field
+    setShowStartDatePicker(false); // Close the picker
+  };
+  const handleEndDateChange = (date) => {
+    setRawEndDate(date);
+    setEndDate(format(date, 'MMMM d, yyyy')); // Format date for the input field
+    setShowEndDatePicker(false); // Close the picker
+  };
+  return (<Formik
+    initialValues={{
+      nameTitle: '',
+      classification: '',
+      goalSelected: '',
+      program: '',
+      businessOwner: '',
+      businessOwnerDept: '',
+      projectOwner: '',
+      projectOwnerDept: '',
+      projectManager: '',
+      impactedFunction: '',
+      impactedApp: '',
+      priority: '',
+      budget: '',
+      projectSize: '',
+      startDate: '',
+      endDate: '',
+      goLiveDate: '',
+      roi: '',
+      businessProblem: '',
+      scopeDefinition: '',
+      keyAssumption: '',
+      benefitsROI: '',
+      risk: '',
+    }}
+    validationSchema={validationSchema}
+    onSubmit={(values) => {
+      console.log(values);
+    }}
+  >
+    {({
+      handleChange,
+      handleBlur,
+      handleSubmit,
+    
+      values,
+      errors,
+      touched,
+    }) => (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton}>
@@ -468,11 +628,13 @@ const NewIntake = () => {
               <Text style={styles.inputLabel}>
                 Name/Title <Text style={styles.asterisk}>*</Text>
               </Text>
+            
               <TextInput
                 style={styles.largeInput}
                 value={nameTitle}
                 onChangeText={setNameTitle}
               />
+               {touched.nameTitle && errors.nameTitle && (<Text style={{color:'red'}} >{errors.nameTitle}</Text>)}
             </View>
 
             <View style={styles.smallInputContainer}>
@@ -488,6 +650,7 @@ const NewIntake = () => {
                 <Picker.Item label="Type 1" value="1" />
                 <Picker.Item label="Type 2" value="2" />
               </Picker>
+              {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
 
             <TouchableOpacity style={styles.approvalButton}>
@@ -514,6 +677,7 @@ const NewIntake = () => {
     />
   ))}
       </Picker>
+      {/* {touched.goalSelected && errors.goalSelected && (<Text style={{color:'red'}} >{errors.goalSelected}</Text>)} */}
             </View>
 
             <View style={styles.smallInputContainer}>
@@ -561,13 +725,14 @@ const NewIntake = () => {
         <Picker.Item label="No Business Owner Available" value="" />
     )}
               </Picker>
+              {touched.businessOwner && errors.businessOwner && (<Text style={{color:'red'}} >{errors.businessOwner}</Text>)}
             </View>
 
             <View style={styles.largeInputContainer}>
               <Text style={styles.inputLabel}>Business Owner Department<Text style={styles.asterisk}>*</Text></Text>
              
                 <NestedDeptDropdownGoals onSelect={handleBusinessOwnerDept} />
-             
+                {touched.businessOwnerDept && errors.businessOwnerDept && (<Text style={{color:'red'}} >{errors.businessOwnerDept}</Text>)}
             </View>
           </View>
 
@@ -593,11 +758,13 @@ const NewIntake = () => {
         <Picker.Item label="No Project Owner Available" value="" />
     )}
               </Picker>
+              {touched.projectOwner && errors.projectOwner && (<Text style={{color:'red'}} >{errors.projectOwner}</Text>)}
             </View>
 
             <View style={styles.largeInputContainer}>
               <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
               <NestedDeptDropdownGoals onSelect={handleProjectOwnerDept} />
+              {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
             </View>
           </View>
 
@@ -623,6 +790,8 @@ const NewIntake = () => {
         <Picker.Item label="No Project Owner Available" value="" />
     )}
               </Picker>
+              {touched.projectManager && errors.projectManager && (<Text style={{color:'red'}} >{errors.projectManager}</Text>)}
+
             </View>
 
             <View style={styles.smallInputContainer}>
@@ -636,6 +805,8 @@ const NewIntake = () => {
                 <Picker.Item label="Function 1" value="function1" />
                 <Picker.Item label="Function 2" value="function2" />
               </Picker>
+              {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
+
             </View>
 
             <View style={styles.smallInputContainer}>
@@ -649,6 +820,8 @@ const NewIntake = () => {
                 <Picker.Item label="App 1" value="app1" />
                 <Picker.Item label="App 2" value="app2" />
               </Picker>
+              {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
+
             </View>
           </View>
 
@@ -667,6 +840,8 @@ const NewIntake = () => {
                 <Picker.Item label="Medium" value="3" />
                 <Picker.Item label="Low" value="4" />
               </Picker>
+              {touched.priority && errors.priority && (<Text style={{color:'red'}} >{errors.priority}</Text>)}
+
             </View>
 
             <View style={styles.smallInputContainer}>
@@ -681,6 +856,8 @@ const NewIntake = () => {
                 <Picker.Item label="Medium" value="2" />
                 <Picker.Item label="Low" value="3" />
               </Picker>
+              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
+
             </View>
 
             <View style={styles.smallInputContainer}>
@@ -697,6 +874,8 @@ const NewIntake = () => {
                 <Picker.Item label="Small" value="3" />
                
               </Picker>
+              {touched.projectSize && errors.projectSize && (<Text style={{color:'red'}} >{errors.projectSize}</Text>)}
+
             </View>
           </View>
 
@@ -705,24 +884,54 @@ const NewIntake = () => {
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Project Start Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.input}
-                value={startDate}
-                onFocus={() => setShowStartDatePicker(true)} 
-                onChangeText={setStartDate}
-                placeholder="Select Start Date"
-              />
-            </View>
-            
+        style={styles.input}
+        value={startDate}
+        onFocus={() => setShowStartDatePicker(true)}
+        placeholder="Select Start Date"
+        editable={Platform.OS !== 'web'} // Disable manual input on web
+      />
+      {/* <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+      {touched?.startDate && errors?.startDate && (
+        <Text style={{ color: 'red' }}>{errors.startDate}</Text>
+      )}
+
+      {Platform.OS === 'web' && showStartDatePicker && (
+        <DatePicker
+          selected={rawStartDate}
+          onChange={handleDateChange}
+          dateFormat="MMMM d, yyyy"
+          inline // Inline style for better usability
+        />
+      )}
+      </View>
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Project End Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.input}
-                value={endDate}
-               
-                onChangeText={setEndDate}
-                placeholder="Select End Date"
-              />
-            </View>
+        style={styles.input}
+        value={endDate}
+        onFocus={() => setShowEndDatePicker(true)}
+        placeholder="Select End Date"
+        editable={Platform.OS !== 'web'} // Disable manual input on web
+      />
+      {/* <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+      {touched?.endDate && errors?.endDate && (
+        <Text style={{ color: 'red' }}>{errors.endDate}</Text>
+      )}
+
+      {Platform.OS === 'web' && showEndDatePicker && (
+        <DatePicker
+          selected={rawEndDate}
+          onChange={handleEndDateChange}
+          dateFormat="MMMM d, yyyy"
+          inline // Inline style for better usability
+        />
+      )}
+    </View>
+         
 
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Go Live Date<Text style={styles.asterisk}>*</Text></Text>
@@ -732,6 +941,8 @@ const NewIntake = () => {
                 onChangeText={setGoLiveDate}
                 placeholder="Select Go Live Date"
               />
+              {touched.goLiveDate && errors.goLiveDate && (<Text style={{color:'red'}} >{errors.goLiveDate}</Text>)}
+
             </View>
           </View>
 
@@ -749,6 +960,8 @@ const NewIntake = () => {
                 onChangeText={setRoi}
                 placeholder="Enter ROI"
               />
+              {touched.roi && errors.roi && (<Text style={{color:'red'}} >{errors.roi}</Text>)}
+
             </View>
             <View style={styles.templateContainer}>
               <Text style={styles.customTemplateText}>Custom Template</Text>
@@ -846,41 +1059,146 @@ const NewIntake = () => {
           {/* Bottom Buttons */}
           <View style={styles.bottomButtonsContainer}>
           <View style={styles.leftButtonContainer}>
-  <TouchableOpacity style={styles.saveAsDraftButton}>
+  <TouchableOpacity style={styles.saveAsDraftButton}  onPress={handleSubmit}  >
     <Icon name="save-outline" size={18} color="#044086" style={styles.saveIcon} />
     <Text style={styles.saveAsDraftButtonText}>Save as draft</Text>
   </TouchableOpacity>
   </View>
 
   <View style={styles.rightButtonsContainer}>
-    {isNewButtonVisible && (
-      <TouchableOpacity 
-        style={styles.newButton}
-        onPress={handleApprovalClick}
-        /* onPress={() => setIsApprovalPopupVisible(true)} */
-      >
-        <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
-        <Text style={styles.newButtonText}>Send for Approval</Text>
-      </TouchableOpacity>
-    )}
-    <TouchableOpacity 
-      style={styles.sendForReviewButton}
-      onPress={handleReviewClick}
+  {/* Approval Button */}
+  <TouchableOpacity 
+    style={styles.sendForReviewButton}
+    onPress={handleReviewClick} 
+  >
+    <Icon name="paper-plane-outline" size={18} color="#fff" style={styles.newButtonIcon} />
+    <Text style={styles.sendForReviewButtonText}>Send for Review</Text>
+  </TouchableOpacity>
+  <TouchableOpacity 
+      style={styles.newButton}
+      onPress={() => {setIsApprovalPopupVisible(true)}}
     >
-      <Icon name="paper-plane-outline" size={18} color="#fff" style={styles.sendIcon} />
-      <Text style={styles.sendForReviewButtonText}>Send for review</Text>
-      <View style={styles.verticalLine} />
-      <TouchableOpacity onPress={() => setIsNewButtonVisible(!isNewButtonVisible)}>
-        <Icon name={isNewButtonVisible ? "chevron-up" : "chevron-down"} size={18} color="#fff" />
-      </TouchableOpacity>
+      <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
+      <Text style={styles.newButtonText}>Send for Approval</Text>
     </TouchableOpacity>
-  </View>
+</View>
 </View>
 
         </View>
       </ScrollView>
+{/* Send for Approval Modal */}
+<Modal
+          visible={isApprovalPopupVisible}
+          transparent={true}
+          animationType="fade"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity 
+                style={styles.closeIcon} 
+                onPress={() => setIsApprovalPopupVisible(false)}
+              >
+                <Icon name="close" size={24} color="#000" />
+              </TouchableOpacity>
+              <Text style={styles.popupHeading}>Sending for Approval</Text>
+              <RadioButton.Group onValueChange={value => setSelectedOptionApp(value)} value={selectedOptionApp}>
+                <View style={styles.radioOptionsRow}>
+                  <View style={styles.radioOption}>
+                    <RadioButton.Android value="inPerson" color="#044086" />
+                    <Text style={styles.radioText}>In person meeting</Text>
+                  </View>
+                  <View style={styles.radioOption}>
+                    <RadioButton.Android value="authorization" color="#044086" />
+                    <Text style={styles.radioText}>Authorization process</Text>
+                  </View>
+                </View>
+              </RadioButton.Group>
+              <ScrollView 
+                style={styles.modalScrollView}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Content for Send for Approval */}
+                <View style={styles.approvalPathContainer}>
+                  <View style={styles.approvalPathInputContainer}>
+                    <Text style={styles.approvalPathLabel}>
+                      Approval user list <Text style={styles.asterisk}>*</Text>
+                    </Text>
+                    <View style={styles.approvalPathInput}>
+                      <Picker
+                        key={approvalPathidApp}
+                        selectedValue={approvalPathid}
+                        onValueChange={(itemValue) => {
+                          console.log("Selected Value:", itemValue);
+                          setApprovalPathidApp(itemValue);
+                        }}
+                        style={styles.input}
+                      >
+                        {sequence.length > 0 ? (
+                          sequence.map((projectItem) => (
+                            <Picker.Item
+                              key={projectItem.aprvl_seq_id}
+                              label={projectItem.aprvl_seq_name}
+                              value={projectItem.aprvl_seq_id}
+                            />
+                          ))
+                        ) : (
+                          <Picker.Item label="No Approval path available" value="" />
+                        )}
+                      </Picker>
+                    </View>
+                  </View>
+           
+    
+   
+     
 
-      {/* Send for Approval Popup */}
+                </View>
+                <View style={styles.approvalPathContainer}>
+                  <View style={styles.approvalPathInputContainer}>
+                    <Text style={styles.approvalPathLabel}>
+                      Select Others <Text style={styles.asterisk}>*</Text>
+                    </Text>
+                    <View style={styles.approvalPathInput}>
+                      <Picker
+                        key={approvalPathOther}
+                        selectedValue={approvalPathOther}
+                        onValueChange={(itemValue) => {
+                          console.log("Selected Value:", itemValue);
+                          setApprovalPathOther(itemValue);
+                        }}
+                        style={styles.input}
+                      >
+                        {sequence.length > 0 ? (
+                          sequence.map((projectItem) => (
+                            <Picker.Item
+                              key={projectItem.aprvl_seq_id}
+                              label={projectItem.aprvl_seq_name}
+                              value={projectItem.aprvl_seq_id}
+                            />
+                          ))
+                        ) : (
+                          <Picker.Item label="No Approval path available" value="" />
+                        )}
+                      </Picker>
+                    </View>
+                  </View>
+           
+  
+                </View>
+              </ScrollView>
+              <View style={styles.popupButtonContainer}>
+                <TouchableOpacity style={styles.popupSubmitButton} onPress={handleapproval}>
+                  <Text style={styles.popupSubmitButtonText}>Submit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.popupCancelButton} onPress={() => setIsApprovalPopupVisible(false)}>
+                  <Text style={styles.popupCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+      {/* Send for Review Popup */}
       <Modal
         visible={isPopupVisible}
         transparent={true}
@@ -903,15 +1221,15 @@ const NewIntake = () => {
             <RadioButton.Group onValueChange={value => setSelectedOption(value)} value={selectedOption}>
               <View style={styles.radioOptionsRow}>
                 <View style={styles.radioOption}>
-                  <RadioButton.Android value="inPerson" color="#044086" />
+                  <RadioButton.Android value="1" color="#044086" />
                   <Text style={styles.radioText}>In person meeting</Text>
                 </View>
                 <View style={styles.radioOption1}>
-                  <RadioButton.Android value="authorization" color="#044086" />
+                  <RadioButton.Android value="2" color="#044086" />
                   <Text style={styles.radioText}>Authorization process</Text>
                 </View>
               </View>
-              {selectedOption === 'authorization' && (
+              {selectedOption === '2' && (
                 <View style={styles.newApprovalContainer}>
                   {showNewApprovalForm ? (
                     <>
@@ -925,7 +1243,7 @@ const NewIntake = () => {
                           <Icon name="arrow-back" size={18} color="#232323" />
                           <Text style={styles.backText}>Back</Text>
                         </TouchableOpacity>
-                        <Text style={styles.newApprovalTitle}>Create New Approval</Text>
+                        <Text style={styles.newApprovalTitle}>Create New Review</Text>
                       </View>
 
                       <TextInput
@@ -1001,12 +1319,12 @@ const NewIntake = () => {
                       <View style={styles.approvalPathContainer}>
                         <View style={styles.approvalPathInputContainer}>
                           <Text style={styles.approvalPathLabel}>
-                            Pick Approval Path <Text style={styles.asterisk}>*</Text>
+                            Pick Review Path <Text style={styles.asterisk}>*</Text>
                           </Text>
                           <View style={styles.approvalPathInput}>
                           <Picker
-  key={approvalPath}
-  selectedValue={approvalPath}
+  key={approvalPathid}
+  selectedValue={approvalPathid}
   onValueChange={(itemValue) => {
     console.log("Selected Value:", itemValue);
     setApprovalPathid(itemValue);
@@ -1045,7 +1363,7 @@ const NewIntake = () => {
             </RadioButton.Group>
             </ScrollView>
             <View style={styles.popupButtonContainer}>
-              <TouchableOpacity style={styles.popupSubmitButton} onPress={createSequence}>
+              <TouchableOpacity style={styles.popupSubmitButton} onPress={handlereview}>
                 <Text style={styles.popupSubmitButtonText}>Submit</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.popupCancelButton} onPress={() => setIsPopupVisible(false)}>
@@ -1056,7 +1374,9 @@ const NewIntake = () => {
         </View>
       </Modal>
     </SafeAreaView>
-  );
+   )}
+   </Formik>
+ );
 };
 
 const styles = StyleSheet.create({
@@ -1381,6 +1701,8 @@ const styles = StyleSheet.create({
       width: '100%',
       marginBottom: 20,
     },
+
+
     radioOption: {
       flexDirection: 'row',
       alignItems: 'center',
