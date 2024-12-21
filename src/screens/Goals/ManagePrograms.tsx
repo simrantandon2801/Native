@@ -1,28 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ScrollView, Alert } from 'react-native';
-import { Checkbox, Menu, Provider as PaperProvider, IconButton } from 'react-native-paper';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import {
+  Checkbox,
+  Menu,
+  Provider as PaperProvider,
+  IconButton,
+} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Picker } from '@react-native-picker/picker';
-import { DeleteProgram, GetPrograms, InsertProgram } from '../../database/ManageProgram';
+import {Picker} from '@react-native-picker/picker';
+import {
+  DeleteProgram,
+  GetPrograms,
+  InsertProgram,
+} from '../../database/ManageProgram';
+import {GetGoals} from '../../database/Goals';
 interface CreateNewIntakeModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (newGoal: any) => void; 
+  onSubmit: (newGoal: any) => void;
   EditProgram?: any;
 }
-const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, onClose, onSubmit ,EditProgram}) => {
+const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
+  visible,
+  onClose,
+  onSubmit,
+  EditProgram,
+}) => {
   const [selectedProgramOwner, setSelectedProgramOwner] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedApprovalReqd, setSelectedApprovalReqd] = useState('');
+  const [selectedGoal, setSelectedGoal] = useState('');
+
   const [selectedApprovalStatus, setSelectedApprovalStatus] = useState('');
   const [Programname, setProgramname] = useState('');
   const [Description, setDescription] = useState('');
-  const [programData, setProgramData] = useState<any>([]); 
+  const [programData, setProgramData] = useState<any>([]);
   const [programId, setprogramId] = useState<string | undefined>(undefined);
+  const [goalData, setGoalData] = useState([]); // To hold the fetched goals
 
   useEffect(() => {
-    console.log()
+    console.log();
     console.log('Edit Program:', EditProgram);
     if (EditProgram) {
       setprogramId(EditProgram.program_id);
@@ -31,9 +58,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
       //setSelectedStakeholder(editGoal.stakeholders || '');
       setSelectedYear(EditProgram.target_year || '');
       setSelectedStatus(EditProgram.status || '');
-      setSelectedProgramOwner(EditProgram.
-        program_owner
-         || '');
+      setSelectedProgramOwner(EditProgram.program_owner || '');
     } else {
       setprogramId(undefined);
       setProgramname('');
@@ -47,19 +72,26 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
 
   const handleSubmit = async () => {
     console.log('Submit inside modal triggered');
-    if (!Programname || !selectedStatus || !selectedApprovalReqd || !selectedApprovalStatus || !Description) {
+    if (
+      !Programname ||
+      !selectedStatus ||
+      !selectedApprovalReqd ||
+      !selectedApprovalStatus ||
+      !Description
+    ) {
       Alert.alert('Error', 'Please fill out all required fields.');
       return;
     }
     const programDataToSubmit = {
-      program_id:programId,
-      program_name:Programname,
-      description:Description,
+      program_id: programId,
+      program_name: Programname,
+      description: Description,
       //stakeholders:,
       program_owner: selectedProgramOwner,
-      target_year : selectedYear,
+      target_year: selectedYear,
       //start_date:,
       //end_date:,
+      // goal_id: selectedGoal,
       status: selectedStatus,
       year: selectedYear,
       approvalReqd: selectedApprovalReqd,
@@ -70,7 +102,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
     try {
       const response = await InsertProgram(programDataToSubmit); // Ensure InsertProgram is an async function
       const parsedResponse = JSON.parse(response);
-      
+
       if (parsedResponse.status === 'success') {
         Alert.alert('Goal created successfully');
         onSubmit(programDataToSubmit);
@@ -85,16 +117,33 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
     }
   };
 
+  const fetchGoals = async () => {
+    try {
+      const response = await GetGoals(''); // Assume GetGoals fetches the goals data
+      const result = JSON.parse(response);
 
-  
+      if (result?.data?.goals && Array.isArray(result.data.goals)) {
+        setGoalData(result.data.goals); // Set the fetched goals data
+      } else {
+        console.error('Invalid goals data');
+        Alert.alert('Error', 'Invalid goals data received');
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      Alert.alert('Error', 'Failed to fetch goals');
+    }
+  };
+
+  useEffect(()=>{
+    fetchGoals();
+  },[])
 
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text style={styles.modalTitle}>Add New Strategic Programs</Text>
@@ -104,9 +153,11 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 <Text style={styles.inputLabel}>
                   Name/Title <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <TextInput style={styles.input}
-                value={Programname}
-                onChangeText={setProgramname} />
+                <TextInput
+                  style={styles.input}
+                  value={Programname}
+                  onChangeText={setProgramname}
+                />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -116,16 +167,44 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedStatus}
-                  onValueChange={(itemValue) => setSelectedStatus(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue => setSelectedStatus(itemValue)}
+                  style={styles.input}>
                   <Picker.Item label="Select Status" value="" />
                   <Picker.Item label="Active" value="active" />
                   <Picker.Item label="Inactive" value="inactive" />
                   <Picker.Item label="Pending" value="pending" />
                 </Picker>
               </View>
+
+              {/*Goals Dropdown*/}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>
+                  Goals <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <Picker
+                  selectedValue={selectedApprovalReqd}
+                  onValueChange={itemValue =>
+                    setSelectedGoal(itemValue)
+                  }
+                  style={styles.input}>
+                  <Picker.Item label="Select Goal" value="" />
+
+                  {/* Map through the fetched goals and display them in the Picker */}
+                  {goalData.length > 0 ? (
+                    goalData.map(goal => (
+                      <Picker.Item
+                        key={goal.goal_id} // Unique key for each Picker.Item
+                        label={goal.goal_name} // Display the goal name
+                        value={goal.goal_id.toString()} // Set goal_id as value
+                      />
+                    ))
+                  ) : (
+                    <Picker.Item label="No Goals Available" value="" />
+                  )}
+                </Picker>
+              </View>
             </View>
+
             <View style={styles.inputRow}>
               {/* Approval Read Dropdown */}
               <View style={styles.inputContainer}>
@@ -134,9 +213,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedApprovalReqd}
-                  onValueChange={(itemValue) => setSelectedApprovalReqd(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue =>
+                    setSelectedApprovalReqd(itemValue)
+                  }
+                  style={styles.input}>
                   <Picker.Item label="Select Approval Reqd" value="" />
                   <Picker.Item label="Yes" value="Yes" />
                   <Picker.Item label="No" value="No" />
@@ -149,9 +229,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedApprovalStatus}
-                  onValueChange={(itemValue) => setSelectedApprovalStatus(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue =>
+                    setSelectedApprovalStatus(itemValue)
+                  }
+                  style={styles.input}>
                   <Picker.Item label="Select Approval Status" value="" />
                   <Picker.Item label="Ontrack" value="Ontrack" />
                   <Picker.Item label="Delayed" value="Delayed" />
@@ -160,12 +241,14 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
             </View>
             <View style={styles.inputRow}>
               <View style={[styles.inputContainer, styles.fullWidth]}>
-                <Text style={styles.inputLabel}>Description <Text style={styles.asterisk}>*</Text>
+                <Text style={styles.inputLabel}>
+                  Description <Text style={styles.asterisk}>*</Text>
                 </Text>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   value={Description}
-                  onChangeText={setDescription}/>
+                  onChangeText={setDescription}
+                />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -176,9 +259,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedProgramOwner}
-                  onValueChange={(itemValue) => setSelectedProgramOwner(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue =>
+                    setSelectedProgramOwner(itemValue)
+                  }
+                  style={styles.input}>
                   <Picker.Item label="Select Owner" value="" />
                   <Picker.Item label="Manager" value="Manager" />
                   <Picker.Item label="Mhe" value="jdj" />
@@ -192,9 +276,8 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedYear}
-                  onValueChange={(itemValue) => setSelectedYear(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue => setSelectedYear(itemValue)}
+                  style={styles.input}>
                   <Picker.Item label="Select Year" value="" />
                   <Picker.Item label="2024" value="2024" />
                   <Picker.Item label="2025" value="2025" />
@@ -204,10 +287,14 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
             </View>
           </View>
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={onClose}>
               <Text style={styles.buttonText2}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleSubmit}>
+            <TouchableOpacity
+              style={[styles.button, styles.submitButton]}
+              onPress={handleSubmit}>
               <Text style={styles.buttonText1}>Submit</Text>
             </TouchableOpacity>
           </View>
@@ -224,178 +311,208 @@ const ManagePrograms: React.FC = () => {
   const fetchPrograms = async () => {
     try {
       const response = await GetPrograms('');
-      console.log("unparsed Response:", response);
+      console.log('unparsed Response:', response);
       const result = JSON.parse(response);
       //const result = await JSON.parse(response);
 
-      console.log("API Response:", result);
+      console.log('API Response:', result);
       if (result?.data?.programs && Array.isArray(result.data.programs)) {
-        setProgramData(result.data.programs);  // Set the goals array from the data object
+        setProgramData(result.data.programs); // Set the goals array from the data object
       } else {
-        console.error("Invalid programs data");
-        Alert.alert("Error", "Invalid goals data received");
+        console.error('Invalid programs data');
+        Alert.alert('Error', 'Invalid goals data received');
       }
-    
-     
     } catch (error) {
-      console.error("Error fetching programs:", error);
-      Alert.alert("Error", "Failed to fetch programs");
+      console.error('Error fetching programs:', error);
+      Alert.alert('Error', 'Failed to fetch programs');
     }
   };
   useEffect(() => {
     fetchPrograms();
-   
   }, []);
-  const handleDeletePress = (program_id) => {
-    console.log(program_id)
-    HandleDeleteProgram(program_id);  
+  /*   const [intakeData, setIntakeData] = useState([
+    { id: 1, programName: 'Program A', goal: 'To gain Progress', description: 'A detailed project overview crafted by the PMO, outlining objectives, scope, and strategies within the PPM framework.', impactedStakeholders: 'Business Function - Finance', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2024, createdOn: '13/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
+    { id: 2, programName: 'Program B', goal: 'Goal1', description: 'A detailed project overview...', impactedStakeholders: 'Tower- Product & Development', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2025, createdOn: '14/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
+    { id: 3, programName: 'Program C', goal: 'Goal2', description: 'A detailed project overview...', impactedStakeholders: 'Business Function - Finance', approvalRead: 'Yes', approvalStatus: 'Ontrack', targetYear: 2026, createdOn: '15/04/2023', status: 'Delayed', menuVisible: false, menuX: 0, menuY: 0 },
+  ]); */
+
+  const handleDeletePress = program_id => {
+    console.log(program_id);
+    HandleDeleteProgram(program_id);
   };
-  const HandleDeleteProgram = async (program_id) => {
+  const HandleDeleteProgram = async program_id => {
     console.log('Deleting program with ID:', program_id);
     const GoalDel = {
-     
       program_id: program_id,
-      
     };
     try {
-      
       const response = await DeleteProgram(GoalDel);
-      
+
       //const result = JSON.parse(response);
       const result = await JSON.parse(response);
       fetchPrograms();
-      
-     
     } catch (error) {
-      console.error("Error Deleting Goals:", error);
-     
+      console.error('Error Deleting Goals:', error);
     }
   };
-  const openModal = (program=null) => {
+  const openModal = (program = null) => {
     console.log('Opening modal with program:', program);
     setModalVisible(true);
-    setEditProgram(program); 
+    setEditProgram(program);
   };
 
   const closeModal = () => {
     setModalVisible(false);
-    setEditProgram(null); 
+    setEditProgram(null);
   };
   const handleSubmit = (programDataToSubmit: any) => {
     if (EditProgram) {
-      setProgramData((prevData) =>
-        prevData.map((program) =>
-          program.program_id === EditProgram.program_id ? { ...program, ...programDataToSubmit } : program
-        )
+      setProgramData(prevData =>
+        prevData.map(program =>
+          program.program_id === EditProgram.program_id
+            ? {...program, ...programDataToSubmit}
+            : program,
+        ),
       );
     } else {
-      setProgramData((prevData) => [...prevData, programDataToSubmit]);
+      setProgramData(prevData => [...prevData, programDataToSubmit]);
     }
-  };      
+  };
   return (
     <PaperProvider>
       <View style={styles.container}>
         <Text style={styles.heading}>Strategic Programs</Text>
-        <View style={styles.buttonContainer1}>
-          <View style={styles.leftButtons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="check-circle-outline" size={20} color="#C4C4C4" />
-              <Text style={styles.buttonText6}>Approve</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="delete-outline" size={20} color="#C4C4C4" />
-              <Text style={styles.buttonText6}>Delete</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="export" size={20} color="#C4C4C4" />
-              <Text style={styles.buttonText6}>Export</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.centerButtons}>
-            <TouchableOpacity style={styles.button} onPress={openModal}>
-              <Text style={styles.buttonText}>
-                <Icon name="plus" size={14} color="#044086" style={styles.buttonIcon} /> Create New
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <View style={styles.buttonContent}>
-                <Icon name="table-column-plus-after" size={18} color="#044086" style={styles.buttonIcon} />
-                <Text style={styles.buttonText}>Set Column</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.rightButtons}>
-            <TouchableOpacity style={styles.iconButton}>
-              <Icon name="filter-outline" size={20} color="#044086" />
-              <Text style={styles.buttonText}>Filter</Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={openModal}>
+            <Text style={styles.buttonText}>
+              <Icon
+                name="plus"
+                size={14}
+                color="#044086"
+                style={styles.buttonIcon}
+              />{' '}
+              Create New
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button}>
+            <View style={styles.buttonContent}>
+              <Icon
+                name="table-column-plus-after"
+                size={18}
+                color="#044086"
+                style={styles.buttonIcon}
+              />
+              <Text style={styles.buttonText}>Set Column</Text>
+            </View>
+          </TouchableOpacity>
         </View>
-        <View style={styles.tableContainer}>
-          <View style={styles.headerRow}>
-            {['', 'S.No.', 'P.ID', 'Program Name', 'Goal', 'Description', 'Program Owner', 'Approval Reqd',
-             'Approval Status', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
-              <Text key={index} style={[styles.headerCell, styles.headerCellText, { flex: index < 3 ? 0.5 : index === 5 ? 1.5 : 1 }]}>{header}</Text>
-            ))}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View>
+            <View style={styles.headerRow}>
+              {[
+                '',
+                'S.No.',
+                'P.ID',
+                'Program Name',
+                'Goal',
+                'Description',
+                'Program Owner',
+                'Approval Reqd',
+                'Approval Status',
+                'Target year',
+                'Created On',
+                'Status',
+                'Action',
+              ].map((header, index) => (
+                <Text key={index} style={styles.headerCell}>
+                  {header}
+                </Text>
+              ))}
+            </View>
+            <ScrollView>
+              {ProgramData.map((programs, index) => (
+                <View key={programs.program_id} style={styles.row}>
+                  <View style={styles.cell}>
+                    <Checkbox status="unchecked" />
+                  </View>
+                  <Text style={styles.cell}>{index + 1}</Text>
+                  <Text style={styles.cell}>{programs.program_id}</Text>
+                  <Text style={styles.cell}>{programs.program_name}</Text>
+                  <Text style={styles.cell}>{programs.goal}</Text>
+                  <Text
+                    style={styles.cell}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {programs.description}
+                  </Text>
+                  <Text style={styles.cell}>{programs.program_owner}</Text>
+                  <Text style={styles.cell}>{programs.approvalRead}</Text>
+                  <Text style={styles.cell}>{programs.approvalStatus}</Text>
+                  <Text style={styles.cell}>{programs.target_year}</Text>
+                  <Text style={styles.cell}>{programs.created_at}</Text>
+                  <Text style={styles.cell}>{programs.status}</Text>
+                  <View style={[styles.cell, styles.actionCell]}>
+                    <Menu
+                      visible={programs.menuVisible}
+                      onDismiss={() => {
+                        const updatedIntakeData = ProgramData.map(item =>
+                          item.id === programs.id
+                            ? {...item, menuVisible: false}
+                            : item,
+                        );
+                        setProgramData(updatedIntakeData);
+                      }}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={event => {
+                            const {pageX, pageY} = event.nativeEvent;
+                            const updatedIntakeData = ProgramData.map(item =>
+                              item.program_id === programs.program_id
+                                ? {
+                                    ...item,
+                                    menuVisible: true,
+                                    menuX: pageX,
+                                    menuY: pageY,
+                                  }
+                                : {...item, menuVisible: false},
+                            );
+                            setProgramData(updatedIntakeData);
+                          }}>
+                          <IconButton
+                            icon="dots-vertical"
+                            size={20}
+                            style={{margin: 0, padding: 0}}
+                          />
+                        </TouchableOpacity>
+                      }
+                      style={{
+                        position: 'absolute',
+                        left: programs.menuX ? programs.menuX - 120 : 0,
+                        top: programs.menuY ? programs.menuY - 40 : 0,
+                      }}>
+                      <Menu.Item
+                        onPress={() => openModal(programs)}
+                        title="Edit"
+                      />
+                      <Menu.Item
+                        onPress={() => handleDeletePress(programs.program_id)}
+                        title="Delete"
+                      />
+                      <Menu.Item onPress={() => {}} title="Create Program" />
+                    </Menu>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
           </View>
-          <ScrollView>
-            {ProgramData.map((programs, index) => (
-              <View key={programs.program_id} style={styles.row}>
-                <View style={[styles.cell, { flex: 0.5 }]}>
-                  <Checkbox status="unchecked" />
-                </View>
-                <Text style={[styles.cell, { flex: 0.5 }]}>{index + 1}</Text>
-                <Text style={[styles.cell, { flex: 0.5 }]}>{programs.program_id}</Text>
-                <Text style={[styles.cell, { flex: 1 }]}>{programs.program_name}</Text>
-                <Text style={[styles.cell, { flex: 1 }]}>{programs.goal}</Text>
-                <Text style={[styles.cell, { flex: 1.5 }]} numberOfLines={1} ellipsizeMode="tail">{programs.description}</Text>
-                <Text style={[styles.cell, { flex: 1 }]}>{programs.program_owner}</Text>
-                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.approvalRead}</Text>
-                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.approvalStatus}</Text>
-                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.target_year}</Text>
-                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.created_at}</Text>
-                <Text style={[styles.cell, { flex: 0.8 }]}>{programs.status}</Text>
-                <View style={[styles.cell, styles.actionCell, { flex: 0.5 }]}>
-                  <Menu
-                    visible={programs.menuVisible}
-                    onDismiss={() => {
-                      const updatedIntakeData = ProgramData.map(item =>
-                        item.id === programs.id ? { ...item, menuVisible: false } : item
-                      );
-                      setProgramData(updatedIntakeData);
-                    }}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={(event) => {
-                          const { pageX, pageY } = event.nativeEvent;
-                          const updatedIntakeData = ProgramData.map(item =>
-                            item.program_id === programs.program_id
-                              ? { ...item, menuVisible: true, menuX: pageX, menuY: pageY }
-                              : { ...item, menuVisible: false }
-                          );
-                          setProgramData(updatedIntakeData);
-                        }}
-                      >
-                        <IconButton icon="dots-vertical" size={20} style={{ margin: 0, padding: 0 }} />
-                      </TouchableOpacity>
-                    }
-                    style={{
-                      position: 'absolute',
-                      left: programs.menuX ? programs.menuX - 120 : 0, 
-                      top: programs.menuY ? programs.menuY - 40 : 0, 
-                    }}
-                  >
-                    <Menu.Item  onPress={() => openModal(programs)} title="Edit" />
-                    <Menu.Item onPress={() => handleDeletePress(programs.program_id)} title="Delete" />
-                    <Menu.Item onPress={() => {}} title="Create Program" />
-                  </Menu>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </View>
+        </ScrollView>
       </View>
-      <CreateNewIntakeModal visible={modalVisible} onClose={closeModal} EditProgram={EditProgram} onSubmit={handleSubmit}/>
+      <CreateNewIntakeModal
+        visible={modalVisible}
+        onClose={closeModal}
+        EditProgram={EditProgram}
+        onSubmit={handleSubmit}
+      />
     </PaperProvider>
   );
 };
@@ -411,16 +528,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
-  buttonContainer1: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
     marginBottom: 10,
   },
   button: {
@@ -434,26 +544,9 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#044086',
     fontSize: 14,
-    marginLeft: 5,
   },
   buttonIcon: {
     marginRight: 5,
-  },
-  leftButtons: {
-    flexDirection: 'row',
-  },
-  centerButtons: {
-    flexDirection: 'row',
-    marginRight:178
-  },
-  rightButtons: {
-    flexDirection: 'row',
-  },
-  iconButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 8,
-    marginHorizontal: 5,
   },
   headerRow: {
     flexDirection: 'row',
@@ -463,16 +556,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   headerCell: {
-    flex: 1,
-    fontWeight: '600',
+    width: 120,
+    fontWeight: 'bold',
     fontSize: 12,
     paddingHorizontal: 5,
-    color: '#044086', 
-  },
-  headerCellText: {
-    color: '#757575', 
-    fontWeight: '600',
-    fontSize: 12,
   },
   row: {
     flexDirection: 'row',
@@ -481,7 +568,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   cell: {
-    flex: 1,
+    width: 120,
     fontSize: 12,
     paddingHorizontal: 5,
   },
@@ -530,7 +617,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#044086',
     borderWidth: 0,
     outlineStyle: 'none',
-    width: '100%', 
+    width: '100%',
   },
   fullWidthInput: {
     marginVertical: 10,
@@ -573,21 +660,10 @@ const styles = StyleSheet.create({
   textArea: {
     textAlignVertical: 'top',
   },
-  fullWidth: {
-  },
+  fullWidth: {},
   menuContainer: {
-    maxHeight: 100, 
+    maxHeight: 100,
     maxWidth: 100,
-  },
-  icon: {
-    marginRight: 5,
-  },
-  buttonText6:{
-    color:'#C4C4C4'
-  },
-  tableContainer: {
-    flexDirection: 'column',
-    width: '100%',
   },
 });
 

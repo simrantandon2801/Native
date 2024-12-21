@@ -53,7 +53,7 @@ const LoginScreen: React.FC = () => {
     if (Object.keys(tempErrors).length > 0) return;
 
 
-        const uri = 'https://forge-testing-api.aadhidigital.com/auth/login';
+        const uri = 'https://underbuiltapi.aadhidigital.com/auth/login';
         const payload = JSON.stringify({
           email: email,
           password: password,

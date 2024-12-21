@@ -9,6 +9,8 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 import {GetUserDept} from '../database/Users'; // Assuming this is a custom function to fetch data
 
+
+
 // TypeScript types
 type Department = {
   department_id: number;
@@ -94,7 +96,15 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
           <View key={dept.department_id}>
             {/* Department Item */}
             <TouchableOpacity
-              style={styles.dropdownItem}
+              style={{
+                borderRadius: 5,
+                padding: 10,
+                fontSize: 16,
+                backgroundColor: 'white',
+                color: '#000',
+                borderBottomColor: '#044086',
+                width: '100%',
+              }}
               onPress={() => {
                 onSelect(dept.department_id); // Pass department ID
                 setExpanded(!expanded);
@@ -127,7 +137,7 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
 };
 
 // Main Component
-const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps> = ({onSelect}) => {
+const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps & { editGoal: any }> = ({ onSelect, editGoal }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hierarchy, setHierarchy] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -155,7 +165,16 @@ const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps> = ({onSelect}) 
 
   useEffect(() => {
     handleDeptFetching();
-  }, []);
+  }, []); // Only run once when the component mounts
+
+  // Function to map department ID to name
+  const mapDepartmentIdToName = (id: number) => {
+    console.log("mapping");
+    const department = departments.find(dept => dept.department_id === id);
+    return department ? department.department_name : ' ';
+  };
+
+ 
 
   const handleSelect = (departmentID: number) => {
     const selectedDept = departments.find(
@@ -171,15 +190,13 @@ const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps> = ({onSelect}) 
   return (
     <View>
       <View style={styles.inputWrapper}>
-       
-
         <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <TextInput
-              style={[styles.textInput, {cursor: 'pointer'}]}
+              style={[styles.textInput, { cursor: 'pointer' }]}
               value={selectedDepartment}
               editable={false}
-              placeholder="Select a department"
+              placeholder={editGoal ?  mapDepartmentIdToName(parseInt(editGoal.stakeholders)): 'Select a department'}  // Change placeholder based on editGoal
             />
             <Icon name="chevron-down" size={20} />
           </View>
@@ -193,6 +210,7 @@ const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps> = ({onSelect}) 
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   inputWrapper: {

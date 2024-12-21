@@ -1,12 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, TextInput, Alert, ActivityIndicator } from 'react-native';
-import { Checkbox, Menu, Provider as PaperProvider, IconButton } from 'react-native-paper';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Image,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import {
+  Checkbox,
+  Menu,
+  Provider as PaperProvider,
+  IconButton,
+} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Picker } from '@react-native-picker/picker';
-import { AppImages } from '../../assets';
-import { DeleteGoal, GetGoals, InsertGoal } from '../../database/Goals';
+import {Picker} from '@react-native-picker/picker';
+import {AppImages} from '../../assets';
+import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
+import { GetDept } from '../../database/Departments';
+
 
 interface CreateNewIntakeModalProps {
   visible: boolean;
@@ -14,13 +31,16 @@ interface CreateNewIntakeModalProps {
   onSubmit: (newGoal: any) => void;
   editGoal?: any;
 }
-
-const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, onClose, onSubmit, editGoal }) => {
-
+const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
+  visible,
+  onClose,
+  onSubmit,
+  editGoal,
+}) => {
   const [selectedStakeholder, setSelectedStakeholder] = useState<number>(-1);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedGoalOwner, setSelectedGoalOwner] =useState<number>(-1);
+  const [selectedGoalOwner, setSelectedGoalOwner] = useState<number>(-1);
   const [goalName, setGoalName] = useState('');
   const [description, setDescription] = useState('');
   const [goalId, setGoalId] = useState<string | undefined>(undefined);
@@ -31,22 +51,30 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
       setGoalId(editGoal.goal_id);
       setGoalName(editGoal.goal_name || '');
       setDescription(editGoal.description || '');
-      setSelectedStakeholder(editGoal.stakeholders || '');
+      setSelectedStakeholder(editGoal.stakeholders );
       setSelectedYear(editGoal.target_year || '');
       setSelectedStatus(editGoal.status || '');
-      setSelectedGoalOwner(editGoal.goal_owner || '');
+      setSelectedGoalOwner(editGoal.goal_owner );
     } else {
       setGoalId(undefined);
       setGoalName('');
       setDescription('');
-      setSelectedStakeholder('');
+      setSelectedStakeholder(-1);
       setSelectedYear('');
       setSelectedStatus('');
-      setSelectedGoalOwner('');
+      setSelectedGoalOwner(-1);
     }
-  }, [editGoal]);
+  }, [editGoal]); 
+
   const handleSubmit = async () => {
-    if (goalName && selectedStatus && selectedGoalOwner && description && selectedStakeholder && selectedYear) {
+    if (
+      goalName &&
+      selectedStatus &&
+      selectedGoalOwner &&
+      description &&
+      selectedStakeholder &&
+      selectedYear
+    ) {
       const newGoal = {
         goal_id: goalId,
         goal_name: goalName,
@@ -58,17 +86,15 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
         end_date: new Date().toISOString(),
         status: selectedStatus,
       };
-      console.log(newGoal)
+      console.log(newGoal);
       try {
-        // Call the Insert_goal API function
         const response = await InsertGoal(newGoal);
-        const parsedResponse = JSON.parse(response)
+        const parsedResponse = JSON.parse(response);
 
         if (parsedResponse.status === 'success') {
           Alert.alert('Goal created successfully');
           onSubmit(newGoal);
           onClose();
-
         } else {
           Alert.alert('Failed to create goal. Please try again.');
           onClose();
@@ -83,21 +109,21 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
   };
 
   const handleDeptSelect = (deptID: number) => {
-    setSelectedGoalOwner(deptID); 
+    setSelectedGoalOwner(deptID);
     console.log(`Selected GoalOwner: ${deptID}`);
   };
 
   const handleStakeSelect = (deptID: number) => {
-    setSelectedStakeholder(deptID); 
+    setSelectedStakeholder(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
   };
+
   return (
     <Modal
       animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text style={styles.modalTitle}>Add New Strategic Goal</Text>
@@ -121,9 +147,8 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedStatus}
-                  onValueChange={(itemValue) => setSelectedStatus(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue => setSelectedStatus(itemValue)}
+                  style={styles.input}>
                   <Picker.Item label="Select Status" value="" />
                   <Picker.Item label="Active" value="active" />
                   <Picker.Item label="Inactive" value="inactive" />
@@ -134,20 +159,19 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 <Text style={styles.inputLabel}>
                   Goal Owner <Text style={styles.asterisk}>*</Text>
                 </Text>
-              
-<NestedDeptDropdownGoals onSelect={handleDeptSelect} />
 
+                <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
               </View>
             </View>
             <View style={styles.inputRow}>
               <View style={[styles.inputContainer, styles.fullWidth]}>
-                <Text style={styles.inputLabel}>Description <Text style={styles.asterisk}>*</Text>
+                <Text style={styles.inputLabel}>
+                  Description <Text style={styles.asterisk}>*</Text>
                 </Text>
                 <TextInput
                   style={[styles.input, styles.textArea]}
                   value={description}
                   onChangeText={setDescription}
-                
                 />
               </View>
             </View>
@@ -156,7 +180,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 <Text style={styles.inputLabel}>
                   Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <NestedDeptDropdownGoals onSelect={handleStakeSelect} />
+                <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
@@ -164,23 +188,34 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
                 </Text>
                 <Picker
                   selectedValue={selectedYear}
-                  onValueChange={(itemValue) => setSelectedYear(itemValue)}
-                  style={styles.input}
-                >
+                  onValueChange={itemValue => setSelectedYear(itemValue)}
+                  style={styles.input}>
                   <Picker.Item label="Select Year" value="" />
                   <Picker.Item label="2024" value="2024" />
                   <Picker.Item label="2025" value="2025" />
                   <Picker.Item label="2026" value="2026" />
+                  <Picker.Item label="2027" value="2027" />
+                  <Picker.Item label="2028" value="2028" />
+                  <Picker.Item label="2029" value="2029" />
+                  <Picker.Item label="2030" value="2030" />
                 </Picker>
               </View>
             </View>
           </View>
-          <View style={{ alignItems: 'center' }}>
-            <View style={[styles.buttonContainer, { flexDirection: 'row', justifyContent: 'space-between' }]}>
-              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={onClose}>
+          <View style={{alignItems: 'center'}}>
+            <View
+              style={[
+                styles.buttonContainer,
+                {flexDirection: 'row', justifyContent: 'space-between'},
+              ]}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={onClose}>
                 <Text style={styles.buttonText2}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.button, styles.submitButton]} onPress={handleSubmit}>
+              <TouchableOpacity
+                style={[styles.button, styles.submitButton]}
+                onPress={handleSubmit}>
                 <Text style={styles.buttonText1}>Submit</Text>
               </TouchableOpacity>
             </View>
@@ -190,7 +225,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({ visible, on
     </Modal>
   );
 };
-
 const ManageGoals: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [sortColumn, setSortColumn] = useState('');
@@ -205,54 +239,75 @@ const ManageGoals: React.FC = () => {
     setHeaderChecked(checkedItems.size === goalData.length);
   }, [checkedItems, goalData]);
 
+  const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
+
+  // Fetch goals
   const fetchGoals = async () => {
-    setIsLoading(true);
     try {
       const response = await GetGoals('');
-      console.log("unparsed Response:", response);
+      console.log('unparsed Response:', response);
       const result = JSON.parse(response);
-      console.log("API Response:", result);
+
+      console.log('API Response:', result);
       if (result?.data?.goals && Array.isArray(result.data.goals)) {
-        setGoalData(result.data.goals);  // Set the goals array from the data object
+        setGoalData(result.data.goals); // Set the goals array from the data object
       } else {
-        console.error("Invalid goals data");
-        Alert.alert("Error", "Invalid goals data received");
+        console.error('Invalid goals data');
+        Alert.alert('Error', 'Invalid goals data received');
       }
-
-
     } catch (error) {
-      console.error("Error fetching goals:", error);
-      Alert.alert("Error", "Failed to fetch goals");
-    } finally {
-      setIsLoading(false);
+      console.error('Error fetching goals:', error);
+      Alert.alert('Error', 'Failed to fetch goals');
     }
   };
+
+  // Fetch departments
+  const fetchDepartments = async () => {
+    try {
+      const response = await GetDept('');
+      console.log('unparsed Department Response:', response);
+      const result = JSON.parse(response);
+
+      console.log('API Response:', result);
+      if (result?.data?.departments && Array.isArray(result.data.departments)) {
+        setDepartments(result.data.departments); 
+      } else {
+        console.error('Invalid departments data');
+        Alert.alert('Error', 'Invalid departments data received');
+      }
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      Alert.alert('Error', 'Failed to fetch departments');
+    }
+  };
+
   useEffect(() => {
     fetchGoals();
-
+    fetchDepartments(); 
   }, []);
-  const HandleDeleteGoal = async (goal_id) => {
+
+  const mapDepartmentIdToName = (id: number) => {
+    const department = departments.find(dept => dept.department_id === id);
+    return department ? department.department_name : ' ';
+  };
+
+  const HandleDeleteGoal = async goal_id => {
     const GoalDel = {
       goal_id: goal_id,
-
     };
     try {
       const response = await DeleteGoal(GoalDel);
       const result = await JSON.parse(response);
       fetchGoals();
-
-
     } catch (error) {
-      console.error("Error Deleting Goals:", error);
-
+      console.error('Error Deleting Goals:', error);
     }
   };
 
-  const handleDeletePress = (goal_id) => {
-    console.log(goal_id)
-    HandleDeleteGoal(goal_id);  
+  const handleDeletePress = goal_id => {
+    console.log(goal_id);
+    HandleDeleteGoal(goal_id);
   };
- 
 
   const openModal = (goal = null) => {
     setModalVisible(true);
@@ -265,13 +320,13 @@ const ManageGoals: React.FC = () => {
   };
   const handleSubmit = (newGoal: any) => {
     if (editGoal) {
-      setGoalData((prevData) =>
-        prevData.map((goal) =>
-          goal.goal_id === editGoal.goal_id ? { ...goal, ...newGoal } : goal
-        )
+      setGoalData(prevData =>
+        prevData.map(goal =>
+          goal.goal_id === editGoal.goal_id ? {...goal, ...newGoal} : goal,
+        ),
       );
     } else {
-      setGoalData((prevData) => [...prevData, newGoal]);
+      setGoalData(prevData => [...prevData, newGoal]);
     }
   };
 
@@ -283,11 +338,13 @@ const ManageGoals: React.FC = () => {
       setIsAscending(true);
     }
 
-    setGoalData(prevData => [...prevData].sort((a, b) => {
-      if (a[column] < b[column]) return isAscending ? -1 : 1;
-      if (a[column] > b[column]) return isAscending ? 1 : -1;
-      return 0;
-    }));
+    setGoalData(prevData =>
+      [...prevData].sort((a, b) => {
+        if (a[column] < b[column]) return isAscending ? -1 : 1;
+        if (a[column] > b[column]) return isAscending ? 1 : -1;
+        return 0;
+      }),
+    );
   };
 
   return (
@@ -302,7 +359,12 @@ const ManageGoals: React.FC = () => {
                 <Text style={styles.buttonText6}>Approve</Text>
               </TouchableOpacity> */}
               <TouchableOpacity style={styles.button}>
-                <Icon name="delete" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                <Icon
+                  name="delete"
+                  size={18}
+                  color="#C4C4C4"
+                  style={styles.buttonIcon}
+                />
                 <Text style={styles.buttonText6}>Delete</Text>
               </TouchableOpacity>
               {/* <TouchableOpacity style={styles.button}>
@@ -311,37 +373,78 @@ const ManageGoals: React.FC = () => {
               </TouchableOpacity> */}
             </View>
             <View style={styles.centerButtons}>
-              <TouchableOpacity style={styles.button} onPress={() => openModal()}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() => openModal()}>
                 <Text style={styles.buttonText}>
-                  <Icon name="plus" size={14} color="#044086" style={styles.buttonIcon} /> Create New
+                  <Icon
+                    name="plus"
+                    size={14}
+                    color="#044086"
+                    style={styles.buttonIcon}
+                  />{' '}
+                  Create New
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.button}>
-                <Icon name="table-column-plus-after" size={18} color="#044086" style={styles.buttonIcon} />
+                <Icon
+                  name="table-column-plus-after"
+                  size={18}
+                  color="#044086"
+                  style={styles.buttonIcon}
+                />
                 <Text style={styles.buttonText}>Set Column</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.rightButtons}>
               <TouchableOpacity style={styles.button}>
-                <Icon name="filter" size={18} color="#044086" style={styles.buttonIcon} />
+                <Icon
+                  name="filter"
+                  size={18}
+                  color="#044086"
+                  style={styles.buttonIcon}
+                />
                 <Text style={styles.buttonText}>Filter</Text>
               </TouchableOpacity>
             </View>
           </View>
           <View style={styles.tableContainer}>
-            
             <View style={styles.headerRow}>
-              {['', 'S.No.', 'ID', 'Goal', 'Description', 'Impacted Stakeholders', 'Goal Owner', 'Target year', 'Created On', 'Status', 'Action'].map((header, index) => (
-                <View key={index} style={[
-                  styles.headerCell,
-                  index === 0 ? { flex: 0.3 } :
-                    index === 1 ? { flex: 0.4 } :
-                      index === 2 ? { flex: 0.5 } :
-                        index === 3 || index === 4 ? { flex: 2 } :
-                          index === 5 || index === 6 ? { flex: 1.5 } :
-                            { flex: 1 }
-                ]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+              {[
+                '',
+                'S.No.',
+                'ID',
+                'Goal',
+                'Description',
+                'Impacted Stakeholders',
+                'Goal Owner',
+                'Target year',
+                'Created On',
+                'Status',
+                'Action',
+              ].map((header, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.headerCell,
+                    index === 0
+                      ? {flex: 0.3}
+                      : index === 1
+                      ? {flex: 0.4}
+                      : index === 2
+                      ? {flex: 0.5}
+                      : index === 3 || index === 4
+                      ? {flex: 2}
+                      : index === 5 || index === 6
+                      ? {flex: 1.5}
+                      : {flex: 1},
+                  ]}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
                     {index === 0 && (
                       <Checkbox
                         status={headerChecked ? 'checked' : 'unchecked'}
@@ -349,29 +452,46 @@ const ManageGoals: React.FC = () => {
                           if (headerChecked) {
                             setCheckedItems(new Set());
                           } else {
-                            setCheckedItems(new Set(goalData.map(goal => goal.goal_id)));
+                            setCheckedItems(
+                              new Set(goalData.map(goal => goal.goal_id)),
+                            );
                           }
                         }}
                       />
                     )}
-                    <Text style={{
-                      color: '#757575',
-                      fontFamily: 'Source Sans Pro',
-                      fontSize: 13,
-                      fontStyle: 'normal',
-                      fontWeight: '600',
-                      lineHeight: 22,
-                    }}>{header}</Text>
+                    <Text
+                      style={{
+                        color: '#757575',
+                        fontFamily: 'Source Sans Pro',
+                        fontSize: 13,
+                        fontStyle: 'normal',
+                        fontWeight: '600',
+                        lineHeight: 22,
+                      }}>
+                      {header}
+                    </Text>
                     {index > 2 && index < 10 && (
-                      <TouchableOpacity onPress={() => handleSort(header.toLowerCase())}>
+                      <TouchableOpacity
+                        onPress={() => handleSort(header.toLowerCase())}>
                         <Image
                           source={AppImages.Arrow}
                           style={{
                             width: 16,
                             height: 16,
                             marginLeft: 4,
-                            tintColor: sortColumn === header.toLowerCase() ? '#757575' : '#757575',
-                            transform: [{ rotate: sortColumn === header.toLowerCase() && !isAscending ? '180deg' : '0deg' }],
+                            tintColor:
+                              sortColumn === header.toLowerCase()
+                                ? '#757575'
+                                : '#757575',
+                            transform: [
+                              {
+                                rotate:
+                                  sortColumn === header.toLowerCase() &&
+                                  !isAscending
+                                    ? '180deg'
+                                    : '0deg',
+                              },
+                            ],
                           }}
                         />
                       </TouchableOpacity>
@@ -382,9 +502,11 @@ const ManageGoals: React.FC = () => {
             </View>
             {goalData.map((goal, index) => (
               <View key={goal.goal_id} style={styles.row}>
-                <View style={[styles.cell, { flex: 0.3 }]}>
+                <View style={[styles.cell, {flex: 0.3}]}>
                   <Checkbox
-                    status={checkedItems.has(goal.goal_id) ? 'checked' : 'unchecked'}
+                    status={
+                      checkedItems.has(goal.goal_id) ? 'checked' : 'unchecked'
+                    }
                     onPress={() => {
                       setCheckedItems(prevChecked => {
                         const newChecked = new Set(prevChecked);
@@ -398,37 +520,71 @@ const ManageGoals: React.FC = () => {
                     }}
                   />
                 </View>
-                <View style={[styles.cell, { flex: 0.4 }]}><Text>{index + 1}</Text></View>
-                <View style={[styles.cell, { flex: 0.5 }]}><Text>{goal.goal_id}</Text></View>
-                <View style={[styles.cell, { flex: 2 }]}><Text>{goal.goal_name}</Text></View>
-                <View style={[styles.cell, { flex: 2 }]}><Text numberOfLines={1} ellipsizeMode="tail">{goal.description}</Text></View>
-                <View style={[styles.cell, { flex: 1.5 }]}><Text>{goal.stakeholders}</Text></View>
-                <View style={[styles.cell, { flex: 1.5 }]}><Text>{goal.goal_owner}</Text></View>
-                <View style={[styles.cell, { flex: 1 }]}><Text>{goal.target_year}</Text></View>
-                <View style={[styles.cell, { flex: 1 }]}><Text>{new Date(goal.created_at).toLocaleDateString()}</Text></View>
-                <View style={[styles.cell, { flex: 1 }]}><Text>{goal.status}</Text></View>
-                <View style={[styles.cell, styles.actionCell, { flex: 1 }]}>
+                <View style={[styles.cell, {flex: 0.4}]}>
+                  <Text>{index + 1}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 0.5}]}>
+                  <Text>{goal.goal_id}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 2}]}>
+                  <Text>{goal.goal_name}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 2}]}>
+                  <Text numberOfLines={1} ellipsizeMode="tail">
+                    {goal.description}
+                  </Text>
+                </View>
+                <View style={[styles.cell, {flex: 1.5}]}>
+                  <Text>
+                    {mapDepartmentIdToName(parseInt(goal.stakeholders))}
+                  </Text>
+                </View>
+                <View style={[styles.cell, {flex: 1.5}]}>
+                  <Text>
+                    {mapDepartmentIdToName(parseInt(goal.goal_owner))}
+                  </Text>
+                </View>
+                <View style={[styles.cell, {flex: 1}]}>
+                  <Text>{goal.target_year}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 1}]}>
+                  <Text>{new Date(goal.created_at).toLocaleDateString()}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 1}]}>
+                  <Text>{goal.status}</Text>
+                </View>
+                <View style={[styles.cell, styles.actionCell, {flex: 1}]}>
                   <Menu
                     visible={goal.menuVisible}
                     onDismiss={() => {
                       const updatedGoalData = goalData.map(item =>
-                        item.goal_id === goal.goal_id ? { ...item, menuVisible: false } : item
+                        item.goal_id === goal.goal_id
+                          ? {...item, menuVisible: false}
+                          : item,
                       );
                       setGoalData(updatedGoalData);
                     }}
                     anchor={
                       <TouchableOpacity
-                        onPress={(event) => {
-                          const { pageX, pageY } = event.nativeEvent;
+                        onPress={event => {
+                          const {pageX, pageY} = event.nativeEvent;
                           const updatedIntakeData = goalData.map(item =>
                             item.goal_id === goal.goal_id
-                              ? { ...item, menuVisible: true, menuX: pageX, menuY: pageY }
-                              : { ...item, menuVisible: false }
+                              ? {
+                                  ...item,
+                                  menuVisible: true,
+                                  menuX: pageX,
+                                  menuY: pageY,
+                                }
+                              : {...item, menuVisible: false},
                           );
                           setGoalData(updatedIntakeData);
-                        }}
-                      >
-                        <IconButton icon="dots-vertical" size={20} style={{ margin: 0, padding: 0 }} />
+                        }}>
+                        <IconButton
+                          icon="dots-vertical"
+                          size={20}
+                          style={{margin: 0, padding: 0}}
+                        />
                       </TouchableOpacity>
                     }
                     style={{
@@ -436,11 +592,13 @@ const ManageGoals: React.FC = () => {
                       zIndex: 1000,
                       left: goal.menuX - 150,
                       top: goal.menuY - 80,
-                    }}
-                  >
+                    }}>
                     <Menu.Item onPress={() => openModal(goal)} title="Edit" />
-                    <Menu.Item onPress={() => handleDeletePress(goal.goal_id)} title="Delete" />
-                    <Menu.Item onPress={() => { }} title="Create Program" />
+                    <Menu.Item
+                      onPress={() => handleDeletePress(goal.goal_id)}
+                      title="Delete"
+                    />
+                    <Menu.Item onPress={() => {}} title="Create Program" />
                   </Menu>
                 </View>
               </View>
@@ -494,7 +652,7 @@ const styles = StyleSheet.create({
   },
   centerButtons: {
     flexDirection: 'row',
-    marginRight: 176
+    marginRight: 176,
   },
   rightButtons: {
     flexDirection: 'row',
@@ -511,7 +669,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   buttonText6: {
-    color: '#C4C4C4'
+    color: '#C4C4C4',
   },
   buttonIcon: {
     marginRight: 5,
@@ -520,7 +678,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     overflow: 'hidden',
-    backgroundColor: '#fff'
+    backgroundColor: '#fff',
   },
   headerRow: {
     flexDirection: 'row',
@@ -530,7 +688,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     color: '#757575',
     textAlign: 'center',
-    fontFamily: "Source Sans Pro",
+    fontFamily: 'Source Sans Pro',
     fontSize: 14,
     fontStyle: 'normal',
     fontWeight: '600',

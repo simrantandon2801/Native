@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, FlatList, Button, CheckBox } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { TextInput } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserData {
   id: string;  
@@ -36,7 +37,16 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
 
   const fetchDropdownOptions = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/integration/get_activedirectory_customer_integration?customer_id=1');
+      const token = await AsyncStorage.getItem('Token');
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/integration/get_activedirectory_customer_integration?customer_id=1',
+        {
+          method: 'GET',  
+          headers: {
+            'Content-Type': 'application/json', 
+            'Authorization': `${token}`,  
+          },
+        }
+      );
       const result = await response.json();
       if (result.status === 'success' && Array.isArray(result.data)) {
         setDropdownOptions(result.data.map((item: any) => ({
@@ -54,7 +64,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
 
   const fetchData = async (optionValue: string) => {
     try {
-      const response = await fetch(`https://underbuiltapi.aadhidigital.com/integration/get_users?Integration_customer_id=${optionValue}`);
+      const response = await fetch(`https://forge-testing-api.aadhidigital.com/integration/get_users?Integration_customer_id=${optionValue}`);
       const result = await response.json();
       if (result.status === 'success' && result.data?.users) {
         setData(result.data.users);  // Access the users array inside the data object
@@ -82,10 +92,11 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
         userPrincipalName: item.userPrincipalName,
         id: item.id,
       }));
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/integration/addUpdate_ADUsers', {
+      const response = await fetch('https://forge-testing-api.aadhidigital.com/integration/addUpdate_ADUsers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+
         },
         body: JSON.stringify(formattedData),
       });
