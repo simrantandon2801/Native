@@ -6,7 +6,7 @@ import { BASE_URL } from "@env";
 
   export const MainDrawerNav = async (query:string): Promise<string> => {
     try {
-      debugger;
+      //debugger;
       //const UserID = await AsyncStorage.getItem('UserID');
       var uri = `${BASE_URL}/master/role_modules?role_id=${query}`;
       //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';

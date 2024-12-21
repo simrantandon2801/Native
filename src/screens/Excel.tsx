@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, StyleSheet, Modal, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import * as XLSX from 'xlsx';
 import { Checkbox, DataTable } from 'react-native-paper';
-
+import {BASE_URL} from '@env';
 
 const Excel = () => {
   const [excelData, setExcelData] = useState<any[]>([]);
@@ -11,7 +11,7 @@ const Excel = () => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
   const fetchData = () => {
-    fetch('https://underbuiltapi.aadhidigital.com/master/get_temp_users')
+    fetch(`${BASE_URL}/master/get_temp_users`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Failed to fetch data');
@@ -52,7 +52,7 @@ const Excel = () => {
     };
   
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_temp_users_to_users', {
+      const response = await fetch(`${BASE_URL}master/insert_temp_users_to_users`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -110,7 +110,7 @@ const Excel = () => {
 
     try {
       
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_bulk_temp_users', {
+      const response = await fetch(`${BASE_URL}master/insert_bulk_temp_users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

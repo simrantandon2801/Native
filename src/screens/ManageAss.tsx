@@ -15,7 +15,7 @@ import { IconButton, Menu, DataTable } from 'react-native-paper';
 import { decodeBase64,encodeBase64 } from '../core/securedata';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { white } from 'colorette';
-
+import {BASE_URL} from '@env';
 const { height } = Dimensions.get('window');
 
 interface User {
@@ -52,7 +52,7 @@ const ManageAss: React.FC = () => {
 
   const fetchModules = async () => {
     try {
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/modules');
+      const response = await fetch(`${BASE_URL}master/modules`);
       const data = await response.json();
       if (!Array.isArray(data)) {
         console.error('Modules data is not an array:', data);
@@ -69,7 +69,7 @@ const ManageAss: React.FC = () => {
     try {
         const encodedRoleId = await AsyncStorage.getItem('UserType');
         const decodedRoleId = decodeBase64(encodedRoleId ?? ''); 
-      const response = await fetch(`https://underbuiltapi.aadhidigital.com/master/get_role_vs_modules?role_id=${decodedRoleId}`);
+      const response = await fetch(`${BASE_URL}master/get_role_vs_modules?role_id=${decodedRoleId}`);
       const responseData = await response.json();
       console.log('Fetched Role:', JSON.stringify(responseData, null, 2)); 
       
@@ -161,7 +161,7 @@ const ManageAss: React.FC = () => {
       };
   
       try {
-        const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
+        const response = await fetch(`${BASE_URL}master/insert_update_role_vs_module`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -192,7 +192,7 @@ const ManageAss: React.FC = () => {
   
       console.log('Sending Payload:', JSON.stringify(payload, null, 2));
   
-      const response = await fetch('https://underbuiltapi.aadhidigital.com/master/insert_update_role_vs_module', {
+      const response = await fetch(`${BASE_URL}master/insert_update_role_vs_module`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

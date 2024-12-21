@@ -7,7 +7,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import BinaryTree from './Tree/BinaryTree';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import {BASE_URL} from '@env';
 
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
@@ -42,7 +42,7 @@ const DepartmentList = () => {
           console.error('No token found in AsyncStorage');
           return;
         }
-        const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_users',
+        const response = await fetch(`${BASE_URL}/master/get_users`,
           {
             method: 'GET',  
             headers: {
@@ -75,7 +75,7 @@ const DepartmentList = () => {
     const fetchDepartments = async () => {
       try {
         const token = await AsyncStorage.getItem('Token'); 
-        const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+        const response = await fetch(`${BASE_URL}/master/get_department`
           , {
             method: 'GET',  
             headers: {
@@ -98,7 +98,7 @@ const DepartmentList = () => {
   const fetchDepartments = async () => {
     try {
       const token = await AsyncStorage.getItem('Token'); 
-      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+      const response = await fetch(`${BASE_URL}/master/get_department`
         , {
           method: 'GET',  // Make sure the method is GET
           headers: {
@@ -119,7 +119,7 @@ const DepartmentList = () => {
   const fetchSubDepartmentsHierarchy = async (parentId) => {
     try {
       const token = await AsyncStorage.getItem('Token'); 
-      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+      const response = await fetch(`${BASE_URL}/master/get_department`
         , {
           method: 'GET',  // Make sure the method is GET
           headers: {
@@ -151,7 +151,7 @@ const DepartmentList = () => {
   const fetchSubDepartments = async (parentId) => {
     try {
       const token = await AsyncStorage.getItem('Token'); 
-      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/get_department'
+      const response = await fetch(`${BASE_URL}/master/get_department`
         , {
           method: 'GET',  // Make sure the method is GET
           headers: {
@@ -172,7 +172,7 @@ const DepartmentList = () => {
 const handleDelete = async (departmentId) => {
   try {
     const token = await AsyncStorage.getItem('Token'); 
-    const response = await fetch('https://forge-testing-api.aadhidigital.com/master/delete_department', {
+    const response = await fetch(`${BASE_URL}/master/delete_department`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -211,7 +211,7 @@ const handleDelete = async (departmentId) => {
 
     try {
       const token = await AsyncStorage.getItem('Token'); 
-      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/insert_department', {
+      const response = await fetch(`${BASE_URL}/master/insert_department`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +269,7 @@ const handleDelete = async (departmentId) => {
     try {
       const token = await AsyncStorage.getItem('Token'); 
       console.log("Department to be sent: ", departmentToSend);
-      const response = await fetch('https://forge-testing-api.aadhidigital.com/master/insert_department', {
+      const response = await fetch(`${BASE_URL}/master/insert_department`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

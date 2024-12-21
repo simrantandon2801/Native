@@ -46,6 +46,7 @@ import ManageGoals from '../screens/Goals/ManageGoals';
 import ManagePrograms from '../screens/Goals/ManagePrograms';
 import { MainDrawerNav } from '../database/MainDrawer';
 import BinaryTree from '../screens/Tree/BinaryTree';
+import NewIntake from '../screens/Intake List/NewIntake';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -304,6 +305,7 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="ManageGoals" component={ManageGoals} />
           <Drawer.Screen name="ManagePrograms" component={ManagePrograms} />
           <Drawer.Screen name="BinaryTree" component={BinaryTree} />
+          <Drawer.Screen name="NewIntake" component={NewIntake} />
         
           {dynamicModules.map((module) => (
             <Drawer.Screen
