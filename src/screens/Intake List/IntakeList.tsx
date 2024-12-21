@@ -341,9 +341,12 @@ const IntakeList: React.FC = () => {
       Alert.alert('Error', 'Failed to fetch departments');
     }
   };
-  const handleViewPress = (projectId: number) => {
-    navigate('IntakeView', { projectId });
+  const handleViewPress = (id: number) => {
+    console.log('Navigating with Project ID:', id);
+    navigate('IntakeView', { project_id: id });
   };
+
+  
   //fetch Users
   const fetchUsers = async () => {
     try {
@@ -707,9 +710,13 @@ const IntakeList: React.FC = () => {
                       top: project.menuY ? project.menuY - 80 : 0,
                     }}>
                         
-                    <Menu.Item 
-                     onPress={() => handleViewPress(project.project_id)}
-                    title="View" />
+                        <Menu.Item 
+  onPress={() => {
+    console.log('Project ID in onPress:', project.project_id); // Debugging log
+    handleViewPress(project.project_id); // Call the function with the project ID
+  }} 
+  title="View" 
+/>
                     <Menu.Item
                       onPress={() => handleDeletePress(project.project_id)}
                       title="Edit"

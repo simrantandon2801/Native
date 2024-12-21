@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Button,
 } from 'react-native';
 import {
   Checkbox,
@@ -23,8 +24,9 @@ import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
-import {GetProjects} from '../../database/Intake';
+import {GetProjectApproval, UpdateProjectApproval} from '../../database/Intake';
 import { ScrollView } from 'react-native-gesture-handler';
+
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
 
@@ -48,7 +50,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [goalName, setGoalName] = useState('');
   const [description, setDescription] = useState('');
   const [goalId, setGoalId] = useState<string | undefined>(undefined);
-
+  
   useEffect(() => {
     console.log('Edit Goal:', editGoal);
     if (editGoal) {
@@ -288,11 +290,81 @@ const IntakeApproval: React.FC = () => {
   const [sortColumn, setSortColumn] = useState('');
   const [isAscending, setIsAscending] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
+  const [approvalprojects, setapprovalProjects] = useState<any[]>([]);
   const [editGoal, setEditGoal] = useState<any | null>(null);
   const [headerChecked, setHeaderChecked] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const handleApprovePress = (projIntkAprvlId, seqId, projId, approvalType) => {
+    // Update state with the correct values
+    setProjectId(projId);
+    setSequenceId(seqId);
+    setStatusId(4); // Assuming 4 is the status ID to set here
+    setApprovalType(approvalType);
+    setprojIntkAprvlId(projIntkAprvlId);
+    setType('review'); // Assuming a default type, you can change it if needed
+    setIsModalVisible(true); // Open the modal
+  };
+  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [projectId, setProjectId] = useState<number | null>(null); // Store the project ID
+  const [statusId, setStatusId] = useState<number | null>(null); // Track status_id
+  const [approvalType, setApprovalType] = useState<string>(''); // Track approval_type
+  const [sequenceId, setSequenceId] = useState<number | null>(null); // Track sequence_id
+  const [projectintake, setProjectintake] = useState<number | null>(null);
+  const [projIntkAprvlId, setprojIntkAprvlId] = useState(null);
 
+  const [type, setType] = useState<string>(''); 
+  const [comment, setComment] = useState<string>(''); 
+  const handleOkPress = async  () => {
+    // Debug the state values
+    console.log('Project ID:', projectId);
+    console.log('Status ID:', statusId);
+    console.log('Approval Type:', approvalType);
+    console.log('Sequence ID:', sequenceId);
+    console.log('Type:', type);
+    console.log('Comment:', comment);
+  
+    if (projectId !== null && statusId !== null && approvalType && sequenceId !== null) {
+      // Construct the payload with the required values
+      const payload = {
+        proj_intk_aprvl_id: projIntkAprvlId, // Assuming a static approval ID for now
+        sequence_id: sequenceId, // Use the state value for sequence ID
+        project_id: projectId, // Use the state value for project ID
+        status_id: 4, // Use the state value for status ID
+        approval_type: 2, // Use the state value for approval type
+        comment: comment, // Use the comment entered by the user
+        type: type, // Use the state value for type
+      };
+  
+      console.log('Payload:', payload);
+
+  
+      // Call your function to handle the payload (e.g., UpdateProjectApproval)
+    //   UpdateProjectApproval(payload);
+  
+      // Close the modal after submitting the comment
+      
+      try {
+        const response = await UpdateProjectApproval(payload);
+        const parsedResponse = JSON.parse(response);
+
+        if (parsedResponse.status === 'success') {
+          Alert.alert('Goal created successfully');
+          setIsModalVisible(false);
+        } else {
+          Alert.alert('Failed to create goal. Please try again.');
+          
+        }
+      } catch (error) {
+        console.error('Error creating goal:', error);
+        Alert.alert('An error occurred. Please try again.');
+      }
+    } else {
+      Alert.alert('Please fill in all required fields.');
+    }
+
+  };
+  
   useEffect(() => {
     setHeaderChecked(checkedItems.size === projects.length);
   }, [checkedItems, projects]);
@@ -303,13 +375,13 @@ const IntakeApproval: React.FC = () => {
   // Fetch goals
   const fetchProjects = async () => {
     try {
-      const response = await GetProjects('');
+      const response = await GetProjectApproval('');
       console.log('Get project Response:', response);
       const result = JSON.parse(response);
 
       console.log(' Get Projects Response:', result);
-      if (result?.data?.projects && Array.isArray(result.data.projects)) {
-        setProjects(result.data.projects);
+      if (result?.data && Array.isArray(result.data)) {
+        setapprovalProjects(result.data);
       } else {
         console.error('Invalid Projects data');
       }
@@ -435,7 +507,7 @@ const IntakeApproval: React.FC = () => {
       
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
-          <Text style={styles.heading}>Intake Approval/Review</Text>
+          <Text style={styles.heading}>Intake Approval</Text>
           <View style={styles.topBar}>
             <View style={styles.leftButtons}>
               {/* <TouchableOpacity style={styles.button}>
@@ -542,7 +614,7 @@ const IntakeApproval: React.FC = () => {
                           } else {
                             setCheckedItems(
                               new Set(
-                                projects.map(project =>
+                                approvalprojects.map(project =>
                                   project.project_id.toString(),
                                 ),
                               ),
@@ -594,7 +666,7 @@ const IntakeApproval: React.FC = () => {
             </View>
             <ScrollView
             showsVerticalScrollIndicator={false}>
-            {projects.map((project, index) => (
+            {approvalprojects.map((project, index) => (
               <View key={project.project_id} style={styles.row}>
                 <View style={[styles.cell, {flex: 0.3}]}>
                   <Checkbox
@@ -665,7 +737,7 @@ const IntakeApproval: React.FC = () => {
                   <Menu
                     visible={project.menuVisible}
                     onDismiss={() => {
-                      const updatedProjectsData = projects.map(item =>
+                      const updatedProjectsData = approvalprojects.map(item =>
                         item.project_id === project.project_id
                           ? {...item, menuVisible: false}
                           : item,
@@ -676,7 +748,7 @@ const IntakeApproval: React.FC = () => {
                       <TouchableOpacity
                         onPress={event => {
                           const {pageX, pageY} = event.nativeEvent;
-                          const updatedProjectsData = projects.map(item =>
+                          const updatedProjectsData = approvalprojects.map(item =>
                             item.project_id === project.project_id
                               ? {
                                   ...item,
@@ -686,7 +758,7 @@ const IntakeApproval: React.FC = () => {
                                 }
                               : {...item, menuVisible: false},
                           );
-                          setProjects(updatedProjectsData);
+                          setapprovalProjects(updatedProjectsData);
                         }}>
                         <IconButton
                           icon="dots-vertical"
@@ -703,9 +775,22 @@ const IntakeApproval: React.FC = () => {
                     }}>
                     <Menu.Item title="View" />
                     <Menu.Item
-                      onPress={() => handleDeletePress(project.project_id)}
-                      title="Approve"
-                    />
+  onPress={() => {
+    console.log('Project Approval ID:', project.proj_intk_aprvl_id);
+    console.log('Sequence ID:', project.sequence_id);
+    console.log('Project ID:', project.project_id);
+    console.log('Type:', project.type);
+    console.log('Project:', project);
+
+    handleApprovePress(
+      project.proj_intk_aprvl_id,
+      project.sequence_id,
+      project.project_id,
+      project.type
+    );
+  }}
+  title="Approve"
+/>
                     <Menu.Item onPress={() => {}} title="Reject" />
                   </Menu>
                 </View>
@@ -713,6 +798,27 @@ const IntakeApproval: React.FC = () => {
             ))}
             </ScrollView>
           </View>
+          <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <View style={{ width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
+            <Text>Add a Comment</Text>
+            <TextInput
+              value={comment}
+              onChangeText={setComment} // Update the comment state
+              placeholder="Type your comment here"
+              style={{
+                height: 40,
+                borderColor: 'gray',
+                borderWidth: 1,
+                marginBottom: 20,
+                paddingLeft: 10,
+              }}
+            />
+            <Button title="OK" onPress={handleOkPress} />
+            <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
 
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
         </View>

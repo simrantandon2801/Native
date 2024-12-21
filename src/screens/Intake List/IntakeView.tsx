@@ -11,7 +11,7 @@ interface ApprovalItem {
   actionTakenBy: string;
   comments: string;
 }
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { GetUsers } from '../../database/Departments';
 import { GetPrograms } from '../../database/ManageProgram';
 import { GetGoals } from '../../database/Goals';
@@ -41,14 +41,17 @@ const approvalHistory: ApprovalItem[] = [
 
 const IntakeView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('details');
+  const route = useRoute();
+  const { project_id } = route.params as { project_id: number };
 
+  console.log('Project ID from route:', project_id);
   return (
     <View style={styles.container}>
       <Header />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'history' && <ApprovalHistory items={approvalHistory} />}
       {activeTab === 'details' && (
-        <ProjectDetails items={approvalHistory} projectId={5} />
+        <ProjectDetails items={approvalHistory} projectId={project_id} />
       )}
     </View>
   );
@@ -76,12 +79,12 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => (
     >
       <Text style={styles.tabText}>Project Intake Details</Text>
     </TouchableOpacity>
-{/*     <TouchableOpacity
+    <TouchableOpacity
       style={[styles.tab, activeTab === 'history' && styles.activeTab]}
       onPress={() => setActiveTab('history')}
     >
       <Text style={styles.tabText}>Approval History</Text>
-    </TouchableOpacity> */}
+    </TouchableOpacity>
   </View>
 );
 
@@ -89,13 +92,15 @@ interface ApprovalHistoryProps {
   items: ApprovalItem[];
 }
 const ApprovalHistory: React.FC = () => {
+    const route = useRoute();
+  const { project_id } = route.params as { project_id: number };
     const [historyData, setHistoryData] = useState<any[]>([]); // Store fetched data
     const [loading, setLoading] = useState<boolean>(true); // Track loading state
     const [error, setError] = useState<string>(''); // Handle any errors
   
     // GetHistory function to fetch data
     const fetchHistory = async () => {
-      const projectId = 11;  // Static project_id
+      const projectId = project_id;  // Static project_id
   
       try {
         // Include project_id in the request payload
@@ -179,7 +184,7 @@ const ApprovalHistory: React.FC = () => {
 
   const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
     items,
-    projectId ,
+    projectId
   }) => {
     const navigation = useNavigation();
     const [project, setProject] = useState<Project | null>(null);

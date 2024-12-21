@@ -154,3 +154,45 @@ export const InsertDraft = async (values: Object): Promise<string> => {
       throw Error('Failed' + error);
     }
   };
+
+
+  export const GetProjectApproval = async (query:string): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      var uri = `${BASE_URL}/projectFlow/get_review_approval_to_user_for_action`;
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);``
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+      console.log("jsonResult from API:", jsonResult);
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };
+
+
+  export const UpdateProjectApproval = async (values: Object): Promise<string> => {
+    try {
+      // 
+       //const UserID = await AsyncStorage.getItem('UserID');
+       var uri = `${BASE_URL}/projectFlow/update_review_approval_process_status`;
+       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+       const token = await AsyncStorage.getItem('Token');  
+       console.log(uri);
+       var payload = JSON.stringify(values);
+       console.log(payload);
+       var jsonResult = await PostAsync_with_token(uri, payload,token);
+       //  
+       //
+       console.log(jsonResult);
+       return JSON.stringify(jsonResult ?? '');
+     } catch (error) {
+       console.error(error);
+       throw Error('Failed' + error);
+     }
+  };
