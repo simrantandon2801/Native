@@ -16,6 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import ReCaptchaV3 from 'react-native-recaptcha-v3';
 import { navigate } from '../navigations/RootNavigation';
 import SignupScreen from './SignupScreen';
+import {BASE_URL} from '@env';
 export type HomeStackNavigatorParamList = {
     LoginScreen: {};
     WelcomeScreen: {};
@@ -53,7 +54,7 @@ const LoginScreen: React.FC = () => {
     if (Object.keys(tempErrors).length > 0) return;
 
 
-        const uri = 'https://underbuiltapi.aadhidigital.com/auth/login';
+        const uri = `${BASE_URL}auth/login`;
         const payload = JSON.stringify({
           email: email,
           password: password,
