@@ -85,6 +85,11 @@ const NewIntake = () => {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [rawEndDate, setRawEndDate] = useState(null); 
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [rawGoLiveDate, setRawGoLiveDate] = useState(null);
+  const [showGoLiveDatePicker, setShowGoLiveDatePicker] = useState(false);
+  const [startDateDisplay, setStartDateDisplay] = useState('');
+  const [endDateDisplay, setEndDateDisplay] = useState('');
+  const [liveDateDisplay, setLiveDateDisplay] = useState('');
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
   };
@@ -314,7 +319,7 @@ const NewIntake = () => {
   });
   
 
-  const handleSubmit = async () => {
+  const handleSaveDraft = async () => {
     try {
       // Validate required fields
       if (!nameTitle || !classification || !goalSelected || !program || !startDate || !endDate || !goLiveDate) {
@@ -464,7 +469,7 @@ const NewIntake = () => {
       let currentProjectId = projectId;
   
       if (!currentProjectId) {
-        currentProjectId = await handleSubmit(); 
+        currentProjectId = await handleSaveDraft(); 
       }
   
       if (currentProjectId) {
@@ -498,14 +503,15 @@ const NewIntake = () => {
       let currentProjectId = projectId;
   
       if (!currentProjectId) {
-        currentProjectId = await handleSubmit(); 
+        currentProjectId = await handleSaveDraft(); 
       }
   
       if (currentProjectId) {
         const payload = {
-          aprvl_seq_id: Number(approvalPathidApp),
+          //aprvl_seq_id: Number(approvalPathidApp),
           project_id: Number(currentProjectId),
-          sento: "review",
+          sent_to: Number(approvalPathid),
+          type: "approval",
           approval_type: Number(selectedOptionApp),
         };
   
@@ -558,13 +564,22 @@ const NewIntake = () => {
   };
   const handleDateChange = (date) => {
     setRawStartDate(date);
-    setStartDate(format(date, 'MMMM d, yyyy')); // Format date for the input field
+    setStartDateDisplay(format(date, 'MM-dd-yyyy'));
+    setStartDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowStartDatePicker(false); // Close the picker
   };
   const handleEndDateChange = (date) => {
     setRawEndDate(date);
-    setEndDate(format(date, 'MMMM d, yyyy')); // Format date for the input field
+    setEndDateDisplay(format(date, 'MM-dd-yyyy'));
+    setEndDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowEndDatePicker(false); // Close the picker
+  };
+
+  const handleGoLiveDateChange = (date) => {
+    setRawGoLiveDate(date);
+    setLiveDateDisplay(format(date, 'MM-dd-yyyy'));
+    setGoLiveDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+    setShowGoLiveDatePicker(false); // Close the picker
   };
   return (<Formik
     initialValues={{
@@ -653,10 +668,10 @@ const NewIntake = () => {
               {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
 
-            <TouchableOpacity style={styles.approvalButton}>
+            {/* <TouchableOpacity style={styles.approvalButton}>
               <Icon name="time-outline" size={18} color="#044086" style={styles.approvalIcon} />
               <Text style={styles.approvalButtonText}>Approval History</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
           {/* Second Row */}
@@ -885,7 +900,7 @@ const NewIntake = () => {
               <Text style={styles.inputLabel}>Project Start Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
         style={styles.input}
-        value={startDate}
+        value={startDateDisplay}
         onFocus={() => setShowStartDatePicker(true)}
         placeholder="Select Start Date"
         editable={Platform.OS !== 'web'} // Disable manual input on web
@@ -901,7 +916,7 @@ const NewIntake = () => {
         <DatePicker
           selected={rawStartDate}
           onChange={handleDateChange}
-          dateFormat="MMMM d, yyyy"
+          dateFormat="MM-dd-yyyy"
           inline // Inline style for better usability
         />
       )}
@@ -910,7 +925,7 @@ const NewIntake = () => {
               <Text style={styles.inputLabel}>Project End Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
         style={styles.input}
-        value={endDate}
+        value={endDateDisplay}
         onFocus={() => setShowEndDatePicker(true)}
         placeholder="Select End Date"
         editable={Platform.OS !== 'web'} // Disable manual input on web
@@ -926,7 +941,7 @@ const NewIntake = () => {
         <DatePicker
           selected={rawEndDate}
           onChange={handleEndDateChange}
-          dateFormat="MMMM d, yyyy"
+          dateFormat="MM-dd-yyyy"
           inline // Inline style for better usability
         />
       )}
@@ -936,14 +951,28 @@ const NewIntake = () => {
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Go Live Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.input}
-                value={goLiveDate}
-                onChangeText={setGoLiveDate}
-                placeholder="Select Go Live Date"
-              />
-              {touched.goLiveDate && errors.goLiveDate && (<Text style={{color:'red'}} >{errors.goLiveDate}</Text>)}
+        style={styles.input}
+        value={liveDateDisplay}
+        onFocus={() => setShowGoLiveDatePicker(true)}
+        placeholder="Select Go Live Date"
+        editable={Platform.OS !== 'web'} // Disable manual input on web
+      />
+      {/* <TouchableOpacity onPress={() => setShowGoLiveDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+      {touched?.goLiveDate && errors?.goLiveDate && (
+        <Text style={{ color: 'red' }}>{errors.goLiveDate}</Text>
+      )}
 
-            </View>
+      {Platform.OS === 'web' && showGoLiveDatePicker && (
+        <DatePicker
+          selected={rawGoLiveDate}
+          onChange={handleGoLiveDateChange}
+          dateFormat="MM-dd-yyyy"
+          inline // Inline style for better usability
+        />
+      )}
+    </View>
           </View>
 
           {/* ROI Section */}
@@ -1059,7 +1088,7 @@ const NewIntake = () => {
           {/* Bottom Buttons */}
           <View style={styles.bottomButtonsContainer}>
           <View style={styles.leftButtonContainer}>
-  <TouchableOpacity style={styles.saveAsDraftButton}  onPress={handleSubmit}  >
+  <TouchableOpacity style={styles.saveAsDraftButton}  onPress={handleSaveDraft}  >
     <Icon name="save-outline" size={18} color="#044086" style={styles.saveIcon} />
     <Text style={styles.saveAsDraftButtonText}>Save as draft</Text>
   </TouchableOpacity>
@@ -1104,11 +1133,11 @@ const NewIntake = () => {
               <RadioButton.Group onValueChange={value => setSelectedOptionApp(value)} value={selectedOptionApp}>
                 <View style={styles.radioOptionsRow}>
                   <View style={styles.radioOption}>
-                    <RadioButton.Android value="inPerson" color="#044086" />
+                    <RadioButton.Android value="1" color="#044086" />
                     <Text style={styles.radioText}>In person meeting</Text>
                   </View>
                   <View style={styles.radioOption}>
-                    <RadioButton.Android value="authorization" color="#044086" />
+                    <RadioButton.Android value="2" color="#044086" />
                     <Text style={styles.radioText}>Authorization process</Text>
                   </View>
                 </View>
