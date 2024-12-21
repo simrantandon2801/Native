@@ -30,7 +30,7 @@ import {
   GetUserPermission,
   GetAdIntegration,
 } from '../database/Resource';
-import {GetUsers} from '../database/Users';
+import {GetUsers, GetAllRoles} from '../database/Users';
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
 import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -39,27 +39,30 @@ import AdComponent from './Adcomponent';
 import {navigate} from '../navigations/RootNavigation';
 
 interface User {
-  user_id: number;
-  username: string;
-  email: string;
+  resource_id: number;
+  customer_id: number;
+  department_id: number;
   first_name: string;
   last_name: string;
-  customer_id: number | null;
-  reporting_to: number | null;
-  approval_limit: number | null;
-  created_at: string;
-  updated_at: string;
-  created_by: number;
-  updated_by: number | null;
+  email: string;
+  designation: string;
+  user_id: number | null;
+  reporting_to: number;
+  start_date: string | null;
+  end_date: string | null;
+  availability_percentage: number | null;
+  average_cost: number;
   is_active: boolean;
-  is_deleted: boolean;
-  department_id: number | null;
-  average_cost: number | null;
+  created_at: string;
+  created_by: string | null;
+  updated_at: string;
+  updated_by: string | null;
+  external_resource: boolean;
+  resource_type_id: number | null;
+  role_id: number | null;
   phone: string | null;
-  source: string | null;
-  designation: string | null;
   manager_name: string | null;
-  department_name: string | null;
+  department_name: string;
   role_name: string | null;
 }
 
@@ -314,12 +317,12 @@ const Resources: React.FC = () => {
 
   const fetchAllRole = async () => {
     try {
-      const response = await GetResourceType('');
+      const response = await GetAllRoles('');
       const parsedRes =
         typeof response === 'string' ? JSON.parse(response) : response;
-      console.log(parsedRes.data.resource_types);
+      //console.log(parsedRes.data.resource_types);
       if (parsedRes.status === 'success') {
-        setUserRole(parsedRes.data.resource_types);
+        setUserRole(parsedRes.data.roles);
       } else {
         console.error(
           'Failed to fetch user roles:',
@@ -364,7 +367,7 @@ const Resources: React.FC = () => {
     if (selectAllChecked) {
       setAllSelectedUsersID([]); // Deselect all users
     } else {
-      const selectedUserIds = users.map(user => user.user_id); // Select all users
+      const selectedUserIds = users.map(user => user.resource_id); // Select all users
       setAllSelectedUsersID(selectedUserIds);
       console.log('Selected Users ID:', selectedUserIds); // Log the array
     }
@@ -476,24 +479,24 @@ const Resources: React.FC = () => {
           <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
         </TouchableOpacity>
         {/*Assign Department Button in Action Bar */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => setisMultipleAssignDeptModalVisible(true)}>
           <IconButton icon="briefcase-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>
             Assign Department
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         {/*Assign Role Button in Action Bar  */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => setisMultipleRoleAssignModalVisible(true)}>
           <IconButton icon="briefcase-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>
             Assign Roles
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         <View style={styles.middleActions}>
           <TouchableOpacity
@@ -585,11 +588,11 @@ const Resources: React.FC = () => {
             <DataTable.Row style={styles.table} key={user.user_id}>
               <Checkbox
                 status={
-                  allSelectedUsersID.includes(user.user_id)
+                  allSelectedUsersID.includes(user.resource_id)
                     ? 'checked'
                     : 'unchecked'
                 }
-                onPress={() => handleUserSelection(user.user_id)}
+                onPress={() => handleUserSelection(user.resource_id)}
               />
               <DataTable.Cell style={{justifyContent: 'center'}}>
                 {index + 1}
@@ -638,12 +641,12 @@ const Resources: React.FC = () => {
               {/* Placeholder for Actions */}
               <DataTable.Cell>
                 <Menu
-                  visible={visibleMenus[user.user_id] || false}
+                  visible={visibleMenus[user.resource_id] || false}
                   style={{
                     flexGrow: 1,
                     left: screenWidth - 260,
                   }}
-                  onDismiss={() => toggleMenu(user.user_id)}
+                  onDismiss={() => toggleMenu(user.resource_id)}
                   style={{
                     flexGrow: 1,
                     left : screenWidth - 260,
@@ -652,7 +655,7 @@ const Resources: React.FC = () => {
                   anchor={
                     <TouchableOpacity
                       onPress={() => {
-                        toggleMenu(user.user_id);
+                        toggleMenu(user.resource_id);
                         setSelectedUser(user);
                       }}>
                       <IconButton icon="dots-vertical" size={20} />
@@ -661,7 +664,7 @@ const Resources: React.FC = () => {
                   <Menu.Item
                     onPress={() => {
                       console.log('Edit Details');
-                      toggleMenu(user.user_id); // Close menu after selection
+                      toggleMenu(user.resource_id); // Close menu after selection
                       setisEditModalVisible(true);
                     }}
                     title="Edit Details"
@@ -677,14 +680,14 @@ const Resources: React.FC = () => {
                   <Menu.Item
                     onPress={() => {
                       console.log('Activate/Deactivate');
-                      toggleMenu(user.user_id); // Close menu after selection
+                      toggleMenu(user.resource_id); // Close menu after selection
                     }}
                     title="Activate/Deactivate"
                   />
                   <Menu.Item
                     onPress={() => {
                       console.log('Delete');
-                      toggleMenu(user.user_id); // Close menu after selection
+                      toggleMenu(user.resource_id); // Close menu after selection
 
                       setisDeleteModalVisible(true);
                     }}

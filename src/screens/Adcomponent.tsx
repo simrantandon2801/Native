@@ -48,7 +48,19 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
   const fetchDropdownOptions = async () => {
     try {
       let decodedCustomerID = await getCustomerId();
-      const response = await fetch(`${BASE_URL}/integration/get_activedirectory_customer_integration?customer_id=${decodedCustomerID}`);
+      //const response = await fetch(`${BASE_URL}/integration/get_activedirectory_customer_integration?customer_id=${decodedCustomerID}`);
+      const token = await AsyncStorage.getItem('Token');
+      const response = await fetch(`${BASE_URL}/integration/get_activedirectory_customer_integration?customer_id=${decodedCustomerID}`,
+        {
+          method: 'GET',  
+          headers: {
+            'Content-Type': 'application/json', 
+            'Authorization': `${token}`,  
+          },
+        }
+      );
+
+      
       const result = await response.json();
       if (result.status === 'success' && Array.isArray(result.data)) {
         setDropdownOptions(result.data.map((item: any) => ({
@@ -66,7 +78,17 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
 
   const fetchData = async (optionValue: string) => {
     try {
-      const response = await fetch(`${BASE_URL}/integration/get_users?Integration_customer_id=${optionValue}`);
+      const token = await AsyncStorage.getItem('Token');
+      //const response = await fetch(`${BASE_URL}/integration/get_users?Integration_customer_id=${optionValue}`);
+      const response = await fetch(`${BASE_URL}/integration/get_users?Integration_customer_id=${optionValue}`,
+        {
+          method: 'GET',  
+          headers: {
+            'Content-Type': 'application/json', 
+            'Authorization': `${token}`,  
+          },
+        }
+      );
       const result = await response.json();
       if (result.status === 'success' && result.data?.users) {
         setData(result.data.users);  // Access the users array inside the data object
@@ -94,10 +116,12 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
         userPrincipalName: item.userPrincipalName,
         id: item.id,
       }));
+      const token = await AsyncStorage.getItem('Token');
       const response = await fetch(`${BASE_URL}/integration/addUpdate_ADUsers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `${token}`,  
         },
         body: JSON.stringify(formattedData),
       });
@@ -107,7 +131,9 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
       console.error('Error importing data:', error);
     }
     closeModal();
+    console.log('fetch user is not called');
     fetchUser();
+    console.log('fetch user is not called');
   };
 
   const toggleRowSelection = (id: string) => {
@@ -131,33 +157,15 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
     item.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.mail?.toLowerCase().includes(searchQuery.toLowerCase()) 
   );
-  // useEffect(() => {
-  //   await getCustomerId(); // Wait for the customer ID to be fetched
-  //   fetchDropdownOptions();
-  // }, []);
+  useEffect(() => {
+    fetchDropdownOptions();
+  }, []);
 
-  // useEffect(() => {
-  //   if (selectedOption) {
-  //     fetchData(selectedOption);
-  //   }
-  // }, [selectedOption]);
-  // const fetchData1 = useCallback(async()=> {
-  //   await getCustomerId(); 
-  //   if (selectedOption) {
-  //     fetchData(selectedOption);
-  //   }
-  // }, [selectedOption])
-
-   useEffect(() => {
-      const fetch = async () => {
-        //await getCustomerId(); // Wait for the customer ID to be fetched
-        fetchDropdownOptions();
-        if (selectedOption) {
-          fetchData(selectedOption);
-        }
-      };
-      fetch(); // Call the async function
-    }, []);
+  useEffect(() => {
+    if (selectedOption) {
+      fetchData(selectedOption);
+    }
+  }, [selectedOption]);
   
 
   return (
