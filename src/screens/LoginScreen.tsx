@@ -25,6 +25,8 @@ export type HomeStackNavigatorParamList = {
     SignupScreen:undefined
   };
 
+
+
   type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
 const LoginScreen: React.FC = () => {

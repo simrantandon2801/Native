@@ -30,7 +30,7 @@ import {
   GetUserPermission,
   GetAdIntegration,
 } from '../database/Resource';
-import {GetUsers} from '../database/Users';
+import {GetUsers, GetAllRoles} from '../database/Users';
 import NestedDeptDropdown from '../modals/NestedDeptDropdown';
 import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -122,7 +122,7 @@ const Resources: React.FC = () => {
   );
   const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
-  const [manager, setManager] = useState<string>('');
+  const [manager, setManager] = useState<number>(-1);
   const [budgetAmount, setBudgetAmount] = useState<string>('');
   const [avgbudgetAmount, setAvgBudgetAmount] = useState<string>('');
   const [Designation, setDesignation] = useState<string>('');
@@ -246,7 +246,10 @@ const Resources: React.FC = () => {
       const response = await GetResources('');
       console.log(response);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success') setUsers(parsedRes.data.resources);
+      if (parsedRes.status === 'success'){
+        setUsers(parsedRes.data.resources);
+      } 
+        
       else
         console.error(
           'Failed to fetch users:',
@@ -260,17 +263,18 @@ const Resources: React.FC = () => {
   const handleAddorEditUser = async () => {
     console.log(selectedRoleID);
     const payload: InsertOrEditUser = {
-      resource_id: selectedUser ? selectedUser.user_id : 0, //
+      resource_id: selectedUser ? selectedUser.resource_id : 0, //
       //username: username || (selectedUser ? selectedUser.username : ''), //agar username hai then add hoga, if not then jo slected user ka email hai vo hoga
       email: email || (selectedUser ? selectedUser.email : ''),
       first_name: firstname || (selectedUser ? selectedUser.first_name : ''),
       last_name: lastname || (selectedUser ? selectedUser.last_name : ''),
       customer_id: parseInt(customerID),
-      reporting_to: parseInt(manager),
+      reporting_to: manager,
       // approval_limit: parseInt(budgetAmount),
       is_super_admin: true,
       is_active: true,
       resource_type_id: selectedRoleID,
+      role_id: selectedRoleID,
       department_id: selectedDeptID, //by default it will give -1
       average_cost: parseInt(avgbudgetAmount),
       phone: '',
@@ -317,12 +321,13 @@ const Resources: React.FC = () => {
 
   const fetchAllRole = async () => {
     try {
-      const response = await GetResourceType('');
+      const response = await GetAllRoles('');
       const parsedRes =
         typeof response === 'string' ? JSON.parse(response) : response;
-      console.log(parsedRes.data.resource_types);
+      //console.log(parsedRes.data.resource_types);
       if (parsedRes.status === 'success') {
-        setUserRole(parsedRes.data.resource_types);
+        setUserRole(parsedRes.data.roles);
+
       } else {
         console.error(
           'Failed to fetch user roles:',
@@ -475,24 +480,24 @@ const Resources: React.FC = () => {
           <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
         </TouchableOpacity>
         {/*Assign Department Button in Action Bar */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => setisMultipleAssignDeptModalVisible(true)}>
           <IconButton icon="briefcase-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>
             Assign Department
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         {/*Assign Role Button in Action Bar  */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => setisMultipleRoleAssignModalVisible(true)}>
           <IconButton icon="briefcase-outline" size={16} color="#344054" />
           <Text style={[styles.actionText, {color: '#344054'}]}>
             Assign Roles
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
 
         <View style={styles.middleActions}>
           <TouchableOpacity
@@ -594,28 +599,25 @@ const Resources: React.FC = () => {
                 {index + 1}
               </DataTable.Cell>
               {/* Name: Concatenating first and last name */}
-              <DataTable.Cell
-                style={{
-                  justifyContent: 'center',
-                }}>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
+              <DataTable.Cell>{`${user.first_name} ${user.last_name}`}</DataTable.Cell>{' '}
               {/*Username*/}
               {/* <DataTable.Cell style={{justifyContent: 'center'}}>
                 {user.username}
               </DataTable.Cell> */}
               {/* Assuming username as designation */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell style={styles.table}>
                 {user.role_name}
               </DataTable.Cell>
               {/* Email*/}
-              <DataTable.Cell style={[{flex: 2, justifyContent: 'center'}]}>
+              <DataTable.Cell style={[{flex: 2}]}>
                 {user.email}
               </DataTable.Cell>
               {/* Placeholder for department */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell>
                 {user.department_name}
               </DataTable.Cell>
               {/* Reporting Manager: Using reporting_to (ID) */}
-              <DataTable.Cell style={{justifyContent: 'center'}}>
+              <DataTable.Cell>
                 {user?.manager_name}
               </DataTable.Cell>
               {/* Placeholder for Projects Active */}
@@ -637,12 +639,12 @@ const Resources: React.FC = () => {
               {/* Placeholder for Actions */}
               <DataTable.Cell>
                 <Menu
-                  visible={visibleMenus[user.user_id] || false}
+                  visible={visibleMenus[user.resource_id] || false}
                   style={{
                     flexGrow: 1,
                     left: screenWidth - 260,
                   }}
-                  onDismiss={() => toggleMenu(user.user_id)}
+                  onDismiss={() => toggleMenu(user.resource_id)}
                   style={{
                     flexGrow: 1,
                     left : screenWidth - 260,
@@ -651,7 +653,7 @@ const Resources: React.FC = () => {
                   anchor={
                     <TouchableOpacity
                       onPress={() => {
-                        toggleMenu(user.user_id);
+                        toggleMenu(user.resource_id);
                         setSelectedUser(user);
                       }}>
                       <IconButton icon="dots-vertical" size={20} />
@@ -660,7 +662,7 @@ const Resources: React.FC = () => {
                   <Menu.Item
                     onPress={() => {
                       console.log('Edit Details');
-                      toggleMenu(user.user_id); // Close menu after selection
+                      toggleMenu(user.resource_id); // Close menu after selection
                       setisEditModalVisible(true);
                     }}
                     title="Edit Details"
@@ -676,14 +678,14 @@ const Resources: React.FC = () => {
                   <Menu.Item
                     onPress={() => {
                       console.log('Activate/Deactivate');
-                      toggleMenu(user.user_id); // Close menu after selection
+                      toggleMenu(user.resource_id); // Close menu after selection
                     }}
                     title="Activate/Deactivate"
                   />
                   <Menu.Item
                     onPress={() => {
                       console.log('Delete');
-                      toggleMenu(user.user_id); // Close menu after selection
+                      toggleMenu(user.resource_id); // Close menu after selection
 
                       setisDeleteModalVisible(true);
                     }}
@@ -760,19 +762,20 @@ const Resources: React.FC = () => {
                 </View> */}
                 {/* <View style={styles.inputRow}> */}
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Resource Type</Text>
+                  <Text style={styles.label}>* Role</Text>
                   <Picker
                     selectedValue={selectedRoleID}
                     onValueChange={itemValue => setSelectedRoleID(itemValue)}
                     style={styles.input}>
+                       <Picker.Item label="Select" value="" />
                     {userRole.map(
                       (
                         role, // Use `userRole` here instead of `userRoles`
                       ) => (
                         <Picker.Item
-                          key={role.resource_type_id}
-                          label={role.resource_type}
-                          value={role.resource_type_id}
+                          key={role.role_id}
+                          label={role.role_name}
+                          value={role.role_id}
                         />
                       ),
                     )}
@@ -782,13 +785,18 @@ const Resources: React.FC = () => {
                   <Text style={styles.label}>* Reporting Manager</Text>
                   <Picker
                     selectedValue={manager}
-                    onValueChange={itemValue => setManager(itemValue)}
+                    onValueChange={itemValue => 
+                      setManager(itemValue)
+                      // console.log('selected reporting manager id',itemValue)
+
+                    }
                     style={styles.input}>
+                      <Picker.Item label="Select" value="" />
                     {users.map((user, index) => (
                       <Picker.Item
                         key={index}
                         label={`${user.first_name} ${user.last_name}`}
-                        value={user.user_id}
+                        value={user.resource_id}
                       />
                     ))}
                   </Picker>
@@ -944,7 +952,7 @@ const Resources: React.FC = () => {
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={() =>
-                  selectedUser?.user_id && handleDelete(selectedUser.user_id)
+                  selectedUser?.user_id && handleDelete(selectedUser.resource_id)
                 }>
                 <Text style={styles.submitButtonText}>Delete</Text>
               </TouchableOpacity>
@@ -1101,19 +1109,20 @@ const Resources: React.FC = () => {
                 {/*User Role*/}
 
                 <View style={styles.inputWrapper}>
-                  <Text style={styles.label}>* Resource Type</Text>
+                  <Text style={styles.label}>* Role</Text>
                   <Picker
                     selectedValue={selectedRoleID}
                     onValueChange={itemValue => setSelectedRoleID(itemValue)}
                     style={styles.input}>
+                       <Picker.Item label="Select" value="" />
                     {userRole.map(
                       (
                         role, // Use `userRole` here instead of `userRoles`
                       ) => (
                         <Picker.Item
-                          key={role.resource_type_id}
-                          label={role.resource_type}
-                          value={role.resource_type_id}
+                          key={role.role_id}
+                          label={role.role_name}
+                          value={role.role_id}
                         />
                       ),
                     )}
@@ -1127,11 +1136,12 @@ const Resources: React.FC = () => {
                     selectedValue={manager}
                     onValueChange={itemValue => setManager(itemValue)}
                     style={styles.input}>
+                    <Picker.Item label="Select" value="" />
                     {users.map((user, index) => (
                       <Picker.Item
                         key={index}
                         label={`${user.first_name} ${user.last_name}`}
-                        value={user.user_id}
+                        value={user.resource_id}
                       />
                     ))}
                   </Picker>
