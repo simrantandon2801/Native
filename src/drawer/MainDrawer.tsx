@@ -40,13 +40,17 @@ import AdminDboard from '../screens/AdminDboard';
 import Roadmap from '../screens/RoadMap';
 import RoadmapOverview from '../screens/RoadmapOverview';
 import Resources from '../screens/Resources';
-import IntakeList from '../screens/IntakeList';
+
 import AdminDashBoard from '../screens/AdminDashboard';
 import ManageGoals from '../screens/Goals/ManageGoals';
 import ManagePrograms from '../screens/Goals/ManagePrograms';
 import { MainDrawerNav } from '../database/MainDrawer';
 import BinaryTree from '../screens/Tree/BinaryTree';
 import NewIntake from '../screens/Intake List/NewIntake';
+
+import IntakeView from '../screens/Intake List/IntakeView';
+import IntakeList from '../screens/Intake List/IntakeList';
+import IntakeApproval from '../screens/Intake List/IntakeApproval';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -306,6 +310,8 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="ManagePrograms" component={ManagePrograms} />
           <Drawer.Screen name="BinaryTree" component={BinaryTree} />
           <Drawer.Screen name="NewIntake" component={NewIntake} />
+          <Drawer.Screen name="IntakeApproval" component={IntakeApproval} />
+          <Drawer.Screen name="IntakeView" component={IntakeView} />
         
           {dynamicModules.map((module) => (
             <Drawer.Screen

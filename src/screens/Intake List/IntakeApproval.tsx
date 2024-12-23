@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Button,
 } from 'react-native';
 import {
   Checkbox,
@@ -22,8 +23,12 @@ import {AppImages} from '../../assets';
 import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import { GetDept } from '../../database/Departments';
+import {GetDept, GetUsers} from '../../database/Departments';
+import {GetProjectApproval, UpdateProjectApproval} from '../../database/Intake';
+import { ScrollView } from 'react-native-gesture-handler';
 
+// import {useNavigation} from '@react-navigation/native';
+// import ProjectIntakeDetails from './ProjectIntakeDetails';
 
 interface CreateNewIntakeModalProps {
   visible: boolean;
@@ -31,6 +36,7 @@ interface CreateNewIntakeModalProps {
   onSubmit: (newGoal: any) => void;
   editGoal?: any;
 }
+
 const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   visible,
   onClose,
@@ -44,17 +50,17 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [goalName, setGoalName] = useState('');
   const [description, setDescription] = useState('');
   const [goalId, setGoalId] = useState<string | undefined>(undefined);
-
+  
   useEffect(() => {
     console.log('Edit Goal:', editGoal);
     if (editGoal) {
       setGoalId(editGoal.goal_id);
       setGoalName(editGoal.goal_name || '');
       setDescription(editGoal.description || '');
-      setSelectedStakeholder(editGoal.stakeholders );
+      setSelectedStakeholder(editGoal.stakeholders);
       setSelectedYear(editGoal.target_year || '');
       setSelectedStatus(editGoal.status || '');
-      setSelectedGoalOwner(editGoal.goal_owner );
+      setSelectedGoalOwner(editGoal.goal_owner);
     } else {
       setGoalId(undefined);
       setGoalName('');
@@ -64,7 +70,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       setSelectedStatus('');
       setSelectedGoalOwner(-1);
     }
-  }, [editGoal]); 
+  }, [editGoal]);
 
   const handleSubmit = async () => {
     if (
@@ -160,7 +166,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   Goal Owner <Text style={styles.asterisk}>*</Text>
                 </Text>
 
-                <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
+                <NestedDeptDropdownGoals
+                  onSelect={handleDeptSelect}
+                  editGoal={editGoal}
+                />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -180,7 +189,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                 <Text style={styles.inputLabel}>
                   Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
+                <NestedDeptDropdownGoals
+                  onSelect={handleDeptSelect}
+                  editGoal={editGoal}
+                />
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
@@ -225,43 +237,161 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
     </Modal>
   );
 };
-const ManageGoals: React.FC = () => {
+
+interface Project {
+  project_id: number;
+  program_id: number;
+  goal_id: number;
+  portfolio_id: number;
+  department_id: number;
+  project_manager_id: number;
+  project_name: string;
+  project_short_name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  golive_date: string;
+  priority: number;
+  phase: string;
+  classification: string;
+  initial_budget: number;
+  initial_budget_unit: string;
+  project_owner_user: number;
+  project_owner_dept: number;
+  business_stakeholder_user: number;
+  business_stakeholder_dept: number;
+  impacted_stakeholder_user: number;
+  impacted_stakeholder_dept: number;
+  impacted_applications: number;
+  resource_deployed_percentage: number;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  customer_id: number;
+  impacted_function: number;
+  project_size: string;
+  budget_size: string;
+  business_desc: string;
+  scope_definition: string;
+  key_assumption: string;
+  benefit_roi: string;
+  risk: string;
+  roi: string;
+  created_by: number;
+  updated_by: number;
+  status: number;
+  status_name: string;
+}
+
+// const navigation = useNavigation();
+
+const IntakeApproval: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [sortColumn, setSortColumn] = useState('');
   const [isAscending, setIsAscending] = useState(true);
-  const [goalData, setGoalData] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [approvalprojects, setapprovalProjects] = useState<any[]>([]);
   const [editGoal, setEditGoal] = useState<any | null>(null);
   const [headerChecked, setHeaderChecked] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const handleApprovePress = (projIntkAprvlId, seqId, projId, approvalType) => {
+    // Update state with the correct values
+    setProjectId(projId);
+    setSequenceId(seqId);
+    setStatusId(4); // Assuming 4 is the status ID to set here
+    setApprovalType(approvalType);
+    setprojIntkAprvlId(projIntkAprvlId);
+    setType('review'); // Assuming a default type, you can change it if needed
+    setIsModalVisible(true); // Open the modal
+  };
+  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [projectId, setProjectId] = useState<number | null>(null); // Store the project ID
+  const [statusId, setStatusId] = useState<number | null>(null); // Track status_id
+  const [approvalType, setApprovalType] = useState<string>(''); // Track approval_type
+  const [sequenceId, setSequenceId] = useState<number | null>(null); // Track sequence_id
+  const [projectintake, setProjectintake] = useState<number | null>(null);
+  const [projIntkAprvlId, setprojIntkAprvlId] = useState(null);
 
+  const [type, setType] = useState<string>(''); 
+  const [comment, setComment] = useState<string>(''); 
+  const handleOkPress = async  () => {
+    // Debug the state values
+    console.log('Project ID:', projectId);
+    console.log('Status ID:', statusId);
+    console.log('Approval Type:', approvalType);
+    console.log('Sequence ID:', sequenceId);
+    console.log('Type:', type);
+    console.log('Comment:', comment);
+  
+    if (projectId !== null && statusId !== null && approvalType && sequenceId !== null) {
+      // Construct the payload with the required values
+      const payload = {
+        proj_intk_aprvl_id: projIntkAprvlId, // Assuming a static approval ID for now
+        sequence_id: sequenceId, // Use the state value for sequence ID
+        project_id: projectId, // Use the state value for project ID
+        status_id: 4, // Use the state value for status ID
+        approval_type: 2, // Use the state value for approval type
+        comment: comment, // Use the comment entered by the user
+        type: type, // Use the state value for type
+      };
+  
+      console.log('Payload:', payload);
+
+  
+      // Call your function to handle the payload (e.g., UpdateProjectApproval)
+    //   UpdateProjectApproval(payload);
+  
+      // Close the modal after submitting the comment
+      
+      try {
+        const response = await UpdateProjectApproval(payload);
+        const parsedResponse = JSON.parse(response);
+
+        if (parsedResponse.status === 'success') {
+          Alert.alert('Goal created successfully');
+          setIsModalVisible(false);
+        } else {
+          Alert.alert('Failed to create goal. Please try again.');
+          
+        }
+      } catch (error) {
+        console.error('Error creating goal:', error);
+        Alert.alert('An error occurred. Please try again.');
+      }
+    } else {
+      Alert.alert('Please fill in all required fields.');
+    }
+
+  };
+  
   useEffect(() => {
-    setHeaderChecked(checkedItems.size === goalData.length);
-  }, [checkedItems, goalData]);
+    setHeaderChecked(checkedItems.size === projects.length);
+  }, [checkedItems, projects]);
 
   const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
+  const [users, setUsers] = useState<any[]>([]); // State to hold departments
 
   // Fetch goals
-  const fetchGoals = async () => {
+  const fetchProjects = async () => {
     try {
-      const response = await GetGoals('');
-      console.log('unparsed Response:', response);
+      const response = await GetProjectApproval('');
+      console.log('Get project Response:', response);
       const result = JSON.parse(response);
 
-      console.log('API Response:', result);
-      if (result?.data?.goals && Array.isArray(result.data.goals)) {
-        setGoalData(result.data.goals); // Set the goals array from the data object
+      console.log(' Get Projects Response:', result);
+      if (result?.data && Array.isArray(result.data)) {
+        setapprovalProjects(result.data);
       } else {
-        console.error('Invalid goals data');
-        Alert.alert('Error', 'Invalid goals data received');
+        console.error('Invalid Projects data');
       }
     } catch (error) {
-      console.error('Error fetching goals:', error);
-      Alert.alert('Error', 'Failed to fetch goals');
+      console.error('Error fetching projects:', error);
+      Alert.alert('Error', 'Failed to fetch projects');
     }
   };
 
-  // Fetch departments
+  //   Fetch departments
   const fetchDepartments = async () => {
     try {
       const response = await GetDept('');
@@ -270,7 +400,7 @@ const ManageGoals: React.FC = () => {
 
       console.log('API Response:', result);
       if (result?.data?.departments && Array.isArray(result.data.departments)) {
-        setDepartments(result.data.departments); 
+        setDepartments(result.data.departments);
       } else {
         console.error('Invalid departments data');
         Alert.alert('Error', 'Invalid departments data received');
@@ -281,14 +411,39 @@ const ManageGoals: React.FC = () => {
     }
   };
 
+  //fetch Users
+  const fetchUsers = async () => {
+    try {
+      const response = await GetUsers('');
+      console.log('unparsed Users Response:', response);
+      const result = JSON.parse(response);
+
+      console.log('API Response:', result);
+      if (result?.data?.users && Array.isArray(result.data.users)) {
+        setUsers(result.data.users);
+      } else {
+        console.error('Invalid users data');
+        Alert.alert('Error', 'Invalid users data received');
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      Alert.alert('Error', 'Failed to fetch users');
+    }
+  };
+
   useEffect(() => {
-    fetchGoals();
-    fetchDepartments(); 
+    fetchProjects();
+    fetchDepartments();
+    fetchUsers();
   }, []);
 
   const mapDepartmentIdToName = (id: number) => {
     const department = departments.find(dept => dept.department_id === id);
     return department ? department.department_name : ' ';
+  };
+  const mapIdIdToUser = (id: number) => {
+    const user = users.find(user => user.user_id === id);
+    return user ? `${user.first_name}${user.last_name}` : ' ';
   };
 
   const HandleDeleteGoal = async goal_id => {
@@ -304,10 +459,10 @@ const ManageGoals: React.FC = () => {
     }
   };
 
-  const handleDeletePress = goal_id => {
-    console.log(goal_id);
-    HandleDeleteGoal(goal_id);
-  };
+  //   const handleDeletePress = goal_id => {
+  //     console.log(goal_id);
+  //     HandleDeleteGoal(goal_id);
+  //   };
 
   const openModal = (goal = null) => {
     setModalVisible(true);
@@ -318,17 +473,17 @@ const ManageGoals: React.FC = () => {
     setModalVisible(false);
     setEditGoal(null);
   };
-  const handleSubmit = (newGoal: any) => {
-    if (editGoal) {
-      setGoalData(prevData =>
-        prevData.map(goal =>
-          goal.goal_id === editGoal.goal_id ? {...goal, ...newGoal} : goal,
-        ),
-      );
-    } else {
-      setGoalData(prevData => [...prevData, newGoal]);
-    }
-  };
+  //   const handleSubmit = (newGoal: any) => {
+  //     if (editGoal) {
+  //       setGoalData(prevData =>
+  //         prevData.map(goal =>
+  //           goal.goal_id === editGoal.goal_id ? {...goal, ...newGoal} : goal,
+  //         ),
+  //       );
+  //     } else {
+  //       setGoalData(prevData => [...prevData, newGoal]);
+  //     }
+  //   };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -349,9 +504,10 @@ const ManageGoals: React.FC = () => {
 
   return (
     <PaperProvider>
+      
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
-          <Text style={styles.heading}>Strategic Goals</Text>
+          <Text style={styles.heading}>Intake Approval</Text>
           <View style={styles.topBar}>
             <View style={styles.leftButtons}>
               {/* <TouchableOpacity style={styles.button}>
@@ -413,15 +569,17 @@ const ManageGoals: React.FC = () => {
               {[
                 '',
                 'S.No.',
-                'ID',
-                'Goal',
-                'Description',
-                'Impacted Stakeholders',
-                'Goal Owner',
-                'Target year',
-                'Created On',
-                'Status',
-                'Action',
+                'Project ID',
+                'Project Name',
+                'Department',
+                'Project Owner',
+                'Project Manager',
+                'Budget',
+                'Start date',
+                'End date',
+                'Requested By',
+                'Requested On',
+                'Actions',
               ].map((header, index) => (
                 <View
                   key={index}
@@ -432,10 +590,12 @@ const ManageGoals: React.FC = () => {
                       : index === 1
                       ? {flex: 0.4}
                       : index === 2
-                      ? {flex: 0.5}
-                      : index === 3 || index === 4
-                      ? {flex: 2}
-                      : index === 5 || index === 6
+                      ? {flex: 1}
+                      : index >= 3 && index <= 4
+                      ? {flex: 1.3}
+                      : index >= 5 && index <= 6
+                      ? {flex: 1.5}
+                      : index >= 9 && index <= 10
                       ? {flex: 1.5}
                       : {flex: 1},
                   ]}>
@@ -453,7 +613,11 @@ const ManageGoals: React.FC = () => {
                             setCheckedItems(new Set());
                           } else {
                             setCheckedItems(
-                              new Set(goalData.map(goal => goal.goal_id)),
+                              new Set(
+                                approvalprojects.map(project =>
+                                  project.project_id.toString(),
+                                ),
+                              ),
                             );
                           }
                         }}
@@ -500,20 +664,24 @@ const ManageGoals: React.FC = () => {
                 </View>
               ))}
             </View>
-            {goalData.map((goal, index) => (
-              <View key={goal.goal_id} style={styles.row}>
+            <ScrollView
+            showsVerticalScrollIndicator={false}>
+            {approvalprojects.map((project, index) => (
+              <View key={project.project_id} style={styles.row}>
                 <View style={[styles.cell, {flex: 0.3}]}>
                   <Checkbox
                     status={
-                      checkedItems.has(goal.goal_id) ? 'checked' : 'unchecked'
+                      checkedItems.has(project.project_id.toString())
+                        ? 'checked'
+                        : 'unchecked'
                     }
                     onPress={() => {
                       setCheckedItems(prevChecked => {
                         const newChecked = new Set(prevChecked);
-                        if (newChecked.has(goal.goal_id)) {
-                          newChecked.delete(goal.goal_id);
+                        if (newChecked.has(project.project_id.toString())) {
+                          newChecked.delete(project.project_id.toString());
                         } else {
-                          newChecked.add(goal.goal_id);
+                          newChecked.add(project.project_id.toString());
                         }
                         return newChecked;
                       });
@@ -523,53 +691,65 @@ const ManageGoals: React.FC = () => {
                 <View style={[styles.cell, {flex: 0.4}]}>
                   <Text>{index + 1}</Text>
                 </View>
-                <View style={[styles.cell, {flex: 0.5}]}>
-                  <Text>{goal.goal_id}</Text>
+                <View style={[styles.cell, {flex: 1}]}>
+                  <Text>{project.project_id}</Text>
                 </View>
-                <View style={[styles.cell, {flex: 2}]}>
-                  <Text>{goal.goal_name}</Text>
+                <View style={[styles.cell, {flex: 1.3}]}>
+                  <Text>{project.project_name}</Text>
                 </View>
-                <View style={[styles.cell, {flex: 2}]}>
+                <View style={[styles.cell, {flex: 1.3}]}>
                   <Text numberOfLines={1} ellipsizeMode="tail">
-                    {goal.description}
+                    {mapDepartmentIdToName(project.project_owner_dept)}
                   </Text>
                 </View>
                 <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {mapDepartmentIdToName(parseInt(goal.stakeholders))}
-                  </Text>
+                  <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
                 </View>
                 <View style={[styles.cell, {flex: 1.5}]}>
+                  <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 1}]}>
+                  <Text>{project.budget_size}</Text>
+                </View>
+                <View style={[styles.cell, {flex: 1}]}>
                   <Text>
-                    {mapDepartmentIdToName(parseInt(goal.goal_owner))}
+                    {new Date(project.start_date).toLocaleDateString()}
                   </Text>
                 </View>
                 <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{goal.target_year}</Text>
+                  <Text>{new Date(project.end_date).toLocaleDateString()}</Text>
+                </View>
+
+                {/* <View style={[styles.cell, {flex: 1.5}]}>
+                  <Text>
+                    {new Date(project.requested_by_date).toLocaleDateString()}
+                  </Text>
+                </View> */}
+                <View style={[styles.cell, {flex: 1.5}]}>
+                  <Text>
+                    {new Date(project.requested_by_date).toLocaleDateString()}
+                  </Text>
                 </View>
                 <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{new Date(goal.created_at).toLocaleDateString()}</Text>
+                  {new Date(project.requested_on_date).toLocaleDateString()}
                 </View>
                 <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{goal.status}</Text>
-                </View>
-                <View style={[styles.cell, styles.actionCell, {flex: 1}]}>
                   <Menu
-                    visible={goal.menuVisible}
+                    visible={project.menuVisible}
                     onDismiss={() => {
-                      const updatedGoalData = goalData.map(item =>
-                        item.goal_id === goal.goal_id
+                      const updatedProjectsData = approvalprojects.map(item =>
+                        item.project_id === project.project_id
                           ? {...item, menuVisible: false}
                           : item,
                       );
-                      setGoalData(updatedGoalData);
+                      setProjects(updatedProjectsData);
                     }}
                     anchor={
                       <TouchableOpacity
                         onPress={event => {
                           const {pageX, pageY} = event.nativeEvent;
-                          const updatedIntakeData = goalData.map(item =>
-                            item.goal_id === goal.goal_id
+                          const updatedProjectsData = approvalprojects.map(item =>
+                            item.project_id === project.project_id
                               ? {
                                   ...item,
                                   menuVisible: true,
@@ -578,7 +758,7 @@ const ManageGoals: React.FC = () => {
                                 }
                               : {...item, menuVisible: false},
                           );
-                          setGoalData(updatedIntakeData);
+                          setapprovalProjects(updatedProjectsData);
                         }}>
                         <IconButton
                           icon="dots-vertical"
@@ -590,27 +770,63 @@ const ManageGoals: React.FC = () => {
                     style={{
                       position: 'absolute',
                       zIndex: 1000,
-                      left: goal.menuX - 150,
-                      top: goal.menuY - 80,
+                      left: project.menuX ? project.menuX - 150 : 0,
+                      top: project.menuY ? project.menuY - 80 : 0,
                     }}>
-                    <Menu.Item onPress={() => openModal(goal)} title="Edit" />
+                    <Menu.Item title="View" />
                     <Menu.Item
-                      onPress={() => handleDeletePress(goal.goal_id)}
-                      title="Delete"
-                    />
-                    <Menu.Item onPress={() => {}} title="Create Program" />
+  onPress={() => {
+    console.log('Project Approval ID:', project.proj_intk_aprvl_id);
+    console.log('Sequence ID:', project.sequence_id);
+    console.log('Project ID:', project.project_id);
+    console.log('Type:', project.type);
+    console.log('Project:', project);
+
+    handleApprovePress(
+      project.proj_intk_aprvl_id,
+      project.sequence_id,
+      project.project_id,
+      project.type
+    );
+  }}
+  title="Approve"
+/>
+                    <Menu.Item onPress={() => {}} title="Reject" />
                   </Menu>
                 </View>
               </View>
             ))}
+            </ScrollView>
           </View>
+          <Modal visible={isModalVisible} animationType="slide" transparent={true}>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <View style={{ width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
+            <Text>Add a Comment</Text>
+            <TextInput
+              value={comment}
+              onChangeText={setComment} // Update the comment state
+              placeholder="Type your comment here"
+              style={{
+                height: 40,
+                borderColor: 'gray',
+                borderWidth: 1,
+                marginBottom: 20,
+                paddingLeft: 10,
+              }}
+            />
+            <Button title="OK" onPress={handleOkPress} />
+            <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
+
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
         </View>
       </View>
       <CreateNewIntakeModal
         visible={modalVisible}
         onClose={closeModal}
-        onSubmit={handleSubmit}
+        // onSubmit={handleSubmit}
         editGoal={editGoal}
       />
     </PaperProvider>
@@ -804,4 +1020,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ManageGoals;
+export default IntakeApproval;
