@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
   cell: {
     fontSize: 12,
     paddingHorizontal: 2, // Reduce horizontal padding
-    textAlign: 'center',
+    textAlign: 'left',
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
