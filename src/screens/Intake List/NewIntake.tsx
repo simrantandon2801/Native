@@ -662,8 +662,9 @@ const NewIntake = () => {
                 style={styles.input}
               >
                 <Picker.Item label="Select Classification" value="" />
-                <Picker.Item label="Type 1" value="1" />
-                <Picker.Item label="Type 2" value="2" />
+                <Picker.Item label="Business strategic" value="1" />
+                <Picker.Item label="Self funded" value="2" />
+                <Picker.Item label="Operations" value="3" />
               </Picker>
               {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
@@ -832,8 +833,8 @@ const NewIntake = () => {
                 style={styles.input}
               >
                 <Picker.Item label="Select Application" value="" />
-                <Picker.Item label="App 1" value="app1" />
-                <Picker.Item label="App 2" value="app2" />
+                <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
+                <Picker.Item label="Apps: Sharepoint" value="app2" />
               </Picker>
               {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
 
