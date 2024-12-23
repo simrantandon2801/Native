@@ -25,7 +25,7 @@ import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
 import {GetProjectApproval, UpdateProjectApproval} from '../../database/Intake';
-import { ScrollView } from 'react-native-gesture-handler';
+import {ScrollView} from 'react-native-gesture-handler';
 
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
@@ -50,7 +50,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [goalName, setGoalName] = useState('');
   const [description, setDescription] = useState('');
   const [goalId, setGoalId] = useState<string | undefined>(undefined);
-  
+
   useEffect(() => {
     console.log('Edit Goal:', editGoal);
     if (editGoal) {
@@ -305,7 +305,7 @@ const IntakeApproval: React.FC = () => {
     setType('review'); // Assuming a default type, you can change it if needed
     setIsModalVisible(true); // Open the modal
   };
-  const [isModalVisible, setIsModalVisible] = useState(false); 
+  const [isModalVisible, setIsModalVisible] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null); // Store the project ID
   const [statusId, setStatusId] = useState<number | null>(null); // Track status_id
   const [approvalType, setApprovalType] = useState<string>(''); // Track approval_type
@@ -313,9 +313,9 @@ const IntakeApproval: React.FC = () => {
   const [projectintake, setProjectintake] = useState<number | null>(null);
   const [projIntkAprvlId, setprojIntkAprvlId] = useState(null);
 
-  const [type, setType] = useState<string>(''); 
-  const [comment, setComment] = useState<string>(''); 
-  const handleOkPress = async  () => {
+  const [type, setType] = useState<string>('');
+  const [comment, setComment] = useState<string>('');
+  const handleOkPress = async () => {
     // Debug the state values
     console.log('Project ID:', projectId);
     console.log('Status ID:', statusId);
@@ -323,8 +323,13 @@ const IntakeApproval: React.FC = () => {
     console.log('Sequence ID:', sequenceId);
     console.log('Type:', type);
     console.log('Comment:', comment);
-  
-    if (projectId !== null && statusId !== null && approvalType && sequenceId !== null) {
+
+    if (
+      projectId !== null &&
+      statusId !== null &&
+      approvalType &&
+      sequenceId !== null
+    ) {
       // Construct the payload with the required values
       const payload = {
         proj_intk_aprvl_id: projIntkAprvlId, // Assuming a static approval ID for now
@@ -335,15 +340,14 @@ const IntakeApproval: React.FC = () => {
         comment: comment, // Use the comment entered by the user
         type: type, // Use the state value for type
       };
-  
+
       console.log('Payload:', payload);
 
-  
       // Call your function to handle the payload (e.g., UpdateProjectApproval)
-    //   UpdateProjectApproval(payload);
-  
+      //   UpdateProjectApproval(payload);
+
       // Close the modal after submitting the comment
-      
+
       try {
         const response = await UpdateProjectApproval(payload);
         const parsedResponse = JSON.parse(response);
@@ -353,7 +357,6 @@ const IntakeApproval: React.FC = () => {
           setIsModalVisible(false);
         } else {
           Alert.alert('Failed to create goal. Please try again.');
-          
         }
       } catch (error) {
         console.error('Error creating goal:', error);
@@ -362,9 +365,8 @@ const IntakeApproval: React.FC = () => {
     } else {
       Alert.alert('Please fill in all required fields.');
     }
-
   };
-  
+
   useEffect(() => {
     setHeaderChecked(checkedItems.size === projects.length);
   }, [checkedItems, projects]);
@@ -504,7 +506,6 @@ const IntakeApproval: React.FC = () => {
 
   return (
     <PaperProvider>
-      
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
           <Text style={styles.heading}>Intake Approval</Text>
@@ -664,161 +665,184 @@ const IntakeApproval: React.FC = () => {
                 </View>
               ))}
             </View>
-            <ScrollView
-            showsVerticalScrollIndicator={false}>
-            {approvalprojects.map((project, index) => (
-              <View key={project.project_id} style={styles.row}>
-                <View style={[styles.cell, {flex: 0.3}]}>
-                  <Checkbox
-                    status={
-                      checkedItems.has(project.project_id.toString())
-                        ? 'checked'
-                        : 'unchecked'
-                    }
-                    onPress={() => {
-                      setCheckedItems(prevChecked => {
-                        const newChecked = new Set(prevChecked);
-                        if (newChecked.has(project.project_id.toString())) {
-                          newChecked.delete(project.project_id.toString());
-                        } else {
-                          newChecked.add(project.project_id.toString());
-                        }
-                        return newChecked;
-                      });
-                    }}
-                  />
-                </View>
-                <View style={[styles.cell, {flex: 0.4}]}>
-                  <Text>{index + 1}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{project.project_id}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.3}]}>
-                  <Text>{project.project_name}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.3}]}>
-                  <Text numberOfLines={1} ellipsizeMode="tail">
-                    {mapDepartmentIdToName(project.project_owner_dept)}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{project.budget_size}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>
-                    {new Date(project.start_date).toLocaleDateString()}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{new Date(project.end_date).toLocaleDateString()}</Text>
-                </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {approvalprojects.map((project, index) => (
+                <View key={project.project_id} style={styles.row}>
+                  <View style={[styles.cell, {flex: 0.3}]}>
+                    <Checkbox
+                      status={
+                        checkedItems.has(project.project_id.toString())
+                          ? 'checked'
+                          : 'unchecked'
+                      }
+                      onPress={() => {
+                        setCheckedItems(prevChecked => {
+                          const newChecked = new Set(prevChecked);
+                          if (newChecked.has(project.project_id.toString())) {
+                            newChecked.delete(project.project_id.toString());
+                          } else {
+                            newChecked.add(project.project_id.toString());
+                          }
+                          return newChecked;
+                        });
+                      }}
+                    />
+                  </View>
+                  <View style={[styles.cell, {flex: 0.4}]}>
+                    <Text>{index + 1}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>{project.project_id}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.3}]}>
+                    <Text>{project.project_name}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.3}]}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(project.project_owner_dept)}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>{project.budget_size}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.start_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.end_date).toLocaleDateString()}
+                    </Text>
+                  </View>
 
-                {/* <View style={[styles.cell, {flex: 1.5}]}>
+                  {/* <View style={[styles.cell, {flex: 1.5}]}>
                   <Text>
                     {new Date(project.requested_by_date).toLocaleDateString()}
                   </Text>
                 </View> */}
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {new Date(project.requested_by_date).toLocaleDateString()}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  {new Date(project.requested_on_date).toLocaleDateString()}
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Menu
-                    visible={project.menuVisible}
-                    onDismiss={() => {
-                      const updatedProjectsData = approvalprojects.map(item =>
-                        item.project_id === project.project_id
-                          ? {...item, menuVisible: false}
-                          : item,
-                      );
-                      setProjects(updatedProjectsData);
-                    }}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={event => {
-                          const {pageX, pageY} = event.nativeEvent;
-                          const updatedProjectsData = approvalprojects.map(item =>
-                            item.project_id === project.project_id
-                              ? {
-                                  ...item,
-                                  menuVisible: true,
-                                  menuX: pageX,
-                                  menuY: pageY,
-                                }
-                              : {...item, menuVisible: false},
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>
+                      {new Date(project.requested_by_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    {new Date(project.requested_on_date).toLocaleDateString()}
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Menu
+                      visible={project.menuVisible}
+                      onDismiss={() => {
+                        const updatedProjectsData = approvalprojects.map(item =>
+                          item.project_id === project.project_id
+                            ? {...item, menuVisible: false}
+                            : item,
+                        );
+                        setProjects(updatedProjectsData);
+                      }}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={event => {
+                            const {pageX, pageY} = event.nativeEvent;
+                            const updatedProjectsData = approvalprojects.map(
+                              item =>
+                                item.project_id === project.project_id
+                                  ? {
+                                      ...item,
+                                      menuVisible: true,
+                                      menuX: pageX,
+                                      menuY: pageY,
+                                    }
+                                  : {...item, menuVisible: false},
+                            );
+                            setapprovalProjects(updatedProjectsData);
+                          }}>
+                          <IconButton
+                            icon="dots-vertical"
+                            size={20}
+                            style={{margin: 0, padding: 0}}
+                          />
+                        </TouchableOpacity>
+                      }
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: project.menuX ? project.menuX - 150 : 0,
+                        top: project.menuY ? project.menuY - 80 : 0,
+                      }}>
+                      <Menu.Item title="View" />
+                      <Menu.Item
+                        onPress={() => {
+                          console.log(
+                            'Project Approval ID:',
+                            project.proj_intk_aprvl_id,
                           );
-                          setapprovalProjects(updatedProjectsData);
-                        }}>
-                        <IconButton
-                          icon="dots-vertical"
-                          size={20}
-                          style={{margin: 0, padding: 0}}
-                        />
-                      </TouchableOpacity>
-                    }
-                    style={{
-                      position: 'absolute',
-                      zIndex: 1000,
-                      left: project.menuX ? project.menuX - 150 : 0,
-                      top: project.menuY ? project.menuY - 80 : 0,
-                    }}>
-                    <Menu.Item title="View" />
-                    <Menu.Item
-  onPress={() => {
-    console.log('Project Approval ID:', project.proj_intk_aprvl_id);
-    console.log('Sequence ID:', project.sequence_id);
-    console.log('Project ID:', project.project_id);
-    console.log('Type:', project.type);
-    console.log('Project:', project);
+                          console.log('Sequence ID:', project.sequence_id);
+                          console.log('Project ID:', project.project_id);
+                          console.log('Type:', project.type);
+                          console.log('Project:', project);
 
-    handleApprovePress(
-      project.proj_intk_aprvl_id,
-      project.sequence_id,
-      project.project_id,
-      project.type
-    );
-  }}
-  title="Approve"
-/>
-                    <Menu.Item onPress={() => {}} title="Reject" />
-                  </Menu>
+                          handleApprovePress(
+                            project.proj_intk_aprvl_id,
+                            project.sequence_id,
+                            project.project_id,
+                            project.type,
+                          );
+                        }}
+                        title="Approve"
+                      />
+                      <Menu.Item onPress={() => {}} title="Reject" />
+                    </Menu>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
             </ScrollView>
           </View>
-          <Modal visible={isModalVisible} animationType="slide" transparent={true}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <View style={{ width: 300, padding: 20, backgroundColor: 'white', borderRadius: 10 }}>
-            <Text>Add a Comment</Text>
-            <TextInput
-              value={comment}
-              onChangeText={setComment} // Update the comment state
-              placeholder="Type your comment here"
+          <Modal
+            visible={isModalVisible}
+            animationType="slide"
+            transparent={true}>
+            <View
               style={{
-                height: 40,
-                borderColor: 'gray',
-                borderWidth: 1,
-                marginBottom: 20,
-                paddingLeft: 10,
-              }}
-            />
-            <Button title="OK" onPress={handleOkPress} />
-            <Button title="Cancel" onPress={() => setIsModalVisible(false)} />
-          </View>
-        </View>
-      </Modal>
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}>
+              <View
+                style={{
+                  width: 300,
+                  padding: 20,
+                  backgroundColor: 'white',
+                  borderRadius: 10,
+                }}>
+                <Text>Add a Comment</Text>
+                <TextInput
+                  value={comment}
+                  onChangeText={setComment} // Update the comment state
+                  placeholder="Type your comment here"
+                  style={{
+                    height: 40,
+                    borderColor: 'gray',
+                    borderWidth: 1,
+                    marginBottom: 20,
+                    paddingLeft: 10,
+                  }}
+                />
+                <Button title="OK" onPress={handleOkPress} />
+                <Button
+                  title="Cancel"
+                  onPress={() => setIsModalVisible(false)}
+                />
+              </View>
+            </View>
+          </Modal>
 
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
         </View>

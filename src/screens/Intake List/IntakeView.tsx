@@ -752,7 +752,7 @@ const ApprovalHistory: React.FC = () => {
                     <NestedDeptDropdownProjects
                       onSelect={handleProjectOwnerDept}
                       placeholder={
-                        project ? project.business_stakeholder_dept_name : ' '
+                        project ? project.business_stakeholder_dept_name : ''
                       }
                     />
                   </View>
@@ -1076,7 +1076,8 @@ const ApprovalHistory: React.FC = () => {
                       Save as draft
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
+                  {/*Send for review Button */}
+                  {/* <TouchableOpacity
                     style={styles.sendForReviewButton}
                     onPress={() => setIsPopupVisible(true)}>
                     <Icon
@@ -1097,7 +1098,7 @@ const ApprovalHistory: React.FC = () => {
                       color="#fff"
                       style={styles.arrowIcon}
                     />
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </View>
             </ScrollView>

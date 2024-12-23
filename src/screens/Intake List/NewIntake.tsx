@@ -25,6 +25,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
+import NestedDeptDropdownNewProjects from '../../modals/NestedDeptDropDownNewProjects';
 
 
 const NewIntake = () => {
@@ -95,6 +96,15 @@ const NewIntake = () => {
   };
   const [modalText, setModalText] = useState('Sending for Review');  // Default modal text
 
+
+
+    const mapUserIdToDeptId= (id: number) => {
+      console.log(id);
+      const ChosenUser = users.find(item => item.user_id === id);
+      console.log(ChosenUser);
+      return ChosenUser ? ChosenUser.department_id : ' ';
+    };
+  
   // Handlers to change modal text and show the popup
   const handleApprovalClick = () => {
     setModalText('Sending for Approval');
@@ -334,9 +344,9 @@ const NewIntake = () => {
         goal_id: Number(goalSelected),
         program_id: Number(program),
         business_stakeholder_user: Number(businessOwner),
-        business_stakeholder_dept: Number(businessOwnerDept),
+        business_stakeholder_dept: mapUserIdToDeptId(parseInt(businessOwner)), // automatically bind the deptid if user id has a dept defined already
         project_owner_user: Number(projectOwner),
-        project_owner_dept: Number(projectOwnerDept),
+        project_owner_dept: mapUserIdToDeptId(parseInt(projectOwner)),
         project_manager_id:Number(projectManager) ,
         // impacted_stakeholder_dept: , 
         impacted_function:Number(impactedFunction),
@@ -746,7 +756,7 @@ const NewIntake = () => {
             <View style={styles.largeInputContainer}>
               <Text style={styles.inputLabel}>Business Owner Department<Text style={styles.asterisk}>*</Text></Text>
              
-                <NestedDeptDropdownGoals onSelect={handleBusinessOwnerDept} />
+                <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner)}/>
                 {touched.businessOwnerDept && errors.businessOwnerDept && (<Text style={{color:'red'}} >{errors.businessOwnerDept}</Text>)}
             </View>
           </View>
@@ -778,7 +788,8 @@ const NewIntake = () => {
 
             <View style={styles.largeInputContainer}>
               <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownGoals onSelect={handleProjectOwnerDept} />
+              <NestedDeptDropdownNewProjects onSelect={handleProjectOwnerDept}  buisnessPersonId={parseInt(projectOwner)}/>
+
               {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
             </View>
           </View>

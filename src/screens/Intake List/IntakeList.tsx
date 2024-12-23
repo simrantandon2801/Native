@@ -24,9 +24,9 @@ import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
 import {GetProjects} from '../../database/Intake';
-import { ScrollView } from 'react-native-gesture-handler';
-import { useNavigation } from '@react-navigation/native';
-import { navigate } from '../../navigations/RootNavigation';
+import {ScrollView} from 'react-native-gesture-handler';
+import {useNavigation} from '@react-navigation/native';
+import {navigate} from '../../navigations/RootNavigation';
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
 
@@ -43,7 +43,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   onSubmit,
   editGoal,
 }) => {
-    const navigation = useNavigation();
+  const navigation = useNavigation();
   const [selectedStakeholder, setSelectedStakeholder] = useState<number>(-1);
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -343,10 +343,9 @@ const IntakeList: React.FC = () => {
   };
   const handleViewPress = (id: number) => {
     console.log('Navigating with Project ID:', id);
-    navigate('IntakeView', { project_id: id });
+    navigate('IntakeView', {project_id: id});
   };
 
-  
   //fetch Users
   const fetchUsers = async () => {
     try {
@@ -440,7 +439,6 @@ const IntakeList: React.FC = () => {
 
   return (
     <PaperProvider>
-      
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
           <Text style={styles.heading}>Intake List</Text>
@@ -600,132 +598,135 @@ const IntakeList: React.FC = () => {
                 </View>
               ))}
             </View>
-            <ScrollView
-            showsVerticalScrollIndicator={false}>
-            {projects.map((project, index) => (
-              <View key={project.project_id} style={styles.row}>
-                <View style={[styles.cell, {flex: 0.3}]}>
-                  <Checkbox
-                    status={
-                      checkedItems.has(project.project_id.toString())
-                        ? 'checked'
-                        : 'unchecked'
-                    }
-                    onPress={() => {
-                      setCheckedItems(prevChecked => {
-                        const newChecked = new Set(prevChecked);
-                        if (newChecked.has(project.project_id.toString())) {
-                          newChecked.delete(project.project_id.toString());
-                        } else {
-                          newChecked.add(project.project_id.toString());
-                        }
-                        return newChecked;
-                      });
-                    }}
-                  />
-                </View>
-                <View style={[styles.cell, {flex: 0.4}]}>
-                  <Text>{index + 1}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{project.project_id}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.3}]}>
-                  <Text>{project.project_name}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.3}]}>
-                  <Text numberOfLines={1} ellipsizeMode="tail">
-                    {mapDepartmentIdToName(project.project_owner_dept)}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{project.budget_size}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>
-                    {new Date(project.start_date).toLocaleDateString()}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{new Date(project.end_date).toLocaleDateString()}</Text>
-                </View>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {projects.map((project, index) => (
+                <View key={project.project_id} style={styles.row}>
+                  <View style={[styles.cell, {flex: 0.3}]}>
+                    <Checkbox
+                      status={
+                        checkedItems.has(project.project_id.toString())
+                          ? 'checked'
+                          : 'unchecked'
+                      }
+                      onPress={() => {
+                        setCheckedItems(prevChecked => {
+                          const newChecked = new Set(prevChecked);
+                          if (newChecked.has(project.project_id.toString())) {
+                            newChecked.delete(project.project_id.toString());
+                          } else {
+                            newChecked.add(project.project_id.toString());
+                          }
+                          return newChecked;
+                        });
+                      }}
+                    />
+                  </View>
+                  <View style={[styles.cell, {flex: 0.4}]}>
+                    <Text>{index + 1}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>{project.project_id}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.3}]}>
+                    <Text>{project.project_name}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.3}]}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(project.project_owner_dept)}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>{project.budget_size}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.start_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.end_date).toLocaleDateString()}
+                    </Text>
+                  </View>
 
-                {/* <View style={[styles.cell, {flex: 1.5}]}>
+                  {/* <View style={[styles.cell, {flex: 1.5}]}>
                   <Text>
                     {new Date(project.requested_by_date).toLocaleDateString()}
                   </Text>
                 </View> */}
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {new Date(project.requested_by_date).toLocaleDateString()}
-                  </Text>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>
+                      {new Date(project.requested_by_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    {new Date(project.requested_on_date).toLocaleDateString()}
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Menu
+                      visible={project.menuVisible}
+                      onDismiss={() => {
+                        const updatedProjectsData = projects.map(item =>
+                          item.project_id === project.project_id
+                            ? {...item, menuVisible: false}
+                            : item,
+                        );
+                        setProjects(updatedProjectsData);
+                      }}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={event => {
+                            const {pageX, pageY} = event.nativeEvent;
+                            const updatedProjectsData = projects.map(item =>
+                              item.project_id === project.project_id
+                                ? {
+                                    ...item,
+                                    menuVisible: true,
+                                    menuX: pageX,
+                                    menuY: pageY,
+                                  }
+                                : {...item, menuVisible: false},
+                            );
+                            setProjects(updatedProjectsData);
+                          }}>
+                          <IconButton
+                            icon="dots-vertical"
+                            size={20}
+                            style={{margin: 0, padding: 0}}
+                          />
+                        </TouchableOpacity>
+                      }
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: project.menuX ? project.menuX - 150 : 0,
+                        top: project.menuY ? project.menuY - 80 : 0,
+                      }}>
+                      <Menu.Item
+                        onPress={() => {
+                          console.log(
+                            'Project ID in onPress:',
+                            project.project_id,
+                          ); // Debugging log
+                          handleViewPress(project.project_id); // Call the function with the project ID
+                        }}
+                        title="View"
+                      />
+                      <Menu.Item
+                        onPress={() => handleDeletePress(project.project_id)}
+                        title="Edit"
+                      />
+                      {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
+                    </Menu>
+                  </View>
                 </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  {new Date(project.requested_on_date).toLocaleDateString()}
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Menu
-                    visible={project.menuVisible}
-                    onDismiss={() => {
-                      const updatedProjectsData = projects.map(item =>
-                        item.project_id === project.project_id
-                          ? {...item, menuVisible: false}
-                          : item,
-                      );
-                      setProjects(updatedProjectsData);
-                    }}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={event => {
-                          const {pageX, pageY} = event.nativeEvent;
-                          const updatedProjectsData = projects.map(item =>
-                            item.project_id === project.project_id
-                              ? {
-                                  ...item,
-                                  menuVisible: true,
-                                  menuX: pageX,
-                                  menuY: pageY,
-                                }
-                              : {...item, menuVisible: false},
-                          );
-                          setProjects(updatedProjectsData);
-                        }}>
-                        <IconButton
-                          icon="dots-vertical"
-                          size={20}
-                          style={{margin: 0, padding: 0}}
-                        />
-                      </TouchableOpacity>
-                    }
-                    style={{
-                      position: 'absolute',
-                      zIndex: 1000,
-                      left: project.menuX ? project.menuX - 150 : 0,
-                      top: project.menuY ? project.menuY - 80 : 0,
-                    }}>
-                        
-                        <Menu.Item 
-  onPress={() => {
-    console.log('Project ID in onPress:', project.project_id); // Debugging log
-    handleViewPress(project.project_id); // Call the function with the project ID
-  }} 
-  title="View" 
-/>
-                    <Menu.Item
-                      onPress={() => handleDeletePress(project.project_id)}
-                      title="Edit"
-                    />
-                    {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
-                  </Menu>
-                </View>
-              </View>
-            ))}
+              ))}
             </ScrollView>
           </View>
 

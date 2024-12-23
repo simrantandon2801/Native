@@ -7,7 +7,9 @@ import {
   TextInput,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import {GetUserDept} from '../database/Users'; // Assuming this is a custom function to fetch data
+import {GetUserDept, GetUsers} from '../database/Users'; // Assuming this is a custom function to fetch data
+
+
 
 // TypeScript types
 type Department = {
@@ -24,11 +26,10 @@ type DepartmentDropdownProps = {
   parentPath?: string;
 };
 
-interface NestedDeptDropdownProps {
-  onSelect: (value: number) => void;
-  selectedValue: string;
-  placeholder: string;
-}
+type NestedDeptDropdownProps = {
+  onSelect: (departmentID: number) => void;
+  buisnessPersonId: any 
+};
 
 // Function to build Heiarchy
 const createHierarchy = (departments: Department[]): Department[] => {
@@ -69,7 +70,7 @@ const buildHierarchyPath = (
       `${currentDept.department_name}`,
     ); // Add to the start of the path
     currentDept = departments.find(
-      dept => dept.department_id === currentDept?.parent_department_id,
+      dept => dept.department_id === currentDept.parent_department_id,
     );
   }
 
@@ -96,7 +97,15 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
           <View key={dept.department_id}>
             {/* Department Item */}
             <TouchableOpacity
-              style={styles.dropdownItem}
+              style={{
+                borderRadius: 5,
+                padding: 10,
+                fontSize: 16,
+                backgroundColor: 'white',
+                color: '#000',
+                borderBottomColor: '#044086',
+                width: '100%',
+              }}
               onPress={() => {
                 onSelect(dept.department_id); // Pass department ID
                 setExpanded(!expanded);
@@ -129,11 +138,21 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
 };
 
 // Main Component
-const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({ onSelect, selectedValue, placeholder }) => {
+const NestedDeptDropdownNewProjects: React.FC<NestedDeptDropdownProps > = ({ onSelect, buisnessPersonId }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hierarchy, setHierarchy] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
+  const [User, setUser] = useState<[]>([]);
+
+
+  const mapUserIdToDeptName = (id: number) => {
+    console.log(id);
+    const ChosenUser = User.find(item => item.user_id === id);
+    console.log(ChosenUser);
+    return ChosenUser ? ChosenUser.department_name : ' ';
+  };
+
 
   const handleDeptFetching = async () => {
     try {
@@ -154,10 +173,30 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({ onSelect, selec
       console.error('Error fetching departments:', err);
     }
   };
+  const fetchUser = async () => {
+    try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response); 
+        const result = JSON.parse(response);
+        
+        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+            setUser(result.data.users);
+            console.log('Fetched Business Owners:', result.data.users);
+        } else {
+            console.error("Invalid users data structure");
+        }
+    } catch (error) {
+        console.error('Error fetching Business Owners:', error);
+    }
+};
 
   useEffect(() => {
     handleDeptFetching();
-  }, []);
+    fetchUser()
+  }, []); // Only run once when the component mounts
+
+
+ 
 
   const handleSelect = (departmentID: number) => {
     const selectedDept = departments.find(
@@ -173,14 +212,13 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({ onSelect, selec
   return (
     <View>
       <View style={styles.inputWrapper}>
-
         <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
-          <View style={{flexDirection: 'row'}}>
+          <View style={{ flexDirection: 'row' }}>
             <TextInput
-              style={[styles.textInput, {cursor: 'pointer'}]}
+              style={[styles.textInput, { cursor: 'pointer' }]}
               value={selectedDepartment}
               editable={false}
-              placeholder={placeholder}
+              placeholder={buisnessPersonId ?  mapUserIdToDeptName(buisnessPersonId): 'Select a department'}  // Change placeholder based on editGoal
             />
             <Icon name="chevron-down" size={20} />
           </View>
@@ -194,6 +232,7 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({ onSelect, selec
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   inputWrapper: {
@@ -214,10 +253,9 @@ const styles = StyleSheet.create({
     color: '#000',
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
-    width: 420 ,
-    minWidth: 100,
+    minWidth: 'auto',
   },
-  dropdownItem: { 
+  dropdownItem: {
     borderRadius: 5,
     padding: 10,
     fontSize: 16,
@@ -232,4 +270,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NestedDeptDropdown;
+export default NestedDeptDropdownNewProjects;

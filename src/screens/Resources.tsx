@@ -808,7 +808,15 @@ const Resources: React.FC = () => {
               </View>
 
               <View>
-                <NestedDeptDropdown onSelect={handleDeptSelect} />
+              <NestedDeptDropdown
+                        onSelect={handleDeptSelect} 
+                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
+                        placeholder={
+                          selectedUser
+                            ? selectedUser.department_name
+                            : 'Select a department'
+                        }
+                      />
               </View>
               {/*User Role*/}
               {/*  <Text
@@ -1149,7 +1157,15 @@ const Resources: React.FC = () => {
               </View>
               {/*Nested Dropdown */}
               <View style={styles.inputRow}>
-                <NestedDeptDropdown onSelect={handleDeptSelect} />
+              <NestedDeptDropdown
+                        onSelect={handleDeptSelect} 
+                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
+                        placeholder={
+                          selectedUser
+                            ? selectedUser.department_name
+                            : 'Select a department'
+                        }
+                      />
               </View>
 
               {/* <Text
@@ -1336,7 +1352,15 @@ const Resources: React.FC = () => {
                 {` ${allSelectedUsersID.length} users`}
               </Text>
 
-              <NestedDeptDropdown onSelect={handleDeptSelect} />
+              <NestedDeptDropdown
+                        onSelect={handleDeptSelect} 
+                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
+                        placeholder={
+                          selectedUser
+                            ? selectedUser.department_name
+                            : 'Select a department'
+                        }
+                      />
 
               {/* Buttons */}
               <View style={styles.buttonContainer}>
