@@ -837,7 +837,7 @@ const ManageUsers: React.FC = () => {
                   selectedRoleID: '',
                   approvalCurrency: '',
                   budgetAmount: '',
-                  selectedDeptID: -1,
+                  selectedDeptID: 0,
                 }}
                 validationSchema={validationSchema} // Use validation schema if needed
                 onSubmit={values => {
@@ -991,8 +991,7 @@ const ManageUsers: React.FC = () => {
 
                     <View style={{paddingVertical: 15}}>
                       <NestedDeptDropdown
-                        onSelect={(newValue) => {
-                          setFieldValue('selectedDeptID', newValue)}}
+                        onSelect={handleDeptSelect}
                         selectedValue={values.selectedDeptID.toString()} // Pass current value from Formik
                         placeholder={
                           selectedUser

@@ -15,7 +15,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 import { RadioButton } from 'react-native-paper';
 import { GetGoals } from '../../database/Goals';
-import { GetPrograms } from '../../database/ManageProgram';
+import { GetPrograms, GetProgramsByGoalId} from '../../database/ManageProgram';
 import { GetDept, GetUsers } from '../../database/Departments';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import { GetSequence, InsertApproval, InsertDraft, InsertReview, InsertSequence } from '../../database/Intake';
@@ -128,6 +128,23 @@ const NewIntake = () => {
     }
   };
   const [isCreatingSequence, setIsCreatingSequence] = useState(false);
+  
+  const fetchPrograms = async (goalId:string) => {
+    try {
+      const response = await GetProgramsByGoalId(goalId);
+      const result = JSON.parse(response);
+      if (result?.status === 'success' && Array.isArray(result?.data?.programs)) {
+        setProgramData(result.data.programs);
+        console.log('Fetched Programs:', result.data.programs);
+    }  else {
+        console.error("Invalid programs data");
+        Alert.alert("Error", "Invalid goals data received");
+      }
+  } catch (error) {
+      console.error('Error fetching Programs:', error);
+      //setGoals([]);
+  }
+  };
  
   useEffect(() => {
     const fetchGoals = async () => {
@@ -145,24 +162,7 @@ const NewIntake = () => {
         //setGoals([]);
     }
     };
-    const fetchPrograms = async () => {
-        try {
-          const response = await GetPrograms(''); 
-          const result = JSON.parse(response);
-          if (result?.status === 'success' && Array.isArray(result?.data?.programs)) {
-            setProgramData(result.data.programs);
-            console.log('Fetched Programs:', result.data.programs);
-        }  else {
-            console.error("Invalid programs data");
-            Alert.alert("Error", "Invalid goals data received");
-          }
-      } catch (error) {
-          console.error('Error fetching Programs:', error);
-          //setGoals([]);
-      }
-      };
-
-
+  
       const fetchBusinessOwner = async () => {
         try {
             const response = await GetUsers('');
@@ -257,7 +257,7 @@ const NewIntake = () => {
       fetchSequence();
     fetchProjectManager();
     fetchGoals();
-    fetchPrograms();
+    fetchPrograms('');
     fetchUsers();
     fetchBusinessOwner();
     fetchProjectOwner();
@@ -581,6 +581,14 @@ const NewIntake = () => {
     setGoLiveDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowGoLiveDatePicker(false); // Close the picker
   };
+
+    // Handle category change
+    const handleGoalSelection = async (goalId: string) => {
+      //setLoading(true);
+      console.log('handleGoal')
+      await fetchPrograms(goalId);
+    };
+
   return (<Formik
     initialValues={{
       nameTitle: '',
@@ -681,7 +689,7 @@ const NewIntake = () => {
             <Text style={styles.inputLabel}>Goal</Text>
       <Picker
         selectedValue={goalSelected}
-        onValueChange={(value) => setGoalSelected(value)}
+        onValueChange={handleGoalSelection}
         style={styles.input}
       >
         <Picker.Item label="Select Goal" value="" />

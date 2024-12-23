@@ -23,19 +23,24 @@ import {
   InsertProgram,
 } from '../../database/ManageProgram';
 import {GetGoals} from '../../database/Goals';
+
 interface CreateNewIntakeModalProps {
   visible: boolean;
   onClose: () => void;
   onSubmit: (newGoal: any) => void;
   EditProgram?: any;
 }
+import NestedDeptDropdownPrograms from '../../modals/NestedDropdownPrograms';
 const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   visible,
   onClose,
   onSubmit,
   EditProgram,
+  reloadParent 
 }) => {
-  const [selectedProgramOwner, setSelectedProgramOwner] = useState('');
+  const [selectedProgramOwner, setSelectedProgramOwner] = useState<number>(-1);
+  //const [selectedGoalOwner, setSelectedGoalOwner] = useState<number>(-1);
+  
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedApprovalReqd, setSelectedApprovalReqd] = useState('');
@@ -47,6 +52,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [programData, setProgramData] = useState<any>([]);
   const [programId, setprogramId] = useState<string | undefined>(undefined);
   const [goalData, setGoalData] = useState([]); // To hold the fetched goals
+
 
   useEffect(() => {
     console.log();
@@ -74,9 +80,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
     console.log('Submit inside modal triggered');
     if (
       !Programname ||
-      !selectedStatus ||
-      !selectedApprovalReqd ||
-      !selectedApprovalStatus ||
       !Description
     ) {
       Alert.alert('Error', 'Please fill out all required fields.');
@@ -91,7 +94,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       target_year: selectedYear,
       //start_date:,
       //end_date:,
-      // goal_id: selectedGoal,
+      goal_id: selectedGoal,
       status: selectedStatus,
       year: selectedYear,
       approvalReqd: selectedApprovalReqd,
@@ -107,6 +110,8 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
         Alert.alert('Goal created successfully');
         onSubmit(programDataToSubmit);
         onClose(); // Close the modal after successful submission
+       
+       
       } else {
         Alert.alert('Failed to create goal. Please try again.');
         onClose(); // Close the modal even if there is an error
@@ -132,6 +137,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       console.error('Error fetching goals:', error);
       Alert.alert('Error', 'Failed to fetch goals');
     }
+  };
+  const handleDeptSelect = (deptID: number) => {
+    setSelectedProgramOwner(deptID);
+    console.log(`Selected GoalOwner: ${deptID}`);
   };
 
   useEffect(()=>{
@@ -161,7 +170,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
               </View>
             </View>
             <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Status <Text style={styles.asterisk}>*</Text>
                 </Text>
@@ -174,7 +183,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   <Picker.Item label="Inactive" value="inactive" />
                   <Picker.Item label="Pending" value="pending" />
                 </Picker>
-              </View>
+              </View> */}
 
               {/*Goals Dropdown*/}
               <View style={styles.inputContainer}>
@@ -182,7 +191,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   Goals <Text style={styles.asterisk}>*</Text>
                 </Text>
                 <Picker
-                  selectedValue={selectedApprovalReqd}
+                  selectedValue={selectedGoal}
                   onValueChange={itemValue =>
                     setSelectedGoal(itemValue)
                   }
@@ -203,11 +212,27 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   )}
                 </Picker>
               </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>
+                  Program Owner
+                </Text>
+                {/* <Picker
+                  selectedValue={selectedProgramOwner}
+                  onValueChange={itemValue =>
+                    setSelectedProgramOwner(itemValue)
+                  }
+                  style={styles.input}>
+                  <Picker.Item label="Select Owner" value="" />
+                  <Picker.Item label="Manager" value="Manager" />
+                  <Picker.Item label="Mhe" value="jdj" />
+                  <Picker.Item label="hdf" value="hfd" />
+                </Picker> */}
+                  <NestedDeptDropdownPrograms onSelect={handleDeptSelect} EditProgram={EditProgram} />
+              </View>
             </View>
 
-            <View style={styles.inputRow}>
-              {/* Approval Read Dropdown */}
-              <View style={styles.inputContainer}>
+            {/* <View style={styles.inputRow}>
+               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Approval Reqd <Text style={styles.asterisk}>*</Text>
                 </Text>
@@ -222,7 +247,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   <Picker.Item label="No" value="No" />
                 </Picker>
               </View>
-              {/* Approval Status Dropdown */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Approval Status <Text style={styles.asterisk}>*</Text>
@@ -238,7 +262,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   <Picker.Item label="Delayed" value="Delayed" />
                 </Picker>
               </View>
-            </View>
+            </View> */}
             <View style={styles.inputRow}>
               <View style={[styles.inputContainer, styles.fullWidth]}>
                 <Text style={styles.inputLabel}>
@@ -253,26 +277,11 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
             </View>
             <View style={styles.inputRow}>
               {/* Impacted Stakeholders Dropdown */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Program Owner <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedProgramOwner}
-                  onValueChange={itemValue =>
-                    setSelectedProgramOwner(itemValue)
-                  }
-                  style={styles.input}>
-                  <Picker.Item label="Select Owner" value="" />
-                  <Picker.Item label="Manager" value="Manager" />
-                  <Picker.Item label="Mhe" value="jdj" />
-                  <Picker.Item label="hdf" value="hfd" />
-                </Picker>
-              </View>
+           
               {/* Target Year Dropdown */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
-                  Target Year <Text style={styles.asterisk}>*</Text>
+                  Target Year
                 </Text>
                 <Picker
                   selectedValue={selectedYear}
@@ -308,6 +317,7 @@ const ManagePrograms: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [ProgramData, setProgramData] = useState<any[]>([]);
   const [EditProgram, setEditProgram] = useState<any | null>(null);
+  
   const fetchPrograms = async () => {
     try {
       const response = await GetPrograms('');
@@ -412,16 +422,12 @@ const ManagePrograms: React.FC = () => {
               {[
                 '',
                 'S.No.',
-                'P.ID',
                 'Program Name',
                 'Goal',
                 'Description',
                 'Program Owner',
-                'Approval Reqd',
-                'Approval Status',
                 'Target year',
                 'Created On',
-                'Status',
                 'Action',
               ].map((header, index) => (
                 <Text key={index} style={styles.headerCell}>
@@ -436,21 +442,21 @@ const ManagePrograms: React.FC = () => {
                     <Checkbox status="unchecked" />
                   </View>
                   <Text style={styles.cell}>{index + 1}</Text>
-                  <Text style={styles.cell}>{programs.program_id}</Text>
+                  {/* <Text style={styles.cell}>{programs.program_id}</Text> */}
                   <Text style={styles.cell}>{programs.program_name}</Text>
-                  <Text style={styles.cell}>{programs.goal}</Text>
+                  <Text style={styles.cell}>{programs.goal_name}</Text>
                   <Text
                     style={styles.cell}
                     numberOfLines={1}
                     ellipsizeMode="tail">
                     {programs.description}
                   </Text>
-                  <Text style={styles.cell}>{programs.program_owner}</Text>
-                  <Text style={styles.cell}>{programs.approvalRead}</Text>
-                  <Text style={styles.cell}>{programs.approvalStatus}</Text>
+                  <Text style={styles.cell}>{programs.program_owner_name}</Text>
+                  {/* <Text style={styles.cell}>{programs.approvalRead}</Text>
+                  <Text style={styles.cell}>{programs.approvalStatus}</Text> */}
                   <Text style={styles.cell}>{programs.target_year}</Text>
                   <Text style={styles.cell}>{programs.created_at}</Text>
-                  <Text style={styles.cell}>{programs.status}</Text>
+                  {/* <Text style={styles.cell}>{programs.status}</Text> */}
                   <View style={[styles.cell, styles.actionCell]}>
                     <Menu
                       visible={programs.menuVisible}
@@ -512,6 +518,7 @@ const ManagePrograms: React.FC = () => {
         onClose={closeModal}
         EditProgram={EditProgram}
         onSubmit={handleSubmit}
+        CreateNewIntakeModal
       />
     </PaperProvider>
   );

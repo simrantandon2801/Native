@@ -23,6 +23,7 @@ import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import { GetDept } from '../../database/Departments';
+import { useIsFocused } from '@react-navigation/native';
 
 
 interface CreateNewIntakeModalProps {
@@ -69,7 +70,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const handleSubmit = async () => {
     if (
       goalName &&
-      selectedStatus &&
       selectedGoalOwner &&
       description &&
       selectedStakeholder &&
@@ -141,7 +141,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
               </View>
             </View>
             <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Status <Text style={styles.asterisk}>*</Text>
                 </Text>
@@ -154,13 +154,19 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   <Picker.Item label="Inactive" value="inactive" />
                   <Picker.Item label="Pending" value="pending" />
                 </Picker>
-              </View>
+              </View> */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Goal Owner <Text style={styles.asterisk}>*</Text>
                 </Text>
 
                 <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>
+                  Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
+                </Text>
+                <NestedDeptDropdownGoals onSelect={handleStakeSelect} editGoal={editGoal} />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -176,12 +182,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
               </View>
             </View>
             <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
-              </View>
+              
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Target Year <Text style={styles.asterisk}>*</Text>
@@ -234,9 +235,14 @@ const ManageGoals: React.FC = () => {
   const [headerChecked, setHeaderChecked] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
-
+const isFocus = useIsFocused();
   useEffect(() => {
-    setHeaderChecked(checkedItems.size === goalData.length);
+    debugger
+    if(isFocus){
+      setHeaderChecked(checkedItems.size === goalData.length);
+      fetchGoals();
+    }
+    
   }, [checkedItems, goalData]);
 
   const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
