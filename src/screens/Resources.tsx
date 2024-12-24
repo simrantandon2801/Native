@@ -472,33 +472,35 @@ const Resources: React.FC = () => {
       {/* Action Bar */}
 
       <View style={styles.actions}>
-        {/*Delete Button in Action Bar */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.leftAction]}
-          onPress={() => setisMultipleDeleteModalVisible(true)}>
-          <IconButton icon="trash-can-outline" size={16} color="#344054" />
-          <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
-        </TouchableOpacity>
-        {/*Assign Department Button in Action Bar */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.leftAction]}
-          onPress={() => setisMultipleAssignDeptModalVisible(true)}>
-          <IconButton icon="briefcase-outline" size={16} color="#344054" />
-          <Text style={[styles.actionText, {color: '#344054'}]}>
-            Assign Department
-          </Text>
-        </TouchableOpacity>
+        {/* Left side actions */}
+        <View style={styles.leftActions}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.leftAction]}
+            onPress={() => setisMultipleDeleteModalVisible(true)}>
+            <IconButton icon="trash-can-outline" size={16} color="#344054" />
+            <Text style={[styles.actionText, {color: '#344054'}]}>Delete</Text>
+          </TouchableOpacity>
 
-        {/*Assign Role Button in Action Bar  */}
-        <TouchableOpacity
-          style={[styles.actionButton, styles.leftAction]}
-          onPress={() => setisMultipleRoleAssignModalVisible(true)}>
-          <IconButton icon="briefcase-outline" size={16} color="#344054" />
-          <Text style={[styles.actionText, {color: '#344054'}]}>
-            Assign Roles
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.leftAction]}
+            onPress={() => setisMultipleRoleAssignModalVisible(true)}>
+            <IconButton icon="briefcase-outline" size={16} color="#344054" />
+            <Text style={[styles.actionText, {color: '#344054'}]}>
+              Assign Roles
+            </Text>
+          </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[styles.actionButton, styles.leftAction]}
+            onPress={() => setisMultipleAssignDeptModalVisible(true)}>
+            <IconButton icon="briefcase-outline" size={16} color="#344054" />
+            <Text style={[styles.actionText, {color: '#344054'}]}>
+              Assign Department
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Center actions */}
         <View style={styles.middleActions}>
           <TouchableOpacity
             style={styles.actionButton}
@@ -509,24 +511,10 @@ const Resources: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          {/* <TouchableOpacity style={styles.actionButton}>
-            <IconButton
-              icon="table-column-plus-after"
-              size={16}
-              color="#044086"
-            />
-            <Text style={[styles.actionText, {color: '#044086'}]}>
-              Set Columns
-            </Text>
-          </TouchableOpacity> */}
           <TouchableOpacity style={styles.actionButton} onPress={toggleModal}>
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity style={styles.actionButton}onPress={() => navigate('Excel')}>
-            <IconButton icon="sync" size={16} color="#044086" />
-            <Text style={[styles.actionText, {color: '#044086'}]}>Import Excel</Text>
-          </TouchableOpacity> */}
         </View>
         <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} color="#344054" />
@@ -808,15 +796,7 @@ const Resources: React.FC = () => {
               </View>
 
               <View>
-              <NestedDeptDropdown
-                        onSelect={handleDeptSelect} 
-                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
-                        placeholder={
-                          selectedUser
-                            ? selectedUser.department_name
-                            : 'Select a department'
-                        }
-                      />
+                <NestedDeptDropdown onSelect={handleDeptSelect} />
               </View>
               {/*User Role*/}
               {/*  <Text
@@ -1157,15 +1137,7 @@ const Resources: React.FC = () => {
               </View>
               {/*Nested Dropdown */}
               <View style={styles.inputRow}>
-              <NestedDeptDropdown
-                        onSelect={handleDeptSelect} 
-                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
-                        placeholder={
-                          selectedUser
-                            ? selectedUser.department_name
-                            : 'Select a department'
-                        }
-                      />
+                <NestedDeptDropdown onSelect={handleDeptSelect} />
               </View>
 
               {/* <Text
@@ -1352,15 +1324,7 @@ const Resources: React.FC = () => {
                 {` ${allSelectedUsersID.length} users`}
               </Text>
 
-              <NestedDeptDropdown
-                        onSelect={handleDeptSelect} 
-                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
-                        placeholder={
-                          selectedUser
-                            ? selectedUser.department_name
-                            : 'Select a department'
-                        }
-                      />
+              <NestedDeptDropdown onSelect={handleDeptSelect} />
 
               {/* Buttons */}
               <View style={styles.buttonContainer}>
@@ -1416,17 +1380,17 @@ const Resources: React.FC = () => {
               <TouchableOpacity
                 style={styles.submitButton}
                 onPress={handleUpdateMultipleUsersRole}>
-                <Text style={styles.submitButtonText}>Submit</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.submitButton}
-                onPress={() => setisMultipleRoleAssignModalVisible(false)}>
-                <Text style={styles.submitButtonText}>Cancel</Text>
-              </TouchableOpacity>
+                  <Text style={styles.submitButtonText}>Submit</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={() => setisMultipleRoleAssignModalVisible(false)}>
+                  <Text style={styles.submitButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
     </>
   );
 };
@@ -1451,7 +1415,7 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
   },
   actionText: {
     fontSize: 14,
@@ -1460,12 +1424,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     flex: 1,
+    marginRight:260
+  },
+  leftActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   leftAction: {
-    marginRight: 10,
+    // marginRight: 10,
   },
   rightAction: {
-    marginLeft: 10,
+    // marginLeft: 10,
+    // marginRight:30
   },
   table: {
     marginTop: 10,

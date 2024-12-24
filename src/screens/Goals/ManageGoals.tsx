@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import {
   Checkbox,
@@ -351,262 +352,262 @@ const ManageGoals: React.FC = () => {
 
   return (
     <PaperProvider>
-      <View style={styles.container}>
-        <View style={styles.contentWrapper}>
-          <Text style={styles.heading}>Strategic Goals</Text>
-          <View style={styles.topBar}>
-            <View style={styles.leftButtons}>
-              {/* <TouchableOpacity style={styles.button}>
-                <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                <Text style={styles.buttonText6}>Approve</Text>
-              </TouchableOpacity> */}
-              <TouchableOpacity style={styles.button}>
-                <Icon
-                  name="delete"
-                  size={18}
-                  color="#C4C4C4"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.buttonText6}>Delete</Text>
-              </TouchableOpacity>
-              {/* <TouchableOpacity style={styles.button}>
-                <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                <Text style={styles.buttonText6}>Export</Text>
-              </TouchableOpacity> */}
-            </View>
-            <View style={styles.centerButtons}>
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => openModal()}>
-                <Text style={styles.buttonText}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.container}>
+          <View style={styles.contentWrapper}>
+            <Text style={styles.heading}>Strategic Goals</Text>
+            <View style={styles.topBar}>
+              <View style={styles.leftButtons}>
+                {/* <TouchableOpacity style={styles.button}>
+                  <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                  <Text style={styles.buttonText6}>Approve</Text>
+                </TouchableOpacity> */}
+                <TouchableOpacity style={styles.button}>
                   <Icon
-                    name="plus"
-                    size={14}
+                    name="delete"
+                    size={18}
+                    color="#C4C4C4"
+                    style={styles.buttonIcon}
+                  />
+                  <Text style={styles.buttonText6}>Delete</Text>
+                </TouchableOpacity>
+                {/* <TouchableOpacity style={styles.button}>
+                  <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                  <Text style={styles.buttonText6}>Export</Text>
+                </TouchableOpacity> */}
+              </View>
+              <View style={styles.centerButtons}>
+                <TouchableOpacity
+                  style={styles.button}
+                  onPress={() => openModal()}>
+                  <Text style={styles.buttonText}>
+                    <Icon
+                      name="plus"
+                      size={14}
+                      color="#044086"
+                      style={styles.buttonIcon}
+                    />{' '}
+                    Create New
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.button}>
+                  <Icon
+                    name="table-column-plus-after"
+                    size={18}
                     color="#044086"
                     style={styles.buttonIcon}
-                  />{' '}
-                  Create New
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Icon
-                  name="table-column-plus-after"
-                  size={18}
-                  color="#044086"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.buttonText}>Set Column</Text>
-              </TouchableOpacity>
+                  />
+                  <Text style={styles.buttonText}>Set Column</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.rightButtons}>
+                <TouchableOpacity style={styles.button}>
+                  <Icon
+                    name="filter"
+                    size={18}
+                    color="#044086"
+                    style={styles.buttonIcon}
+                  />
+                  <Text style={styles.buttonText}>Filter</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.rightButtons}>
-              <TouchableOpacity style={styles.button}>
-                <Icon
-                  name="filter"
-                  size={18}
-                  color="#044086"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.buttonText}>Filter</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View style={styles.tableContainer}>
-            <View style={styles.headerRow}>
-              {[
-                '',
-                'S.No.',
-                'Goal',
-                'Description',
-                'Impacted Stakeholders',
-                'Goal Owner',
-                'Target year',
-                'Created On',
-                 'Action',
-              ].map((header, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.headerCell,
-                    index === 0
-                      ? {flex: 0.3}
-                      : index === 1
-                      ? {flex: 0.4}
-                      : index === 2
-                      ? {flex: 0.5}
-                      : index === 3 || index === 4
-                      ? {flex: 2}
-                      : index === 5 || index === 6
-                      ? {flex: 1.5}
-                      : {flex: 1},
-                  ]}>
+            <View style={styles.tableContainer}>
+              <View style={styles.headerRow}>
+                {[
+                  '',
+                  'S.No.',
+                  'Goal',
+                  'Description',
+                  'Impacted Stakeholders',
+                  'Goal Owner',
+                  'Target year',
+                  'Created On',
+                  'Action',
+                ].map((header, index) => (
                   <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    {index === 0 && (
-                      <Checkbox
-                        status={headerChecked ? 'checked' : 'unchecked'}
-                        onPress={() => {
-                          if (headerChecked) {
-                            setCheckedItems(new Set());
-                          } else {
-                            setCheckedItems(
-                              new Set(goalData.map(goal => goal.goal_id)),
-                            );
-                          }
-                        }}
-                      />
-                    )}
-                    <Text
+                    key={index}
+                    style={[
+                      styles.headerCell,
+                      index === 0
+                        ? {flex: 0.3}
+                        : index === 1
+                        ? {flex: 0.4}
+                        : index === 2
+                        ? {flex: 0.5}
+                        : index === 3 || index === 4
+                        ? {flex: 2}
+                        : index === 5 || index === 6
+                        ? {flex: 1.5}
+                        : {flex: 1},
+                    ]}>
+                    <View
                       style={{
-                        color: '#757575',
-                        fontFamily: 'Source Sans Pro',
-                        fontSize: 13,
-                        fontStyle: 'normal',
-                        fontWeight: '600',
-                        lineHeight: 22,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'center',
                       }}>
-                      {header}
-                    </Text>
-                    {index > 2 && index < 10 && (
-                      <TouchableOpacity
-                        onPress={() => handleSort(header.toLowerCase())}>
-                        <Image
-                          source={AppImages.Arrow}
-                          style={{
-                            width: 16,
-                            height: 16,
-                            marginLeft: 4,
-                            tintColor:
-                              sortColumn === header.toLowerCase()
-                                ? '#757575'
-                                : '#757575',
-                            transform: [
-                              {
-                                rotate:
-                                  sortColumn === header.toLowerCase() &&
-                                  !isAscending
-                                    ? '180deg'
-                                    : '0deg',
-                              },
-                            ],
+                      {index === 0 && (
+                        <Checkbox
+                          status={headerChecked ? 'checked' : 'unchecked'}
+                          onPress={() => {
+                            if (headerChecked) {
+                              setCheckedItems(new Set());
+                            } else {
+                              setCheckedItems(
+                                new Set(goalData.map(goal => goal.goal_id)),
+                              );
+                            }
                           }}
                         />
-                      </TouchableOpacity>
-                    )}
+                      )}
+                      <Text
+                        style={{
+                          color: '#757575',
+                          fontFamily: 'Source Sans Pro',
+                          fontSize: 13,
+                          fontStyle: 'normal',
+                          fontWeight: '600',
+                          lineHeight: 22,
+                        }}>
+                        {header}
+                      </Text>
+                      {index > 2 && index < 10 && (
+                        <TouchableOpacity
+                          onPress={() => handleSort(header.toLowerCase())}>
+                          <Image
+                            source={AppImages.Arrow}
+                            style={{
+                              width: 16,
+                              height: 16,
+                              marginLeft: 4,
+                              tintColor:
+                                sortColumn === header.toLowerCase()
+                                  ? '#757575'
+                                  : '#757575',
+                              transform: [
+                                {
+                                  rotate:
+                                    sortColumn === header.toLowerCase() &&
+                                    !isAscending
+                                      ? '180deg'
+                                      : '0deg',
+                                },
+                              ],
+                            }}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                ))}
+              </View>
+              {goalData.map((goal, index) => (
+                <View key={goal.goal_id} style={styles.row}>
+                  <View style={[styles.cell, {flex: 0.3, alignItems: 'center'}]}>
+                    <Checkbox
+                      status={
+                        checkedItems.has(goal.goal_id) ? 'checked' : 'unchecked'
+                      }
+                      onPress={() => {
+                        setCheckedItems(prevChecked => {
+                          const newChecked = new Set(prevChecked);
+                          if (newChecked.has(goal.goal_id)) {
+                            newChecked.delete(goal.goal_id);
+                          } else {
+                            newChecked.add(goal.goal_id);
+                          }
+                          return newChecked;
+                        });
+                      }}
+                    />
+                  </View>
+                  <View style={[styles.cell, {flex: 0.2}]}>
+                    <Text>{index + 1}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.2}]}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      {goal.goal_name}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.4}]}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      {goal.description}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(parseInt(goal.stakeholders))}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(parseInt(goal.goal_owner))}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>{goal.target_year}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(goal.created_at).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, styles.actionCell, {flex: 1}]}>
+                    <Menu
+                      visible={goal.menuVisible}
+                      onDismiss={() => {
+                        const updatedGoalData = goalData.map(item =>
+                          item.goal_id === goal.goal_id
+                            ? {...item, menuVisible: false}
+                            : item,
+                        );
+                        setGoalData(updatedGoalData);
+                      }}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={event => {
+                            const {pageX, pageY} = event.nativeEvent;
+                            const updatedIntakeData = goalData.map(item =>
+                              item.goal_id === goal.goal_id
+                                ? {
+                                    ...item,
+                                    menuVisible: true,
+                                    menuX: pageX,
+                                    menuY: pageY,
+                                  }
+                                : {...item, menuVisible: false},
+                            );
+                            setGoalData(updatedIntakeData);
+                          }}>
+                          <IconButton
+                            icon="dots-vertical"
+                            size={20}
+                            style={{margin: 0, padding: 0}}
+                          />
+                        </TouchableOpacity>
+                      }
+                      style={{
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: goal.menuX - 150,
+                        top: goal.menuY - 80,
+                      }}>
+                      <Menu.Item onPress={() => openModal(goal)} title="Edit" />
+                      <Menu.Item
+                        onPress={() => handleDeletePress(goal.goal_id)}
+                        title="Delete"
+                      />
+                      <Menu.Item onPress={() => {}} title="Create Program" />
+                    </Menu>
                   </View>
                 </View>
               ))}
             </View>
-            {goalData.map((goal, index) => (
-              <View key={goal.goal_id} style={styles.row}>
-                <View style={[styles.cell, {flex: 0.3}]}>
-                  <Checkbox
-                    status={
-                      checkedItems.has(goal.goal_id) ? 'checked' : 'unchecked'
-                    }
-                    onPress={() => {
-                      setCheckedItems(prevChecked => {
-                        const newChecked = new Set(prevChecked);
-                        if (newChecked.has(goal.goal_id)) {
-                          newChecked.delete(goal.goal_id);
-                        } else {
-                          newChecked.add(goal.goal_id);
-                        }
-                        return newChecked;
-                      });
-                    }}
-                  />
-                </View>
-                <View style={[styles.cell, {flex: 0.4}]}>
-                  <Text>{index + 1}</Text>
-                </View>
-                {/* <View style={[styles.cell, {flex: 0.5}]}>
-                  <Text>{goal.goal_id}</Text>
-                </View> */}
-                <View style={[styles.cell, {flex: 2}]}>
-                  <Text>{goal.goal_name}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 2}]}>
-                  <Text numberOfLines={1} ellipsizeMode="tail">
-                    {goal.description}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {mapDepartmentIdToName(parseInt(goal.stakeholders))}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {mapDepartmentIdToName(parseInt(goal.goal_owner))}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{goal.target_year}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{new Date(goal.created_at).toLocaleDateString()}</Text>
-                </View>
-                {/* <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{goal.status}</Text>
-                </View> */}
-                <View style={[styles.cell, styles.actionCell, {flex: 1}]}>
-                  <Menu
-                    visible={goal.menuVisible}
-                    onDismiss={() => {
-                      const updatedGoalData = goalData.map(item =>
-                        item.goal_id === goal.goal_id
-                          ? {...item, menuVisible: false}
-                          : item,
-                      );
-                      setGoalData(updatedGoalData);
-                    }}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={event => {
-                          const {pageX, pageY} = event.nativeEvent;
-                          const updatedIntakeData = goalData.map(item =>
-                            item.goal_id === goal.goal_id
-                              ? {
-                                  ...item,
-                                  menuVisible: true,
-                                  menuX: pageX,
-                                  menuY: pageY,
-                                }
-                              : {...item, menuVisible: false},
-                          );
-                          setGoalData(updatedIntakeData);
-                        }}>
-                        <IconButton
-                          icon="dots-vertical"
-                          size={20}
-                          style={{margin: 0, padding: 0}}
-                        />
-                      </TouchableOpacity>
-                    }
-                    style={{
-                      position: 'absolute',
-                      zIndex: 1000,
-                      left: goal.menuX - 150,
-                      top: goal.menuY - 80,
-                    }}>
-                    <Menu.Item onPress={() => openModal(goal)} title="Edit" />
-                    <Menu.Item
-                      onPress={() => handleDeletePress(goal.goal_id)}
-                      title="Delete"
-                    />
-                    <Menu.Item onPress={() => {}} title="Create Program" />
-                  </Menu>
-                </View>
-              </View>
-            ))}
+            {isLoading && <ActivityIndicator size="large" color="#044086" />}
           </View>
-          {isLoading && <ActivityIndicator size="large" color="#044086" />}
         </View>
-      </View>
+      </ScrollView>
       <CreateNewIntakeModal
         visible={modalVisible}
         onClose={closeModal}
@@ -620,7 +621,7 @@ const ManageGoals: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    // padding: 10,
     width: '100%',
   },
   contentWrapper: {
@@ -646,13 +647,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     width: '100%',
+    paddingHorizontal: 10,
   },
   leftButtons: {
     flexDirection: 'row',
   },
   centerButtons: {
     flexDirection: 'row',
-    marginRight: 176,
+    
   },
   rightButtons: {
     flexDirection: 'row',
@@ -679,41 +681,46 @@ const styles = StyleSheet.create({
     width: '100%',
     overflow: 'hidden',
     backgroundColor: '#fff',
+    alignSelf: 'stretch',
+    // borderWidth: 1,
+    // borderColor: '#ddd',
+    minWidth: 0,
   },
   headerRow: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+
     paddingVertical: 8,
-    backgroundColor: '#f5f5f5',
-    color: '#757575',
-    textAlign: 'center',
-    fontFamily: 'Source Sans Pro',
-    fontSize: 14,
-    fontStyle: 'normal',
-    fontWeight: '600',
-    lineHeight: 22,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    width: '100%',
   },
   headerCell: {
     fontWeight: 'bold',
     fontSize: 12,
-    paddingHorizontal: 2, // Reduce horizontal padding
+    paddingHorizontal: 4,
     justifyContent: 'center',
     alignItems: 'center',
+    flex: 1,
+    textAlign: 'center',
+    width: '100%',
+    minWidth: 0,
   },
   row: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'transparent',
-    paddingVertical: 6,
+
+    paddingVertical: 8,
+    alignItems: 'center',
+    width: '100%',
+    minWidth: 0,
   },
   cell: {
     fontSize: 12,
-    paddingHorizontal: 2, // Reduce horizontal padding
-    textAlign: 'left',
-    alignItems: 'center',
+    paddingHorizontal: 4,
     justifyContent: 'center',
-    display: 'flex',
+    alignItems: 'center',
+    flex: 1,
+    width: '100%',
+    minWidth: 0,
   },
   actionCell: {
     justifyContent: 'center',
@@ -802,6 +809,10 @@ const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
 });
 
 export default ManageGoals;
+

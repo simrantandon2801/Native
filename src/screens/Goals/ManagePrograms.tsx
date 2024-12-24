@@ -8,12 +8,14 @@ import {
   TextInput,
   ScrollView,
   Alert,
+  Image,
 } from 'react-native';
 import {
   Checkbox,
   Menu,
   Provider as PaperProvider,
   IconButton,
+  DataTable,
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Picker} from '@react-native-picker/picker';
@@ -23,6 +25,7 @@ import {
   InsertProgram,
 } from '../../database/ManageProgram';
 import {GetGoals} from '../../database/Goals';
+import { AppImages } from '../../assets';
 
 interface CreateNewIntakeModalProps {
   visible: boolean;
@@ -149,167 +152,157 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
 
   return (
     <Modal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}>
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>Add New Strategic Programs</Text>
-          <View style={styles.modalContent}>
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Name/Title <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={Programname}
-                  onChangeText={setProgramname}
-                />
-              </View>
-            </View>
-            <View style={styles.inputRow}>
-              {/* <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Status <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedStatus}
-                  onValueChange={itemValue => setSelectedStatus(itemValue)}
-                  style={styles.input}>
-                  <Picker.Item label="Select Status" value="" />
-                  <Picker.Item label="Active" value="active" />
-                  <Picker.Item label="Inactive" value="inactive" />
-                  <Picker.Item label="Pending" value="pending" />
-                </Picker>
-              </View> */}
-
-              {/*Goals Dropdown*/}
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Goals <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedGoal}
-                  onValueChange={itemValue =>
-                    setSelectedGoal(itemValue)
-                  }
-                  style={styles.input}>
-                  <Picker.Item label="Select Goal" value="" />
-
-                  {/* Map through the fetched goals and display them in the Picker */}
-                  {goalData.length > 0 ? (
-                    goalData.map(goal => (
-                      <Picker.Item
-                        key={goal.goal_id} // Unique key for each Picker.Item
-                        label={goal.goal_name} // Display the goal name
-                        value={goal.goal_id.toString()} // Set goal_id as value
-                      />
-                    ))
-                  ) : (
-                    <Picker.Item label="No Goals Available" value="" />
-                  )}
-                </Picker>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Program Owner
-                </Text>
-                {/* <Picker
-                  selectedValue={selectedProgramOwner}
-                  onValueChange={itemValue =>
-                    setSelectedProgramOwner(itemValue)
-                  }
-                  style={styles.input}>
-                  <Picker.Item label="Select Owner" value="" />
-                  <Picker.Item label="Manager" value="Manager" />
-                  <Picker.Item label="Mhe" value="jdj" />
-                  <Picker.Item label="hdf" value="hfd" />
-                </Picker> */}
-                  <NestedDeptDropdownPrograms onSelect={handleDeptSelect} EditProgram={EditProgram} />
-              </View>
-            </View>
-
-            {/* <View style={styles.inputRow}>
-               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Approval Reqd <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedApprovalReqd}
-                  onValueChange={itemValue =>
-                    setSelectedApprovalReqd(itemValue)
-                  }
-                  style={styles.input}>
-                  <Picker.Item label="Select Approval Reqd" value="" />
-                  <Picker.Item label="Yes" value="Yes" />
-                  <Picker.Item label="No" value="No" />
-                </Picker>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Approval Status <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedApprovalStatus}
-                  onValueChange={itemValue =>
-                    setSelectedApprovalStatus(itemValue)
-                  }
-                  style={styles.input}>
-                  <Picker.Item label="Select Approval Status" value="" />
-                  <Picker.Item label="Ontrack" value="Ontrack" />
-                  <Picker.Item label="Delayed" value="Delayed" />
-                </Picker>
-              </View>
-            </View> */}
-            <View style={styles.inputRow}>
-              <View style={[styles.inputContainer, styles.fullWidth]}>
-                <Text style={styles.inputLabel}>
-                  Description <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={Description}
-                  onChangeText={setDescription}
-                />
-              </View>
-            </View>
-            <View style={styles.inputRow}>
-              {/* Impacted Stakeholders Dropdown */}
-           
-              {/* Target Year Dropdown */}
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Target Year
-                </Text>
-                <Picker
-                  selectedValue={selectedYear}
-                  onValueChange={itemValue => setSelectedYear(itemValue)}
-                  style={styles.input}>
-                  <Picker.Item label="Select Year" value="" />
-                  <Picker.Item label="2024" value="2024" />
-                  <Picker.Item label="2025" value="2025" />
-                  <Picker.Item label="2026" value="2026" />
-                </Picker>
-              </View>
+    animationType="fade"
+    transparent={true}
+    visible={visible}
+    onRequestClose={onClose}>
+    <View style={styles.centeredView}>
+      <View style={styles.modalView}>
+        <Text style={styles.modalTitle}>Add New Strategic Programs</Text>
+        <View style={styles.modalContent}>
+          <View style={styles.inputRow}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Name/Title <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <TextInput
+                style={styles.input}
+                value={Programname}
+                onChangeText={setProgramname}
+              />
             </View>
           </View>
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onClose}>
-              <Text style={styles.buttonText2}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, styles.submitButton]}
-              onPress={handleSubmit}>
-              <Text style={styles.buttonText1}>Submit</Text>
-            </TouchableOpacity>
+          <View style={styles.inputRow}>
+            {/* <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Status <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <Picker
+                selectedValue={selectedStatus}
+                onValueChange={itemValue => setSelectedStatus(itemValue)}
+                style={styles.input}>
+                <Picker.Item label="Select Status" value="" />
+                <Picker.Item label="Active" value="active" />
+                <Picker.Item label="Inactive" value="inactive" />
+                <Picker.Item label="Pending" value="pending" />
+              </Picker>
+            </View> */}
+
+            {/*Goals Dropdown*/}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Goals <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <Picker
+                selectedValue={selectedGoal}
+                onValueChange={itemValue =>
+                  setSelectedGoal(itemValue)
+                }
+                style={styles.input}>
+                <Picker.Item label="Select Goal" value="" />
+
+                {/* Map through the fetched goals and display them in the Picker */}
+                {goalData.length > 0 ? (
+                  goalData.map(goal => (
+                    <Picker.Item
+                      key={goal.goal_id} // Unique key for each Picker.Item
+                      label={goal.goal_name} // Display the goal name
+                      value={goal.goal_id.toString()} // Set goal_id as value
+                    />
+                  ))
+                ) : (
+                  <Picker.Item label="No Goals Available" value="" />
+                )}
+              </Picker>
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Program Owner
+              </Text>
+                <NestedDeptDropdownPrograms onSelect={handleDeptSelect} EditProgram={EditProgram} />
+            </View>
+          </View>
+
+          {/* <View style={styles.inputRow}>
+             <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Approval Reqd <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <Picker
+                selectedValue={selectedApprovalReqd}
+                onValueChange={itemValue =>
+                  setSelectedApprovalReqd(itemValue)
+                }
+                style={styles.input}>
+                <Picker.Item label="Select Approval Reqd" value="" />
+                <Picker.Item label="Yes" value="Yes" />
+                <Picker.Item label="No" value="No" />
+              </Picker>
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Approval Status <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <Picker
+                selectedValue={selectedApprovalStatus}
+                onValueChange={itemValue =>
+                  setSelectedApprovalStatus(itemValue)
+                }
+                style={styles.input}>
+                <Picker.Item label="Select Approval Status" value="" />
+                <Picker.Item label="Ontrack" value="Ontrack" />
+                <Picker.Item label="Delayed" value="Delayed" />
+              </Picker>
+            </View>
+          </View> */}
+          <View style={styles.inputRow}>
+            <View style={[styles.inputContainer, styles.fullWidth]}>
+              <Text style={styles.inputLabel}>
+                Description <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={Description}
+                onChangeText={setDescription}
+               
+              />
+            </View>
+          </View>
+          <View style={styles.inputRow}>
+            {/* Impacted Stakeholders Dropdown */}
+         
+            {/* Target Year Dropdown */}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                Target Year
+              </Text>
+              <Picker
+                selectedValue={selectedYear}
+                onValueChange={itemValue => setSelectedYear(itemValue)}
+                style={styles.input}>
+                <Picker.Item label="Select Year" value="" />
+                <Picker.Item label="2024" value="2024" />
+                <Picker.Item label="2025" value="2025" />
+                <Picker.Item label="2026" value="2026" />
+              </Picker>
+            </View>
           </View>
         </View>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={onClose}>
+            <Text style={styles.buttonText2}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.submitButton]}
+            onPress={handleSubmit}>
+            <Text style={styles.buttonText1}>Submit</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </Modal>
+    </View>
+  </Modal>
   );
 };
 
@@ -317,6 +310,8 @@ const ManagePrograms: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [ProgramData, setProgramData] = useState<any[]>([]);
   const [EditProgram, setEditProgram] = useState<any | null>(null);
+  const [selectAll, setSelectAll] = useState(false);
+  const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
   
   const fetchPrograms = async () => {
     try {
@@ -388,150 +383,154 @@ const ManagePrograms: React.FC = () => {
       setProgramData(prevData => [...prevData, programDataToSubmit]);
     }
   };
+
+  const handleSelectAll = () => {
+    setSelectAll(!selectAll);
+    if (!selectAll) {
+      setSelectedPrograms(ProgramData.map(program => program.program_id));
+    } else {
+      setSelectedPrograms([]);
+    }
+  };
+
+  const handleSelectProgram = (programId: string) => {
+    setSelectedPrograms(prev => 
+      prev.includes(programId) 
+        ? prev.filter(id => id !== programId)
+        : [...prev, programId]
+    );
+  };
+
   return (
     <PaperProvider>
       <View style={styles.container}>
         <Text style={styles.heading}>Strategic Programs</Text>
-        <View style={styles.leftButtons}>
-                      {/* <TouchableOpacity style={styles.button}>
-                        <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                        <Text style={styles.buttonText6}>Approve</Text>
-                      </TouchableOpacity> */}
-                      <TouchableOpacity style={styles.button}>
-                        <Icon
-                          name="delete"
-                          size={18}
-                          color="#C4C4C4"
-                          style={styles.buttonIcon}
-                        />
-                        <Text style={styles.buttonText6}>Delete</Text>
-                      </TouchableOpacity>
-                      {/* <TouchableOpacity style={styles.button}>
-                        <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                        <Text style={styles.buttonText6}>Export</Text>
-                      </TouchableOpacity> */}
-                    </View>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={openModal}>
-            <Text style={styles.buttonText}>
+        <View style={styles.buttonRow}>
+          <View style={styles.leftButtons}>
+            <TouchableOpacity style={styles.button}>
               <Icon
-                name="plus"
-                size={14}
-                color="#044086"
-                style={styles.buttonIcon}
-              />{' '}
-              Create New
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.button}>
-            <View style={styles.buttonContent}>
-              <Icon
-                name="table-column-plus-after"
+                name="delete"
                 size={18}
-                color="#044086"
+                color="#C4C4C4"
                 style={styles.buttonIcon}
               />
-              <Text style={styles.buttonText}>Set Column</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
-            <View style={styles.headerRow}>
-              {[
-                '',
-                'S.No.',
-                'Program Name',
-                'Goal',
-                'Description',
-                'Program Owner',
-                'Target year',
-                'Created On',
-                'Action',
-              ].map((header, index) => (
-                <Text key={index} style={styles.headerCell}>
-                  {header}
-                </Text>
-              ))}
-            </View>
-            <ScrollView>
-              {ProgramData.map((programs, index) => (
-                <View key={programs.program_id} style={styles.row}>
-                  <View style={styles.cell}>
-                    <Checkbox status="unchecked" />
-                  </View>
-                  <Text style={styles.cell}>{index + 1}</Text>
-                  {/* <Text style={styles.cell}>{programs.program_id}</Text> */}
-                  <Text style={styles.cell}>{programs.program_name}</Text>
-                  <Text style={styles.cell}>{programs.goal_name}</Text>
-                  <Text
-                    style={styles.cell}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {programs.description}
-                  </Text>
-                  <Text style={styles.cell}>{programs.program_owner_name}</Text>
-                  {/* <Text style={styles.cell}>{programs.approvalRead}</Text>
-                  <Text style={styles.cell}>{programs.approvalStatus}</Text> */}
-                  <Text style={styles.cell}>{programs.target_year}</Text>
-                  {/* <Text style={styles.cell}>{programs.created_at}</Text> */}
-                  <Text>{new Date(programs.created_at).toLocaleDateString()}</Text>
-                  {/* <Text style={styles.cell}>{programs.status}</Text> */}
-                  <View style={[styles.cell, styles.actionCell]}>
-                    <Menu
-                      visible={programs.menuVisible}
-                      onDismiss={() => {
-                        const updatedIntakeData = ProgramData.map(item =>
-                          item.id === programs.id
-                            ? {...item, menuVisible: false}
-                            : item,
-                        );
-                        setProgramData(updatedIntakeData);
-                      }}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={event => {
-                            const {pageX, pageY} = event.nativeEvent;
-                            const updatedIntakeData = ProgramData.map(item =>
-                              item.program_id === programs.program_id
-                                ? {
-                                    ...item,
-                                    menuVisible: true,
-                                    menuX: pageX,
-                                    menuY: pageY,
-                                  }
-                                : {...item, menuVisible: false},
-                            );
-                            setProgramData(updatedIntakeData);
-                          }}>
-                          <IconButton
-                            icon="dots-vertical"
-                            size={20}
-                            style={{margin: 0, padding: 0}}
-                          />
-                        </TouchableOpacity>
-                      }
-                      style={{
-                        position: 'absolute',
-                        left: programs.menuX ? programs.menuX - 120 : 0,
-                        top: programs.menuY ? programs.menuY - 40 : 0,
-                      }}>
-                      <Menu.Item
-                        onPress={() => openModal(programs)}
-                        title="Edit"
-                      />
-                      <Menu.Item
-                        onPress={() => handleDeletePress(programs.program_id)}
-                        title="Delete"
-                      />
-                      <Menu.Item onPress={() => {}} title="Create Program" />
-                    </Menu>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
+              <Text style={styles.buttonText6}>Delete</Text>
+            </TouchableOpacity>
           </View>
-        </ScrollView>
+          <View style={styles.centerButtons}>
+            <TouchableOpacity style={styles.button} onPress={openModal}>
+              <Text style={styles.buttonText}>
+                <Icon
+                  name="plus"
+                  size={14}
+                  color="#044086"
+                  style={styles.buttonIcon}
+                />{' '}
+                Create New
+              </Text>
+            </TouchableOpacity>
+           <TouchableOpacity style={styles.button}>
+                             <Icon
+                               name="table-column-plus-after"
+                               size={18}
+                               color="#044086"
+                               style={styles.buttonIcon}
+                             />
+                             <Text style={styles.buttonText}>Set Column</Text>
+                           </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.tableContainer}>
+          <DataTable style={styles.dataTable}>
+            <DataTable.Header style={styles.tableHeader}>
+              <DataTable.Title style={styles.checkboxColumn}>
+                <TouchableOpacity onPress={handleSelectAll}>
+                  <View style={[styles.checkbox, selectAll && styles.checkboxChecked]}>
+                    {selectAll && <Icon name="check" size={16} color="#fff" />}
+                  </View>
+                </TouchableOpacity>
+              </DataTable.Title>
+              <DataTable.Title style={styles.numberColumn}>S.No.</DataTable.Title>
+              <DataTable.Title>Program Name</DataTable.Title>
+              <DataTable.Title>Goal</DataTable.Title>
+              <DataTable.Title>Description</DataTable.Title>
+              <DataTable.Title>Program Owner</DataTable.Title>
+              <DataTable.Title>Target Year</DataTable.Title>
+              <DataTable.Title>Created On</DataTable.Title>
+              <DataTable.Title style={styles.actionColumn}>Action</DataTable.Title>
+            </DataTable.Header>
+
+            {ProgramData.map((programs, index) => (
+              <DataTable.Row key={programs.program_id} style={styles.tableRow}>
+                <DataTable.Cell style={styles.checkboxColumn}>
+                  <TouchableOpacity onPress={() => handleSelectProgram(programs.program_id)}>
+                    <View style={[styles.checkbox, selectedPrograms.includes(programs.program_id) && styles.checkboxChecked]}>
+                      {selectedPrograms.includes(programs.program_id) && <Icon name="check" size={16} color="#fff" />}
+                    </View>
+                  </TouchableOpacity>
+                </DataTable.Cell>
+                <DataTable.Cell style={styles.numberColumn}>{index + 1}</DataTable.Cell>
+                <DataTable.Cell>{programs.program_name}</DataTable.Cell>
+                <DataTable.Cell>{programs.goal_name}</DataTable.Cell>
+                <DataTable.Cell>{programs.description}</DataTable.Cell>
+                <DataTable.Cell>{programs.program_owner_name}</DataTable.Cell>
+                <DataTable.Cell>{programs.target_year}</DataTable.Cell>
+                <DataTable.Cell>{new Date(programs.created_at).toLocaleDateString()}</DataTable.Cell>
+                <DataTable.Cell style={styles.actionColumn}>
+                  <Menu
+                    visible={programs.menuVisible}
+                    onDismiss={() => {
+                      const updatedIntakeData = ProgramData.map(item =>
+                        item.id === programs.id
+                          ? {...item, menuVisible: false}
+                          : item,
+                      );
+                      setProgramData(updatedIntakeData);
+                    }}
+                    anchor={
+                      <TouchableOpacity
+                        onPress={event => {
+                          const {pageX, pageY} = event.nativeEvent;
+                          const updatedIntakeData = ProgramData.map(item =>
+                            item.program_id === programs.program_id
+                              ? {
+                                  ...item,
+                                  menuVisible: true,
+                                  menuX: pageX,
+                                  menuY: pageY,
+                                }
+                              : {...item, menuVisible: false},
+                          );
+                          setProgramData(updatedIntakeData);
+                        }}>
+                        <IconButton
+                          icon="dots-vertical"
+                          size={20}
+                          style={{margin: 0, padding: 0}}
+                        />
+                      </TouchableOpacity>
+                    }
+                    style={{
+                      position: 'absolute',
+                      left: programs.menuX ? programs.menuX - 140 : 0,
+                      top: programs.menuY ? programs.menuY - 80 : 0,
+                    }}>
+                    <Menu.Item
+                      onPress={() => openModal(programs)}
+                      title="Edit"
+                    />
+                    <Menu.Item
+                      onPress={() => handleDeletePress(programs.program_id)}
+                      title="Delete"
+                    />
+                    <Menu.Item onPress={() => {}} title="Create Program" />
+                  </Menu>
+                </DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </DataTable>
+        </View>
+        
       </View>
       <CreateNewIntakeModal
         visible={modalVisible}
@@ -547,7 +546,7 @@ const ManagePrograms: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    // padding: 10,
   },
   heading: {
     fontSize: 18,
@@ -555,10 +554,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 10,
   },
-  buttonContainer: {
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  leftButtons: {
+    flexDirection: 'row',
+  },
+  centerButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginBottom: 10,
+    flex: 1,
   },
   button: {
     flexDirection: 'row',
@@ -575,33 +583,29 @@ const styles = StyleSheet.create({
   buttonIcon: {
     marginRight: 5,
   },
-  headerRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 8,
-    backgroundColor: '#f5f5f5',
-  },
-  headerCell: {
-    width: 120,
-    fontWeight: 'bold',
-    fontSize: 12,
-    paddingHorizontal: 5,
-  },
+  
   row: {
     flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    paddingVertical: 6,
+ 
+    // paddingVertical: 6,
+    alignItems: 'center',
   },
   cell: {
     width: 120,
     fontSize: 12,
-    paddingHorizontal: 5,
+    // paddingHorizontal: 5,
+    textAlign: 'center',
   },
   actionCell: {
+    width: 120,
     justifyContent: 'center',
+    alignItems: 'center',
     padding: 0,
+  },
+  cellContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   centeredView: {
     flex: 1,
@@ -624,10 +628,6 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     marginBottom: 20,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   inputRow: {
     flexDirection: 'row',
@@ -652,15 +652,25 @@ const styles = StyleSheet.create({
   cancelButton: {
     backgroundColor: '#ddd',
     marginRight: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginHorizontal: 10,
   },
   submitButton: {
     backgroundColor: '#044086',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginHorizontal: 10,
   },
   buttonText1: {
     color: 'white',
+    fontWeight: 'bold',
   },
   buttonText2: {
     color: 'black',
+    fontWeight: 'bold',
   },
   inputContainer: {
     flex: 1,
@@ -686,15 +696,89 @@ const styles = StyleSheet.create({
   },
   textArea: {
     textAlignVertical: 'top',
+   
   },
-  fullWidth: {},
+  fullWidth: {
+    width: '100%',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+  },
   menuContainer: {
     maxHeight: 100,
     maxWidth: 100,
   },
-  leftButtons: {
+  buttonText6:{
+
+  },
+  headerRow: {
     flexDirection: 'row',
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  headerCell: {
+    width: 120,
+    fontWeight: 'bold',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  checkboxColumn: {
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0,
+  },
+  numberColumn: {
+    width: 50,
+   
+  },
+  actionColumn: {
+    width: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tableContainer: {
+    // borderWidth: 1,
+    // borderColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    backgroundColor:'#fff',
+     
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#ffff',
+    color:'red',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+  
+  },
+  tableRow: {
+    flexDirection: 'row',
+  
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+ 
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#757575',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: '#757575',
+  },
+  dataTable: {
+    borderWidth: 0,
   },
 });
 
 export default ManagePrograms;
+
