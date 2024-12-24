@@ -23,7 +23,6 @@ import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import { GetDept } from '../../database/Departments';
-import { useIsFocused } from '@react-navigation/native';
 
 
 interface CreateNewIntakeModalProps {
@@ -235,14 +234,9 @@ const ManageGoals: React.FC = () => {
   const [headerChecked, setHeaderChecked] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
-const isFocus = useIsFocused();
+
   useEffect(() => {
-    debugger
-    if(isFocus){
-      setHeaderChecked(checkedItems.size === goalData.length);
-      fetchGoals();
-    }
-    
+    setHeaderChecked(checkedItems.size === goalData.length);
   }, [checkedItems, goalData]);
 
   const [departments, setDepartments] = useState<any[]>([]); // State to hold departments

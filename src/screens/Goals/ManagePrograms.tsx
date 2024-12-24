@@ -392,6 +392,25 @@ const ManagePrograms: React.FC = () => {
     <PaperProvider>
       <View style={styles.container}>
         <Text style={styles.heading}>Strategic Programs</Text>
+        <View style={styles.leftButtons}>
+                      {/* <TouchableOpacity style={styles.button}>
+                        <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                        <Text style={styles.buttonText6}>Approve</Text>
+                      </TouchableOpacity> */}
+                      <TouchableOpacity style={styles.button}>
+                        <Icon
+                          name="delete"
+                          size={18}
+                          color="#C4C4C4"
+                          style={styles.buttonIcon}
+                        />
+                        <Text style={styles.buttonText6}>Delete</Text>
+                      </TouchableOpacity>
+                      {/* <TouchableOpacity style={styles.button}>
+                        <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                        <Text style={styles.buttonText6}>Export</Text>
+                      </TouchableOpacity> */}
+                    </View>
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.button} onPress={openModal}>
             <Text style={styles.buttonText}>
@@ -671,6 +690,9 @@ const styles = StyleSheet.create({
   menuContainer: {
     maxHeight: 100,
     maxWidth: 100,
+  },
+  leftButtons: {
+    flexDirection: 'row',
   },
 });
 
