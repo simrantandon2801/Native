@@ -26,7 +26,7 @@ type DepartmentDropdownProps = {
 
 interface NestedDeptDropdownProps {
   onSelect: (value: number) => void;
-  selectedValue: string;
+  // selectedValue: string ;
   placeholder: string;
 }
 
@@ -136,8 +136,7 @@ const NestedDeptDropdown: React.FC<NestedDeptDropdownProps> = ({ onSelect, selec
   const [dropdownVisible, setDropdownVisible] = useState<boolean>(false);
 
   const handleDeptFetching = async () => {
-    try {
-      const response = await GetUserDept(''); // Assuming this function fetches the department data
+    try {      const response = await GetUserDept(''); // Assuming this function fetches the department data
       const parsedRes = JSON.parse(response);
 
       if (parsedRes.status === 'success') {

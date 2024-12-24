@@ -38,6 +38,7 @@ import * as Yup from 'yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {decodeBase64} from '../core/securedata';
 import AdComponent from './Adcomponent';
+import NestedMultSelect from '../modals/NestedMultSelect';
 
 interface FormValues {
   firstname: string;
@@ -578,8 +579,8 @@ const ManageUsers: React.FC = () => {
     selectedRoleID: Yup.string().required('User role is required'),
     approvalCurrency: Yup.string(),
     budgetAmount: Yup.number()
-      // .required('Budget amount is required')
-      .positive('Budget amount must be positive'),
+    .typeError('Budget Amount must be a number') // Ensure it's a number
+    .positive('Budget amount must be positive'), // Ensure it's positive
     selectedDeptID: Yup.number()
       .required('Department is required') // Make sure it is required
       .notOneOf([-1], 'Please select a valid department'),
@@ -781,7 +782,7 @@ const ManageUsers: React.FC = () => {
                         setSelectedDeptID(user.department_id);
                         setSelectedRoleID(user.role_id);
                         // setAvgBudgetAmount(user.average_cost.toString());  //removed this field from the add user form
-                        setBudgetAmount(user.approval_limit.toString());
+                        // setBudgetAmount(user.approval_limit.toString());
                       }}>
                       <IconButton icon="dots-vertical" size={20} />
                     </TouchableOpacity>
@@ -994,11 +995,18 @@ const ManageUsers: React.FC = () => {
                     </View>
 
                     <View style={{paddingVertical: 15}}>
+                    <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                           Department
+                        </Text>
                       <NestedDeptDropdown
                         onSelect={handleDeptSelect}
                         selectedValue={selectedDeptID.toString()} // Pass current value from Formik
                         placeholder={'Select a department'}
                       />
+                      {/* <NestedMultSelect/> */}
                       {touched.selectedDeptID && errors.selectedDeptID && (
                         <Text style={styles.errorText}>
                           {errors.selectedDeptID}
@@ -1065,12 +1073,12 @@ const ManageUsers: React.FC = () => {
                       <View style={styles.inputWrapper}>
                         <Text style={styles.label}>
                           <Text style={{color: 'red'}}>
-                            <Text style={{color: 'red'}}>*</Text>
+                            
                           </Text>{' '}
                           Currency Selection
                         </Text>
                         <Picker
-                          selectedValue={values.approvalCurrency}
+                          selectedValue={values.approvalCurrency || 'Dollar'}
                           onValueChange={value => {
                             if (value !== '') {
                               handleChange('approvalCurrency')(value);
@@ -1099,7 +1107,7 @@ const ManageUsers: React.FC = () => {
                       <View style={styles.inputWrapper}>
                         <Text style={styles.label}>
                           <Text style={{color: 'red'}}>
-                            <Text style={{color: 'red'}}>*</Text>
+                            
                           </Text>{' '}
                           Budget Amount
                         </Text>
@@ -1281,11 +1289,11 @@ const ManageUsers: React.FC = () => {
                   lastname: selectedUser?.last_name || '',
                   email: selectedUser?.email || '',
                   designation: '',
-                  reporting_to: selectedUser?.reporting_to || '',
+                  reporting_to: selectedUser?.reporting_to ? selectedUser?.reporting_to : 'No Mangager',
                   selectedRoleID: selectedRoleID || '',
                   approvalCurrency: '',
-                  budgetAmount: selectedUser?.approval_limit?.toString() || '',
-                  selectedDeptID: selectedUser?.department_id,
+                  budgetAmount: selectedUser?.approval_limit ? selectedUser?.approval_limit  : 'No budget',
+                  selectedDeptID: selectedUser?.department_id ,
                 }}
                 validationSchema={validationSchema}
                 onSubmit={values => {
@@ -1420,7 +1428,7 @@ const ManageUsers: React.FC = () => {
                     <View style={{paddingVertical: 15}}>
                       <NestedDeptDropdown
                         onSelect={handleDeptSelect}
-                        selectedValue={values.selectedDeptID.toString()}
+                        // selectedValue={values?.selectedDeptID?.toString()}
                         placeholder={
                           selectedUser
                             ? selectedUser.department_name
@@ -1477,7 +1485,7 @@ const ManageUsers: React.FC = () => {
                           Selection
                         </Text>
                         <Picker
-                          selectedValue={values.approvalCurrency}
+                          selectedValue={values.approvalCurrency || 'Dollar'}
                           onValueChange={value => {
                             if (value !== '') {
                               setFieldValue('approvalCurrency', value);
