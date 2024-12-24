@@ -145,7 +145,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
 
   useEffect(()=>{
     fetchGoals();
-  },[])
+  },)
 
   return (
     <Modal

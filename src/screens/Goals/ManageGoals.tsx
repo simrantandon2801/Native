@@ -22,8 +22,7 @@ import {AppImages} from '../../assets';
 import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import { GetDept } from '../../database/Departments';
-
+import {GetDept} from '../../database/Departments';
 
 interface CreateNewIntakeModalProps {
   visible: boolean;
@@ -51,10 +50,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       setGoalId(editGoal.goal_id);
       setGoalName(editGoal.goal_name || '');
       setDescription(editGoal.description || '');
-      setSelectedStakeholder(editGoal.stakeholders );
+      setSelectedStakeholder(editGoal.stakeholders);
       setSelectedYear(editGoal.target_year || '');
       setSelectedStatus(editGoal.status || '');
-      setSelectedGoalOwner(editGoal.goal_owner );
+      setSelectedGoalOwner(editGoal.goal_owner);
     } else {
       setGoalId(undefined);
       setGoalName('');
@@ -64,7 +63,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       setSelectedStatus('');
       setSelectedGoalOwner(-1);
     }
-  }, [editGoal]); 
+  }, [editGoal]);
 
   const handleSubmit = async () => {
     if (
@@ -159,7 +158,10 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                   Goal Owner <Text style={styles.asterisk}>*</Text>
                 </Text>
 
-                <NestedDeptDropdownGoals onSelect={handleDeptSelect} editGoal={editGoal} />
+                <NestedDeptDropdownGoals
+                  onSelect={handleDeptSelect}
+                  editGoal={editGoal}
+                />
               </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
@@ -270,7 +272,7 @@ const ManageGoals: React.FC = () => {
 
       console.log('API Response:', result);
       if (result?.data?.departments && Array.isArray(result.data.departments)) {
-        setDepartments(result.data.departments); 
+        setDepartments(result.data.departments);
       } else {
         console.error('Invalid departments data');
         Alert.alert('Error', 'Invalid departments data received');
@@ -283,7 +285,7 @@ const ManageGoals: React.FC = () => {
 
   useEffect(() => {
     fetchGoals();
-    fetchDepartments(); 
+    fetchDepartments();
   }, []);
 
   const mapDepartmentIdToName = (id: number) => {

@@ -1,5 +1,5 @@
 import React, {useEffect, useState, useMemo} from 'react';
-import {Formik} from 'formik'; // Formik import
+import {Formik, useFormikContext} from 'formik'; // Formik import
 import {
   StyleSheet,
   View,
@@ -112,6 +112,8 @@ interface UserPermission {
 const {height} = Dimensions.get('window');
 
 const ManageUsers: React.FC = () => {
+  // const { setFieldValue } = useFormikContext();
+
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User>();
   const [customerID, setCustomerID] = useState('');
@@ -163,9 +165,11 @@ const ManageUsers: React.FC = () => {
   const [allSelectedUsersID, setAllSelectedUsersID] = useState<number[]>([]); // Store selected user IDs
   const [selectAllChecked, setSelectAllChecked] = useState<boolean>(false); // State for Select All checkbox
   //callback function here the "selectedDeptID state" is being "lift up"
+
   const handleDeptSelect = (deptID: number) => {
     setSelectedDeptID(deptID); // Update the parent state with the selected department ID
     console.log(`Selected Department ID: ${deptID}`);
+    // setFieldValue("selectedDeptID", deptID);
   };
   const [isADModalVisible, setIsADModalVisible] = useState(false);
   const toggleModal = () => {
@@ -837,7 +841,7 @@ const ManageUsers: React.FC = () => {
                   selectedRoleID: '',
                   approvalCurrency: '',
                   budgetAmount: '',
-                  selectedDeptID: 0,
+                  selectedDeptID: -2,
                 }}
                 validationSchema={validationSchema} // Use validation schema if needed
                 onSubmit={values => {
@@ -992,12 +996,8 @@ const ManageUsers: React.FC = () => {
                     <View style={{paddingVertical: 15}}>
                       <NestedDeptDropdown
                         onSelect={handleDeptSelect}
-                        selectedValue={values.selectedDeptID.toString()} // Pass current value from Formik
-                        placeholder={
-                          selectedUser
-                            ? selectedUser.department_name
-                            : 'Select a department'
-                        }
+                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
+                        placeholder={'Select a department'}
                       />
                       {touched.selectedDeptID && errors.selectedDeptID && (
                         <Text style={styles.errorText}>
@@ -1419,9 +1419,7 @@ const ManageUsers: React.FC = () => {
                     </View>
                     <View style={{paddingVertical: 15}}>
                       <NestedDeptDropdown
-                        onSelect={value =>
-                          setFieldValue('selectedDeptID', selectedUser?.department_id)
-                        } 
+                        onSelect={handleDeptSelect}
                         selectedValue={values.selectedDeptID.toString()}
                         placeholder={
                           selectedUser
