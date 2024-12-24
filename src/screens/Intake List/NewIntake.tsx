@@ -39,7 +39,7 @@ const NewIntake = () => {
   const [projectOwner, setProjectOwner] = useState('');
   const [projectOwnerDept, setProjectOwnerDept] = useState<number>(-1);
   const [projectManager, setProjectManager] = useState('');
-  const [impactedFunction, setImpactedFunction] = useState('');
+  const [impactedFunction, setImpactedFunction] = useState<number>(-1);
   const [impactedApp, setImpactedApp] = useState('');
   const [priority, setPriority] = useState('');
   const [budget, setBudget] = useState('');
@@ -155,114 +155,115 @@ const NewIntake = () => {
       //setGoals([]);
   }
   };
- 
-  useEffect(() => {
-    const fetchGoals = async () => {
-      try {
-        const response = await GetGoals(''); 
+  const fetchGoals = async () => {
+    try {
+      const response = await GetGoals(''); 
+      const result = JSON.parse(response);
+      if (result?.data?.goals && Array.isArray(result.data.goals)) {
+      setGoals(result.data.goals); 
+    } else {
+      console.error("Invalid goals data");
+      Alert.alert("Error", "Invalid goals data received");
+    }
+  } catch (error) {
+      console.error('Error fetching goals:', error);
+      //setGoals([]);
+  }
+  };
+  const fetchBusinessOwner = async () => {
+    try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response); 
         const result = JSON.parse(response);
-        if (result?.data?.goals && Array.isArray(result.data.goals)) {
-        setGoals(result.data.goals); 
+        
+        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+            setBusinessData(result.data.users);
+            console.log('Fetched Business Owners:', result.data.users);
+        } else {
+            console.error("Invalid users data structure");
+            Alert.alert("Error", "Invalid business owner data received");
+        }
+    } catch (error) {
+        console.error('Error fetching Business Owners:', error);
+        Alert.alert("Error", "Failed to fetch business owners. Please try again later.");
+    }
+};
+
+const fetchProjectOwner = async () => {
+    try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response); 
+        const result = JSON.parse(response);
+        
+        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+            setProjectData(result.data.users);
+            console.log('Fetched Project Owners:', result.data.users);
+        } else {
+            console.error("Invalid Project data structure");
+            Alert.alert("Error", "Invalid Project owner data received");
+        }
+    } catch (error) {
+        console.error('Error fetching Project Owners:', error);
+        Alert.alert("Error", "Failed to fetch Project owners. Please try again later.");
+    }
+};
+const fetchProjectManager = async () => {
+    try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response); 
+        const result = JSON.parse(response);
+        
+        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+            setprojectMgr(result.data.users);
+            console.log('Fetched Project Manager:', result.data.users);
+        } else {
+            console.error("Invalid users data structure");
+            Alert.alert("Error", "Invalid business owner data received");
+        }
+    } catch (error) {
+        console.error('Error fetching Project Manager:', error);
+        Alert.alert("Error", "Failed to fetch Project Manager. Please try again later.");
+    }
+};
+
+const fetchSequence = async () => {
+    try {
+      const response = await GetSequence('');
+      const result = JSON.parse(response);
+
+      // Ensure the response format is correct and contains data
+      if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
+        setSequence(result.data); 
       } else {
         console.error("Invalid goals data");
         Alert.alert("Error", "Invalid goals data received");
       }
     } catch (error) {
-        console.error('Error fetching goals:', error);
-        //setGoals([]);
+      console.error('Error fetching sequences:', error);
+      Alert.alert("Error", "Error fetching sequences");
     }
-    };
-  
-      const fetchBusinessOwner = async () => {
-        try {
-            const response = await GetUsers('');
-            console.log('Raw Response:', response); 
-            const result = JSON.parse(response);
-            
-            if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-                setBusinessData(result.data.users);
-                console.log('Fetched Business Owners:', result.data.users);
-            } else {
-                console.error("Invalid users data structure");
-                Alert.alert("Error", "Invalid business owner data received");
-            }
-        } catch (error) {
-            console.error('Error fetching Business Owners:', error);
-            Alert.alert("Error", "Failed to fetch business owners. Please try again later.");
-        }
-    };
+  };
+  const fetchUsers = async () => {
+    try {
+      const response = await GetUsers(''); 
+      const result = JSON.parse(response);
+      if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+      setUsers(result.data.users); 
+      console.log('fetched user data',result.data.users)
+    } else {
+      console.error("Invalid Users data");
+      Alert.alert("Error", "Invalid USERS data received");
+    }
+  } catch (error) {
+      console.error('Error fetching goals:', error);
+      //setGoals([]);
+  }
+  };
 
-    const fetchProjectOwner = async () => {
-        try {
-            const response = await GetUsers('');
-            console.log('Raw Response:', response); 
-            const result = JSON.parse(response);
-            
-            if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-                setProjectData(result.data.users);
-                console.log('Fetched Project Owners:', result.data.users);
-            } else {
-                console.error("Invalid Project data structure");
-                Alert.alert("Error", "Invalid Project owner data received");
-            }
-        } catch (error) {
-            console.error('Error fetching Project Owners:', error);
-            Alert.alert("Error", "Failed to fetch Project owners. Please try again later.");
-        }
-    };
-    const fetchProjectManager = async () => {
-        try {
-            const response = await GetUsers('');
-            console.log('Raw Response:', response); 
-            const result = JSON.parse(response);
-            
-            if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-                setprojectMgr(result.data.users);
-                console.log('Fetched Project Manager:', result.data.users);
-            } else {
-                console.error("Invalid users data structure");
-                Alert.alert("Error", "Invalid business owner data received");
-            }
-        } catch (error) {
-            console.error('Error fetching Project Manager:', error);
-            Alert.alert("Error", "Failed to fetch Project Manager. Please try again later.");
-        }
-    };
-
-    const fetchSequence = async () => {
-        try {
-          const response = await GetSequence('');
-          const result = JSON.parse(response);
-  
-          // Ensure the response format is correct and contains data
-          if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
-            setSequence(result.data); 
-          } else {
-            console.error("Invalid goals data");
-            Alert.alert("Error", "Invalid goals data received");
-          }
-        } catch (error) {
-          console.error('Error fetching sequences:', error);
-          Alert.alert("Error", "Error fetching sequences");
-        }
-      };
-      const fetchUsers = async () => {
-        try {
-          const response = await GetUsers(''); 
-          const result = JSON.parse(response);
-          if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-          setUsers(result.data.users); 
-          console.log('fetched user data',result.data.users)
-        } else {
-          console.error("Invalid Users data");
-          Alert.alert("Error", "Invalid USERS data received");
-        }
-      } catch (error) {
-          console.error('Error fetching goals:', error);
-          //setGoals([]);
-      }
-      };
-  
+ 
+  useEffect(() => {
+     
+     
       // Call the function to fetch data
       fetchSequence();
     fetchProjectManager();
@@ -272,23 +273,23 @@ const NewIntake = () => {
     fetchBusinessOwner();
     fetchProjectOwner();
   }, []);
-   const fetchSequence = async () => {
-        try {
-          const response = await GetSequence('');
-          const result = JSON.parse(response);
+  //  const fetchSequence = async () => {
+  //       try {
+  //         const response = await GetSequence('');
+  //         const result = JSON.parse(response);
   
-          // Ensure the response format is correct and contains data
-          if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
-            setSequence(result.data); 
-          } else {
-            console.error("Invalid goals data");
-            Alert.alert("Error", "Invalid goals data received");
-          }
-        } catch (error) {
-          console.error('Error fetching sequences:', error);
-          Alert.alert("Error", "Error fetching sequences");
-        }
-      };
+  //         // Ensure the response format is correct and contains data
+  //         if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
+  //           setSequence(result.data); 
+  //         } else {
+  //           console.error("Invalid goals data");
+  //           Alert.alert("Error", "Invalid goals data received");
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching sequences:', error);
+  //         Alert.alert("Error", "Error fetching sequences");
+  //       }
+  //     };
   const handleBusinessOwnerDept = (deptID: number) => {
     setBusinessOwnerDept(deptID); 
     console.log(`Selected Stakeholder: ${deptID}`);
@@ -298,6 +299,11 @@ const NewIntake = () => {
     setProjectOwnerDept(deptID); 
     console.log(`Selected Stakeholder: ${deptID}`);
     console.log(`Updated Project Owner Department: ${deptID}`);
+  };
+  const handleImpactedFunctions = (deptID: number) => {
+    setImpactedFunction(deptID); 
+    console.log(`Selected Stakeholder: ${deptID}`);
+    console.log(`Updated Business Owner Department: ${deptID}`);
   };
 
 
@@ -330,10 +336,11 @@ const NewIntake = () => {
   
 
   const handleSaveDraft = async () => {
+    console.log(nameTitle);
     try {
       // Validate required fields
       if (!nameTitle || !classification || !goalSelected || !program || !startDate || !endDate || !goLiveDate) {
-        Alert.alert('Please fill in all required fields.');
+        console.log('Please fill in all required fields.');
         return;
       }
   
@@ -477,7 +484,7 @@ const NewIntake = () => {
   const handlereview = async () => {
     try {
       let currentProjectId = projectId;
-  
+  console.log('handle review')
       if (!currentProjectId) {
         currentProjectId = await handleSaveDraft(); 
       }
@@ -595,6 +602,7 @@ const NewIntake = () => {
     // Handle category change
     const handleGoalSelection = async (goalId: string) => {
       //setLoading(true);
+      setGoalSelected(goalId)
       console.log('handleGoal')
       await fetchPrograms(goalId);
     };
@@ -830,22 +838,14 @@ const NewIntake = () => {
             </View>
 
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Function<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={impactedFunction}
-                onValueChange={(value) => setImpactedFunction(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Function" value="" />
-                <Picker.Item label="Function 1" value="function1" />
-                <Picker.Item label="Function 2" value="function2" />
-              </Picker>
-              {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
+              <Text style={styles.inputLabel}>Impacted Functions<Text style={styles.asterisk}>*</Text></Text>
+              <NestedDeptDropdownNewProjects onSelect={handleImpactedFunctions} buisnessPersonId={parseInt(impactedFunction)}/>
+             {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
 
             </View>
 
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Application<Text style={styles.asterisk}>*</Text></Text>
+              <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
               <Picker
                 selectedValue={impactedApp}
                 onValueChange={(value) => setImpactedApp(value)}

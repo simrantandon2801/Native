@@ -415,15 +415,13 @@ const ManageGoals: React.FC = () => {
               {[
                 '',
                 'S.No.',
-                'ID',
                 'Goal',
                 'Description',
                 'Impacted Stakeholders',
                 'Goal Owner',
                 'Target year',
                 'Created On',
-                'Status',
-                'Action',
+                 'Action',
               ].map((header, index) => (
                 <View
                   key={index}
@@ -525,9 +523,9 @@ const ManageGoals: React.FC = () => {
                 <View style={[styles.cell, {flex: 0.4}]}>
                   <Text>{index + 1}</Text>
                 </View>
-                <View style={[styles.cell, {flex: 0.5}]}>
+                {/* <View style={[styles.cell, {flex: 0.5}]}>
                   <Text>{goal.goal_id}</Text>
-                </View>
+                </View> */}
                 <View style={[styles.cell, {flex: 2}]}>
                   <Text>{goal.goal_name}</Text>
                 </View>
@@ -552,9 +550,9 @@ const ManageGoals: React.FC = () => {
                 <View style={[styles.cell, {flex: 1}]}>
                   <Text>{new Date(goal.created_at).toLocaleDateString()}</Text>
                 </View>
-                <View style={[styles.cell, {flex: 1}]}>
+                {/* <View style={[styles.cell, {flex: 1}]}>
                   <Text>{goal.status}</Text>
-                </View>
+                </View> */}
                 <View style={[styles.cell, styles.actionCell, {flex: 1}]}>
                   <Menu
                     visible={goal.menuVisible}

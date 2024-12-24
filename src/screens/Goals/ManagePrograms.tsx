@@ -474,7 +474,8 @@ const ManagePrograms: React.FC = () => {
                   {/* <Text style={styles.cell}>{programs.approvalRead}</Text>
                   <Text style={styles.cell}>{programs.approvalStatus}</Text> */}
                   <Text style={styles.cell}>{programs.target_year}</Text>
-                  <Text style={styles.cell}>{programs.created_at}</Text>
+                  {/* <Text style={styles.cell}>{programs.created_at}</Text> */}
+                  <Text>{new Date(programs.created_at).toLocaleDateString()}</Text>
                   {/* <Text style={styles.cell}>{programs.status}</Text> */}
                   <View style={[styles.cell, styles.actionCell]}>
                     <Menu

@@ -505,12 +505,13 @@ const IntakeList: React.FC = () => {
                 'S.No.',
                 'Project ID',
                 'Project Name',
-                'Department',
+                'Status',
                 'Project Owner',
                 'Project Manager',
                 'Budget',
                 'Start date',
                 'End date',
+                'Go-Live date',
                 'Requested By',
                 'Requested On',
                 'Actions',
@@ -625,15 +626,16 @@ const IntakeList: React.FC = () => {
                     <Text>{index + 1}</Text>
                   </View>
                   <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.project_id}</Text>
+                    <Text>FPX{project.project_id}</Text>
                   </View>
                   <View style={[styles.cell, {flex: 1.3}]}>
                     <Text>{project.project_name}</Text>
                   </View>
                   <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text numberOfLines={1} ellipsizeMode="tail">
+                    {/* <Text numberOfLines={1} ellipsizeMode="tail">
                       {mapDepartmentIdToName(project.project_owner_dept)}
-                    </Text>
+                    </Text> */}
+                    <Text>{project.status_name}</Text>
                   </View>
                   <View style={[styles.cell, {flex: 1.5}]}>
                     <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
@@ -642,7 +644,7 @@ const IntakeList: React.FC = () => {
                     <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
                   </View>
                   <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.budget_size}</Text>
+                    <Text>{project.budget}</Text>
                   </View>
                   <View style={[styles.cell, {flex: 1}]}>
                     <Text>
@@ -654,6 +656,11 @@ const IntakeList: React.FC = () => {
                       {new Date(project.end_date).toLocaleDateString()}
                     </Text>
                   </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.golive_date).toLocaleDateString()}
+                    </Text>
+                  </View>
 
                   {/* <View style={[styles.cell, {flex: 1.5}]}>
                   <Text>
@@ -662,11 +669,11 @@ const IntakeList: React.FC = () => {
                 </View> */}
                   <View style={[styles.cell, {flex: 1.5}]}>
                     <Text>
-                      {new Date(project.requested_by_date).toLocaleDateString()}
+                      {project.created_by_name}
                     </Text>
                   </View>
                   <View style={[styles.cell, {flex: 1}]}>
-                    {new Date(project.requested_on_date).toLocaleDateString()}
+                    {new Date(project.created_at).toLocaleDateString()}
                   </View>
                   <View style={[styles.cell, {flex: 1}]}>
                     <Menu
