@@ -53,6 +53,7 @@ const DepartmentList = () => {
 const getCustName= async () => {
   try{
     const res = await AsyncStorage.getItem('company_name')
+    console.log("company name", res)
     setCompanyName(res || '');
   }catch(err){
     console.log('problem finding customer name');
@@ -275,32 +276,112 @@ const getCustName= async () => {
   //   setDeptHeadModalVisible(prev => (prev === departmentId ? null : departmentId));
   // };
 
+  // const handleAddDepartment = async () => {
+  //   console.log('Selected Department Head:', selectedUser);
+  //   if (!newDepartment.department_name.trim()) {
+  //     Alert.alert('Validation Error', 'Department name cannot be empty');
+  //     return;
+  //   }
+  //   if (selectedUser) {
+  //     console.log('Selected user for department head:', selectedUser);
+  //     // Directly set the department_head field with selected user ID
+  //     setNewDepartment(prev => ({
+  //       ...prev,
+  //       department_head: selectedUser.user_id, // Make sure to directly set the ID
+  //     }));
+
+  //     console.log('Selected Department Head to be sent:', selectedUser.user_id);
+  //   } else {
+  //     Alert.alert('Validation Error', 'Please select a department head');
+  //     return;
+  //   }
+
+    
+  //   // const departmentToSend = {
+  //   //   ...newDepartment,
+  //   //   department_head: null, // Directly use the user_id from selectedUser
+  //   // };
+  //   try {
+  //     const token = await AsyncStorage.getItem('Token');
+  //     console.log('Department to be sent: ', newDepartment);
+  //     const response = await fetch(`${BASE_URL}/master/insert_department`, {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `${token}`,
+  //       },
+  //       body: JSON.stringify(newDepartment),
+  //     });
+
+  //     if (response.ok) {
+  //       Alert.alert('Success', 'New department added successfully');
+  //       setIsModalVisible(false);
+  //       setNewDepartment({
+  //         department_id: null,
+  //         customer_id: 1,
+  //         parent_department_id: null,
+  //         department_name: '',
+  //         description: '',
+  //         department_head: null,
+  //         department_level: 1,
+  //         is_active: true,
+  //       });
+  //       fetchSubDepartments(null);
+  //       fetchDepartments();
+
+  //       setShouldFetch(true);
+  //     } else {
+  //       Alert.alert('Error', 'Failed to add department');
+  //     }
+  //   } catch (error) {
+  //     Alert.alert('Error', 'Failed to add department');
+  //   }
+  // };
+
   const handleAddDepartment = async () => {
-    console.log('Selected Department Head:', selectedUser);
-    if (!newDepartment.department_name.trim()) {
-      Alert.alert('Validation Error', 'Department name cannot be empty');
-      return;
-    }
+    console.log('Selected Department Head:', selectedUser);  // Log the selected user to ensure it's correct
+    
+    let departmentToSend;
+  
+    // if (!newDepartment.department_name.trim()) {
+    //   console.log('Validation Error: Department name cannot be empty');
+    //   return;
+    // }
+    
+    // Log the current department name
+    console.log('Department Name:', newDepartment.department_name);
+  
     if (selectedUser) {
       console.log('Selected user for department head:', selectedUser);
-      // Directly set the department_head field with selected user ID
+  
+      // Set department head with selected user ID
       setNewDepartment(prev => ({
         ...prev,
-        department_head: selectedUser.user_id, // Make sure to directly set the ID
+        department_head: selectedUser.user_id,
       }));
-
+  
+      departmentToSend = {
+        ...newDepartment,
+        department_head: selectedUser.user_id,
+      };
       console.log('Selected Department Head to be sent:', selectedUser.user_id);
     } else {
-      Alert.alert('Validation Error', 'Please select a department head');
-      return;
+      setNewDepartment(prev => ({
+        ...prev,
+        department_head: null,
+      }));
+      departmentToSend = {
+        ...newDepartment,
+        department_head: null,
+      };
     }
-    const departmentToSend = {
-      ...newDepartment,
-      department_head: selectedUser.user_id, // Directly use the user_id from selectedUser
-    };
+  
     try {
       const token = await AsyncStorage.getItem('Token');
-      console.log('Department to be sent: ', departmentToSend);
+      console.log('Token:', token);  // Ensure token is valid
+  
+      console.log('Department to be sent: ', departmentToSend);  // Log the department to be sent to the API
+  
       const response = await fetch(`${BASE_URL}/master/insert_department`, {
         method: 'POST',
         headers: {
@@ -309,9 +390,11 @@ const getCustName= async () => {
         },
         body: JSON.stringify(departmentToSend),
       });
-
+  
+      console.log('Response Status:', response.status);  // Log the status code of the response
+  
       if (response.ok) {
-        Alert.alert('Success', 'New department added successfully');
+        console.log('Success: New department added successfully');
         setIsModalVisible(false);
         setNewDepartment({
           department_id: null,
@@ -325,15 +408,18 @@ const getCustName= async () => {
         });
         fetchSubDepartments(null);
         fetchDepartments();
-
         setShouldFetch(true);
       } else {
-        Alert.alert('Error', 'Failed to add department');
+        const errorBody = await response.text();
+        console.log('Error response:', errorBody);  // Log the error response body
+        console.log('Error: Failed to add department');
       }
     } catch (error) {
-      Alert.alert('Error', 'Failed to add department');
+      console.log('Error:', error);  // Log any error that occurs during the fetch
+      console.log('Error: Failed to add department');
     }
   };
+  
   const [menuPosition, setMenuPosition] = useState({top: 0, left: 0});
   const handleMenuLayout = event => {
     const {x, y, width} = event.nativeEvent.layout;
@@ -446,26 +532,7 @@ const getCustName= async () => {
   //  <BinaryTree/>
   const renderSubDepartments = (department, level = 0) => {
     const isExpanded = expandedDepartments[department.department_id];
-    /* const renderHierarchyLines = (level, isChild = false) => {
-    if (level === 0) return null; // No line for the root level
-
-    const verticalLineHeight = 20;
-    const horizontalLineHeight = 1;
-    const horizontalLineWidth = 50;
-    return (
-      <View
-        style={{
-          position: 'absolute',
-        top: isChild ? verticalLineHeight : 0, // For child, position the line horizontally
-        left: -2, // Position to connect the line to the department (on the left side)
-        height: isChild ? horizontalLineHeight : '100%', // Horizontal line height for child, vertical for parent
-        width: isChild ? horizontalLineWidth : 2, // Horizontal line width for child, vertical for parent
-        backgroundColor: '#000', // Line color
-        zIndex: -1, // Ensure the line is behind the department content
-        }}
-      />
-    );
-  }; */
+    
     return (
       <View key={department.department_id} style={{position: 'relative'}}>
         {/*   {renderHierarchyLines(level, false)} */}
@@ -729,18 +796,13 @@ const getCustName= async () => {
 
           {/* Right Panel */}
           <View style={styles.rightPanel}>
-            {/* {subDepartments.map((department) => renderSubDepartments(department))} */}
-            {/*  <ScrollView 
-  contentContainerStyle={styles.scrollViewContent} 
-  horizontal={true}  // Enable horizontal scrolling
-  style={{flex: 1}}   // Ensure this takes up available space
-> */}
+            
             <ScrollView
               contentContainerStyle={styles.verticalScrollContent}
               style={{flex: 1}} // Ensure vertical scroll works independently
             >
               <View style={{flex: 1}}>
-                {' '}
+                
                 {/* Ensure BinaryTree component fills available space */}
                 <BinaryTree
                   shouldFetch={shouldFetch}
@@ -748,55 +810,7 @@ const getCustName= async () => {
                 />
               </View>
             </ScrollView>
-            {/* </ScrollView> */}
-            {/* Heading */}
-            {/*   {headingDepartment && (
-        <Text style={styles.header}>{headingDepartment.department_name}</Text>
-      )} */}
-
-            {/* Table-like Header */}
-            {/* <View style={[styles.row, styles.header]}>
-        <Text style={[styles.cell, { flex: 1 }]}>Name</Text>
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flex: 1 }}>
-          <Text style={[styles.cell, { textAlign: 'right', paddingLeft: 250 }]}>Unit Head</Text>
-          <Text style={[styles.cell, { textAlign: 'right' }]}>Action</Text>
-        </View>
-      </View> */}
-
-            {/* Department Tree */}
-            {/* {subDepartments.map((department) => renderTree(department, 0, users))} */}
-            {/*  <FlatList
-          data={subDepartments}
-          keyExtractor={(item) => item.department_id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.row}>
-              {editingDepartment && editingDepartment.department_id === item.department_id ? (
-                <TextInput
-                  style={styles.editInput}
-                  value={newDepartmentDetails.department_name}
-                  onChangeText={(text) =>
-                    setNewDepartmentDetails((prev) => ({ ...prev, department_name: text }))
-                  }
-                />
-              ) : (
-                <Text style={styles.cell}>{item.department_name}</Text>
-              )}
-              <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(item.department_id)}>
-                {menuVisible === item.department_id ? (
-                  editingDepartment && editingDepartment.department_id === item.department_id ? (
-                    <TouchableOpacity onPress={handleUpdate}>
-                      <Ionicons name="save" size={20} color="#000" />
-                    </TouchableOpacity>
-                  ) : (
-                    renderDropdown(item)
-                  )
-                ) : (
-                  <Ionicons name="more-vert" size={20} color="#000" />
-                )}
-              </TouchableOpacity>
-            </View>
-          )}
-        /> */}
+          
           </View>
 
           {/* Add Department Modal */}
@@ -806,7 +820,7 @@ const getCustName= async () => {
             transparent={true}>
             <View style={styles.modalOverlay}>
               <View style={styles.modalContainer}>
-                <Text style={styles.modalHeader}>Add New</Text>
+                <Text style={styles.modalHeader}>{(selectedUser?.parent_department_id === null)? "Add New Department": "Add new Sub-Department" }</Text>
                 <TextInput
                   style={styles.modalInput}
                   placeholder="Name"
@@ -899,7 +913,7 @@ const getCustName= async () => {
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.saveButton}
-                    onPress={() => setDeptHeadModalVisible(false)}>
+                    onPress={handleAddDepartment}>
                     <Text style={styles.saveButtonText}>Save</Text>
                   </TouchableOpacity>
                 </View>

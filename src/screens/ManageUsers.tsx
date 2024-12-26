@@ -693,7 +693,7 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title style={[{flex: 2}]}>Email ID</DataTable.Title>
           <DataTable.Title>Department</DataTable.Title>
           <DataTable.Title>Reporting Manager</DataTable.Title>
-          <DataTable.Title>Projects Active</DataTable.Title>
+          {/* <DataTable.Title>Projects Active</DataTable.Title> */}
           <DataTable.Title>Approval Limit</DataTable.Title>
           {/* <DataTable.Title >
             Average Cost
@@ -734,7 +734,7 @@ const ManageUsers: React.FC = () => {
               {/* Reporting Manager: Using reporting_to (ID) */}
               <DataTable.Cell>{user?.manager_name}</DataTable.Cell>
               {/* Placeholder for Projects Active */}
-              <DataTable.Cell>{0}</DataTable.Cell>
+              {/* <DataTable.Cell>{0}</DataTable.Cell> */}
               {/* Placeholder for Approval Limit*/}
               <DataTable.Cell>{user.approval_limit}</DataTable.Cell>
               {/* Placeholder for Average Cost */}
@@ -930,7 +930,6 @@ const ManageUsers: React.FC = () => {
                       <View style={styles.inputWrapper}>
                         <Text style={styles.label}>
                           <Text style={{color: 'red'}}>
-                            <Text style={{color: 'red'}}>*</Text>
                           </Text>{' '}
                           Designation
                         </Text>
@@ -1268,6 +1267,7 @@ const ManageUsers: React.FC = () => {
         </View>
       </Modal>
 
+
       {/*Edit User Modal */}
       <Modal
         visible={isEditModalVisible}
@@ -1426,6 +1426,12 @@ const ManageUsers: React.FC = () => {
                       </View>
                     </View>
                     <View style={{paddingVertical: 15}}>
+                    <Text style={styles.label}>
+                          <Text style={{color: 'red'}}>
+                            <Text style={{color: 'red'}}>*</Text>
+                          </Text>{' '}
+                           Department
+                        </Text>
                       <NestedDeptDropdown
                         onSelect={handleDeptSelect}
                         // selectedValue={values?.selectedDeptID?.toString()}
