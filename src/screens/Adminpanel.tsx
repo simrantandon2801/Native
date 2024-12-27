@@ -23,6 +23,9 @@ const gridData: GridItem[] = [
   { id: '8', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
   { id: '9', image: AppImages.license, text: 'License details', component: 'BinaryTree'  },
   { id: '10', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
+  { id: '11', image: AppImages.Classification, text: 'Manage Classification', component: 'Classification'  },
+  { id: '12', image: AppImages.Classification, text: 'Manage Designation', component: 'Designation'  },
+  
 ];
 
 const Adminpanel: React.FC = () => {
@@ -53,7 +56,7 @@ const Adminpanel: React.FC = () => {
       <View style={styles.grid}>
         {renderGridRow(0, 4)}
         {renderGridRow(4, 8)}
-        {renderGridRow(8, 10)}
+        {renderGridRow(8, 11)}
       </View>
     </ScrollView>
   );
@@ -81,9 +84,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    width: 200, // Adjust this value to control card width and spacing
-    aspectRatio: 1.25, // This will make the height 80% of the width
-    margin: '1.5%', // This adds space between cards
+    width: 200, 
+    aspectRatio: 1.25, 
+    margin: '1.5%', 
     backgroundColor: '#FFFFFF',
     borderRadius: 5,
     shadowColor: '#000',

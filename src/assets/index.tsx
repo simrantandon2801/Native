@@ -25,7 +25,7 @@ import RoadmapOverview from './img/RoadmapOverview.jpeg'
 import RoadmapProjects from './img/RoadmapProjects.jpeg'
 import NewIntake from './img/NewIntake.png'
 import Arrow from './img/Arrow.png'
-
+import Classification from './img/Classification.png'
 const AppImages = {
   AppVersion: packageJson.version,
   //background: background,
@@ -60,7 +60,8 @@ const AppImages = {
   RoadmapProjects:RoadmapProjects,
   RoadmapOverview:RoadmapOverview,
   NewIntake:NewIntake,
-  Arrow:Arrow
+  Arrow:Arrow,
+  Classification:Classification
 };
 
 export {AppImages};
