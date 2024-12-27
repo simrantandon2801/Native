@@ -56,7 +56,7 @@ const Adminpanel: React.FC = () => {
       <View style={styles.grid}>
         {renderGridRow(0, 4)}
         {renderGridRow(4, 8)}
-        {renderGridRow(8, 11)}
+        {renderGridRow(8, 12)}
       </View>
     </ScrollView>
   );
