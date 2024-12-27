@@ -23,6 +23,7 @@ const gridData: GridItem[] = [
   { id: '8', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
   { id: '9', image: AppImages.license, text: 'License details', component: 'BinaryTree'  },
   { id: '10', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
+  { id: '11', image: AppImages.Applications, text: 'Impacted Applications', component: 'ImpactedApps'  },
 ];
 
 const Adminpanel: React.FC = () => {
@@ -53,7 +54,7 @@ const Adminpanel: React.FC = () => {
       <View style={styles.grid}>
         {renderGridRow(0, 4)}
         {renderGridRow(4, 8)}
-        {renderGridRow(8, 10)}
+        {renderGridRow(8, 11)}
       </View>
     </ScrollView>
   );
