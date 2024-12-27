@@ -1,42 +1,231 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { GetNestedDepartments } from "../database/NestedDept";
 const data = [
   {
-    name: "AMERICA",
-    code: "AM",
-    zones: [
-      {
-        name: "Item 4",
-        code: "I4",
-        zones: [
-          {
-            name: "Option 7",
-            code: "O7",
-            zones: [
-              { name: "SubOption 15", code: "SO15", zones: [] },
-              { name: "SubOption 18", code: "SO18", zones: [] },
-              { name: "SubOption 20", code: "SO20", zones: [] },
-            ],
-          },
-          { name: "Option 8", code: "O8", zones: [] },
-        ],
-      },
-      { name: "Item 5", code: "I5", zones: [] },
-    ],
-  },
-  {
-    name: "ASIA",
-    code: "AS",
-    zones: [
-      { name: "Item 3", code: "I3", zones: [] },
-    ],
-  },
+        "department_id": 43,
+        "department_name": "accounts",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 40,
+        "department_name": "accounts",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 39,
+        "department_name": "accounts",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 37,
+        "department_name": "Accounts",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 38,
+        "department_name": "Fiction",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 56,
+        "department_name": "Finance",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 27,
+        "department_name": "Finance",
+        "parent_department_id": null,
+        "is_active": true,
+        "sub_departments": [
+            {
+                "department_id": 29,
+                "department_name": "CAO Office",
+                "parent_department_id": 27,
+                "is_active": true,
+                "sub_departments": [
+                    {
+                        "department_id": 32,
+                        "department_name": "AP",
+                        "parent_department_id": 29,
+                        "is_active": true,
+                        "sub_departments": []
+                    },
+                    {
+                        "department_id": 33,
+                        "department_name": "AR",
+                        "parent_department_id": 29,
+                        "is_active": true,
+                        "sub_departments": [
+                            {
+                                "department_id": 35,
+                                "department_name": "AC",
+                                "parent_department_id": 33,
+                                "is_active": true,
+                                "sub_departments": []
+                            },
+                            {
+                                "department_id": 34,
+                                "department_name": "AC",
+                                "parent_department_id": 33,
+                                "is_active": false,
+                                "sub_departments": []
+                            },
+                            {
+                                "department_id": 36,
+                                "department_name": "AM",
+                                "parent_department_id": 33,
+                                "is_active": true,
+                                "sub_departments": []
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "department_id": 59,
+        "department_name": "Finance1",
+        "parent_department_id": null,
+        "is_active": true,
+        "sub_departments": [
+            {
+                "department_id": 60,
+                "department_name": "Accounts",
+                "parent_department_id": 59,
+                "is_active": true,
+                "sub_departments": []
+            }
+        ]
+    },
+    {
+        "department_id": 41,
+        "department_name": "HR",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 45,
+        "department_name": "HR",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 63,
+        "department_name": "iit",
+        "parent_department_id": null,
+        "is_active": true,
+        "sub_departments": [
+            {
+                "department_id": 64,
+                "department_name": "iitk",
+                "parent_department_id": 63,
+                "is_active": true,
+                "sub_departments": []
+            }
+        ]
+    },
+    {
+        "department_id": 65,
+        "department_name": "iit2",
+        "parent_department_id": null,
+        "is_active": true,
+        "sub_departments": [
+            {
+                "department_id": 66,
+                "department_name": "iit kanpur",
+                "parent_department_id": 65,
+                "is_active": true,
+                "sub_departments": [
+                    {
+                        "department_id": 67,
+                        "department_name": "iit 3",
+                        "parent_department_id": 66,
+                        "is_active": true,
+                        "sub_departments": []
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "department_id": 46,
+        "department_name": "IPO",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 61,
+        "department_name": "it infraaa",
+        "parent_department_id": null,
+        "is_active": true,
+        "sub_departments": []
+    },
+    {
+        "department_id": 44,
+        "department_name": "security",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 42,
+        "department_name": "Security",
+        "parent_department_id": null,
+        "is_active": false,
+        "sub_departments": []
+    },
+    {
+        "department_id": 28,
+        "department_name": "Technology",
+        "parent_department_id": null,
+        "is_active": true,
+        "sub_departments": [
+            {
+                "department_id": 30,
+                "department_name": "IT Infra",
+                "parent_department_id": 28,
+                "is_active": true,
+                "sub_departments": [
+                    {
+                        "department_id": 62,
+                        "department_name": "",
+                        "parent_department_id": 30,
+                        "is_active": true,
+                        "sub_departments": []
+                    }
+                ]
+            },
+            {
+                "department_id": 31,
+                "department_name": "Software Services",
+                "parent_department_id": 28,
+                "is_active": true,
+                "sub_departments": []
+            }
+        ]
+    }
 ];
 
 const RecursiveDropdown = ({
-  items,
+  items = [],
   selectedItems,
   toggleSelect,
   expandedParents,
@@ -48,101 +237,118 @@ const RecursiveDropdown = ({
     <View style={styles.levelContainer}>
       {items.map((item) => (
         <View
-          key={item.code}
-          style={[styles.dropdownItem, hoveredItem === item.code && styles.hoverHighlight]} // Highlight the hovered item
-          onTouchStart={() => setHoveredItem(item.code)} // Simulate hover on touch
-          onTouchEnd={() => setHoveredItem(null)} // Remove hover effect after touch ends
+          key={item.department_id}
+          style={[
+            styles.dropdownItem,
+            hoveredItem === item.department_id && styles.hoverHighlight,
+          ]}
+          onTouchStart={() => setHoveredItem(item.department_id)}
+          onTouchEnd={() => setHoveredItem(null)}
         >
           <View style={styles.itemHeader}>
             {/* Checkbox for selection */}
-            <TouchableOpacity onPress={() => toggleSelect(item)} style={styles.expandableIcon}>
+            <TouchableOpacity
+              onPress={() => toggleSelect(item)}
+              style={styles.expandableIcon}
+            >
               <View
                 style={[
                   styles.checkbox,
-                  selectedItems.includes(item.code) && styles.checkboxSelected,
+                  selectedItems.includes(item.department_id) && styles.checkboxSelected,
                 ]}
               />
             </TouchableOpacity>
 
             {/* Text acts as an expand/collapse trigger */}
             <TouchableOpacity
-              onPress={() => toggleExpanded(item.code)} // Text toggles expansion
+              onPress={() => toggleExpanded(item.department_id)}
               style={styles.textContainer}
             >
-              <Text style={styles.itemText}>{item.name}</Text>
+              <Text style={styles.itemText}>{item.department_name}</Text>
             </TouchableOpacity>
 
             {/* Expandable icon for expand/collapse */}
-            {item.zones.length > 0 && (
+            {Array.isArray(item.sub_departments) && item.sub_departments.length > 0 && (
               <TouchableOpacity
-                onPress={() => toggleExpanded(item.code)} // + / - toggles expansion
+                onPress={() => toggleExpanded(item.department_id)}
                 style={styles.expandableIcon}
               >
                 <Text style={styles.arrow}>
-                  {expandedParents.includes(item.code) ? "-" : "+"}
+                  {expandedParents.includes(item.department_id) ? "-" : "+"}
                 </Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Recursive rendering for nested items */}
-          {item.zones.length > 0 && expandedParents.includes(item.code) && (
-            <View style={styles.nestedContainer}>
-              <RecursiveDropdown
-                items={item.zones}
-                selectedItems={selectedItems}
-                toggleSelect={toggleSelect}
-                expandedParents={expandedParents}
-                toggleExpanded={toggleExpanded}
-                hoveredItem={hoveredItem}
-                setHoveredItem={setHoveredItem}
-              />
-            </View>
-          )}
+          {Array.isArray(item.sub_departments) &&
+            item.sub_departments.length > 0 &&
+            expandedParents.includes(item.department_id) && (
+              <View style={styles.nestedContainer}>
+                <RecursiveDropdown
+                  items={item.sub_departments}
+                  selectedItems={selectedItems}
+                  toggleSelect={toggleSelect}
+                  expandedParents={expandedParents}
+                  toggleExpanded={toggleExpanded}
+                  hoveredItem={hoveredItem}
+                  setHoveredItem={setHoveredItem}
+                />
+              </View>
+            )}
         </View>
       ))}
     </View>
   );
 };
 
-const NestedMultiselectDropdown = () => {
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [expandedParents, setExpandedParents] = useState<string[]>([]);
-  const [hoveredItem, setHoveredItem] = useState(null); // State for hovered item
-  const [dropdownVisible, setDropdownVisible] = useState(false); // State to toggle dropdown visibility
+
+
+
+const NestedMultiselectDropdown = ({ data = [] }) => {
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [expandedParents, setExpandedParents] = useState<number[]>([]);
+  const [hoveredItem, setHoveredItem] = useState<number | null>(null);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
   const toggleSelect = (item) => {
     setSelectedItems((prevSelected) =>
-      prevSelected.includes(item.code)
-        ? prevSelected.filter((code) => code !== item.code)
-        : [...prevSelected, item.code]
+      prevSelected.includes(item.department_id)
+        ? prevSelected.filter((id) => id !== item.department_id)
+        : [...prevSelected, item.department_id]
     );
   };
 
-  const toggleExpanded = (parentCode) => {
+  const toggleExpanded = (parentId) => {
     setExpandedParents((prev) =>
-      prev.includes(parentCode)
-        ? prev.filter((code) => code !== parentCode)
-        : [...prev, parentCode]
+      prev.includes(parentId)
+        ? prev.filter((id) => id !== parentId)
+        : [...prev, parentId]
     );
   };
 
   return (
     <View style={styles.container}>
-      {/* Text field with disabled state and "v" icon */}
       <TouchableOpacity
         style={styles.selectItemField}
-        onPress={() => setDropdownVisible(!dropdownVisible)} // Toggle visibility on click
+        onPress={() => setDropdownVisible(!dropdownVisible)}
       >
-        <Text style={styles.input}>Select Item</Text>
-        <Icon name={dropdownVisible ? "chevron-up" : "chevron-down"} size={20} color="#333" />
+        <Text style={styles.input}>
+          {selectedItems.length
+            ? `Selected: ${selectedItems.join(", ")}`
+            : "Select Department"}
+        </Text>
+        <Icon
+          name={dropdownVisible ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+          size={20}
+          color="#333"
+        />
       </TouchableOpacity>
 
-      {/* Show nested dropdown if dropdownVisible is true */}
       {dropdownVisible && (
         <ScrollView style={styles.scrollContainer}>
           <RecursiveDropdown
-            items={data}
+            items={Array.isArray(data) ? data : []} // Ensure data is an array
             selectedItems={selectedItems}
             toggleSelect={toggleSelect}
             expandedParents={expandedParents}
@@ -155,6 +361,8 @@ const NestedMultiselectDropdown = () => {
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

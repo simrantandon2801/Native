@@ -163,17 +163,17 @@ const BinaryTree: React.FC<BinaryTree> = ({shouldFetch, setShouldFetch}) => {
     const initializeData = async () => {
       await getCustName(); // Fetch company name first
     };
-  
+
     initializeData();
   }, []);
-  
+
   // Trigger department fetching after companyName is set
   useEffect(() => {
     if (companyName) {
       fetchDepartments(); // Fetch departments only when companyName is ready
     }
   }, [companyName]);
-  
+
   // Handle manual or external triggers for fetching
   useEffect(() => {
     if (shouldFetch) {
@@ -195,8 +195,6 @@ const BinaryTree: React.FC<BinaryTree> = ({shouldFetch, setShouldFetch}) => {
 
     return width;
   };
-  
-
 
   useEffect(() => {
     if (tree) {

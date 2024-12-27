@@ -1653,8 +1653,8 @@ const ManageUsers: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalHeader}>
-              Assign the Role to all
-              {` ${allSelectedUsersID.length} users`}
+              Assign the Role to
+              {` ${allSelectedUsersID.length} user(s)`}
             </Text>
 
             {/* <NestedDeptDropdown onSelect={handleDeptSelect} /> */}
