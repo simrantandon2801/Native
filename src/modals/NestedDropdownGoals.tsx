@@ -5,11 +5,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {GetUserDept} from '../database/Users'; // Assuming this is a custom function to fetch data
-
-
+import { Portal } from 'react-native-paper';
 
 // TypeScript types
 type Department = {
@@ -65,9 +65,7 @@ const buildHierarchyPath = (
   );
 
   while (currentDept) {
-    path.unshift(
-      `${currentDept.department_name}`,
-    ); // Add to the start of the path
+    path.unshift(`${currentDept.department_name}`); // Add to the start of the path
     currentDept = departments.find(
       dept => dept.department_id === currentDept.parent_department_id,
     );
@@ -137,7 +135,9 @@ const DepartmentDropdown: React.FC<DepartmentDropdownProps> = ({
 };
 
 // Main Component
-const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps & { editGoal: any }> = ({ onSelect, editGoal }) => {
+const NestedDeptDropdownGoals: React.FC<
+  NestedDeptDropdownProps & {editGoal: any}
+> = ({onSelect, editGoal}) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [hierarchy, setHierarchy] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
@@ -169,12 +169,10 @@ const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps & { editGoal: an
 
   // Function to map department ID to name
   const mapDepartmentIdToName = (id: number) => {
-    console.log("mapping");
+    console.log('mapping');
     const department = departments.find(dept => dept.department_id === id);
     return department ? department.department_name : ' ';
   };
-
- 
 
   const handleSelect = (departmentID: number) => {
     const selectedDept = departments.find(
@@ -188,29 +186,33 @@ const NestedDeptDropdownGoals: React.FC<NestedDeptDropdownProps & { editGoal: an
   };
 
   return (
-    <View>
-      <View style={styles.inputWrapper}>
+    <TouchableWithoutFeedback onPress={() => setDropdownVisible(false)}>
+      <View style={styles.container}>
         <TouchableOpacity onPress={() => setDropdownVisible(!dropdownVisible)}>
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TextInput
-              style={[styles.textInput, { cursor: 'pointer' }]}
+              style={styles.textInput}
               value={selectedDepartment}
               editable={false}
-              placeholder={editGoal ?  mapDepartmentIdToName(parseInt(editGoal.stakeholders)): 'Select a department'}  // Change placeholder based on editGoal
+              placeholder={
+                editGoal
+                  ? buildHierarchyPath(parseInt(editGoal.stakeholders), departments)
+                  : 'Select a department'
+              }
             />
-            <Icon name="chevron-down" size={20} />
+            <Icon name="chevron-down" size={20} color="#000" />
           </View>
         </TouchableOpacity>
 
-        {/* Conditionally render the dropdown based on visibility */}
         {dropdownVisible && (
-          <DepartmentDropdown data={hierarchy} onSelect={handleSelect} />
+          <View style={styles.dropdownContainer}>
+            <DepartmentDropdown data={hierarchy} onSelect={handleSelect} />
+          </View>
         )}
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
-
 
 const styles = StyleSheet.create({
   inputWrapper: {
@@ -246,6 +248,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  dropdownContainer: {
+    position: 'absolute',
+    bottom: '100%',  // Position dropdown above the input
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    zIndex: 1,  // Ensure it is on top of other components
+    maxHeight: 250, // Optional: Limit the height of the dropdown
+    overflow: 'auto', // Optional: Allow scrolling if content exceeds maxHeight
+  },container: {
+    flex: 1,
+  }
 });
 
 export default NestedDeptDropdownGoals;

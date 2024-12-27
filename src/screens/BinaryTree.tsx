@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { Alert, Dimensions, ScrollView, View } from "react-native";
+import React, {useEffect, useState} from 'react';
+import {Alert, Dimensions, ScrollView, View} from 'react-native';
 import {BASE_URL} from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const Node = ({
   value,
   children,
@@ -37,8 +39,8 @@ const Node = ({
             offsetX + nodeWidth / 2,
             offsetY + nodeHeight,
             childOffsetX + nodeWidth / 2,
-            newOffsetY
-          )
+            newOffsetY,
+          ),
         );
 
         // Render the child node
@@ -53,7 +55,7 @@ const Node = ({
             nodeHeight={nodeHeight}
             spacing={spacing}
             horizontalSpacing={horizontalSpacing / 1.5} // Reduce spacing as the tree grows
-          />
+          />,
         );
 
         childOffsetX += horizontalSpacing; // Move to the next sibling position
@@ -80,8 +82,7 @@ const Node = ({
         fill="black"
         fontSize="12"
         textAnchor="middle"
-        dy=".3em"
-      >
+        dy=".3em">
         {value}
       </text>
       {renderChildren()}
@@ -92,130 +93,136 @@ interface BinaryTree {
   shouldFetch: boolean;
   setShouldFetch: React.Dispatch<React.SetStateAction<boolean>>;
 }
-const BinaryTree: React.FC<BinaryTree> = ({ shouldFetch, setShouldFetch }) => {
+const BinaryTree: React.FC<BinaryTree> = ({shouldFetch, setShouldFetch}) => {
   const [tree, setTree] = useState<any>(null);
   const [maxWidth, setMaxWidth] = useState(0);
-  const screenWidth = Dimensions.get("window").width; // Get screen width dynamically
-  const parentWidth = screenWidth / 2; 
- 
+  const screenWidth = Dimensions.get('window').width; // Get screen width dynamically
+  const parentWidth = screenWidth / 2;
 
-    const fetchDepartments = async () => {
-      try {
-        const response = await fetch(
-          `${BASE_URL}/master/get_department`
-        );
-        const result = await response.json();
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/master/get_department`);
+      const result = await response.json();
 
-        console.log("API Response:", result);
+      console.log('API Response:', result);
 
-        // Filter active departments
-        const activeDepartments = result.data.departments.filter(
-          (dept) => dept.is_active === true
-        );
+      // Filter active departments
+      const activeDepartments = result.data.departments.filter(
+        dept => dept.is_active === true,
+      );
 
-        // Create a map of department_id to department object
-        const departmentMap = new Map(
-          activeDepartments.map((dept) => [
-            dept.department_id,
-            { ...dept, children: [] }, // Retain department_name and other properties
-          ])
-        );
+      // Create a map of department_id to department object
+      const departmentMap = new Map(
+        activeDepartments.map(dept => [
+          dept.department_id,
+          {...dept, children: []}, // Retain department_name and other properties
+        ]),
+      );
 
-        // Map children to their respective parents
-        activeDepartments.forEach((dept) => {
-          if (dept.parent_department_id) {
-            const parent = departmentMap.get(dept.parent_department_id);
-            if (parent) {
-              parent.children.push(departmentMap.get(dept.department_id));
-            }
+      // Map children to their respective parents
+      activeDepartments.forEach(dept => {
+        if (dept.parent_department_id) {
+          const parent = departmentMap.get(dept.parent_department_id);
+          if (parent) {
+            parent.children.push(departmentMap.get(dept.department_id));
           }
-        });
-
-        // Get the root departments (those without a parent)
-        const rootDepartments = activeDepartments
-          .filter((dept) => dept.parent_department_id === null)
-          .map((dept) => departmentMap.get(dept.department_id));
-
-        // Build the final tree
-        const forgeTree = {
-          department_name: "Forge",
-          children: rootDepartments,
-        };
-
-        setTree(forgeTree);
-      } catch (error) {
-        console.error("Error fetching departments:", error);
-        Alert.alert("Error", "Failed to fetch departments");
-      }
-    };
-
-    useEffect(() => {
-      fetchDepartments();
-      if (shouldFetch) {
-        fetchDepartments();
-        setShouldFetch(false); // Reset shouldFetch after fetching
-      }
-    }, [shouldFetch, setShouldFetch]);
-
-    const calculateMaxWidth = (children) => {
-      if (!children || children.length === 0) return 0;
-  
-      let width = 0;
-      children.forEach((child) => {
-        const childWidth = calculateMaxWidth(child.children) + 200; // 200 is the horizontalSpacing
-        if (childWidth > width) {
-          width = childWidth;
         }
       });
-  
-      return width;
-    };
 
-    useEffect(() => {
-      if (tree) {
-        const maxWidth = calculateMaxWidth(tree.children);
-        setMaxWidth(maxWidth);
+      // Get the root departments (those without a parent)
+      const rootDepartments = activeDepartments
+        .filter(dept => dept.parent_department_id === null)
+        .map(dept => departmentMap.get(dept.department_id));
+
+      // Build the final tree
+      const forgeTree = {
+        department_name: companyName,
+        children: rootDepartments,
+      };
+
+      setTree(forgeTree);
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      Alert.alert('Error', 'Failed to fetch departments');
+    }
+  };
+  const [companyName, setCompanyName] = useState<string>('');
+  const getCustName = async () => {
+    try {
+      const res = await AsyncStorage.getItem('company_name');
+      setCompanyName(res || '');
+    } catch (err) {
+      console.log('problem finding customer name');
+    }
+  };
+
+  useEffect(() => {
+    getCustName;
+  }, []);
+  useEffect(() => {
+    fetchDepartments();
+    if (shouldFetch) {
+      fetchDepartments();
+      setShouldFetch(false); // Reset shouldFetch after fetching
+    }
+  }, [shouldFetch, setShouldFetch]);
+
+  const calculateMaxWidth = children => {
+    if (!children || children.length === 0) return 0;
+
+    let width = 0;
+    children.forEach(child => {
+      const childWidth = calculateMaxWidth(child.children) + 200; // 200 is the horizontalSpacing
+      if (childWidth > width) {
+        width = childWidth;
       }
-    }, [tree]);
- 
+    });
+
+    return width;
+  };
+
+  useEffect(() => {
+    if (tree) {
+      const maxWidth = calculateMaxWidth(tree.children);
+      setMaxWidth(maxWidth);
+    }
+  }, [tree]);
+
   const nodeWidth = 100; // Width of a single node
   const rootOffsetX = parentWidth / 2 - nodeWidth / 2;
   const verticalSpacing = 100;
   const horizontalSpacing = 200;
   return (
-    <View style={{ flex: 2,overflow: 'hidden',justifyContent:'center' }}>
+    <View style={{flex: 2, overflow: 'hidden', justifyContent: 'center'}}>
       <ScrollView
         horizontal
         contentContainerStyle={{
           width: maxWidth + 350, // 50px for some margin
           justifyContent: 'center', // Center the content horizontally
         }}
-        showsHorizontalScrollIndicator={true}
-      >
-    <svg
-    width={maxWidth + 300}
-      height="500"
-      style={{ border: "1px solid #000" }}
-    >
-      {tree ? (
-        <Node
-          value={tree.department_name} // Adjust the field name to match your API data
-          children={tree.children}
-          offsetX={rootOffsetX} // Center dynamically based on screen width
-          offsetY={50}
-          nodeWidth={nodeWidth}
-          spacing={verticalSpacing}
-          nodeHeight={40}
-          
-          horizontalSpacing={horizontalSpacing}
-        />
-      ) : (
-        <text x="50%" y="50%" textAnchor="middle" fill="black">
-          Loading tree...
-        </text>
-      )}
-    </svg>
-    </ScrollView>
+        showsHorizontalScrollIndicator={true}>
+        <svg
+          width={maxWidth + 300}
+          height="500"
+          style={{border: '1px solid #000'}}>
+          {tree ? (
+            <Node
+              value={tree.department_name} // Adjust the field name to match your API data
+              children={tree.children}
+              offsetX={rootOffsetX} // Center dynamically based on screen width
+              offsetY={50}
+              nodeWidth={nodeWidth}
+              spacing={verticalSpacing}
+              nodeHeight={40}
+              horizontalSpacing={horizontalSpacing}
+            />
+          ) : (
+            <text x="50%" y="50%" textAnchor="middle" fill="black">
+              Loading tree...
+            </text>
+          )}
+        </svg>
+      </ScrollView>
     </View>
   );
 };

@@ -11,7 +11,7 @@ import {navigationRef} from './src/navigations/RootNavigation';
 import {HomeStackNavigatorParamList} from './type';
 import { LogBox } from 'react-native';
 import SignupScreen from './src/screens/SignupScreen';
-import Toast from 'react-native-toast-message';
+// import Toast from 'react-native-toast-message';
 
 
 
@@ -48,7 +48,7 @@ const App: React.FC = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
-      <Toast />
+      {/* <Toast /> */}
     </PaperProvider>
   );
 };

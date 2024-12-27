@@ -343,11 +343,6 @@ const IntakeApproval: React.FC = () => {
 
       console.log('Payload:', payload);
 
-      // Call your function to handle the payload (e.g., UpdateProjectApproval)
-      //   UpdateProjectApproval(payload);
-
-      // Close the modal after submitting the comment
-
       try {
         const response = await UpdateProjectApproval(payload);
         const parsedResponse = JSON.parse(response);
@@ -616,7 +611,9 @@ const IntakeApproval: React.FC = () => {
                             setCheckedItems(
                               new Set(
                                 approvalprojects.map(project =>
-                                  project.project_id.toString(),
+                                  project.project_id
+                                    ? project.project_id.toString()
+                                    : '',
                                 ),
                               ),
                             );
@@ -666,142 +663,154 @@ const IntakeApproval: React.FC = () => {
               ))}
             </View>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {approvalprojects.map((project, index) => (
-                <View key={project.project_id} style={styles.row}>
-                  <View style={[styles.cell, {flex: 0.3}]}>
-                    <Checkbox
-                      status={
-                        checkedItems.has(project.project_id.toString())
-                          ? 'checked'
-                          : 'unchecked'
-                      }
-                      onPress={() => {
-                        setCheckedItems(prevChecked => {
-                          const newChecked = new Set(prevChecked);
-                          if (newChecked.has(project.project_id.toString())) {
-                            newChecked.delete(project.project_id.toString());
-                          } else {
-                            newChecked.add(project.project_id.toString());
-                          }
-                          return newChecked;
-                        });
-                      }}
-                    />
-                  </View>
-                  <View style={[styles.cell, {flex: 0.4}]}>
-                    <Text>{index + 1}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.project_id}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text>{project.project_name}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text numberOfLines={1} ellipsizeMode="tail">
-                      {mapDepartmentIdToName(project.project_owner_dept)}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.budget_size}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.start_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.end_date).toLocaleDateString()}
-                    </Text>
-                  </View>
+              {approvalprojects
+                .filter(project => project.project_id !== null)
 
-                  {/* <View style={[styles.cell, {flex: 1.5}]}>
+                .map((project, index) => (
+                  <View key={project.project_id} style={styles.row}>
+                    <View style={[styles.cell, {flex: 0.3}]}>
+                      <Checkbox
+                        status={
+                          checkedItems.has(
+                            project.project_id
+                              ? project.project_id.toString()
+                              : '',
+                          )
+                            ? 'checked'
+                            : 'unchecked'
+                        }
+                        onPress={() => {
+                          setCheckedItems(prevChecked => {
+                            const newChecked = new Set(prevChecked);
+                            const projectId = project.project_id
+                              ? project.project_id.toString()
+                              : '';
+
+                            if (newChecked.has(projectId)) {
+                              newChecked.delete(projectId);
+                            } else {
+                              newChecked.add(projectId);
+                            }
+                            return newChecked;
+                          });
+                        }}
+                      />
+                    </View>
+                    <View style={[styles.cell, {flex: 0.4}]}>
+                      <Text>{index + 1}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Text>{project.project_id}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.3}]}>
+                      <Text>{project.project_name}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.3}]}>
+                      <Text numberOfLines={1} ellipsizeMode="tail">
+                        {mapDepartmentIdToName(project.project_owner_dept)}
+                      </Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Text>{project.budget_size}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Text>
+                        {new Date(project.start_date).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Text>
+                        {new Date(project.end_date).toLocaleDateString()}
+                      </Text>
+                    </View>
+
+                    {/* <View style={[styles.cell, {flex: 1.5}]}>
                   <Text>
                     {new Date(project.requested_by_date).toLocaleDateString()}
                   </Text>
                 </View> */}
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>
-                      {new Date(project.requested_by_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    {new Date(project.requested_on_date).toLocaleDateString()}
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Menu
-                      visible={project.menuVisible}
-                      onDismiss={() => {
-                        const updatedProjectsData = approvalprojects.map(item =>
-                          item.project_id === project.project_id
-                            ? {...item, menuVisible: false}
-                            : item,
-                        );
-                        setProjects(updatedProjectsData);
-                      }}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={event => {
-                            const {pageX, pageY} = event.nativeEvent;
-                            const updatedProjectsData = approvalprojects.map(
-                              item =>
-                                item.project_id === project.project_id
-                                  ? {
-                                      ...item,
-                                      menuVisible: true,
-                                      menuX: pageX,
-                                      menuY: pageY,
-                                    }
-                                  : {...item, menuVisible: false},
-                            );
-                            setapprovalProjects(updatedProjectsData);
-                          }}>
-                          <IconButton
-                            icon="dots-vertical"
-                            size={20}
-                            style={{margin: 0, padding: 0}}
-                          />
-                        </TouchableOpacity>
-                      }
-                      style={{
-                        position: 'absolute',
-                        zIndex: 1000,
-                        left: project.menuX ? project.menuX - 150 : 0,
-                        top: project.menuY ? project.menuY - 80 : 0,
-                      }}>
-                      <Menu.Item title="View" />
-                      <Menu.Item
-                        onPress={() => {
-                          console.log(
-                            'Project Approval ID:',
-                            project.proj_intk_aprvl_id,
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>
+                        {project.created_by_name}
+                      </Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      {project.created_on}
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Menu
+                        visible={project.menuVisible}
+                        onDismiss={() => {
+                          const updatedProjectsData = approvalprojects.map(
+                            item =>
+                              item.project_id === project.project_id
+                                ? {...item, menuVisible: false}
+                                : item,
                           );
-                          console.log('Sequence ID:', project.sequence_id);
-                          console.log('Project ID:', project.project_id);
-                          console.log('Type:', project.type);
-                          console.log('Project:', project);
-
-                          handleApprovePress(
-                            project.proj_intk_aprvl_id,
-                            project.sequence_id,
-                            project.project_id,
-                            project.type,
-                          );
+                          setProjects(updatedProjectsData);
                         }}
-                        title="Approve"
-                      />
-                      <Menu.Item onPress={() => {}} title="Reject" />
-                    </Menu>
+                        anchor={
+                          <TouchableOpacity
+                            onPress={event => {
+                              const {pageX, pageY} = event.nativeEvent;
+                              const updatedProjectsData = approvalprojects.map(
+                                item =>
+                                  item.project_id === project.project_id
+                                    ? {
+                                        ...item,
+                                        menuVisible: true,
+                                        menuX: pageX,
+                                        menuY: pageY,
+                                      }
+                                    : {...item, menuVisible: false},
+                              );
+                              setapprovalProjects(updatedProjectsData);
+                            }}>
+                            <IconButton
+                              icon="dots-vertical"
+                              size={20}
+                              style={{margin: 0, padding: 0}}
+                            />
+                          </TouchableOpacity>
+                        }
+                        style={{
+                          position: 'absolute',
+                          zIndex: 1000,
+                          left: project.menuX ? project.menuX - 150 : 0,
+                          top: project.menuY ? project.menuY - 80 : 0,
+                        }}>
+                        <Menu.Item title="View" />
+                        <Menu.Item
+                          onPress={() => {
+                            console.log(
+                              'Project Approval ID:',
+                              project.proj_intk_aprvl_id,
+                            );
+                            console.log('Sequence ID:', project.sequence_id);
+                            console.log('Project ID:', project.project_id);
+                            console.log('Type:', project.type);
+                            console.log('Project:', project);
+
+                            handleApprovePress(
+                              project.proj_intk_aprvl_id,
+                              project.sequence_id,
+                              project.project_id,
+                              project.type,
+                            );
+                          }}
+                          title="Approve"
+                        />
+                        <Menu.Item onPress={() => {}} title="Reject" />
+                      </Menu>
+                    </View>
                   </View>
-                </View>
-              ))}
+                ))}
             </ScrollView>
           </View>
           <Modal
