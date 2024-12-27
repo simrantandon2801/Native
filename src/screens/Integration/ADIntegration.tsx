@@ -6,7 +6,8 @@ import { Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Menu } from 'react-native-paper'; // Using Menu from react-native-paper instead of Dropdown
 import {Picker} from '@react-native-picker/picker';
-import {AddADForCustomer, GetADList} from '../database/Integration';
+import {AddADForCustomer, GetADList} from '../../database/Integration';
+//import Toast from 'react-native-toast-message';
 
 export type HomeStackNavigatorParamList = {
   LoginScreen: {};
@@ -21,7 +22,7 @@ const ADIntegration = ({ closeModal }) => {
   const deviceWidth = Dimensions.get('window').width;
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [integrationName, setIntegrationName] = useState('');
   const [ad, setAd] = useState([]);
   const [integrationId, setIntegrationId] = useState('');
   const [customerId, setCustomerId] = useState('');
@@ -34,34 +35,17 @@ const ADIntegration = ({ closeModal }) => {
     undefined,
   );
 
-  const OPTIONS = [
-    { label: 'Microsoft', value: 'Microsoft' },
-    { label: 'Okta', value: 'Okta' },
-    { label: 'Other', value: 'Other' },
-  ];
-
   const handleSave = async () => {
-    // let tempErrors: { [key: string]: string } = {};
-    console.log('hi');
-    // // Validation checks
-    // if (!ad) tempErrors.ad = 'AD is required';
-    // // if (!name) tempErrors.name = 'Integration Name is required';
-    // if (!clientId) tempErrors.clientId = 'Client ID is required';
-    // if (!clientSecret) tempErrors.clientSecret = 'Client Secret is required';
-    // if (!tenantId) tempErrors.tenantId = 'Tenant ID is required';
-
-    // setErrors(tempErrors);
-
-    // if (Object.keys(tempErrors).length > 0) return;
 
     const payload = {
       integration_customer_id: '',
       integration_id:selectedAD,
-      customer_id: 1,
+      customer_id: '',
       client_id: clientId,
       client_secret: clientSecret,
       tenant_id: tenantId,
-      created_by: '8'
+      created_by: '',
+      description: integrationName
     };
     try {
     const response = await AddADForCustomer(payload);
@@ -98,6 +82,11 @@ const ADIntegration = ({ closeModal }) => {
   };
   useEffect(() => {
     fetchADList();
+    // Toast.show({
+    //   type: 'success',
+    //   text1: 'Hello',
+    //   text2: 'This is some something 👋'
+    // });
   }, []);
   return (
     <PaperProvider>
@@ -127,12 +116,33 @@ const ADIntegration = ({ closeModal }) => {
             <Menu.Item key={option.value} onPress={() => setAd(option.value)} title={option.label} />
           ))}
         </Menu> */}
-          {/* <TextInput
+          
+            <View style={styles.input}>
+                    <Text style={styles.label}>*  AD Selection</Text>
+                    <Picker
+                      selectedValue={selectedAD}
+                      onValueChange={itemValue =>
+                        setSelectedAD(itemValue)
+                        
+                      }
+                      style={styles.picker}>
+                      <Picker.Item label="Select Provider" value="" />
+                        {ad.map((item, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={item.integration_name}
+                            value={item.integration_id}
+                          />
+                    ))}
+          </Picker>
+                  </View>
+         <View style={{ display: selectedAD==1 ? 'flex' : 'none' }}>
+          <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Integration Name <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={name}
+            value={integrationName}
             onChangeText={(text) => {
-              setName(text);
+              setIntegrationName(text);
               setErrors({ ...errors, name: '' });
             }}
             placeholderTextColor="#044086"
@@ -144,25 +154,7 @@ const ADIntegration = ({ closeModal }) => {
                 placeholder: '#044086',
               },
             }}
-          /> */}
-            <View style={styles.inputWrapper}>
-                    <Text style={styles.label}>*  AD Selection</Text>
-                    <Picker
-                      selectedValue={selectedAD}
-                      onValueChange={itemValue =>
-                        setSelectedAD(itemValue)
-                        
-                      }
-                      style={styles.picker}>
-                        {ad.map((item, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={item.integration_name}
-                            value={item.integration_id}
-                          />
-                    ))}
-          </Picker>
-                  </View>
+          /> 
           <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Client Id <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -213,20 +205,8 @@ const ADIntegration = ({ closeModal }) => {
               },
             }}
           />
+</View>
 
-          {/* <TouchableOpacity
-          onPress={()=>handleSave()}>
-         <Text>Close</Text>
-          </TouchableOpacity> */}
-          {/* <View>
-                <Button
-                  onPress={() => {
-                    handleSave();
-                  }}
-                >
-                  Submit
-                </Button>
-              </View> */}
                   <View
                 style={{
                   flexDirection: 'row',
@@ -249,6 +229,7 @@ const ADIntegration = ({ closeModal }) => {
                   <Text style={styles.submitButtonText}>Close</Text>
                 </TouchableOpacity>
               </View>
+
         </View>
       </ScrollView>
     </PaperProvider>
@@ -323,4 +304,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+   
+  },
+  
+  modalContent: {
+    width: '18%', 
+    padding: 20,     
+    backgroundColor: '#f4f4f4',
+    margin:'70px',
+    borderRadius: 10,
+    alignItems: 'center',
+    maxHeight: 160,  
+    
+  },
+  modalContent1: {
+    width: '28%', 
+    padding: 20,     
+    backgroundColor: '#fff',
+    margin:'70px',
+    borderRadius: 10,
+    alignItems: 'center',
+    maxHeight: 250,  
+    
+  },
+  buttonContainer: {
+    flexDirection: 'row',  // Align buttons in a row
+    justifyContent: 'space-between',  // Space out the buttons evenly
+    width: '80%',  // Ensure it takes up full width
+  },
+  loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+
 });

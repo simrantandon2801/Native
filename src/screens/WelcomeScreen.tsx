@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import Header from '../header/header';
 import ManageUsers from './ManageUsers';
 import FooterForge from './FooterForge';
-import ADIntegration from './ADIntegration';
+import ADIntegration from './Integration/ADIntegration';
 const WelcomeScreen = () => {
   return (
     <View>

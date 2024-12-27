@@ -14,26 +14,24 @@ interface GridItem {
 
 const gridData: GridItem[] = [
   { id: '1', image: AppImages.Frame, text: 'Manage Company', component: 'ManageCompany' },
-  { id: '2', image: AppImages.Goal, text: 'Manage Goals', component: 'ManageGoals'  },
-  { id: '3', image: AppImages.Program, text: 'Manage Programs', component: 'ManagePrograms'  },
-  { id: '4', image: AppImages.ManageP, text: 'Manage Departments', component: 'DepartmentList'  },
+  { id: '2', image: AppImages.ManageP, text: 'Manage Departments', component: 'DepartmentList'  },
+  { id: '3', image: AppImages.Imtegration, text: 'Manage AD Integration', component: 'ADIntegrationList'  },
+  { id: '4', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
   { id: '5', image: AppImages.USers, text: 'Manage Users', component: 'ManageUsers'  },
   { id: '6', image: AppImages.RoleM, text: 'Role Master', component: 'RoleMaster' },
-  { id: '7', image: AppImages.Imtegration, text: 'Manage Integration', component: 'IntegrationList'  },
-  { id: '8', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
+  { id: '7', image: AppImages.Goal, text: 'Manage Goals', component: 'ManageGoals'  },
+  { id: '8', image: AppImages.Program, text: 'Manage Programs', component: 'ManagePrograms'  },
+  { id: '10', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
   { id: '9', image: AppImages.license, text: 'License details', component: 'BinaryTree'  },
-  { id: '10', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
+ 
+  { id: '11', image: AppImages.Imtegration, text: 'Manage PPM Integration', component: 'PPMIntegrationList'  },
 ];
 
 const Adminpanel: React.FC = () => {
     const navigation = useNavigation();
   const renderGridRow = (startIndex: number, endIndex: number) => {
     return (
-      
-            
       <View style={styles.gridRow}>
-        
-          
         {gridData.slice(startIndex, endIndex).map((item) => (
           <TouchableOpacity key={item.id} style={styles.card}
           onPress={() => navigation.navigate(item.component as never)}>
@@ -110,7 +108,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  
 });
 
 export default Adminpanel;

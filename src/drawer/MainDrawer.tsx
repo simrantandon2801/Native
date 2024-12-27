@@ -30,10 +30,9 @@ import {decodeBase64} from '../core/securedata';
 import Excel from '../screens/Excel';
 import DepartmentList from '../screens/DepartmentList';
 import RoleMaster from '../screens/RoleMaster';
-import ADIntegration from '../screens/ADIntegration';
-import IntegrationList from '../screens/IntegrationList';
+import ADIntegration from '../screens/Integration/ADIntegration';
+import ADIntegrationList from '../screens/Integration/ADIntegrationList';
 import Adminpanel from '../screens/Adminpanel';
-import AdComponent from '../screens/Adcomponent';
 import Adcomponent from '../screens/Adcomponent';
 
 import AdminDboard from '../screens/AdminDboard';
@@ -297,7 +296,7 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="Excel" component={Excel} /> 
           <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
           <Drawer.Screen name="ADIntegration" component={ADIntegration} />
-          <Drawer.Screen name="IntegrationList" component={IntegrationList} />
+          <Drawer.Screen name="ADIntegrationList" component={ADIntegrationList} />
           <Drawer.Screen name="Adminpanel" component={Adminpanel} />
           <Drawer.Screen name="Adcomponent" component={Adcomponent} />
           <Drawer.Screen name="AdminDboard" component={AdminDboard} />

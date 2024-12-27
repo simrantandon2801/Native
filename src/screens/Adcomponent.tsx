@@ -64,8 +64,8 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
       const result = await response.json();
       if (result.status === 'success' && Array.isArray(result.data)) {
         setDropdownOptions(result.data.map((item: any) => ({
-          label: item.integration_name,
-          value: item.integration_id.toString(),
+          label: item.description,
+          value: item.integration_customer_id.toString(),
         })));
       } else {
         console.error('Unexpected response structure:', result);
@@ -80,7 +80,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
     try {
       const token = await AsyncStorage.getItem('Token');
       //const response = await fetch(`${BASE_URL}/integration/get_users?Integration_customer_id=${optionValue}`);
-      const response = await fetch(`${BASE_URL}/integration/get_users?Integration_customer_id=${optionValue}`,
+      const response = await fetch(`${BASE_URL}/integration/get_users?integration_customer_id=${optionValue}`,
         {
           method: 'GET',  
           headers: {
@@ -234,7 +234,7 @@ const AdComponent: React.FC<AdComponentProps> = ({ closeModal,fetchUser }) => {
       )}
        {data.length > 0 && (
         <View style={styles.importButtonContainer}>
-          <Button title={`Import Selected (${selectedRows.length} records)`} onPress={handleImport} />
+          <Button title={`Import Selected (${selectedRows.length} user(s))`} onPress={handleImport} />
         </View>
       )}
     </View>

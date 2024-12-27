@@ -81,16 +81,16 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
         {/* <ForgeLogo width={30} height={30} /> */}
       </View>
 
-      <View style={styles.centerContainer}>
-        <View style={styles.searchInputContainer}>
+      {/* <View style={styles.centerContainer}>
+        <View style={styles.searchInputContainer}> */}
           {/* <SearchLogo /> */}
-          <TextInput
+          {/* <TextInput
             style={styles.searchInput}
             placeholder="Search any Project"
             placeholderTextColor="#757575"
           />
         </View>
-      </View>
+      </View> */}
 
       <View style={styles.rightContainer}>
         <MoreLinesLogo style={styles.icon} />

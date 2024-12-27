@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {Picker} from '@react-native-picker/picker';
-import {addADForCustomer, GetADIntegrationsForCustomer} from '../database/Integration';
+import {addADForCustomer, GetADIntegrationsForCustomer} from '../../database/Integration';
 import ADIntegration from './ADIntegration';
 //import {StyleSheet,View,Text,TouchableOpacity,Modal,ScrollView,Pressable,Dimensions, Alert, TouchableWithoutFeedback} from 'react-native';
 
@@ -18,7 +18,7 @@ export type HomeStackNavigatorParamList = {
 
 type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
-const IntegrationList = () => {
+const ADIntegrationList = () => {
   const deviceWidth = Dimensions.get('window').width;
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
@@ -61,7 +61,6 @@ const IntegrationList = () => {
       console.log('Error Fetching Users', err);
     }
   };
-  
   useEffect(() => {
     fetchData();
   }, []);
@@ -101,13 +100,14 @@ const closeModal = () => {
     // setRoleInput('');
     // setEditRoleIndex(null);
     setIsModalVisible(false);
+    fetchData();
   };
 
   return (
     <>
     
     <View style={styles.manageUsersContainer}>
-      <Text style={styles.heading}>Manage Integrations</Text>
+      <Text style={styles.heading}>Manage Active Directory(AD) Integrations</Text>
     </View>
     <View style={styles.actions}>
       <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
@@ -124,17 +124,12 @@ const closeModal = () => {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.actionButton}>
+        {/* <TouchableOpacity style={styles.actionButton}>
           <IconButton
             icon="table-column-plus-after"
             size={16}
-          
-          />
-          {/* <Text style={[styles.actionText, { color: '#044086' }]}>
-            Set Columns
-          </Text> */}
-        
-        </TouchableOpacity>
+    />
+  </TouchableOpacity> */}
        
       </View>
       <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
@@ -149,7 +144,7 @@ const closeModal = () => {
       
         <DataTable.Title>S. No.</DataTable.Title>
         <DataTable.Title>Provider</DataTable.Title>
-       {/*  <DataTable.Title>Assign module</DataTable.Title> */}
+        <DataTable.Title>Description</DataTable.Title>
         <DataTable.Title>Action</DataTable.Title>
       </DataTable.Header>
 
@@ -160,6 +155,8 @@ const closeModal = () => {
          
           <DataTable.Cell>{index + 1}</DataTable.Cell>
           <DataTable.Cell>{item.integration_name}</DataTable.Cell>
+          <DataTable.Cell>{item.description}</DataTable.Cell>
+          {/* <DataTable.Cell>{item.client_id}</DataTable.Cell> */}
       {/*     <DataTable.Cell>
           <TouchableOpacity onPress={() => setIsModalVisible(true)} style={styles.viewModulesContainer}>
                 <IconButton  size={20} color="'#044086'" />
@@ -211,8 +208,8 @@ const closeModal = () => {
 
 <Modal 
         visible={isModalVisible} 
-        transparent 
-        animationType="fade"
+        animationType="none"
+        transparent={true}
         onRequestClose={() => {
           setIsModalVisible(false)
         }}
@@ -267,14 +264,12 @@ const closeModal = () => {
 };
 
 
-export default IntegrationList;
+export default ADIntegrationList;
 const styles = StyleSheet.create({
     manageUsersContainer: {
       alignItems: 'center',
       paddingVertical: 10,
       backgroundColor: 'white',
-      
-      
     },
     actions: {
       flexDirection: 'row',
@@ -287,7 +282,6 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
     },
-    
     actionText: {
       marginLeft: 5,
       fontSize: 14,
@@ -306,22 +300,18 @@ const styles = StyleSheet.create({
     },
     table: {
       marginRight: 20,
-     
     },
     modalButton1:{
       padding:20,
       marginTop:'-10px',
       width:'30%'
-  
-    },
+ },
     modalScrollContainer: {
-      
       justifyContent: 'center',
       backgroundColor: 'rgba(0,0,0,0.6)',
       flex: 1,
     },modalButtons: {
       flexDirection: 'row',
-      
       marginTop: 20,
     },
     saveButton: {
@@ -331,7 +321,6 @@ const styles = StyleSheet.create({
     },
     cancelButton: {
       backgroundColor: '#044086',
-     
       flex: 1,
     },
     modalContainer: {
@@ -340,7 +329,6 @@ const styles = StyleSheet.create({
       padding: 20,
       borderRadius: 10,
       width:'40%'
-     
     },
     modalHeader: {
       fontSize: 18,
@@ -434,12 +422,10 @@ const styles = StyleSheet.create({
     input: {
       borderWidth: 1,
       borderColor: '#ccc',
-     
       marginBottom: 20,
       borderRadius: 5,
       backgroundColor: 'transparent',
     },
-    
     roleList: {
       // marginTop: 20,
     },
@@ -453,7 +439,6 @@ const styles = StyleSheet.create({
       color: '#333',
       marginBottom: 10,
     },
-   
     inputWrapper: {
       marginBottom: 16, // Space between this input and the next one
       paddingHorizontal: 16, // Padding inside the wrapper for the inputs
@@ -469,25 +454,17 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
     },
-   
-   
-    modalButton: {
-   
-      padding: 10,
+  modalButton: {
+    padding: 10,
     backgroundColor:'transparent',
-    
-  
-      borderRadius: 5,
-     
-      alignItems: 'center',
+    borderRadius: 5,
+    alignItems: 'center',
     },
     buttonText: {
       color: '#000',
       fontSize: 14,
-    
     },
-   
-    buttonText1: {
+ buttonText1: {
       color: '#fff',
       fontSize: 14,
       backgroundColor:'#044086',
@@ -540,8 +517,5 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         zIndex: 1000,
       },
-      
-   
-    
-   
+
   });
