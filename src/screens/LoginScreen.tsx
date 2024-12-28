@@ -64,7 +64,7 @@ const LoginScreen: React.FC = () => {
       
           if (jsonResult.status === 'success') {
             const { accessToken, user } = jsonResult.data;
-            const { userId, userrole, customer_id } = user;
+            const { userId, userrole, customer_id, company_name } = user;
       
             //setIsLoggedIn(true);
             await AsyncStorage.setItem('UserEmail', encodeBase64(email?.toLowerCase() || ''));
@@ -72,6 +72,7 @@ const LoginScreen: React.FC = () => {
             await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
             //await AsyncStorage.setItem('ID', encodeBase64(userId));
             await AsyncStorage.setItem('Customer_ID', encodeBase64(customer_id?.toString() || ''));
+            await AsyncStorage.setItem('company_name',company_name?.toString()|| '' );
 
             await AsyncStorage.setItem('UserType', encodeBase64(userrole.toString()));
       
