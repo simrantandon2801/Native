@@ -11,6 +11,7 @@ import {
   Alert,
   Platform,
 } from 'react-native';
+
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 // import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -73,7 +74,9 @@ const NewIntake = () => {
   const [risk, setRisk] = useState('');
   const [budgetImpact, setBudgetImpact] = useState('');
   const [isDraftSaved, setIsDraftSaved] = useState(false);
-  
+  const [isApprovalSubmit, setIsApprovalSubmit] = useState(false);
+
+  const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
   const [designation, setDesignation] = useState('');
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
@@ -84,7 +87,7 @@ const NewIntake = () => {
   const [sequenceName, setSequenceName] = useState('');
   const [projectId, setProjectId] = useState('');
   const [isApprovalPopupVisible, setIsApprovalPopupVisible] = useState(false);
-  
+  const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
   const [rawStartDate, setRawStartDate] = useState(null);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [rawEndDate, setRawEndDate] = useState(null); 
@@ -532,18 +535,19 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          Alert.alert('Submission successful!');
+          setSubmitPopupMessage('Your review has been submitted successfully!');
           setIsPopupVisible(false); 
         } else {
-          Alert.alert('Failed to submit. Please try again.');
+          setSubmitPopupMessage('Failed to submit. Please try again.');
         }
       } else {
-        Alert.alert('Unable to retrieve project ID. Submission aborted.');
+        setSubmitPopupMessage('Unable to retrieve project ID. Submission aborted.');
       }
     } catch (error) {
       console.error('Error submitting:', error);
-      Alert.alert('An error occurred while submitting. Please try again.');
+      setSubmitPopupMessage('An error occurred while submitting. Please try again.');
     }
+    setIsSubmitPopupVisible(true);
   };
   
   const handleapproval = async () => {
@@ -567,7 +571,9 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          Alert.alert('Submission successful!');
+          setIsApprovalSubmit(true);
+
+       
           setIsPopupVisible(false); 
           setIsApprovalPopupVisible(false)
         } else {
@@ -1329,6 +1335,23 @@ const fetchSequence = async () => {
           </View>
         </Modal>
 
+      
+      {/* Modal for approval submit */}
+
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isApprovalSubmit}
+        onRequestClose={() => setIsApprovalSubmit(false)}
+      >
+        <View style={styles.centeredViewd}>
+          <View style={styles.modalViewd}>
+            <Text style={styles.modalTextd}>Approval sucessfully Saved</Text>
+          </View>
+        </View>
+      </Modal>
+
       {/* Send for Review modal */}
       <Modal
         visible={isPopupVisible}
@@ -1486,6 +1509,27 @@ const fetchSequence = async () => {
                 <Text style={styles.popupCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Submitt Modal */}
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isSubmitPopupVisible}
+        onRequestClose={() => setIsSubmitPopupVisible(false)}
+      >
+        <View style={styles.centeredViews}>
+          <View style={styles.modalViews}>
+            <Text style={styles.modalTexts}>{SubmitpopupMessage}</Text>
+            <TouchableOpacity
+              style={styles.closeButtons}
+              onPress={() => setIsPopupVisible(false)}
+            >
+      
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1757,6 +1801,12 @@ const styles = StyleSheet.create({
       width: '100%',
       maxWidth: 1200,
       paddingHorizontal: 8,
+    },
+    newApprovalContainer:{
+
+    },
+    newApprovalHeader:{
+
     },
     saveAsDraftButton: {
       backgroundColor: '#FFF',
@@ -2030,6 +2080,9 @@ const styles = StyleSheet.create({
       width: '80%',
       height: 40,
     },
+    approvalPathInput:{
+
+    },
     addButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -2127,7 +2180,7 @@ const styles = StyleSheet.create({
     modalViewd: {
       margin: 20,
       backgroundColor: 'white',
-      borderRadius: 20,
+      borderRadius: 10,
       padding: 35,
       alignItems: 'center',
       shadowColor: '#000',
@@ -2143,7 +2196,8 @@ const styles = StyleSheet.create({
       marginBottom: 15,
       textAlign: 'center',
       fontSize: 16,
-      fontWeight: 'bold',
+      fontWeight: '600',
+      fontFamily:'Inter',
     },
     contentContainer: {
       flexDirection: 'row',
@@ -2154,6 +2208,42 @@ const styles = StyleSheet.create({
     inputContainer: {
       flex: 1,
       marginRight: 16,
+    },
+    centeredViews: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalViews: {
+      backgroundColor: 'white',
+      borderRadius: 10,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    modalTexts: {
+      fontSize: 18,
+      marginBottom: 15,
+      textAlign: 'center',
+    },
+    closeButtons: {
+      // backgroundColor: '#2196F3',
+      borderRadius: 5,
+      padding: 10,
+      elevation: 2,
+    },
+    closeButtonTexts: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
     },
   });
   

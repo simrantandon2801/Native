@@ -29,7 +29,7 @@ import NestedDeptDropdownPrograms from '../../modals/NestedDropdownPrograms';
 interface CreateNewIntakeModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (programDataToSubmit: any) => void;
+  onSubmit: (newGoal: any) => void;
   EditProgram?: any;
   reloadParent?: () => void;
 }
@@ -39,7 +39,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   onClose,
   onSubmit,
   EditProgram,
-  reloadParent 
+  reloadParent,
 }) => {
   const [selectedProgramOwner, setSelectedProgramOwner] = useState<number>(-1);
   const [selectedYear, setSelectedYear] = useState('');
@@ -49,6 +49,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [selectedApprovalStatus, setSelectedApprovalStatus] = useState('');
   const [Programname, setProgramname] = useState('');
   const [Description, setDescription] = useState('');
+  const [programData, setProgramData] = useState<any>([]);
   const [programId, setprogramId] = useState<string | undefined>(undefined);
   const [goalData, setGoalData] = useState([]);
 
@@ -70,7 +71,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       setSelectedProgramOwner('');
     }
   }, [EditProgram]);
-
 
   const handleSubmit = async () => {
     console.log('Submit inside modal triggered');
@@ -97,12 +97,9 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       const parsedResponse = JSON.parse(response);
 
       if (parsedResponse.status === 'success') {
-
         Alert.alert('Goal created successfully');
         onSubmit(programDataToSubmit);
-        onClose(); // Close the modal after successful submission
-       
-       
+        onClose();
       } else {
         Alert.alert('Failed to create goal. Please try again.');
         onClose();
@@ -137,7 +134,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
 
   useEffect(() => {
     fetchGoals();
-  },)
+  }, []);
 
   return (
     <Modal
@@ -205,7 +202,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                     style={[styles.input, styles.textArea]}
                     value={Description}
                     onChangeText={setDescription}
-                    multiline
+                 
                   />
                 </View>
               </View>
@@ -302,19 +299,17 @@ const ManagePrograms: React.FC = () => {
   };
 
   const handleSubmit = (programDataToSubmit: any) => {
-    
     if (EditProgram) {
-      setProgramData(prevData =>
-        prevData.map(program =>
+      setProgramData((prevData) =>
+        prevData.map((program) =>
           program.program_id === EditProgram.program_id
-            ? {...program, ...programDataToSubmit}
-            : program,
-        ),
+            ? { ...program, ...programDataToSubmit }
+            : program
+        )
       );
     } else {
       setProgramData((prevData) => [...prevData, programDataToSubmit]);
     }
-    fetchPrograms();
   };
 
   return (
@@ -334,102 +329,83 @@ const ManagePrograms: React.FC = () => {
             </Text>
           </TouchableOpacity>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View>
-            <View style={styles.headerRow}>
-              {[
-                '',
-                'S.No.',
-                'Program Name',
-                'Goal',
-                'Description',
-                'Program Owner',
-                'Target year',
-                'Created On',
-                'Action',
-              ].map((header, index) => (
-                <Text key={index} style={styles.headerCell}>
-                  {header}
-                </Text>
-              ))}
-            </View>
-            <ScrollView>
-              {ProgramData.map((programs, index) => (
-                <View key={programs.program_id} style={styles.row}>
-                  <View style={styles.cell}>
-                    <Checkbox status="unchecked" />
-                  </View>
-                  <Text style={styles.cell}>{index + 1}</Text>
-                  {/* <Text style={styles.cell}>{programs.program_id}</Text> */}
-                  <Text style={styles.cell}>{programs.program_name}</Text>
-                  <Text style={styles.cell}>{programs.goal_name}</Text>
-                  <Text
-                    style={styles.cell}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {programs.description}
-                  </Text>
-                  <Text style={styles.cell}>{programs.program_owner_name}</Text>
-                  {/* <Text style={styles.cell}>{programs.approvalRead}</Text>
-                  <Text style={styles.cell}>{programs.approvalStatus}</Text> */}
-                  <Text style={styles.cell}>{programs.target_year}</Text>
-                  {/* <Text style={styles.cell}>{programs.created_at}</Text> */}
-                  <Text>{new Date(programs.created_at).toLocaleDateString()}</Text>
-                  {/* <Text style={styles.cell}>{programs.status}</Text> */}
-                  <View style={[styles.cell, styles.actionCell]}>
-                    <Menu
-                      visible={programs.menuVisible}
-                      onDismiss={() => {
-                        const updatedIntakeData = ProgramData.map(item =>
-                          item.id === programs.id
-                            ? {...item, menuVisible: false}
-                            : item,
-                        );
-                        setProgramData(updatedIntakeData);
-                      }}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={event => {
-                            const {pageX, pageY} = event.nativeEvent;
-                            const updatedIntakeData = ProgramData.map(item =>
-                              item.program_id === programs.program_id
-                                ? {
-                                    ...item,
-                                    menuVisible: true,
-                                    menuX: pageX,
-                                    menuY: pageY,
-                                  }
-                                : {...item, menuVisible: false},
-                            );
-                            setProgramData(updatedIntakeData);
-                          }}>
-                          <IconButton
-                            icon="dots-vertical"
-                            size={20}
-                            style={{margin: 0, padding: 0}}
-                          />
-                        </TouchableOpacity>
-                      }
-                      style={{
-                        position: 'absolute',
-                        left: programs.menuX ? programs.menuX - 120 : 0,
-                        top: programs.menuY ? programs.menuY - 40 : 0,
-                      }}>
-                      <Menu.Item
-                        onPress={() => openModal(programs)}
-                        title="Edit"
-                      />
-                      <Menu.Item
-                        onPress={() => handleDeletePress(programs.program_id)}
-                        title="Delete"
-                      />
-                      <Menu.Item onPress={() => {}} title="Create Program" />
-                    </Menu>
-                  </View>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <DataTable>
+            <DataTable.Header>
+              <DataTable.Title>S.No.</DataTable.Title>
+              <DataTable.Title>Program Name</DataTable.Title>
+              <DataTable.Title>Goal</DataTable.Title>
+              <DataTable.Title>Description</DataTable.Title>
+              <DataTable.Title>Program Owner</DataTable.Title>
+              <DataTable.Title>Target year</DataTable.Title>
+              <DataTable.Title>Created On</DataTable.Title>
+              <DataTable.Title>Action</DataTable.Title>
+            </DataTable.Header>
+
+            {ProgramData.map((programs, index) => (
+              <DataTable.Row key={programs.program_id}>
+                <DataTable.Cell>{index + 1}</DataTable.Cell>
+                <DataTable.Cell>{programs.program_name}</DataTable.Cell>
+                <DataTable.Cell>{programs.goal_name}</DataTable.Cell>
+                <DataTable.Cell>{programs.description}</DataTable.Cell>
+                <DataTable.Cell>{programs.program_owner_name}</DataTable.Cell>
+                <DataTable.Cell>{programs.target_year}</DataTable.Cell>
+                <DataTable.Cell>
+                  {new Date(programs.created_at).toLocaleDateString()}
+                </DataTable.Cell>
+                <DataTable.Cell>
+                  <Menu
+                    visible={programs.menuVisible}
+                    onDismiss={() => {
+                      const updatedIntakeData = ProgramData.map((item) =>
+                        item.id === programs.id
+                          ? { ...item, menuVisible: false }
+                          : item
+                      );
+                      setProgramData(updatedIntakeData);
+                    }}
+                    anchor={
+                      <TouchableOpacity
+                        onPress={(event) => {
+                          const { pageX, pageY } = event.nativeEvent;
+                          const updatedIntakeData = ProgramData.map((item) =>
+                            item.program_id === programs.program_id
+                              ? {
+                                  ...item,
+                                  menuVisible: true,
+                                  menuX: pageX,
+                                  menuY: pageY,
+                                }
+                              : { ...item, menuVisible: false }
+                          );
+                          setProgramData(updatedIntakeData);
+                        }}>
+                        <IconButton
+                          icon="dots-vertical"
+                          size={20}
+                          style={{ margin: 0, padding: 0 }}
+                        />
+                      </TouchableOpacity>
+                    }
+                    style={{
+                      position: 'absolute',
+                      left: programs.menuX ? programs.menuX - 120 : -100,
+                      top: programs.menuY ? programs.menuY - 40 : -90,
+                    }}>
+                    <Menu.Item
+                      onPress={() => openModal(programs)}
+                      title="Edit"
+                    />
+                    <Menu.Item
+                      onPress={() => handleDeletePress(programs.program_id)}
+                      title="Delete"
+                    />
+                    <Menu.Item onPress={() => {}} title="Create Program" />
+                  </Menu>
+                </DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </DataTable>
         </ScrollView>
       </View>
       <CreateNewIntakeModal
@@ -437,7 +413,6 @@ const ManagePrograms: React.FC = () => {
         onClose={closeModal}
         EditProgram={EditProgram}
         onSubmit={handleSubmit}
-        CreateNewIntakeModal
       />
     </PaperProvider>
   );
@@ -552,7 +527,7 @@ const styles = StyleSheet.create({
   },
   textArea: {
     textAlignVertical: 'top',
-    minHeight: 100,
+   
   },
   fullWidth: {
     width: '100%',
@@ -560,4 +535,3 @@ const styles = StyleSheet.create({
 });
 
 export default ManagePrograms;
-
