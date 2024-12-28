@@ -91,6 +91,8 @@ const NewIntake = () => {
   const [startDateDisplay, setStartDateDisplay] = useState('');
   const [endDateDisplay, setEndDateDisplay] = useState('');
   const [liveDateDisplay, setLiveDateDisplay] = useState('');
+  const [isOtherUserChecked, setIsOtherUserChecked] = useState(false);
+  const [addOtherUser, setAddOtherUser] = useState(false);
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
   };
@@ -1150,7 +1152,8 @@ const fetchSequence = async () => {
                 <Icon name="close" size={24} color="#000" />
               </TouchableOpacity>
               <Text style={styles.popupHeading}>Sending for Approval</Text>
-              <RadioButton.Group onValueChange={value => setSelectedOptionApp(value)} value={selectedOptionApp}>
+              <RadioButton.Group onValueChange={value => setSelectedOptionApp(value)} 
+              value={selectedOptionApp || "2"}>
                 <View style={styles.radioOptionsRow}>
                   <View style={styles.radioOption}>
                     <RadioButton.Android value="1" color="#044086" />
@@ -1168,73 +1171,81 @@ const fetchSequence = async () => {
               >
                 {/* Content for Send for Approval */}
                 <View style={styles.approvalPathContainer}>
-                  <View style={styles.approvalPathInputContainer}>
-                    <Text style={styles.approvalPathLabel}>
-                      Approval user list <Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <View style={styles.approvalPathInput}>
-                      <Picker
-                        key={approvalPathidApp}
-                        selectedValue={approvalPathid}
-                        onValueChange={(itemValue) => {
-                          console.log("Selected Value:", itemValue);
-                          setApprovalPathidApp(itemValue);
-                        }}
-                        style={styles.input}
-                      >
-                        {sequence.length > 0 ? (
-                          sequence.map((projectItem) => (
-                            <Picker.Item
-                              key={projectItem.aprvl_seq_id}
-                              label={projectItem.aprvl_seq_name}
-                              value={projectItem.aprvl_seq_id}
-                            />
-                          ))
-                        ) : (
-                          <Picker.Item label="No Approval path available" value="" />
-                        )}
-                      </Picker>
-                    </View>
-                  </View>
-           
-    
-   
-     
-
-                </View>
-                <View style={styles.approvalPathContainer}>
-                  <View style={styles.approvalPathInputContainer}>
-                    <Text style={styles.approvalPathLabel}>
-                      Select Others <Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <View style={styles.approvalPathInput}>
-                      <Picker
-                        key={approvalPathOther}
-                        selectedValue={approvalPathOther}
-                        onValueChange={(itemValue) => {
-                          console.log("Selected Value:", itemValue);
-                          setApprovalPathOther(itemValue);
-                        }}
-                        style={styles.input}
-                      >
-                        {sequence.length > 0 ? (
-                          sequence.map((projectItem) => (
-                            <Picker.Item
-                              key={projectItem.aprvl_seq_id}
-                              label={projectItem.aprvl_seq_name}
-                              value={projectItem.aprvl_seq_id}
-                            />
-                          ))
-                        ) : (
-                          <Picker.Item label="No Approval path available" value="" />
-                        )}
-                      </Picker>
-                    </View>
-                  </View>
-           
-  
-                </View>
-              </ScrollView>
+                {!addOtherUser ? (
+            <View style={styles.approvalPathInputContainer}>
+              <Text style={styles.approvalPathLabel}>
+                Approval user list <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <View style={styles.approvalPathInput}>
+                <Picker
+                  key={approvalPathidApp}
+                  selectedValue={approvalPathid}
+                  onValueChange={(itemValue) => {
+                    console.log("Selected Value:", itemValue);
+                    setApprovalPathidApp(itemValue);
+                  }}
+                  style={styles.input}
+                >
+                  {sequence.length > 0 ? (
+                    sequence.map((projectItem) => (
+                      <Picker.Item
+                        key={projectItem.aprvl_seq_id}
+                        label={projectItem.aprvl_seq_name}
+                        value={projectItem.aprvl_seq_id}
+                      />
+                    ))
+                  ) : (
+                    <Picker.Item label="No Approval path available" value="" />
+                  )}
+                </Picker>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.approvalPathInputContainer}>
+              <Text style={styles.approvalPathLabel}>
+                Select Others <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <View style={styles.approvalPathInput}>
+                <Picker
+                  key={approvalPathOther}
+                  selectedValue={approvalPathOther}
+                  onValueChange={(itemValue) => {
+                    console.log("Selected Value:", itemValue);
+                    setApprovalPathOther(itemValue);
+                  }}
+                  style={styles.input}
+                >
+                  {sequence.length > 0 ? (
+                    sequence.map((projectItem) => (
+                      <Picker.Item
+                        key={projectItem.aprvl_seq_id}
+                        label={projectItem.aprvl_seq_name}
+                        value={projectItem.aprvl_seq_id}
+                      />
+                    ))
+                  ) : (
+                    <Picker.Item label="No Approval path available" value="" />
+                  )}
+                </Picker>
+              </View>
+            </View>
+          )}
+                  
+               
+                  <RadioButton.Group
+            onValueChange={(value) => setAddOtherUser(value === 'addOtherUser' ? !addOtherUser : addOtherUser)}
+            value={addOtherUser ? 'addOtherUser' : 'none'}
+          >
+            <View style={styles.radioOptionsRow}>
+              <View style={styles.radioOption}>
+                <RadioButton.Android value="addOtherUser" color="#044086" />
+                <Text style={styles.radioText}>Add Other User</Text>
+              </View>
+            </View>
+          </RadioButton.Group>
+           </View>
+           </ScrollView>
+              
               <View style={styles.popupButtonContainer}>
                 <TouchableOpacity style={styles.popupSubmitButton} onPress={handleapproval}>
                   <Text style={styles.popupSubmitButtonText}>Submit</Text>
@@ -1247,7 +1258,7 @@ const fetchSequence = async () => {
           </View>
         </Modal>
 
-      {/* Send for Review Popup */}
+      {/* Send for Review modal */}
       <Modal
         visible={isPopupVisible}
         transparent={true}
@@ -1267,7 +1278,16 @@ const fetchSequence = async () => {
               style={styles.modalScrollView}
               showsVerticalScrollIndicator={false}
             >
-            <RadioButton.Group onValueChange={value => setSelectedOption(value)} value={selectedOption}>
+             <RadioButton.Group 
+          onValueChange={(value) => {
+            setSelectedOption(value);
+            if (value === '2') {
+              setShowNewApprovalForm(true);
+              setIsCreatingSequence(true);
+            }
+          }} 
+          value={selectedOption}
+        >
               <View style={styles.radioOptionsRow}>
                 <View style={styles.radioOption}>
                   <RadioButton.Android value="1" color="#044086" />
@@ -1304,20 +1324,21 @@ const fetchSequence = async () => {
 
                       <View style={styles.columnsContainer}>
                         <View style={styles.columnsHeader}>
-                          <Text style={styles.columnTitle}>Steps</Text>
+                          <Text style={styles.columnTitle}>S.No</Text>
                           <Text style={styles.columnTitle}>Forwardto</Text>
                           <Text style={styles.columnTitle}>Designation</Text>
                           <Text style={styles.columnTitle}>Their Action</Text>
                         </View>
                         {steps.map((step, index) => (
                       <View key={step.id} style={styles.columnContent}>
-                        <Text style={styles.stepText}>Step {step.id}</Text>
+                        <Text style={styles.stepText}> {step.id}</Text>
                         <View style={styles.searchableDropdown}>
                           <Picker
                             selectedValue={step.forwardTo}
                             onValueChange={(itemValue) => {
                               const newSteps = [...steps];
                               newSteps[index].forwardTo = itemValue;
+                              
                               setSteps(newSteps);
                             }}
                             style={styles.input}
@@ -2041,3 +2062,4 @@ const styles = StyleSheet.create({
   
   export default NewIntake;
 
+ 
