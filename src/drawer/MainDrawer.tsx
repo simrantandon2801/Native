@@ -341,6 +341,7 @@ const styles = StyleSheet.create({
   drawerContent: {
     flex: 1,
     paddingTop: 20,
+    /* backgroundColor: '#D3D3D3', */
   },
   drawerSection: {
     marginBottom: 10,

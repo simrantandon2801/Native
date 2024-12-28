@@ -57,7 +57,7 @@ const NewIntake = () => {
   const [isChecked, setIsChecked] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState('');
-  const [selectedOptionApp, setSelectedOptionApp] = useState('');
+  const [selectedOptionApp, setSelectedOptionApp] = useState('2');
   const [approvalPath, setApprovalPath] = useState('');
   const [approvalPathidApp, setApprovalPathidApp] = useState('');
   const [approvalPathid, setApprovalPathid] = useState('');
@@ -93,6 +93,7 @@ const NewIntake = () => {
   const [liveDateDisplay, setLiveDateDisplay] = useState('');
   const [isOtherUserChecked, setIsOtherUserChecked] = useState(false);
   const [addOtherUser, setAddOtherUser] = useState(false);
+  const [departments, setDepartments] = useState([]);
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
   };
@@ -262,12 +263,28 @@ const fetchSequence = async () => {
   }
   };
 
- 
+  const fetchDepartments = async () => {
+    try {
+      const response = await GetDept(''); // Replace with your API call
+      const result = JSON.parse(response);
+      if (result?.status === 'success' && Array.isArray(result?.data?.departments)) {
+        setDepartments(result.data.departments);
+        console.log('Fetched Departments:', result.data.departments);
+      } else {
+        console.error("Invalid department data");
+        Alert.alert("Error", "Invalid department data received");
+      }
+    } catch (error) {
+      console.error('Error fetching Departments:', error);
+      Alert.alert("Error", "Failed to fetch departments. Please try again later.");
+    }
+  };
   useEffect(() => {
      
      
       // Call the function to fetch data
       fetchSequence();
+      fetchDepartments();
     fetchProjectManager();
     fetchGoals();
     fetchPrograms('');
@@ -493,11 +510,17 @@ const fetchSequence = async () => {
   
       if (currentProjectId) {
         const payload = {
-          aprvl_seq_id: Number(approvalPathid),
-          project_id: Number(currentProjectId),
-          type: "review",
-          approval_type: Number(selectedOption),
-        };
+            project_id: Number(currentProjectId),
+            approval_type: Number(selectedOption),
+            type: 'review',
+            sent_to: Number(approvalPathid), // Assuming this is a single user ID for initial approval path
+            approval_sequence_details: steps.map((step, index) => ({
+              sequence_no: index + 1, // Sequence number (1-based index)
+              user_id: Number(step.forwardTo), // User ID from the step
+            })),
+          };
+
+          console.log("Generated Payload:", payload);
   
         const response = await InsertReview(payload); 
         const result = JSON.parse(response);
@@ -529,11 +552,11 @@ const fetchSequence = async () => {
         const payload = {
           //aprvl_seq_id: Number(approvalPathidApp),
           project_id: Number(currentProjectId),
-          sent_to: Number(approvalPathid),
+          sent_to: Number(approvalPathidApp),
           type: "approval",
           approval_type: Number(selectedOptionApp),
         };
-  
+  console.log(payload) 
         const response = await InsertApproval(payload); 
         const result = JSON.parse(response);
   
@@ -1177,27 +1200,25 @@ const fetchSequence = async () => {
                 Approval user list <Text style={styles.asterisk}>*</Text>
               </Text>
               <View style={styles.approvalPathInput}>
-                <Picker
-                  key={approvalPathidApp}
-                  selectedValue={approvalPathid}
-                  onValueChange={(itemValue) => {
-                    console.log("Selected Value:", itemValue);
-                    setApprovalPathidApp(itemValue);
-                  }}
-                  style={styles.input}
-                >
-                  {sequence.length > 0 ? (
-                    sequence.map((projectItem) => (
-                      <Picker.Item
-                        key={projectItem.aprvl_seq_id}
-                        label={projectItem.aprvl_seq_name}
-                        value={projectItem.aprvl_seq_id}
-                      />
-                    ))
-                  ) : (
-                    <Picker.Item label="No Approval path available" value="" />
-                  )}
-                </Picker>
+              <Picker
+  key={approvalPathidApp}
+  selectedValue={approvalPathidApp}
+  onValueChange={(itemValue) => {
+    console.log("Selected User ID:", itemValue);
+    setApprovalPathidApp(itemValue); // Set the selected user's ID
+  }}
+  style={styles.input}
+>
+  <Picker.Item label="Select User" value="" />
+  {users.length > 0 ? (
+    users.map((user) => (
+      <Picker.Item key={user.user_id} label={user.first_name} value={user.user_id} />
+    ))
+  ) : (
+    <Picker.Item label="No Users Available" value="" />
+  )}
+</Picker>
+
               </View>
             </View>
           ) : (
@@ -1206,27 +1227,25 @@ const fetchSequence = async () => {
                 Select Others <Text style={styles.asterisk}>*</Text>
               </Text>
               <View style={styles.approvalPathInput}>
-                <Picker
-                  key={approvalPathOther}
-                  selectedValue={approvalPathOther}
-                  onValueChange={(itemValue) => {
-                    console.log("Selected Value:", itemValue);
-                    setApprovalPathOther(itemValue);
-                  }}
-                  style={styles.input}
-                >
-                  {sequence.length > 0 ? (
-                    sequence.map((projectItem) => (
-                      <Picker.Item
-                        key={projectItem.aprvl_seq_id}
-                        label={projectItem.aprvl_seq_name}
-                        value={projectItem.aprvl_seq_id}
-                      />
-                    ))
-                  ) : (
-                    <Picker.Item label="No Approval path available" value="" />
-                  )}
-                </Picker>
+              <Picker
+  key={approvalPathidApp}
+  selectedValue={approvalPathidApp}
+  onValueChange={(itemValue) => {
+    console.log("Selected User ID:", itemValue);
+    setApprovalPathidApp(itemValue); // Set the selected user's ID
+  }}
+  style={styles.input}
+>
+  <Picker.Item label="Select User" value="" />
+  {users.length > 0 ? (
+    users.map((user) => (
+      <Picker.Item key={user.user_id} label={user.first_name} value={user.user_id} />
+    ))
+  ) : (
+    <Picker.Item label="No Users Available" value="" />
+  )}
+</Picker>
+
               </View>
             </View>
           )}
@@ -1376,11 +1395,11 @@ const fetchSequence = async () => {
                          <View style={styles.popupButtonContainer}>
                         <TouchableOpacity style={styles.addStepButton} onPress={addStep}>
                           <Icon name="add" size={18} color="#044086" />
-                          <Text style={styles.addStepButtonText}>Add Step</Text>
+                          <Text style={styles.addStepButtonText}>Add User</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.sequence} onPress={createSequence}>
+                        {/* <TouchableOpacity style={styles.sequence} onPress={createSequence}>
                 <Text style={styles.popupSubmitButtonText}>Create Sequence</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
               </View>
                       </View>
                     </>
