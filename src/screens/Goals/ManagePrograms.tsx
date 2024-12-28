@@ -27,16 +27,18 @@ import {GetGoals} from '../../database/Goals';
 interface CreateNewIntakeModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (newGoal: any) => void;
+  onSubmit: (programDataToSubmit: any) => void;
   EditProgram?: any;
 }
 import NestedDeptDropdownPrograms from '../../modals/NestedDropdownPrograms';
+
+
 const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   visible,
   onClose,
   onSubmit,
   EditProgram,
-  reloadParent 
+  
 }) => {
   const [selectedProgramOwner, setSelectedProgramOwner] = useState<number>(-1);
   //const [selectedGoalOwner, setSelectedGoalOwner] = useState<number>(-1);
@@ -49,7 +51,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [selectedApprovalStatus, setSelectedApprovalStatus] = useState('');
   const [Programname, setProgramname] = useState('');
   const [Description, setDescription] = useState('');
-  const [programData, setProgramData] = useState<any>([]);
   const [programId, setprogramId] = useState<string | undefined>(undefined);
   const [goalData, setGoalData] = useState([]); // To hold the fetched goals
 
@@ -75,6 +76,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       setSelectedProgramOwner('');
     }
   }, [EditProgram]);
+
 
   const handleSubmit = async () => {
     console.log('Submit inside modal triggered');
@@ -107,10 +109,11 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       const parsedResponse = JSON.parse(response);
 
       if (parsedResponse.status === 'success') {
+
         Alert.alert('Goal created successfully');
         onSubmit(programDataToSubmit);
         onClose(); // Close the modal after successful submission
-       
+        
        
       } else {
         Alert.alert('Failed to create goal. Please try again.');
@@ -145,7 +148,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
 
   useEffect(()=>{
     fetchGoals();
-  },)
+  },[]);
 
   return (
     <Modal
@@ -376,17 +379,17 @@ const ManagePrograms: React.FC = () => {
     setEditProgram(null);
   };
   const handleSubmit = (programDataToSubmit: any) => {
+    
     if (EditProgram) {
       setProgramData(prevData =>
         prevData.map(program =>
-          program.program_id === EditProgram.program_id
-            ? {...program, ...programDataToSubmit}
-            : program,
+          program.program_id === EditProgram.program_id ? {...program, ...programDataToSubmit} : program,
         ),
       );
     } else {
       setProgramData(prevData => [...prevData, programDataToSubmit]);
     }
+    fetchPrograms();
   };
   return (
     <PaperProvider>
@@ -456,7 +459,7 @@ const ManagePrograms: React.FC = () => {
             </View>
             <ScrollView>
               {ProgramData.map((programs, index) => (
-                <View key={programs.program_id} style={styles.row}>
+                <View key={Math.random()} style={styles.row}>
                   <View style={styles.cell}>
                     <Checkbox status="unchecked" />
                   </View>
@@ -538,7 +541,7 @@ const ManagePrograms: React.FC = () => {
         onClose={closeModal}
         EditProgram={EditProgram}
         onSubmit={handleSubmit}
-        CreateNewIntakeModal
+        
       />
     </PaperProvider>
   );

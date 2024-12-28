@@ -25,6 +25,9 @@ import {
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
 
+
+
+
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -76,6 +79,7 @@ function App(): React.JSX.Element {
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
           }}>
+            
           <Section title="Step One">
             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
             screen and then come back to see your edits.
@@ -93,7 +97,9 @@ function App(): React.JSX.Element {
         </View>
       </ScrollView>
     </SafeAreaView>
+
   );
+  
 }
 
 const styles = StyleSheet.create({
