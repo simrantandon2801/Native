@@ -22,9 +22,9 @@ const gridData: GridItem[] = [
   { id: '7', image: AppImages.Goal, text: 'Manage Goals', component: 'ManageGoals'  },
   { id: '8', image: AppImages.Program, text: 'Manage Programs', component: 'ManagePrograms'  },
   { id: '10', image: AppImages.Field, text: 'Edit Field Labels', component: 'ManageCompany'  },
-  { id: '9', image: AppImages.license, text: 'License details', component: 'BinaryTree'  },
- 
+  { id: '9', image: AppImages.license, text: 'License details', component: 'BinaryTree'  }, 
   { id: '11', image: AppImages.Imtegration, text: 'Manage PPM Integration', component: 'PPMIntegrationList'  },
+  { id: '12', image: AppImages.Applications, text: 'Impacted Applications', component: 'ImpactedApps'  },
 ];
 
 const Adminpanel: React.FC = () => {
@@ -51,7 +51,7 @@ const Adminpanel: React.FC = () => {
       <View style={styles.grid}>
         {renderGridRow(0, 4)}
         {renderGridRow(4, 8)}
-        {renderGridRow(8, 11)}
+        {renderGridRow(8, 12)}
       </View>
     </ScrollView>
   );
