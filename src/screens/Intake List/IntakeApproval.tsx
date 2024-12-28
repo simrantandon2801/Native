@@ -26,6 +26,7 @@ import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
 import {GetProjectApproval, UpdateProjectApproval} from '../../database/Intake';
 import {ScrollView} from 'react-native-gesture-handler';
+import { navigate } from '../../navigations/RootNavigation';
 
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
@@ -51,6 +52,8 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [description, setDescription] = useState('');
   const [goalId, setGoalId] = useState<string | undefined>(undefined);
 
+  
+  
   useEffect(() => {
     console.log('Edit Goal:', editGoal);
     if (editGoal) {
@@ -369,6 +372,7 @@ const IntakeApproval: React.FC = () => {
   const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
   const [users, setUsers] = useState<any[]>([]); // State to hold departments
 
+
   // Fetch goals
   const fetchProjects = async () => {
     try {
@@ -441,6 +445,11 @@ const IntakeApproval: React.FC = () => {
   const mapIdIdToUser = (id: number) => {
     const user = users.find(user => user.user_id === id);
     return user ? `${user.first_name}${user.last_name}` : ' ';
+  };
+
+  const handleViewPress = (id: number) => {
+    console.log('Navigating with Project ID:', id);
+    navigate('IntakeApprovalView', {project_id: id});
   };
 
   const HandleDeleteGoal = async goal_id => {
@@ -561,21 +570,22 @@ const IntakeApproval: React.FC = () => {
             </View>
           </View>
           <View style={styles.tableContainer}>
-            <View style={styles.headerRow}>
+          <View style={styles.headerRow}>
               {[
-                '',
-                'S.No.',
-                'Project ID',
-                'Project Name',
-                'Department',
-                'Project Owner',
-                'Project Manager',
-                'Budget',
-                'Start date',
-                'End date',
-                'Requested By',
-                'Requested On',
-                'Actions',
+                '',  //0
+                'S.No.',  //1
+                'Project ID', //2
+                'Project Name', //3
+                'Status', //4
+                'Project Owner', //5
+                'Project Manager', //6
+                'Budget',//7
+                'Start date', //8
+                'End date',//9
+                'Go-Live date',//10
+                'Requested By', //11
+                'Requested On', //12
+                'Actions', //13
               ].map((header, index) => (
                 <View
                   key={index}
@@ -589,7 +599,7 @@ const IntakeApproval: React.FC = () => {
                       ? {flex: 1}
                       : index >= 3 && index <= 4
                       ? {flex: 1.3}
-                      : index >= 5 && index <= 6
+                      : index >= 5 && index <= 8
                       ? {flex: 1.5}
                       : index >= 9 && index <= 10
                       ? {flex: 1.5}
@@ -610,10 +620,8 @@ const IntakeApproval: React.FC = () => {
                           } else {
                             setCheckedItems(
                               new Set(
-                                approvalprojects.map(project =>
-                                  project.project_id
-                                    ? project.project_id.toString()
-                                    : '',
+                                projects.map(project =>
+                                  project.project_id.toString(),
                                 ),
                               ),
                             );
@@ -662,6 +670,8 @@ const IntakeApproval: React.FC = () => {
                 </View>
               ))}
             </View>
+
+            {/*row items start */}
             <ScrollView showsVerticalScrollIndicator={false}>
               {approvalprojects
                 .filter(project => project.project_id !== null)
@@ -706,25 +716,26 @@ const IntakeApproval: React.FC = () => {
                       <Text>{project.project_name}</Text>
                     </View>
                     <View style={[styles.cell, {flex: 1.3}]}>
-                      <Text numberOfLines={1} ellipsizeMode="tail">
-                        {mapDepartmentIdToName(project.project_owner_dept)}
-                      </Text>
-                    </View>
+                    {/* <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(project.project_owner_dept)}
+                    </Text> */}
+                    <Text>{project.status_name}</Text>
+                  </View>
                     <View style={[styles.cell, {flex: 1.5}]}>
                       <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
                     </View>
                     <View style={[styles.cell, {flex: 1.5}]}>
                       <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
                     </View>
-                    <View style={[styles.cell, {flex: 1}]}>
-                      <Text>{project.budget_size}</Text>
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>{project.budget}</Text>
                     </View>
-                    <View style={[styles.cell, {flex: 1}]}>
+                    <View style={[styles.cell, {flex: 1.2}]}>
                       <Text>
                         {new Date(project.start_date).toLocaleDateString()}
                       </Text>
                     </View>
-                    <View style={[styles.cell, {flex: 1}]}>
+                    <View style={[styles.cell, {flex: 1.2}]}>
                       <Text>
                         {new Date(project.end_date).toLocaleDateString()}
                       </Text>
@@ -735,13 +746,18 @@ const IntakeApproval: React.FC = () => {
                     {new Date(project.requested_by_date).toLocaleDateString()}
                   </Text>
                 </View> */}
+                <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>
+                      {new Date(project.golive_date).toLocaleDateString()}
+                    </Text>
+                  </View>
                     <View style={[styles.cell, {flex: 1.5}]}>
                       <Text>
                         {project.created_by_name}
                       </Text>
                     </View>
                     <View style={[styles.cell, {flex: 1}]}>
-                      {project.created_on}
+                    {new Date(project.created_at).toLocaleDateString()}
                     </View>
                     <View style={[styles.cell, {flex: 1}]}>
                       <Menu
@@ -753,7 +769,7 @@ const IntakeApproval: React.FC = () => {
                                 ? {...item, menuVisible: false}
                                 : item,
                           );
-                          setProjects(updatedProjectsData);
+                          setapprovalProjects(updatedProjectsData);
                         }}
                         anchor={
                           <TouchableOpacity
@@ -785,7 +801,18 @@ const IntakeApproval: React.FC = () => {
                           left: project.menuX ? project.menuX - 150 : 0,
                           top: project.menuY ? project.menuY - 80 : 0,
                         }}>
-                        <Menu.Item title="View" />
+                        <Menu.Item
+                        onPress={() => {
+                          console.log(
+                            'Project ID in onPress:',
+                            project.project_id,
+                          ); // Debugging log
+                          handleViewPress(project.project_id); // Call the function with the project ID
+                        }}
+                        title="View"
+                      />
+
+
                         <Menu.Item
                           onPress={() => {
                             console.log(
