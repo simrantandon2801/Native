@@ -7,7 +7,7 @@ import {
   Modal,
   TextInput,
   ScrollView,
-  Alert,
+  Alert, useWindowDimensions
 } from 'react-native';
 import {
   Checkbox,
@@ -53,7 +53,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [Description, setDescription] = useState('');
   const [programId, setprogramId] = useState<string | undefined>(undefined);
   const [goalData, setGoalData] = useState([]);
-
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   useEffect(() => {
     console.log('Edit Program:', EditProgram);
     if (EditProgram) {
@@ -139,8 +139,8 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
 
   useEffect(() => {
     fetchGoals();
-  },[]);
-
+  }, []);
+  const { width: screenWidth } = useWindowDimensions();
   return (
     <Modal
       animationType="fade"
@@ -316,7 +316,7 @@ const ManagePrograms: React.FC = () => {
     }
     fetchPrograms();
   };
-
+const { width: screenWidth } = useWindowDimensions();
   return (
     <PaperProvider>
       <View style={styles.container}>
@@ -393,10 +393,11 @@ const ManagePrograms: React.FC = () => {
                       </TouchableOpacity>
                     }
                     style={{
-                      position: 'absolute',
-                      left: programs.menuX ? programs.menuX - 120 : -100,
-                      top: programs.menuY ? programs.menuY - 40 : -90,
-                    }}>
+                     
+                      left:screenWidth-390,
+                       top: 150,
+                       flexGrow: 1,
+                     }}>
                     <Menu.Item
                       onPress={() => openModal(programs)}
                       title="Edit"

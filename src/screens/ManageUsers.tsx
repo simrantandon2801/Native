@@ -332,16 +332,16 @@ const ManageUsers: React.FC = () => {
       user_ids: [user_id],
     };
     try {
-      const response = await DeleteUser(payload); // API call to delete user
+      const response = await DeleteUser(payload); 
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
-        setisDeleteModalVisible(false); // Close the modal after successful deletion
+        setisDeleteModalVisible(false); 
         fetchUser();
       } else {
-        console.error('Failed to delete user:', parsedRes.message); // Handle failure
+        console.error('Failed to delete user:', parsedRes.message); 
       }
     } catch (error) {
-      console.error('Error deleting user:', error); // Handle any errors
+      console.error('Error deleting user:', error); 
     }
   };
 
@@ -695,7 +695,7 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title>Department</DataTable.Title>
           <DataTable.Title>Reporting Manager</DataTable.Title>
           {/* <DataTable.Title>Projects Active</DataTable.Title> */}
-          <DataTable.Title>Approval Limit</DataTable.Title>
+          <DataTable.Title>Approval Limit($)</DataTable.Title>
           {/* <DataTable.Title >
             Average Cost
           </DataTable.Title> */}
