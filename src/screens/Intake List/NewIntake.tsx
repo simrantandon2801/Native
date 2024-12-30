@@ -566,7 +566,7 @@ const fetchSequence = async () => {
           type: "approval",
           approval_type: Number(selectedOptionApp),
         };
-  console.log(payload)
+  console.log(payload) 
         const response = await InsertApproval(payload); 
         const result = JSON.parse(response);
   
@@ -1335,23 +1335,6 @@ const fetchSequence = async () => {
           </View>
         </Modal>
 
-      
-      {/* Modal for approval submit */}
-
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isapprovalSubmitOpen}
-        onRequestClose={() => setIsapprovalSubmitopen(false)}
-      >
-        <View style={styles.centeredViewd}>
-          <View style={styles.modalViewd}>
-            <Text style={styles.modalTextd}>Approval sucessfully Saved</Text>
-          </View>
-        </View>
-      </Modal>
-
       {/* Send for Review modal */}
       <Modal
         visible={isPopupVisible}
@@ -1416,42 +1399,67 @@ const fetchSequence = async () => {
   onChangeText={(text) => setSequenceName(text)}  
 />
 
-<View style={styles.columnsContainer}>
-      <View style={styles.columnsHeader}>
-        <Text style={styles.columnTitle}>S.No</Text>
-        <Text style={styles.columnTitle}>Forward to</Text>
-        <Text style={styles.columnTitle}>Designation</Text>
-      </View>
-      {steps.map((step, index) => (
-        <View key={step.id} style={styles.columnContent}>
-          <Text style={styles.stepText}>{step.id}</Text>
-          <View style={styles.searchableDropdown}>
-            <Picker
-              selectedValue={step.forwardTo}
-              onValueChange={(itemValue) => {
-                const newSteps = [...steps];
-                newSteps[index].forwardTo = itemValue;
-                setSteps(newSteps);
-              }}
-              style={styles.input}
-            >
-              <Picker.Item label="Select User" value="" />
-              {users.map((user) => (
-                <Picker.Item key={user.user_id} label={user.first_name} value={user.user_id} />
-              ))}
-            </Picker>
-            <Icon name="search" size={14} color="#000"  />
-          </View>
-          <Text style={styles.autoPopulatedText}>{step.designation || 'Project Manager'}</Text>
-        </View>
-      ))}
-      <View style={styles.popupButtonContainer}>
-        <TouchableOpacity style={styles.addStepButton} onPress={addStep}>
-          <Icon name="add" size={18} color="#044086" />
-          <Text style={styles.addStepButtonText}>Add User</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+                      <View style={styles.columnsContainer}>
+                        <View style={styles.columnsHeader}>
+                          <Text style={styles.columnTitle}>S.No</Text>
+                          <Text style={styles.columnTitle}>Forwardto</Text>
+                          <Text style={styles.columnTitle}>Designation</Text>
+                          <Text style={styles.columnTitle}>Their Action</Text>
+                        </View>
+                        {steps.map((step, index) => (
+                      <View key={step.id} style={styles.columnContent}>
+                        <Text style={styles.stepText}> {step.id}</Text>
+                        <View style={styles.searchableDropdown}>
+                          <Picker
+                            selectedValue={step.forwardTo}
+                            onValueChange={(itemValue) => {
+                              const newSteps = [...steps];
+                              newSteps[index].forwardTo = itemValue;
+                              
+                              setSteps(newSteps);
+                            }}
+                            style={styles.input}
+                          >
+                            <Picker.Item label="Select User" value="" />
+                            {users.map((user) => (
+                              <Picker.Item key={user.user_id} label={user.first_name} value={user.user_id} />
+                            ))}
+                          </Picker>
+                          <Icon name="search" size={14} color="#000" style={styles.iconsearch} />
+                        </View>
+                            <Text style={styles.autoPopulatedText}>{step.designation || 'Project Manager'}</Text>
+                            <View style={styles.actionContainer}>
+                              <Picker
+                                style={styles.actionPicker}
+                                selectedValue={step.action}
+                                onValueChange={(itemValue) => {
+                                  const newSteps = [...steps];
+                                  newSteps[index].action = itemValue;
+                                  setSteps(newSteps);
+                                }}
+                              >
+                                <Picker.Item label="Select" value="" />
+                                <Picker.Item label="Approval" value="approval" />
+                                <Picker.Item label="Review" value="review" />
+                              </Picker>
+                              {steps.length > 1 && (
+                                <TouchableOpacity style={styles.cancelIcon} onPress={() => removeStep(step.id)}>
+                                  <Icon name="close" size={18} color="#B40A0A" />
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          </View>
+                        ))}
+                         <View style={styles.popupButtonContainer}>
+                        <TouchableOpacity style={styles.addStepButton} onPress={addStep}>
+                          <Icon name="add" size={18} color="#044086" />
+                          <Text style={styles.addStepButtonText}>Add User</Text>
+                        </TouchableOpacity>
+                        {/* <TouchableOpacity style={styles.sequence} onPress={createSequence}>
+                <Text style={styles.popupSubmitButtonText}>Create Sequence</Text>
+              </TouchableOpacity> */}
+              </View>
+                      </View>
                     </>
                   ) : (
                     <>
