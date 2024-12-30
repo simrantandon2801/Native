@@ -260,7 +260,8 @@ const styles = StyleSheet.create({
     zIndex: 1,  // Ensure it is on top of other components
     maxHeight: 250, // Optional: Limit the height of the dropdown
     overflow: 'auto', // Optional: Allow scrolling if content exceeds maxHeight
-  },container: {
+  },
+  container: {
     flex: 1,
   }
 });

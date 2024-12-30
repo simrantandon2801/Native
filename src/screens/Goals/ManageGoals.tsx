@@ -9,12 +9,15 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import {
   Checkbox,
   Menu,
   Provider as PaperProvider,
   IconButton,
+  DataTable,
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Picker} from '@react-native-picker/picker';
@@ -22,6 +25,8 @@ import {AppImages} from '../../assets';
 import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
+import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
+
 import {GetDept} from '../../database/Departments';
 
 interface CreateNewIntakeModalProps {
@@ -70,14 +75,14 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       goalName &&
       selectedGoalOwner &&
       description &&
-      selectedStakeholder &&
+      selectedStakeholders &&
       selectedYear
     ) {
       const newGoal = {
         goal_id: goalId,
         goal_name: goalName,
         description: description,
-        stakeholders: selectedStakeholder,
+        stakeholders: selectedStakeholders.join(','),
         goal_owner: selectedGoalOwner,
         target_year: selectedYear,
         start_date: new Date().toISOString(),
@@ -111,11 +116,18 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
     console.log(`Selected GoalOwner: ${deptID}`);
   };
 
-  const handleStakeSelect = (deptID: number) => {
-    setSelectedStakeholder(deptID);
-    console.log(`Selected Stakeholder: ${deptID}`);
+  // const handleStakeSelect = (deptID: number) => {
+  //   setSelectedStakeholder(deptID);
+  //   console.log(`Selected Stakeholder: ${deptID}`);
+  // };
+
+  const [selectedStakeholders, setSelectedStakeholders] = useState<number[]>([]);
+  const handleSelectionChange = (newSelectedStakeholders: number[]) => {
+    setSelectedStakeholders(newSelectedStakeholders);
+    console.log('Updated Selected Items:', newSelectedStakeholders);
   };
 
+  const {width: screenWidth} = useWindowDimensions();
   return (
     <Modal
       animationType="fade"
@@ -139,20 +151,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
               </View>
             </View>
             <View style={styles.inputRow}>
-              {/* <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Status <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedStatus}
-                  onValueChange={itemValue => setSelectedStatus(itemValue)}
-                  style={styles.input}>
-                  <Picker.Item label="Select Status" value="" />
-                  <Picker.Item label="Active" value="active" />
-                  <Picker.Item label="Inactive" value="inactive" />
-                  <Picker.Item label="Pending" value="pending" />
-                </Picker>
-              </View> */}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Goal Owner <Text style={styles.asterisk}>*</Text>
@@ -167,7 +165,11 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                 <Text style={styles.inputLabel}>
                   Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <NestedDeptDropdownGoals onSelect={handleStakeSelect} editGoal={editGoal} />
+                {/* <NestedDeptDropdownGoals onSelect={handleStakeSelect} editGoal={editGoal} /> */}
+                <NestedMultiselectDropdown
+                  onSelectionChange={handleSelectionChange}
+                  editGoal={editGoal} // Pass editGoal if in edit mode
+                />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -183,7 +185,6 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
               </View>
             </View>
             <View style={styles.inputRow}>
-              
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Target Year <Text style={styles.asterisk}>*</Text>
@@ -348,18 +349,14 @@ const ManageGoals: React.FC = () => {
       }),
     );
   };
-
+  const {width: screenWidth} = useWindowDimensions();
   return (
     <PaperProvider>
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
           <Text style={styles.heading}>Strategic Goals</Text>
           <View style={styles.topBar}>
-            <View style={styles.leftButtons}>
-              {/* <TouchableOpacity style={styles.button}>
-                <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                <Text style={styles.buttonText6}>Approve</Text>
-              </TouchableOpacity> */}
+            {/* <View style={styles.leftButtons}>
               <TouchableOpacity style={styles.button}>
                 <Icon
                   name="delete"
@@ -369,11 +366,7 @@ const ManageGoals: React.FC = () => {
                 />
                 <Text style={styles.buttonText6}>Delete</Text>
               </TouchableOpacity>
-              {/* <TouchableOpacity style={styles.button}>
-                <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                <Text style={styles.buttonText6}>Export</Text>
-              </TouchableOpacity> */}
-            </View>
+            </View> */}
             <View style={styles.centerButtons}>
               <TouchableOpacity
                 style={styles.button}
@@ -388,7 +381,7 @@ const ManageGoals: React.FC = () => {
                   Create New
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
+              {/* <TouchableOpacity style={styles.button}>
                 <Icon
                   name="table-column-plus-after"
                   size={18}
@@ -396,9 +389,9 @@ const ManageGoals: React.FC = () => {
                   style={styles.buttonIcon}
                 />
                 <Text style={styles.buttonText}>Set Column</Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
-            <View style={styles.rightButtons}>
+            {/* <View style={styles.rightButtons}>
               <TouchableOpacity style={styles.button}>
                 <Icon
                   name="filter"
@@ -408,102 +401,38 @@ const ManageGoals: React.FC = () => {
                 />
                 <Text style={styles.buttonText}>Filter</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
           </View>
-          <View style={styles.tableContainer}>
-            <View style={styles.headerRow}>
-              {[
-                '',
-                'S.No.',
-                'Goal',
-                'Description',
-                'Impacted Stakeholders',
-                'Goal Owner',
-                'Target year',
-                'Created On',
-                 'Action',
-              ].map((header, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.headerCell,
-                    index === 0
-                      ? {flex: 0.3}
-                      : index === 1
-                      ? {flex: 0.4}
-                      : index === 2
-                      ? {flex: 0.5}
-                      : index === 3 || index === 4
-                      ? {flex: 2}
-                      : index === 5 || index === 6
-                      ? {flex: 1.5}
-                      : {flex: 1},
-                  ]}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    {index === 0 && (
-                      <Checkbox
-                        status={headerChecked ? 'checked' : 'unchecked'}
-                        onPress={() => {
-                          if (headerChecked) {
-                            setCheckedItems(new Set());
-                          } else {
-                            setCheckedItems(
-                              new Set(goalData.map(goal => goal.goal_id)),
-                            );
-                          }
-                        }}
-                      />
-                    )}
-                    <Text
-                      style={{
-                        color: '#757575',
-                        fontFamily: 'Source Sans Pro',
-                        fontSize: 13,
-                        fontStyle: 'normal',
-                        fontWeight: '600',
-                        lineHeight: 22,
-                      }}>
-                      {header}
-                    </Text>
-                    {index > 2 && index < 10 && (
-                      <TouchableOpacity
-                        onPress={() => handleSort(header.toLowerCase())}>
-                        <Image
-                          source={AppImages.Arrow}
-                          style={{
-                            width: 16,
-                            height: 16,
-                            marginLeft: 4,
-                            tintColor:
-                              sortColumn === header.toLowerCase()
-                                ? '#757575'
-                                : '#757575',
-                            transform: [
-                              {
-                                rotate:
-                                  sortColumn === header.toLowerCase() &&
-                                  !isAscending
-                                    ? '180deg'
-                                    : '0deg',
-                              },
-                            ],
-                          }}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-            {goalData.map((goal, index) => (
-              <View key={goal.goal_id} style={styles.row}>
-                <View style={[styles.cell, {flex: 0.3}]}>
-                  <Checkbox
+          <DataTable style={styles.tableContainer}>
+            <DataTable.Header>
+              {/* <Checkbox
+                status={headerChecked ? 'checked' : 'unchecked'}
+                onPress={() => {
+                  if (headerChecked) {
+                    setCheckedItems(new Set());
+                  } else {
+                    setCheckedItems(
+                      new Set(goalData.map(goal => goal.goal_id)),
+                    );
+                  }
+                }}
+              /> */}
+              <DataTable.Title>S.No.</DataTable.Title>
+              <DataTable.Title>Goal</DataTable.Title>
+              <DataTable.Title>Description</DataTable.Title>
+              <DataTable.Title>Impacted Stakeholders</DataTable.Title>
+              <DataTable.Title>Goal Owner</DataTable.Title>
+              <DataTable.Title>Target Year</DataTable.Title>
+              <DataTable.Title>Created On</DataTable.Title>
+              <DataTable.Title>Actions</DataTable.Title>
+            </DataTable.Header>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{maxHeight: 4150}}>
+              {goalData.map((goal, index) => (
+                <DataTable.Row key={goal.goal_id}>
+                  {/* <Checkbox
                     status={
                       checkedItems.has(goal.goal_id) ? 'checked' : 'unchecked'
                     }
@@ -518,92 +447,69 @@ const ManageGoals: React.FC = () => {
                         return newChecked;
                       });
                     }}
-                  />
-                </View>
-                <View style={[styles.cell, {flex: 0.4}]}>
-                  <Text>{index + 1}</Text>
-                </View>
-                {/* <View style={[styles.cell, {flex: 0.5}]}>
-                  <Text>{goal.goal_id}</Text>
-                </View> */}
-                <View style={[styles.cell, {flex: 2}]}>
-                  <Text>{goal.goal_name}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 2}]}>
-                  <Text numberOfLines={1} ellipsizeMode="tail">
-                    {goal.description}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {mapDepartmentIdToName(parseInt(goal.stakeholders))}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
+                  /> */}
+                  <DataTable.Cell>{index + 1}</DataTable.Cell>
+                  <DataTable.Cell>{goal.goal_name}</DataTable.Cell>
+                  <DataTable.Cell>{goal.description}</DataTable.Cell>
+                  <DataTable.Cell>{goal.stakeholder_names}</DataTable.Cell>
+                  <DataTable.Cell>
                     {mapDepartmentIdToName(parseInt(goal.goal_owner))}
-                  </Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{goal.target_year}</Text>
-                </View>
-                <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{new Date(goal.created_at).toLocaleDateString()}</Text>
-                </View>
-                {/* <View style={[styles.cell, {flex: 1}]}>
-                  <Text>{goal.status}</Text>
-                </View> */}
-                <View style={[styles.cell, styles.actionCell, {flex: 1}]}>
-                  <Menu
-                    visible={goal.menuVisible}
-                    onDismiss={() => {
-                      const updatedGoalData = goalData.map(item =>
-                        item.goal_id === goal.goal_id
-                          ? {...item, menuVisible: false}
-                          : item,
-                      );
-                      setGoalData(updatedGoalData);
-                    }}
-                    anchor={
-                      <TouchableOpacity
-                        onPress={event => {
-                          const {pageX, pageY} = event.nativeEvent;
-                          const updatedIntakeData = goalData.map(item =>
-                            item.goal_id === goal.goal_id
-                              ? {
-                                  ...item,
-                                  menuVisible: true,
-                                  menuX: pageX,
-                                  menuY: pageY,
-                                }
-                              : {...item, menuVisible: false},
-                          );
-                          setGoalData(updatedIntakeData);
-                        }}>
-                        <IconButton
-                          icon="dots-vertical"
-                          size={20}
-                          style={{margin: 0, padding: 0}}
-                        />
-                      </TouchableOpacity>
-                    }
-                    style={{
-                      position: 'absolute',
-                      zIndex: 1000,
-                      left: goal.menuX - 150,
-                      top: goal.menuY - 80,
-                    }}>
-                    <Menu.Item onPress={() => openModal(goal)} title="Edit" />
-                    <Menu.Item
-                      onPress={() => handleDeletePress(goal.goal_id)}
-                      title="Delete"
-                    />
-                    <Menu.Item onPress={() => {}} title="Create Program" />
-                  </Menu>
-                </View>
-              </View>
-            ))}
-          </View>
+                  </DataTable.Cell>
+                  <DataTable.Cell>{goal.target_year}</DataTable.Cell>
+                  <DataTable.Cell>
+                    {new Date(goal.created_at).toLocaleDateString()}
+                  </DataTable.Cell>
+                  <DataTable.Cell>
+                    <Menu
+                      visible={goal.menuVisible}
+                      onDismiss={() => {
+                        const updatedGoalData = goalData.map(item =>
+                          item.goal_id === goal.goal_id
+                            ? {...item, menuVisible: false}
+                            : item,
+                        );
+                        setGoalData(updatedGoalData);
+                      }}
+                      anchor={
+                        <TouchableOpacity
+                          onPress={event => {
+                            const {pageX, pageY} = event.nativeEvent;
+                            const updatedIntakeData = goalData.map(item =>
+                              item.goal_id === goal.goal_id
+                                ? {
+                                    ...item,
+                                    menuVisible: true,
+                                    menuX: pageX,
+                                    menuY: pageY,
+                                  }
+                                : {...item, menuVisible: false},
+                            );
+                            setGoalData(updatedIntakeData);
+                          }}>
+                          <IconButton
+                            icon="dots-vertical"
+                            size={20}
+                            style={{margin: 0, padding: 0}}
+                          />
+                        </TouchableOpacity>
+                      }
+                      style={{
+                        flexGrow: 1,
+                        left: screenWidth - 390,
+                        top: 150,
+                      }}>
+                      <Menu.Item onPress={() => openModal(goal)} title="Edit" />
+                      <Menu.Item
+                        onPress={() => handleDeletePress(goal.goal_id)}
+                        title="Delete"
+                      />
+                      <Menu.Item onPress={() => {}} title="Create Program" />
+                    </Menu>
+                  </DataTable.Cell>
+                </DataTable.Row>
+              ))}
+            </ScrollView>
+          </DataTable>
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
         </View>
       </View>
@@ -619,13 +525,10 @@ const ManageGoals: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    padding: 10,
+    // padding: 10,
     width: '100%',
   },
   contentWrapper: {
-    flex: 1,
-    alignSelf: 'stretch',
     width: '100%',
   },
   heading: {
@@ -633,6 +536,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
+    marginTop: 10,
+    fontFamily: 'Outfit',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -642,7 +547,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
     width: '100%',
@@ -652,7 +557,7 @@ const styles = StyleSheet.create({
   },
   centerButtons: {
     flexDirection: 'row',
-    marginRight: 176,
+    justifyContent: 'center',
   },
   rightButtons: {
     flexDirection: 'row',
@@ -667,17 +572,16 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#044086',
     fontSize: 14,
+    fontFamily: 'Inter',
   },
   buttonText6: {
     color: '#C4C4C4',
   },
   buttonIcon: {
     marginRight: 5,
+    justifyContent: 'center',
   },
   tableContainer: {
-    flex: 1,
-    width: '100%',
-    overflow: 'hidden',
     backgroundColor: '#fff',
   },
   headerRow: {
@@ -697,7 +601,7 @@ const styles = StyleSheet.create({
   headerCell: {
     fontWeight: 'bold',
     fontSize: 12,
-    paddingHorizontal: 2, // Reduce horizontal padding
+    paddingHorizontal: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -709,7 +613,7 @@ const styles = StyleSheet.create({
   },
   cell: {
     fontSize: 12,
-    paddingHorizontal: 2, // Reduce horizontal padding
+    paddingHorizontal: 2,
     textAlign: 'left',
     alignItems: 'center',
     justifyContent: 'center',
@@ -720,7 +624,6 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   centeredView: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -775,7 +678,6 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   inputContainer: {
-    flex: 1,
     marginHorizontal: 5,
   },
   inputLabel: {
