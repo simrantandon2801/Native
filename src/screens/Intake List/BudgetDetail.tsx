@@ -236,7 +236,7 @@ const loadBudgetData = async (project_id) => {
       {/* Table Header */}
       <View style={styles.tableRow}>
         <Text style={[styles.tableCell, styles.headerCell]}>Category</Text>
-        <Text style={[styles.tableCell, styles.headerCell]}>Details</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Sub-Category</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Quantity</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Value</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Total</Text>
@@ -328,10 +328,10 @@ const loadBudgetData = async (project_id) => {
       {/* Totals Row */}
       <View style={styles.tableRow}>
         <Text style={styles.tableCell}></Text>
-        <Text style={styles.tableCell}>Totals:</Text>
-        <Text style={styles.tableCell}>{totals.totalQuantity}</Text>
-        <Text style={styles.tableCell}>{totals.totalValue}</Text>
-        <Text style={styles.tableCell}>{totals.totalBudget}</Text>
+        <Text style={styles.footerCell}>Totals:</Text>
+        <Text style={styles.footerCell}>{totals.totalQuantity}</Text>
+        <Text style={styles.footerCell}>{totals.totalValue}</Text>
+        <Text style={styles.footerCell}>{totals.totalBudget}</Text>
       </View>
     </View>
   );
@@ -350,6 +350,12 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     padding: 5,
+  },
+  footerCell: {
+    flex: 1,
+    textAlign: 'center',
+    padding: 5,
+    fontWeight:'bold',
   },
   headerCell: { fontWeight: 'bold', backgroundColor: '#f0f0f0' },
   picker: {
