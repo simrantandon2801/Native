@@ -11,10 +11,8 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
-// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RadioButton } from 'react-native-paper';
 import { GetGoals } from '../../database/Goals';
 import { GetPrograms, GetProgramsByGoalId} from '../../database/ManageProgram';
@@ -72,11 +70,7 @@ const NewIntake = () => {
   const[projectMgr,setprojectMgr]= useState([]);
   const [roi, setRoi] = useState('');
   const [risk, setRisk] = useState('');
-  const [budgetImpact, setBudgetImpact] = useState('');
-  const [isDraftSaved, setIsDraftSaved] = useState(false);
-  const [isapprovalSubmitOpen, setIsapprovalSubmitopen] = useState(false);
-
-  const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
+  
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
   const [designation, setDesignation] = useState('');
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
@@ -87,7 +81,7 @@ const NewIntake = () => {
   const [sequenceName, setSequenceName] = useState('');
   const [projectId, setProjectId] = useState('');
   const [isApprovalPopupVisible, setIsApprovalPopupVisible] = useState(false);
-  const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
+  
   const [rawStartDate, setRawStartDate] = useState(null);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [rawEndDate, setRawEndDate] = useState(null); 
@@ -406,10 +400,7 @@ const fetchSequence = async () => {
       const parsedResponse = JSON.parse(response);
   
       if (parsedResponse.status === 'success') {
-        setIsDraftSaved(true);
-        setTimeout(() => {
-          setIsDraftSaved(false);
-        }, 2000);
+        Alert.alert('Draft saved successfully');
         const projectId = parsedResponse.data.project_id;
       console.log('Project ID:', projectId);
 
@@ -535,19 +526,18 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          setSubmitPopupMessage('Your review has been submitted successfully!');
+          Alert.alert('Submission successful!');
           setIsPopupVisible(false); 
         } else {
-          setSubmitPopupMessage('Failed to submit. Please try again.');
+          Alert.alert('Failed to submit. Please try again.');
         }
       } else {
-        setSubmitPopupMessage('Unable to retrieve project ID. Submission aborted.');
+        Alert.alert('Unable to retrieve project ID. Submission aborted.');
       }
     } catch (error) {
       console.error('Error submitting:', error);
-      setSubmitPopupMessage('An error occurred while submitting. Please try again.');
+      Alert.alert('An error occurred while submitting. Please try again.');
     }
-    setIsSubmitPopupVisible(true);
   };
   
   const handleapproval = async () => {
@@ -571,9 +561,7 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          setIsapprovalSubmitopen(true);
-
-       
+          Alert.alert('Submission successful!');
           setIsPopupVisible(false); 
           setIsApprovalPopupVisible(false)
         } else {
@@ -700,7 +688,8 @@ const fetchSequence = async () => {
         showsVerticalScrollIndicator={false}
       >
         <View>
-          {/* First Row */}  <View style={styles.row}>
+          {/* First Row */}
+          <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>
                 Name/Title <Text style={styles.asterisk}>*</Text>
@@ -730,34 +719,16 @@ const fetchSequence = async () => {
               </Picker>
               {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
-              
-           
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Priority<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={priority}
-                onValueChange={(value) => setPriority(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Priority" value="" />
-                <Picker.Item label="Critical" value="1" />
-                <Picker.Item label="High" value="2" />
-                <Picker.Item label="Medium" value="3" />
-                <Picker.Item label="Low" value="4" />
-              </Picker>
-              {touched.priority && errors.priority && (<Text style={{color:'red'}} >{errors.priority}</Text>)}
 
-            </View>
             {/* <TouchableOpacity style={styles.approvalButton}>
               <Icon name="time-outline" size={18} color="#044086" style={styles.approvalIcon} />
               <Text style={styles.approvalButtonText}>Approval History</Text>
             </TouchableOpacity> */}
-         
           </View>
 
           {/* Second Row */}
           <View style={styles.row}>
-            <View style={styles.largeInputContainer1}>
+            <View style={styles.smallInputContainer}>
             <Text style={styles.inputLabel}>Goal</Text>
       <Picker
         selectedValue={goalSelected}
@@ -775,34 +746,8 @@ const fetchSequence = async () => {
       </Picker>
       {/* {touched.goalSelected && errors.goalSelected && (<Text style={{color:'red'}} >{errors.goalSelected}</Text>)} */}
             </View>
+
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Functions<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownNewProjects onSelect={handleImpactedFunctions} buisnessPersonId={parseInt(impactedFunction)}/>
-             {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
-
-            </View>
-            
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={budget}
-                onValueChange={(value) => setBudget(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Budget" value="" />
-                <Picker.Item label="High" value="1" />
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Low" value="3" />
-              </Picker>
-              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
-
-            </View>
-        
-          </View>
-
-          {/* Business Owner Row */}
-          <View style={styles.row}>
-              <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Program</Text>
               <Picker
                 selectedValue={program}
@@ -823,42 +768,11 @@ const fetchSequence = async () => {
     )}
               </Picker>
             </View>
+          </View>
 
+          {/* Business Owner Row */}
+          <View style={styles.row}>
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={impactedApp}
-                onValueChange={(value) => setImpactedApp(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Application" value="" />
-                <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
-                <Picker.Item label="Apps: Sharepoint" value="app2" />
-              </Picker>
-              {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
-
-            </View>
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Size<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={projectSize}
-                onValueChange={(value) => setProjectSize(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Size" value="" />
-                <Picker.Item label="Large" value="1" />
-               
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Small" value="3" />
-               
-              </Picker>
-              {touched.projectSize && errors.projectSize && (<Text style={{color:'red'}} >{errors.projectSize}</Text>)}
-
-            </View>
-            </View>
-        
-            <View style={styles.row}>
-            <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Business Owner<Text style={styles.asterisk}>*</Text></Text>
               <Picker
                 selectedValue={businessOwner}
@@ -881,14 +795,154 @@ const fetchSequence = async () => {
               {touched.businessOwner && errors.businessOwner && (<Text style={{color:'red'}} >{errors.businessOwner}</Text>)}
             </View>
 
-            <View style={styles.smallInputContainer}>
+            <View style={styles.largeInputContainer}>
               <Text style={styles.inputLabel}>Business Owner Department<Text style={styles.asterisk}>*</Text></Text>
              
                 <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner)}/>
                 {touched.businessOwnerDept && errors.businessOwnerDept && (<Text style={{color:'red'}} >{errors.businessOwnerDept}</Text>)}
             </View>
+          </View>
+
+          {/* Project Owner Row */}
+          <View style={styles.row}>
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Proposed Start Date<Text style={styles.asterisk}>*</Text></Text>
+              <Text style={styles.inputLabel}>Project Owner<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={projectOwner}
+                onValueChange={(value) => setProjectOwner(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Project Owner" value="" />
+    {projectData.length > 0 ? (
+        projectData.map((projectItem) => (
+            <Picker.Item 
+                key={projectItem.user_id} 
+                label={projectItem.first_name} 
+                value={projectItem.user_id} 
+            />
+        ))
+    ) : (
+        <Picker.Item label="No Project Owner Available" value="" />
+    )}
+              </Picker>
+              {touched.projectOwner && errors.projectOwner && (<Text style={{color:'red'}} >{errors.projectOwner}</Text>)}
+            </View>
+
+            <View style={styles.largeInputContainer}>
+              <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
+              <NestedDeptDropdownNewProjects onSelect={handleProjectOwnerDept}  buisnessPersonId={parseInt(projectOwner)}/>
+
+              {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
+            </View>
+          </View>
+
+          {/* Project Manager Row */}
+          <View style={styles.row}>
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Project Manager<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={projectManager}
+                onValueChange={(value) => setProjectManager(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Project Owner" value="" />
+    {projectMgr.length > 0 ? (
+        projectMgr.map((projectItem) => (
+            <Picker.Item 
+                key={projectItem.user_id} 
+                label={projectItem.first_name} 
+                value={projectItem.user_id} 
+            />
+        ))
+    ) : (
+        <Picker.Item label="No Project Owner Available" value="" />
+    )}
+              </Picker>
+              {touched.projectManager && errors.projectManager && (<Text style={{color:'red'}} >{errors.projectManager}</Text>)}
+
+            </View>
+
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Impacted Functions<Text style={styles.asterisk}>*</Text></Text>
+              <NestedDeptDropdownNewProjects onSelect={handleImpactedFunctions} buisnessPersonId={parseInt(impactedFunction)}/>
+             {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
+
+            </View>
+
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={impactedApp}
+                onValueChange={(value) => setImpactedApp(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Application" value="" />
+                <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
+                <Picker.Item label="Apps: Sharepoint" value="app2" />
+              </Picker>
+              {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
+
+            </View>
+          </View>
+
+          {/* Priority Row */}
+          <View style={styles.row}>
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Priority<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={priority}
+                onValueChange={(value) => setPriority(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Priority" value="" />
+                <Picker.Item label="Critical" value="1" />
+                <Picker.Item label="High" value="2" />
+                <Picker.Item label="Medium" value="3" />
+                <Picker.Item label="Low" value="4" />
+              </Picker>
+              {touched.priority && errors.priority && (<Text style={{color:'red'}} >{errors.priority}</Text>)}
+
+            </View>
+
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={budget}
+                onValueChange={(value) => setBudget(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Budget" value="" />
+                <Picker.Item label="High" value="1" />
+                <Picker.Item label="Medium" value="2" />
+                <Picker.Item label="Low" value="3" />
+              </Picker>
+              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
+
+            </View>
+
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Project Size<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={projectSize}
+                onValueChange={(value) => setProjectSize(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Size" value="" />
+                <Picker.Item label="Large" value="1" />
+               
+                <Picker.Item label="Medium" value="2" />
+                <Picker.Item label="Small" value="3" />
+               
+              </Picker>
+              {touched.projectSize && errors.projectSize && (<Text style={{color:'red'}} >{errors.projectSize}</Text>)}
+
+            </View>
+          </View>
+
+          {/* Dates Row */}
+          <View style={styles.row}>
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Project Start Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
         style={styles.input}
         value={startDateDisplay}
@@ -912,42 +966,8 @@ const fetchSequence = async () => {
         />
       )}
       </View>
-          </View>
-
-
-          {/* Project Owner Row */}
-          <View style={styles.row}>
-            <View style={styles.largeInputContainer1}>
-              <Text style={styles.inputLabel}>Project Owner<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={projectOwner}
-                onValueChange={(value) => setProjectOwner(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Project Owner" value="" />
-    {projectData.length > 0 ? (
-        projectData.map((projectItem) => (
-            <Picker.Item 
-                key={projectItem.user_id} 
-                label={projectItem.first_name} 
-                value={projectItem.user_id} 
-            />
-        ))
-    ) : (
-        <Picker.Item label="No Project Owner Available" value="" />
-    )}
-              </Picker>
-              {touched.projectOwner && errors.projectOwner && (<Text style={{color:'red'}} >{errors.projectOwner}</Text>)}
-            </View>
-
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownNewProjects onSelect={handleProjectOwnerDept}  buisnessPersonId={parseInt(projectOwner)}/>
-
-              {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
-            </View>
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Proposed End Date<Text style={styles.asterisk}>*</Text></Text>
+              <Text style={styles.inputLabel}>Project End Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
         style={styles.input}
         value={endDateDisplay}
@@ -971,48 +991,8 @@ const fetchSequence = async () => {
         />
       )}
     </View>
-          </View>
+         
 
-          {/* Project Manager Row */}
-          <View style={styles.row}>
-            <View style={styles.largeInputContainer1}>
-              <Text style={styles.inputLabel}>Project Manager<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={projectManager}
-                onValueChange={(value) => setProjectManager(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Project Owner" value="" />
-    {projectMgr.length > 0 ? (
-        projectMgr.map((projectItem) => (
-            <Picker.Item 
-                key={projectItem.user_id} 
-                label={projectItem.first_name} 
-                value={projectItem.user_id} 
-            />
-        ))
-    ) : (
-        <Picker.Item label="No Project Owner Available" value="" />
-    )}
-              </Picker>
-              {touched.projectManager && errors.projectManager && (<Text style={{color:'red'}} >{errors.projectManager}</Text>)}
-
-            </View>
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={budget}
-                onValueChange={(value) => setBudget(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Budget" value="" />
-                <Picker.Item label="High" value="1" />
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Low" value="3" />
-              </Picker>
-              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
-
-            </View>
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Go Live Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
@@ -1038,12 +1018,7 @@ const fetchSequence = async () => {
         />
       )}
     </View>
-
-          
-
-         
           </View>
-
 
           {/* ROI Section */}
           <Text style={styles.roiHeading}>Return on Investment</Text>
@@ -1058,13 +1033,12 @@ const fetchSequence = async () => {
                 value={roi}
                 onChangeText={setRoi}
                 placeholder="Enter ROI"
-                 placeholderTextColor="#757575"
               />
               {touched.roi && errors.roi && (<Text style={{color:'red'}} >{errors.roi}</Text>)}
 
             </View>
             <View style={styles.templateContainer}>
-              {/* <Text style={styles.customTemplateText}>Custom Template</Text> */}
+              <Text style={styles.customTemplateText}>Custom Template</Text>
               <View style={styles.customTemplateGroup}>
                 <TouchableOpacity style={styles.templateButton}>
                   <Icon name="download-outline" size={18} color="#000" style={styles.icon} />
@@ -1083,26 +1057,21 @@ const fetchSequence = async () => {
           <Text style={styles.projectDriversHeading}>Project Drivers</Text>
 
           {/* Business Problem/Description and Scope Definition Row */}
-          <View style={styles.contentContainer}>
-        <View style={styles.formContainer}>
-          {/* Business Problem/Description and Scope Definition Row */}
-          <View style={styles.row}>
-            <View style={styles.inputContainer}>
+          <View style={styles.row5}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Business Problem/Description<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput} 
+                style={styles.outlinedInput}
                 placeholder="Enter Business Problem/Description"
-                placeholderTextColor="#757575"
                 value={businessProblem}
                 onChangeText={setBusinessProblem}
               />
             </View>
-            <View style={styles.inputContainer}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Scope Definition<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Scope Definition"
-                placeholderTextColor="#757575"
                 value={scopeDefinition}
                 onChangeText={setScopeDefinition}
               />
@@ -1110,56 +1079,40 @@ const fetchSequence = async () => {
           </View>
 
           {/* Key Assumption and Benefits/ROI Row */}
-          <View style={styles.row}>
-            <View style={styles.inputContainer}>
+          <View style={styles.row5}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Key Assumption<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Key Assumption"
-                placeholderTextColor="#757575"
                 value={keyAssumption}
                 onChangeText={setKeyAssumption}
               />
             </View>
-            <View style={styles.inputContainer}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Benefits/ROI<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Benefits/ROI"
-                placeholderTextColor="#757575"
                 value={benefitsROI}
                 onChangeText={setBenefitsROI}
               />
             </View>
           </View>
 
-          {/* Risk and Budget Impact Row */}
-          <View style={styles.row}>
-            <View style={styles.inputContainer}>
+          {/* Risk Input */}
+          <View style={styles.row5}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Risk<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Risk"
-                placeholderTextColor="#757575"
                 value={risk}
                 onChangeText={setRisk}
               />
             </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Budget Impact<Text style={styles.asterisk}>*</Text></Text>
-              <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Budget Impact"
-                placeholderTextColor="#757575"
-                value={budgetImpact}
-                onChangeText={setBudgetImpact}
-              />
-            </View>
           </View>
-        </View>
-        {/* <View style={styles.verticalDivider} /> */}
-      </View>
-          {/* <View style={styles.verticalDivider} /> */}
+
           {/* Custom Fields Button and Checkbox */}
           <View style={styles.row}>
             <View style={styles.customFieldsContainer}>
@@ -1185,18 +1138,7 @@ const fetchSequence = async () => {
     <Text style={styles.saveAsDraftButtonText}>Save as draft</Text>
   </TouchableOpacity>
   </View>
-  <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isDraftSaved}
-        onRequestClose={() => setIsDraftSaved(false)}
-      >
-        <View style={styles.centeredViewd}>
-          <View style={styles.modalViewd}>
-            <Text style={styles.modalTextd}>Draft successfully saved</Text>
-          </View>
-        </View>
-      </Modal>
+
   <View style={styles.rightButtonsContainer}>
   {/* Approval Button */}
   <TouchableOpacity 
@@ -1386,8 +1328,8 @@ const fetchSequence = async () => {
                             setShowNewApprovalForm(false);
                           }}
                         >
-                          <Icon name="backspace-outline" size={16} color="#232323" />
-                          <Text style={styles.BackButton}>Back</Text>
+                          <Icon name="arrow-back" size={18} color="#232323" />
+                          <Text style={styles.backText}>Back</Text>
                         </TouchableOpacity>
                         <Text style={styles.newApprovalTitle}>Create New Review</Text>
                       </View>
@@ -1520,27 +1462,6 @@ const fetchSequence = async () => {
           </View>
         </View>
       </Modal>
-
-      {/* Submitt Modal */}
-
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={isSubmitPopupVisible}
-        onRequestClose={() => setIsSubmitPopupVisible(false)}
-      >
-        <View style={styles.centeredViews}>
-          <View style={styles.modalViews}>
-            <Text style={styles.modalTexts}>{SubmitpopupMessage}</Text>
-            <TouchableOpacity
-              style={styles.closeButtons}
-              onPress={() => setIsSubmitPopupVisible(false)}
-            >
-        <Icon name="close" size={16} color="black" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
    )}
    </Formik>
@@ -1584,7 +1505,7 @@ const styles = StyleSheet.create({
     },
     backText: {
       color: '#232323',
-      fontFamily: 'Inter',
+      fontFamily: 'Source Sans Pro',
       fontSize: 14,
       fontWeight: '400',
       lineHeight: 22,
@@ -1762,13 +1683,13 @@ const styles = StyleSheet.create({
     },
     projectDriversHeading: {
       color: '#000',
-      fontFamily: 'Inter',
+      fontFamily: 'Source Sans Pro',
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: '500',
       lineHeight: 22,
       marginBottom: 16,
       marginTop: 24,
-      // textAlign: 'center',
+      textAlign: 'center',
     },
     customFieldsContainer: {
       flexDirection: 'row',
@@ -1809,12 +1730,6 @@ const styles = StyleSheet.create({
       width: '100%',
       maxWidth: 1200,
       paddingHorizontal: 8,
-    },
-    newApprovalContainer:{
-
-    },
-    newApprovalHeader:{
-
     },
     saveAsDraftButton: {
       backgroundColor: '#FFF',
@@ -1947,11 +1862,6 @@ const styles = StyleSheet.create({
       fontWeight: '400',
       marginBottom: 4,
     },
-    BackButton: {
-      marginLeft: 8, 
-      color: '#232323',
-      fontFamily: 'Inter',
-    },
     approvalPathPicker: {
       height: 40,
     },
@@ -1981,11 +1891,6 @@ const styles = StyleSheet.create({
       textTransform: 'capitalize',
      textAlign:'center'
     },
-    divider1: {
-      height: 1,
-      backgroundColor: '#E0E0E0',
-      marginVertical: 16,
-    },
     newApprovalInput: {
       borderRadius: 5,
       borderBottomWidth: 1,
@@ -2005,7 +1910,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
-      // paddingHorizontal: 10,
+      paddingHorizontal: 10,
       marginBottom: 10,
     },
     columnContent: {
@@ -2041,12 +1946,6 @@ const styles = StyleSheet.create({
     rightButtonsContainer: {
         // flex: 1,
         gap: 8,
-      },
-      verticalDivider: {
-        width: 1,
-        height:'10%',
-        backgroundColor: '#044786',
-        marginVertical: 16,
       },
       leftButtonContainer:{
         alignSelf:'flex-start'
@@ -2088,9 +1987,6 @@ const styles = StyleSheet.create({
       width: '80%',
       height: 40,
     },
-    approvalPathInput:{
-
-    },
     addButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -2129,7 +2025,7 @@ const styles = StyleSheet.create({
       color: '#000',
     },
     autoPopulatedText: {
-      // width: '67%',
+      width: '67%',
       color: '#000',
       fontFamily: 'Source Sans Pro',
       fontSize: 12,
@@ -2174,84 +2070,10 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      // width: '25%',
+      width: '25%',
     },
     cancelIcon: {
       padding: 5,
-    },
-    centeredViewd: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalViewd: {
-      margin: 20,
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 35,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-    },
-    modalTextd: {
-      marginBottom: 15,
-      textAlign: 'center',
-      fontSize: 16,
-      fontWeight: '600',
-      fontFamily:'Inter',
-    },
-    contentContainer: {
-      flexDirection: 'row',
-    },
-    formContainer: {
-      flex: 1,
-    },
-    inputContainer: {
-      flex: 1,
-      marginRight: 16,
-    },
-    centeredViews: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalViews: {
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 20,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-    },
-    modalTexts: {
-      fontSize: 18,
-      marginBottom: 15,
-      textAlign: 'center',
-    },
-    closeButtons: {
-      // backgroundColor: '#2196F3',
-      borderRadius: 5,
-      padding: 10,
-      elevation: 2,
-    },
-    closeButtonTexts: {
-      color: 'white',
-      fontWeight: 'bold',
-      textAlign: 'center',
     },
   });
   
