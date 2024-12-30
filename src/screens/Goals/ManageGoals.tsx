@@ -633,8 +633,9 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
     marginBottom: 10,
+    
   },
   input: {
     borderRadius: 5,
@@ -667,6 +668,7 @@ const styles = StyleSheet.create({
   inputContainer: {
  
     marginHorizontal: 5,
+    
   },
   inputLabel: {
     fontSize: 14,
