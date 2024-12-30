@@ -10,9 +10,11 @@ import {
   Alert,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import { GetBudgetCategories, GetBudgetSubCategories, GetBudgetDetails} from '../../database/Intake';
+import { GetBudgetCategories, GetBudgetSubCategories, GetBudgetDetails, InsertBudgetDetails, DeleteBudgetDetail} from '../../database/Intake';
 
 interface BudgetRow {
+  budget_detail_id: number;
+  project_id:number;
   category_id: number;
   sub_category_id: number;
   category_name: string;
@@ -23,12 +25,14 @@ interface BudgetRow {
 }
 
 interface BudgetAppProps {
-  projectId: string;
+  projectId: number;
 }
 
-const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
+const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId=1 }) => {
   const [rows, setRows] = useState<BudgetRow[]>([]);
   const [newRow, setNewRow] = useState<BudgetRow>({
+    budget_detail_id:0,
+    project_id:projectId,
     category_id: 0,
     sub_category_id: 0,
     category_name: '',
@@ -52,9 +56,9 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
     //     setTimeout(() => resolve([{ category: 'Manpower' }, { category: 'Procurement' }, { category: 'Infrastructure' }]), 1000)
     //   );
         const response = await GetBudgetCategories('');
-        const fetchedCategories = JSON.parse(response);
-        const response1 = await GetBudgetSubCategories(categorySelected);
-        const fetchedSubCategories = JSON.parse(response1);
+        const result = JSON.parse(response);
+       // const fetchedCategories = JSON.parse(response);
+        
     //   const fetchedCategoryDetails = await new Promise<{ category: string; details: string }[]>(resolve =>
     //     setTimeout(
     //       () =>
@@ -69,8 +73,8 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
     //     )
     //   );
 
-      setCategories(fetchedCategories);
-      setCategoryDetails(fetchedSubCategories);
+      setCategories(result.data?.category);
+     
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -82,11 +86,6 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
     fetchCategoriesAndDetails();
   }, []);
 
-  const availableDetails = newRow.category_id
-    ? categoryDetails
-        .filter((item) => item.category_id === newRow.category_id)
-        //.map((item) => item.details)
-    : [];
 
   // Simulated API call to fetch budget data based on projectId
 //   const fetchBudgetData = async (projectId: string): Promise<BudgetRow[]> => {
@@ -112,26 +111,33 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
 //     });
 //   };
 //const fetchBudgetData = await GetBudgetDetails('');
+const loadBudgetData = async (project_id) => {
+    try {
+      const resp = await GetBudgetDetails(project_id);
 
+      const result = JSON.parse(resp);
+      if (result?.data?.budget && Array.isArray(result.data.budget)) {
+      setRows(result.data.budget);
+      } 
+      else {
+              console.error('Invalid budget data');
+              Alert.alert('Error', 'Invalid budget data received');
+            }
+    } catch (error) {
+      console.error('Error fetching budget data:', error);
+    }
+  };
   useEffect(() => {
-    const loadBudgetData = async () => {
-      try {
-        const resp = await GetBudgetDetails(projectId);
-        const budgetData = JSON.parse(resp);
-        setRows(budgetData);
-      } catch (error) {
-        console.error('Error fetching budget data:', error);
-      }
-    };
 
-    loadBudgetData();
+
+    loadBudgetData(projectId);
   }, [projectId]);
 
   const validateFields = () => {
     const validationErrors: { [key: string]: string } = {};
-    if (!newRow.category) validationErrors.category = 'Category is required.';
-    if (!newRow.categoryDetail) validationErrors.categoryDetail = 'Details are required.';
-    if (!newRow.quantity || newRow.quantity <= 0)
+    if (!newRow.category_id) validationErrors.category = 'Category is required.';
+    if (!newRow.sub_category_id) validationErrors.categoryDetail = 'Details are required.';
+    if (!newRow.qty || newRow.qty <= 0)
       validationErrors.quantity = 'Quantity must be a positive number.';
     if (!newRow.value || newRow.value <= 0)
       validationErrors.value = 'Value must be a positive number.';
@@ -141,15 +147,26 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
     return Object.keys(validationErrors).length === 0;
   };
 
-  const handleAddRow = () => {
+  const handleAddRow = async () => {
     if (!validateFields()) {
       Alert.alert('Validation Error', 'Please fix the errors before adding.');
       return;
     }
+          const response = await InsertBudgetDetails(newRow);
+          const parsedResponse = JSON.parse(response);
+        console.log(parsedResponse)
+          if (parsedResponse.status === 'success') {
+            Alert.alert('Draft saved successfully');
+            //const projectId = parsedResponse.data.project_id;
+          //console.log('Project ID:', projectId);
 
-    const total = newRow.qty * newRow.value;
-    setRows([...rows, { ...newRow, total }]);
-    setNewRow({ category_id: 0,
+    //const total = newRow.qty * newRow.value;
+    //setRows([...rows, { ...newRow, total }]);
+    loadBudgetData(projectId);
+    setNewRow({ 
+        budget_detail_id:0,
+        project_id:projectId,
+        category_id: 0,
         sub_category_id: 0,
         category_name: '',
         sub_category_name: '',
@@ -157,14 +174,29 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
         value: 0,
         total: 0});
     setErrors({});
+          }
   };
+
+  const handleDelete = async (budget_detail_id) => {
+    console.log(budget_detail_id)
+      const data = {
+        budget_detail_id: budget_detail_id,
+      };
+      try {
+        const response = await DeleteBudgetDetail(data);
+        const result = await JSON.parse(response);
+        loadBudgetData(projectId);
+      } catch (error) {
+        console.error('Error Deleting Goals:', error);
+      }
+    };
 
   const calculateTotals = () => {
     return rows.reduce(
       (acc, row) => {
         acc.totalQuantity += row.qty;
         acc.totalValue += row.value;
-        acc.totalBudget += row.total;
+        acc.totalBudget += row.qty * row.value;
         return acc;
       },
       { totalQuantity: 0, totalValue: 0, totalBudget: 0 }
@@ -173,6 +205,28 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
 
   const totals = calculateTotals();
 
+  const handleCategoryChange = async (categoryId) =>{
+    //console.log(category)
+    const response = await GetBudgetSubCategories(categoryId);
+    const result = JSON.parse(response);
+    //const fetchedSubCategories = JSON.parse(response1);
+    setCategoryDetails(result.data?.subcategory);
+    setNewRow({ ...newRow, category_id: categoryId, sub_category_id: 0 });
+  }
+  const handleSubCategoryChange = async (categoryId) =>{
+    console.log(categoryId)
+   // console.log(categoryName)
+    //const response = await GetBudgetSubCategories(categoryId);
+    //const result = JSON.parse(response);
+    //const fetchedSubCategories = JSON.parse(response1);
+    //setCategoryDetails(result.data?.subcategory);
+    setNewRow({ ...newRow, sub_category_id: categoryId});
+  }
+  const availableDetails = newRow.category_id
+  ? categoryDetails
+      .filter((item) => item.category_id === newRow.category_id)
+      //.map((item) => item.details)
+  : [];
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Project Budget</Text>
@@ -193,7 +247,9 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
         <Picker
           selectedValue={newRow.category_id}
           onValueChange={(value) => {
-            setNewRow({ ...newRow, category_id: value, sub_category_id: 0, sub_category_name:'' });
+            //let name = categories[index].category_name;
+           // setNewRow({ ...newRow, category_id: value, sub_category_id: 0, sub_category_name:'' });
+            handleCategoryChange(value);
           }}
           style={[styles.picker, styles.tableCell]}
         >
@@ -206,12 +262,17 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
 
         <Picker
           selectedValue={newRow.sub_category_id}
-          onValueChange={(value) => setNewRow({ ...newRow, sub_category_id: value })}
+          onValueChange={(value) => {
+            //let name = categoryDetails[index].sub_category_name;
+            //setNewRow({ ...newRow, sub_category_id: value })
+            handleSubCategoryChange(value);
+          }
+        }
           style={[styles.picker, styles.tableCell]}
           enabled={!!newRow.category_id}
         >
           <Picker.Item label="Select Details" value="" />
-          {availableDetails.map((detail, index) => (
+          {categoryDetails.map((detail, index) => (
             <Picker.Item key={index} label={detail.sub_category_name} value={detail.sub_category_id} />
           ))}
         </Picker>
@@ -256,7 +317,10 @@ const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId }) => {
             <Text style={styles.tableCell}>{item.sub_category_name}</Text>
             <Text style={styles.tableCell}>{item.qty}</Text>
             <Text style={styles.tableCell}>{item.value}</Text>
-            <Text style={styles.tableCell}>{item.total}</Text>
+            <Text style={styles.tableCell}>{item.qty * item.value}</Text>
+            <Button mode="contained" onPress={()=>handleDelete(item.budget_detail_id)}>
+    Delete
+  </Button>
           </View>
         )}
       />
