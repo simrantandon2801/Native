@@ -391,6 +391,7 @@ const { width: screenWidth } = useWindowDimensions();
                      
                       left:screenWidth-390,
                        top: 150,
+                       flexGrow: 1,
                      }}>
                     <Menu.Item
                       onPress={() => openModal(programs)}

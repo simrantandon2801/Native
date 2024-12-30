@@ -564,14 +564,14 @@ const Resources: React.FC = () => {
           <DataTable.Title style={{justifyContent: 'center'}}>
             Reporting Manager
           </DataTable.Title>
-          <DataTable.Title style={{justifyContent: 'center'}}>
+          {/* <DataTable.Title style={{justifyContent: 'center'}}>
             Projects Active
-          </DataTable.Title>
+          </DataTable.Title> */}
           {/* <DataTable.Title style={{justifyContent: 'center'}}>
             Approval Limit
           </DataTable.Title> */}
           <DataTable.Title style={{justifyContent: 'center'}}>
-            Average Cost
+            Average Cost($)
           </DataTable.Title>
           <DataTable.Title style={{justifyContent: 'center'}}>
             Status
@@ -1460,12 +1460,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     flex: 1,
+    marginRight:222
   },
   leftAction: {
-    marginRight: 10,
+    // marginRight: 10,
   },
   rightAction: {
-    marginLeft: 10,
+    // marginLeft: 10,
   },
   table: {
     marginTop: 10,
@@ -1481,6 +1482,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     color: '#757575',
+    backgroundColor:'#fff'
     //maxHeight: 10000,
   },
   tableCell: {

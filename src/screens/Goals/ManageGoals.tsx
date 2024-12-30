@@ -476,7 +476,7 @@ const ManageGoals: React.FC = () => {
                         </TouchableOpacity>
                       }
                       style={{
-                     
+                        flexGrow: 1,
                        left:screenWidth-390,
                         top: 150,
                       }}

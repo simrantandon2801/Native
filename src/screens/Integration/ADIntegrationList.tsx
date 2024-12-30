@@ -110,10 +110,10 @@ const closeModal = () => {
       <Text style={styles.heading}>Manage Active Directory(AD) Integrations</Text>
     </View>
     <View style={styles.actions}>
-      <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
+      {/* <TouchableOpacity style={[styles.actionButton, styles.leftAction]}>
         <IconButton icon="trash-can-outline" size={16} />
         <Text style={[styles.actionText, { color: '#344054' }]}>Delete</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <View style={styles.middleActions}>
         <TouchableOpacity
           style={styles.actionButton}
@@ -132,10 +132,10 @@ const closeModal = () => {
   </TouchableOpacity> */}
        
       </View>
-      <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
+      {/* <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
         <IconButton icon="filter" size={16}  />
         <Text style={[styles.actionText, { color: '#344054' }]}>Filters</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
    
     <DataTable style={styles.tableHeaderCell}>
@@ -269,12 +269,13 @@ const styles = StyleSheet.create({
     manageUsersContainer: {
       alignItems: 'center',
       paddingVertical: 10,
-      backgroundColor: 'white',
+      // backgroundColor: 'white',
+      backgroundColor: '#f4f4f4',
     },
     actions: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      justifyContent: 'center',
       padding: 10,
       backgroundColor: '#f4f4f4',
     },
@@ -297,6 +298,7 @@ const styles = StyleSheet.create({
     },
     tableHeaderCell: {
       marginTop: 15,
+      backgroundColor:'#fff'
     },
     table: {
       marginRight: 20,
