@@ -1,114 +1,142 @@
 /* eslint-disable react-native/no-inline-styles */
 import React, {useState} from 'react';
-import {View, StyleSheet, SafeAreaView, Platform, Alert, Image, TouchableOpacity, ScrollView} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Platform,
+  Alert,
+  Image,
+  TouchableOpacity,
+  ScrollView,
+} from 'react-native';
 import {TextInput, Button, Text} from 'react-native-paper';
 //import NativeHeader from '../shared/NativeHeader';
 //import Footer from '../home/Footer';
 //import AsyncStorage from '@react-native-async-storage/async-storage';
-import { PostAsync } from '../services/rest_api_service';
-import { decodeBase64,encodeBase64 } from '../core/securedata';
+import {PostAsync} from '../services/rest_api_service';
+import {decodeBase64, encodeBase64} from '../core/securedata';
 import {useNavigation} from '@react-navigation/native';
-import { AppImages } from '../assets';
+import {AppImages} from '../assets';
 import FooterForge from './FooterForge';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import WelcomeScreen from './WelcomeScreen';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import ReCaptchaV3 from 'react-native-recaptcha-v3';
-import { navigate } from '../navigations/RootNavigation';
+import {navigate} from '../navigations/RootNavigation';
 import SignupScreen from './SignupScreen';
-import { BASE_URL } from "@env";
+import {BASE_URL} from '@env';
 
 export type HomeStackNavigatorParamList = {
-    LoginScreen: {};
-    WelcomeScreen: {};
-    Main:undefined;
-    SignupScreen:undefined
-  };
+  LoginScreen: {};
+  WelcomeScreen: {};
+  Main: undefined;
+  SignupScreen: undefined;
+};
 
-
-
-  type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
+type NavigationProp = NativeStackNavigationProp<
+  HomeStackNavigatorParamList,
+  'LoginScreen'
+>;
 
 const LoginScreen: React.FC = () => {
   const [email, setEmail] = useState<string>('customeradmin@gmail.com');
   const [password, setPassword] = useState<string>('lsipl');
   const navigation = useNavigation<NavigationProp>();
-  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);  //captcha
-   const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    let tempErrors: { [key: string]: string } = {};
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false); //captcha
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  let tempErrors: {[key: string]: string} = {};
 
-    const recaptchaSiteKey = '6LdZ3ZQqAAAAAO4wf3jkq1Q_PXV49IwSwYb4ziq4'; 
-    const handleLogin = async () => {
-  /*     if (!isCaptchaVerified) {
+  const recaptchaSiteKey = '6LdZ3ZQqAAAAAO4wf3jkq1Q_PXV49IwSwYb4ziq4';
+  const handleLogin = async () => {
+    /*     if (!isCaptchaVerified) {
         Alert.alert('Please complete the CAPTCHA');
         return;
       }else{ */
-        //console.log('Email:', email);
-        //console.log('Password:', password);
-        if (!email) tempErrors.email = 'Email/User name is required';
+    //console.log('Email:', email);
+    //console.log('Password:', password);
+    if (!email) tempErrors.email = 'Email/User name is required';
     if (!password) tempErrors.password = 'Password is required';
     setErrors(tempErrors);
 
     if (Object.keys(tempErrors).length > 0) return;
 
+    const uri = `${BASE_URL}/auth/login`;
+    const payload = JSON.stringify({
+      email: email,
+      password: password,
+    });
 
-        const uri = `${BASE_URL}/auth/login`;
-        const payload = JSON.stringify({
-          email: email,
-          password: password,
-        });
-      
-        try {
-          const jsonResult = await PostAsync(uri, payload);
-          console.log("login resposne", jsonResult.data)
-      
-          if (jsonResult.status === 'success') {
-            const { accessToken, user } = jsonResult.data;
-            const { userId, userrole, customer_id, company_name } = user;
-      
-            //setIsLoggedIn(true);
-            await AsyncStorage.setItem('UserEmail', encodeBase64(email?.toLowerCase() || ''));
-            await AsyncStorage.setItem('ID', encodeBase64(userId?.toString() || ''));
-            await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
-            //await AsyncStorage.setItem('ID', encodeBase64(userId));
-            await AsyncStorage.setItem('Customer_ID', encodeBase64(customer_id?.toString() || ''));
-            await AsyncStorage.setItem('company_name',company_name?.toString()|| '' );
+    try {
+      const jsonResult = await PostAsync(uri, payload);
+      console.log('login resposne', jsonResult.data);
 
-            await AsyncStorage.setItem('UserType', encodeBase64(userrole.toString()));
-      
-           
-            const UserType = decodeBase64((await AsyncStorage.getItem('UserType')) ?? '');
-            
-            console.log('Decoded UserType:', UserType); 
-      
-           
-            if (UserType === '3' || userrole === 3) {
-              console.log('Decoded UserType:', UserType);
-              console.log('Navigating to Main screen');
-              /* navigation.replace('Main'); */
-              navigate('Main', { screen: 'Adminpanel' });
-            } 
-            if (UserType === '1' || userrole === 1) {
-              console.log('Decoded UserType:', UserType);
-              console.log('Navigating to Main screen');
-              navigate('Main', { screen: 'SignupScreen' });
-            } 
-            if (UserType === '2' || userrole === 2) {
-              console.log('Decoded UserType:', UserType); 
-              console.log('Navigating to Main screen');
-              navigation.replace('Main');
-            } else {
-              Alert.alert('Access denied', 'You do not have the required permissions.');
-            }
-          } else {
-            Alert.alert('Incorrect, User Name/ Password');
-          }
-        } catch (error) {
-          console.error('Error logging in:', error);
-          Alert.alert('An error occurred. Please try again later.');
-        }/* } */
-      };
- /*  const handleLogin = () => {
+      if (jsonResult.status === 'success') {
+        const {accessToken, user} = jsonResult.data;
+        const {userId, userrole, customer_id, company_name, firstName} = user;
+
+        //setIsLoggedIn(true);
+        await AsyncStorage.setItem(
+          'UserEmail',
+          encodeBase64(email?.toLowerCase() || ''),
+        );
+        await AsyncStorage.setItem(
+          'ID',
+          encodeBase64(userId?.toString() || ''),
+        );
+        await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
+        //await AsyncStorage.setItem('ID', encodeBase64(userId));
+        await AsyncStorage.setItem(
+          'Customer_ID',
+          encodeBase64(customer_id?.toString() || ''),
+        );
+        await AsyncStorage.setItem(
+          'company_name',
+          company_name?.toString() || '',
+        );
+        await AsyncStorage.setItem('firstName', firstName?.toString() || '');
+
+        await AsyncStorage.setItem(
+          'UserType',
+          encodeBase64(userrole.toString()),
+        );
+
+        const UserType = decodeBase64(
+          (await AsyncStorage.getItem('UserType')) ?? '',
+        );
+
+        console.log('Decoded UserType:', UserType);
+
+        if (UserType === '3' || userrole === 3) {
+          console.log('Decoded UserType:', UserType);
+          console.log('Navigating to Main screen');
+          /* navigation.replace('Main'); */
+          navigate('Main', {screen: 'Adminpanel'});
+        }
+        if (UserType === '1' || userrole === 1) {
+          console.log('Decoded UserType:', UserType);
+          console.log('Navigating to Main screen');
+          navigate('Main', {screen: 'SignupScreen'});
+        }
+        if (UserType === '2' || userrole === 2) {
+          console.log('Decoded UserType:', UserType);
+          console.log('Navigating to Main screen');
+          navigation.replace('Main');
+        } else {
+          Alert.alert(
+            'Access denied',
+            'You do not have the required permissions.',
+          );
+        }
+      } else {
+        Alert.alert('Incorrect, User Name/ Password');
+      }
+    } catch (error) {
+      console.error('Error logging in:', error);
+      Alert.alert('An error occurred. Please try again later.');
+    } /* } */
+  };
+  /*  const handleLogin = () => {
     if (username === 'forgeppm' && password === 'lsipl') {
       //navigation.navigate('WelcomeScreen', {}); 
       navigation.replace('Main');
@@ -117,38 +145,46 @@ const LoginScreen: React.FC = () => {
     }
   }; */
 
+  const [secureText, setSecureText] = useState(true); // State for showing/hiding password
+
+  const handleTogglePassword = () => {
+    setSecureText(prevState => !prevState); // Toggle the password visibility
+  };
+
   return (
-   
     <View style={styles.screenContainer}>
       {/* Centered Container for Logo and Form */}
       <View style={styles.centeredContainer}>
         {/* Left Side: Logo Section */}
         <View style={styles.logoContainer}>
-        <Image
-        source={AppImages.forge} 
-        style={styles.logo}
-        resizeMode="contain"
-      />
+          <Image
+            source={AppImages.forge}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         {/* Right Side: Login Form */}
         <View style={styles.formContainer}>
-          <ScrollView contentContainerStyle={styles.formContent}
-          showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={styles.formContent}
+            showsVerticalScrollIndicator={false}>
             <Text style={styles.heading}>Log in to ForgePortfolioXpert</Text>
 
             {/* Email Input */}
             <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email Address or Username"
-              placeholderTextColor="#666"
-              value={email}
-              onChangeText={setEmail}
-            />
-          
-             {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
-             </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Email Address or Username"
+                placeholderTextColor="#666"
+                value={email}
+                onChangeText={setEmail}
+              />
+
+              {errors.email && (
+                <Text style={styles.errorText}>{errors.email}</Text>
+              )}
+            </View>
 
             {/* Password Input */}
             <View style={styles.passwordContainer}>
@@ -156,16 +192,24 @@ const LoginScreen: React.FC = () => {
                 style={[styles.input, styles.passwordInput]}
                 placeholder="Password"
                 placeholderTextColor="#666"
-                secureTextEntry
+                secureTextEntry={secureText} // Use the secureText state to control visibility
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity style={styles.showPasswordButton}>
-                <Text style={styles.showPasswordText}>👁</Text>
+              <TouchableOpacity
+                style={styles.showPasswordButton}
+                onPress={handleTogglePassword}>
+                <Text style={styles.showPasswordText}>
+                  {secureText ? '👁' : '👁'}
+                </Text>{' '}
+                {/* Show eye or eye-off */}
               </TouchableOpacity>
-              {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+              {/* Display error message if any */}
+              {errors.password && (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              )}
             </View>
-         {/*    <ReCaptchaV3 style={styles.captchaContainer}
+            {/*    <ReCaptchaV3 style={styles.captchaContainer}
         siteKey={recaptchaSiteKey}
         baseUrl="https://yourwebsite.com"
         onVerify={(token:string) => {
@@ -189,50 +233,42 @@ const LoginScreen: React.FC = () => {
             {/* Login Button */}
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
               <Text style={styles.loginButtonText}>Log in</Text>
-              
             </TouchableOpacity>
 
             {/* Forgot Password */}
             <TouchableOpacity>
-              <Text style={styles.forgotPasswordText}>Forgot your password?</Text>
+              <Text style={styles.forgotPasswordText}>
+                Forgot your password?
+              </Text>
             </TouchableOpacity>
 
             {/* Social Login Buttons */}
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.google}  
-                style={styles.socialIcon}
-              />
+              <Image source={AppImages.google} style={styles.socialIcon} />
               <Text style={styles.socialButtonText}>Continue with Google</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.micro} 
-                style={styles.socialIcon}
-              />
-              <Text style={styles.socialButtonText}>Continue with Microsoft</Text>
+              <Image source={AppImages.micro} style={styles.socialIcon} />
+              <Text style={styles.socialButtonText}>
+                Continue with Microsoft
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.apple} 
-                style={styles.socialIcon}
-              />
+              <Image source={AppImages.apple} style={styles.socialIcon} />
               <Text style={styles.socialButtonText}>Continue with Apple</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.socialButton}>
-              <Image
-                source={AppImages.okta} 
-                style={styles.socialIcon}
-              />
+              <Image source={AppImages.okta} style={styles.socialIcon} />
               <Text style={styles.socialButtonText}>Continue with Okta</Text>
             </TouchableOpacity>
 
             {/* Register Link */}
             <Text style={styles.registerText}>
               Don’t have an account?{' '}
-              <TouchableOpacity onPress={() => console.log('Navigate to registration')}>
-          <Text style={styles.registerLink}>Register with us</Text>
-        </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => console.log('Navigate to registration')}>
+                <Text style={styles.registerLink}>Register with us</Text>
+              </TouchableOpacity>
             </Text>
 
             {/* Footer */}
@@ -242,14 +278,10 @@ const LoginScreen: React.FC = () => {
               <Text style={styles.link}>Contact Us</Text>
             </Text> */}
           </ScrollView>
-          
-       
-          
         </View>
       </View>
       <FooterForge />
     </View>
-   
   );
 };
 
@@ -262,8 +294,8 @@ const styles = StyleSheet.create({
   },
   centeredContainer: {
     flexDirection: 'row',
-    width: '90%', 
-    height: '80%', 
+    width: '90%',
+    height: '80%',
     backgroundColor: '#fff',
     //shadowColor: '#000',
     //shadowOffset: { width: 0, height: 5 },
@@ -303,18 +335,20 @@ const styles = StyleSheet.create({
     height: 40,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
-    marginBottom: 20,
-    backgroundColor: '#fff', 
+    marginBottom: 6,
+    backgroundColor: '#fff',
     paddingHorizontal: 10,
   },
   passwordContainer: {
     fontFamily: '"Source Sans Pro"',
     position: 'relative',
     width: '100%',
+    marginBottom: 10,
   },
   inputContainer: {
     position: 'relative',
     width: '100%',
+    marginBottom:15,
   },
   passwordInput: {
     fontFamily: '"Source Sans Pro"',
@@ -363,8 +397,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: '#0056b3',
     fontFamily: '"Source Sans Pro"',
-
-    marginBottom: 20,
+    marginBottom: 120,
     textDecorationLine: 'underline',
   },
   socialButton: {
@@ -428,7 +461,6 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     fontSize: 12,
-    marginTop: 5,
   },
 });
 export default LoginScreen;

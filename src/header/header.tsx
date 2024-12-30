@@ -1,38 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, StyleSheet, View, TextInput, Dimensions, Text, TouchableOpacity, Pressable } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  Modal,
+  StyleSheet,
+  View,
+  TextInput,
+  Dimensions,
+  Text,
+  TouchableOpacity,
+  Pressable,
+} from 'react-native';
 import ForgeLogo from '../assets/images/small-logo.svg'; // Assuming this is an SVG
 import SearchLogo from '../assets/images/search-logo.svg'; // Assuming this is an SVG
 import MoreLinesLogo from '../assets/images/ri-more-line.svg'; // Assuming this is an SVG
 import NotificationLogo from '../assets/images/notification.svg'; // Assuming this is an SVG
 import ProfileLogo from '../assets/images/Ellipse 34.svg'; // Assuming this is an SVG
-import { decodeBase64 } from '../core/securedata';
+import {decodeBase64} from '../core/securedata';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'; 
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { HomeStackNavigatorParamList } from '../../type';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {HomeStackNavigatorParamList} from '../../type';
 import LoginScreen from '../screens/LoginScreen';
-import { navigate } from '../navigations/RootNavigation';
+import {navigate} from '../navigations/RootNavigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
+export type HeaderNavigationProp = NativeStackScreenProps<
+  HomeStackNavigatorParamList,
+  'Main'
+>;
 
-export type HeaderNavigationProp = NativeStackScreenProps<HomeStackNavigatorParamList, 'Main'>;
-
-const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
+const Header: React.FC<HeaderNavigationProp> = ({navigation}) => {
   const handleNavigate = () => {
     navigation.navigate('Main');
   };
   const [UserType, setUserType] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(false); 
+  const [modalVisible, setModalVisible] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
     const getUserId = async () => {
       try {
-        const UserTypes = decodeBase64(
-          (await AsyncStorage.getItem('UserType')) ?? '',
-        );
-        if (UserTypes) {
-          setUserType(UserTypes);
+        const firstName = (await AsyncStorage.getItem('firstName')) ?? '';
+        if (firstName) {
+          setUserType(firstName);
         }
       } catch (error) {
         console.error('Error retrieving user ID from AsyncStorage', error);
@@ -42,7 +51,7 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
     getUserId();
 
     const updateLayout = () => {
-      const { width } = Dimensions.get('window');
+      const {width} = Dimensions.get('window');
       setIsSmallScreen(width < 800);
     };
 
@@ -62,29 +71,28 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
     // Logout logic
     await AsyncStorage.clear();
     setUserType(null);
- navigate(LoginScreen);
-      //navigation.navigate();
-  
+    navigate(LoginScreen);
+    //navigation.navigate();
+
     setModalVisible(false);
   };
 
   return (
     <>
-    <View style={styles.headerContainer}>
-      <View style={styles.leftContainer}>
-      <TouchableOpacity 
-        style={styles.backButton} 
-        onPress={() => navigate('Main', { screen: 'Adminpanel' })}
-      >
-        <Ionicons name="arrow-back" size={24} color="black" />
-      </TouchableOpacity>
-        {/* <ForgeLogo width={30} height={30} /> */}
-      </View>
+      <View style={styles.headerContainer}>
+        <View style={styles.leftContainer}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigate('Main', {screen: 'Adminpanel'})}>
+            <Ionicons name="arrow-back" size={24} color="black" />
+          </TouchableOpacity>
+          {/* <ForgeLogo width={30} height={30} /> */}
+        </View>
 
-      {/* <View style={styles.centerContainer}>
+        {/* <View style={styles.centerContainer}>
         <View style={styles.searchInputContainer}> */}
-          {/* <SearchLogo /> */}
-          {/* <TextInput
+        {/* <SearchLogo /> */}
+        {/* <TextInput
             style={styles.searchInput}
             placeholder="Search any Project"
             placeholderTextColor="#757575"
@@ -92,28 +100,26 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
         </View>
       </View> */}
 
-      <View style={styles.rightContainer}>
-        <MoreLinesLogo style={styles.icon} />
-        <NotificationLogo style={styles.icon} />
-        <TouchableOpacity onPress={handleProfilePress}>
-          <ProfileLogo style={styles.icon} />
-        </TouchableOpacity>
-      </View>
+        <View style={styles.rightContainer}>
+          <MoreLinesLogo style={styles.icon} />
+          <NotificationLogo style={styles.icon} />
+          <TouchableOpacity onPress={handleProfilePress}>
+            <ProfileLogo style={styles.icon} />
+          </TouchableOpacity>
+        </View>
 
-      {/* Modal for profile options */}
-      <Modal
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setModalVisible(false)}
-        >
-          <View style={styles.optionsContainer}>
-            <Text style={styles.greetingText}>Hello, {UserType}</Text>
+        {/* Modal for profile options */}
+        <Modal
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}>
+          <Pressable
+            style={styles.modalOverlay}
+            onPress={() => setModalVisible(false)}>
+            <View style={styles.optionsContainer}>
+              <Text style={styles.greetingText}>Hello, {UserType}</Text>
 
-           {/*  <TouchableOpacity
+              {/*  <TouchableOpacity
               onPress={() => {
                 navigation.navigate('ManageZonalRegulation');
                 setModalVisible(false);
@@ -124,29 +130,35 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
               <Text style={styles.linkText}>Dashboard</Text>
             </TouchableOpacity> */}
 
-           <TouchableOpacity
-              onPress={() => {
-                //navigation.navigate('ProfileScreen');
-                setModalVisible(false);
-              }}
-              style={styles.option}
-            >
-              <MaterialCommunityIcons name="account" size={20} color="#007AFF" />
-              <Text style={styles.linkText}>View Profile</Text>
-            </TouchableOpacity> 
+              <TouchableOpacity
+                onPress={() => {
+                  //navigation.navigate('ProfileScreen');
+                  setModalVisible(false);
+                }}
+                style={styles.option}>
+                <MaterialCommunityIcons
+                  name="account"
+                  size={20}
+                  color="#007AFF"
+                />
+                <Text style={styles.linkText}>View Profile</Text>
+              </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => {
-                //navigation.navigate('EditProfileScreen');
-                setModalVisible(false);
-              }}
-              style={styles.option}
-            > 
-               <MaterialCommunityIcons name="account-edit" size={20} color="#007AFF" />
-              <Text style={styles.linkText}>Edit Profile</Text>
-            </TouchableOpacity>
- 
-          {/*   <TouchableOpacity
+              <TouchableOpacity
+                onPress={() => {
+                  //navigation.navigate('EditProfileScreen');
+                  setModalVisible(false);
+                }}
+                style={styles.option}>
+                <MaterialCommunityIcons
+                  name="account-edit"
+                  size={20}
+                  color="#007AFF"
+                />
+                <Text style={styles.linkText}>Edit Profile</Text>
+              </TouchableOpacity>
+
+              {/*   <TouchableOpacity
               onPress={() => {
                 navigation.navigate('ChangePasswordScreen');
                 setModalVisible(false);
@@ -157,21 +169,21 @@ const Header: React.FC<HeaderNavigationProp> = ({ navigation }) => {
               <Text style={styles.linkText}>Change Password</Text>
             </TouchableOpacity> */}
 
-            <TouchableOpacity onPress={handleLogout} style={styles.option}>
-              <MaterialCommunityIcons name="logout" size={20} color="#007AFF" />
-              <Text style={styles.linkText}>Logout</Text>
-            </TouchableOpacity>
-          </View>
-        </Pressable>
-      </Modal>
-    </View>
+              <TouchableOpacity onPress={handleLogout} style={styles.option}>
+                <MaterialCommunityIcons
+                  name="logout"
+                  size={20}
+                  color="#007AFF"
+                />
+                <Text style={styles.linkText}>Logout</Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Modal>
+      </View>
     </>
   );
-
-
 };
-
-
 
 const styles = StyleSheet.create({
   headerContainer: {
@@ -183,18 +195,18 @@ const styles = StyleSheet.create({
   leftContainer: {
     flex: 1,
     top: 2,
-    alignItems: 'flex-start',  
-    justifyContent: 'flex-start', 
-    padding: 10, 
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    padding: 10,
   },
   centerContainer: {
     alignItems: 'center',
   },
   backButton: {
-    position: 'absolute', 
-    left: 10, 
-    top: '50%', 
-    transform: [{ translateY: -12 }], 
+    position: 'absolute',
+    left: 10,
+    top: '50%',
+    transform: [{translateY: -12}],
   },
   rightContainer: {
     flex: 1,
@@ -215,8 +227,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 5,
     fontSize: 16,
-   
-    
   },
   icon: {
     marginLeft: 15,
