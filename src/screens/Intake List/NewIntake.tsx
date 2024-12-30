@@ -539,7 +539,6 @@ const fetchSequence = async () => {
       Alert.alert('An error occurred while submitting. Please try again.');
     }
   };
-  
   const handleapproval = async () => {
     try {
       let currentProjectId = projectId;
@@ -575,8 +574,6 @@ const fetchSequence = async () => {
       Alert.alert('An error occurred while submitting. Please try again.');
     }
   };
-  
-  
   const createSequence = async () => {
     const approvalSequenceDetails = steps.map((step, index) => ({
       sequence_no: index + 1,  // Sequence number based on index

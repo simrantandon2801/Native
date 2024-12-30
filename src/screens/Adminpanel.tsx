@@ -13,7 +13,7 @@ interface GridItem {
 }
 
 const gridData: GridItem[] = [
-  { id: '1', image: AppImages.Frame, text: 'Manage Company', component: 'ManageCompany' },
+  { id: '1', image: AppImages.Frame, text: 'Manage Company', component: 'BudgetDetail' },
   { id: '2', image: AppImages.ManageP, text: 'Manage Departments', component: 'DepartmentList'  },
   { id: '3', image: AppImages.Imtegration, text: 'Manage AD Integration', component: 'ADIntegrationList'  },
   { id: '4', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
