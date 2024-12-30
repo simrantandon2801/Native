@@ -1,34 +1,16 @@
-import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  Image,
-  TextInput,
-  Alert,
-  ActivityIndicator,
-} from 'react-native';
-import {
-  Checkbox,
-  Menu,
-  Provider as PaperProvider,
-  IconButton,
-} from 'react-native-paper';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, TextInput, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { Menu, Provider as PaperProvider, IconButton, DataTable } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import {Picker} from '@react-native-picker/picker';
-import {AppImages} from '../../assets';
-import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
+import { Picker } from '@react-native-picker/picker';
+import { AppImages } from '../../assets';
+import { DeleteGoal, GetGoals, InsertGoal } from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import {GetDept, GetUsers} from '../../database/Departments';
-import {GetProjects} from '../../database/Intake';
-import {ScrollView} from 'react-native-gesture-handler';
-import {useNavigation} from '@react-navigation/native';
-import {navigate} from '../../navigations/RootNavigation';
-// import {useNavigation} from '@react-navigation/native';
-// import ProjectIntakeDetails from './ProjectIntakeDetails';
+import { GetDept, GetUsers } from '../../database/Departments';
+import { GetProjects } from '../../database/Intake';
+import { useNavigation } from '@react-navigation/native';
+import { navigate } from '../../navigations/RootNavigation';
 
 interface CreateNewIntakeModalProps {
   visible: boolean;
@@ -239,71 +221,16 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   );
 };
 
-interface Project {
-  project_id: number;
-  program_id: number;
-  goal_id: number;
-  portfolio_id: number;
-  department_id: number;
-  project_manager_id: number;
-  project_name: string;
-  project_short_name: string;
-  description: string;
-  start_date: string;
-  end_date: string;
-  golive_date: string;
-  priority: number;
-  phase: string;
-  classification: string;
-  initial_budget: number;
-  initial_budget_unit: string;
-  project_owner_user: number;
-  project_owner_dept: number;
-  business_stakeholder_user: number;
-  business_stakeholder_dept: number;
-  impacted_stakeholder_user: number;
-  impacted_stakeholder_dept: number;
-  impacted_applications: number;
-  resource_deployed_percentage: number;
-  created_at: string;
-  updated_at: string;
-  is_active: boolean;
-  customer_id: number;
-  impacted_function: number;
-  project_size: string;
-  budget_size: string;
-  business_desc: string;
-  scope_definition: string;
-  key_assumption: string;
-  benefit_roi: string;
-  risk: string;
-  roi: string;
-  created_by: number;
-  updated_by: number;
-  status: number;
-  status_name: string;
-}
-
-// const navigation = useNavigation();
-
 const IntakeList: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [sortColumn, setSortColumn] = useState('');
   const [isAscending, setIsAscending] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
   const [editGoal, setEditGoal] = useState<any | null>(null);
-  const [headerChecked, setHeaderChecked] = useState(false);
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
 
-  useEffect(() => {
-    setHeaderChecked(checkedItems.size === projects.length);
-  }, [checkedItems, projects]);
-
-  const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
-  const [users, setUsers] = useState<any[]>([]); // State to hold departments
-
-  // Fetch goals
   const fetchProjects = async () => {
     try {
       const response = await GetProjects('');
@@ -322,7 +249,6 @@ const IntakeList: React.FC = () => {
     }
   };
 
-  //   Fetch departments
   const fetchDepartments = async () => {
     try {
       const response = await GetDept('');
@@ -341,12 +267,12 @@ const IntakeList: React.FC = () => {
       Alert.alert('Error', 'Failed to fetch departments');
     }
   };
+
   const handleViewPress = (id: number) => {
     console.log('Navigating with Project ID:', id);
     navigate('IntakeView', {project_id: id});
   };
 
-  //fetch Users
   const fetchUsers = async () => {
     try {
       const response = await GetUsers('');
@@ -376,6 +302,7 @@ const IntakeList: React.FC = () => {
     const department = departments.find(dept => dept.department_id === id);
     return department ? department.department_name : ' ';
   };
+
   const mapIdIdToUser = (id: number) => {
     const user = users.find(user => user.user_id === id);
     return user ? `${user.first_name}${user.last_name}` : ' ';
@@ -394,11 +321,6 @@ const IntakeList: React.FC = () => {
     }
   };
 
-  //   const handleDeletePress = goal_id => {
-  //     console.log(goal_id);
-  //     HandleDeleteGoal(goal_id);
-  //   };
-
   const openModal = (goal = null) => {
     setModalVisible(true);
     setEditGoal(goal);
@@ -408,17 +330,6 @@ const IntakeList: React.FC = () => {
     setModalVisible(false);
     setEditGoal(null);
   };
-  //   const handleSubmit = (newGoal: any) => {
-  //     if (editGoal) {
-  //       setGoalData(prevData =>
-  //         prevData.map(goal =>
-  //           goal.goal_id === editGoal.goal_id ? {...goal, ...newGoal} : goal,
-  //         ),
-  //       );
-  //     } else {
-  //       setGoalData(prevData => [...prevData, newGoal]);
-  //     }
-  //   };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -428,7 +339,7 @@ const IntakeList: React.FC = () => {
       setIsAscending(true);
     }
 
-    setGoalData(prevData =>
+    setProjects(prevData =>
       [...prevData].sort((a, b) => {
         if (a[column] < b[column]) return isAscending ? -1 : 1;
         if (a[column] > b[column]) return isAscending ? 1 : -1;
@@ -444,23 +355,7 @@ const IntakeList: React.FC = () => {
           <Text style={styles.heading}>Intake List</Text>
           <View style={styles.topBar}>
             <View style={styles.leftButtons}>
-              {/* <TouchableOpacity style={styles.button}>
-                <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                <Text style={styles.buttonText6}>Approve</Text>
-              </TouchableOpacity> */}
-              <TouchableOpacity style={styles.button}>
-                <Icon
-                  name="delete"
-                  size={18}
-                  color="#C4C4C4"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.buttonText6}>Delete</Text>
-              </TouchableOpacity>
-              {/* <TouchableOpacity style={styles.button}>
-                <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
-                <Text style={styles.buttonText6}>Export</Text>
-              </TouchableOpacity> */}
+              {/*Removed Delete Button*/}
             </View>
             <View style={styles.centerButtons}>
               <TouchableOpacity
@@ -476,17 +371,8 @@ const IntakeList: React.FC = () => {
                   Create New
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.button}>
-                <Icon
-                  name="table-column-plus-after"
-                  size={18}
-                  color="#044086"
-                  style={styles.buttonIcon}
-                />
-                <Text style={styles.buttonText}>Set Column</Text>
-              </TouchableOpacity>
             </View>
-            <View style={styles.rightButtons}>
+            {/* <View style={styles.rightButtons}>
               <TouchableOpacity style={styles.button}>
                 <Icon
                   name="filter"
@@ -496,186 +382,41 @@ const IntakeList: React.FC = () => {
                 />
                 <Text style={styles.buttonText}>Filter</Text>
               </TouchableOpacity>
-            </View>
+            </View> */}
           </View>
           <View style={styles.tableContainer}>
-            <View style={styles.headerRow}>
-              {[
-                '',
-                'S.No.',
-                'Project ID',
-                'Project Name',
-                'Status',
-                'Project Owner',
-                'Project Manager',
-                'Budget',
-                'Start date',
-                'End date',
-                'Go-Live date',
-                'Requested By',
-                'Requested On',
-                'Actions',
-              ].map((header, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.headerCell,
-                    index === 0
-                      ? {flex: 0.3}
-                      : index === 1
-                      ? {flex: 0.4}
-                      : index === 2
-                      ? {flex: 1}
-                      : index >= 3 && index <= 4
-                      ? {flex: 1.3}
-                      : index >= 5 && index <= 6
-                      ? {flex: 1.5}
-                      : index >= 9 && index <= 10
-                      ? {flex: 1.5}
-                      : {flex: 1},
-                  ]}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    {index === 0 && (
-                      <Checkbox
-                        status={headerChecked ? 'checked' : 'unchecked'}
-                        onPress={() => {
-                          if (headerChecked) {
-                            setCheckedItems(new Set());
-                          } else {
-                            setCheckedItems(
-                              new Set(
-                                projects.map(project =>
-                                  project.project_id.toString(),
-                                ),
-                              ),
-                            );
-                          }
-                        }}
-                      />
-                    )}
-                    <Text
-                      style={{
-                        color: '#757575',
-                        fontFamily: 'Source Sans Pro',
-                        fontSize: 13,
-                        fontStyle: 'normal',
-                        fontWeight: '600',
-                        lineHeight: 22,
-                      }}>
-                      {header}
-                    </Text>
-                    {index > 2 && index < 10 && (
-                      <TouchableOpacity
-                        onPress={() => handleSort(header.toLowerCase())}>
-                        <Image
-                          source={AppImages.Arrow}
-                          style={{
-                            width: 16,
-                            height: 16,
-                            marginLeft: 4,
-                            tintColor:
-                              sortColumn === header.toLowerCase()
-                                ? '#757575'
-                                : '#757575',
-                            transform: [
-                              {
-                                rotate:
-                                  sortColumn === header.toLowerCase() &&
-                                  !isAscending
-                                    ? '180deg'
-                                    : '0deg',
-                              },
-                            ],
-                          }}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {projects.map((project, index) => (
-                <View key={project.project_id} style={styles.row}>
-                  <View style={[styles.cell, {flex: 0.3}]}>
-                    <Checkbox
-                      status={
-                        checkedItems.has(project.project_id.toString())
-                          ? 'checked'
-                          : 'unchecked'
-                      }
-                      onPress={() => {
-                        setCheckedItems(prevChecked => {
-                          const newChecked = new Set(prevChecked);
-                          if (newChecked.has(project.project_id.toString())) {
-                            newChecked.delete(project.project_id.toString());
-                          } else {
-                            newChecked.add(project.project_id.toString());
-                          }
-                          return newChecked;
-                        });
-                      }}
-                    />
-                  </View>
-                  <View style={[styles.cell, {flex: 0.4}]}>
-                    <Text>{index + 1}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>FPX{project.project_id}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text>{project.project_name}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    {/* <Text numberOfLines={1} ellipsizeMode="tail">
-                      {mapDepartmentIdToName(project.project_owner_dept)}
-                    </Text> */}
-                    <Text>{project.status_name}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.budget}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.start_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.end_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.golive_date).toLocaleDateString()}
-                    </Text>
-                  </View>
+            <DataTable>
+              <DataTable.Header>
+                <DataTable.Title>S.No.</DataTable.Title>
+                <DataTable.Title>Project ID</DataTable.Title>
+                <DataTable.Title>Project Name</DataTable.Title>
+                <DataTable.Title>Status</DataTable.Title>
+                <DataTable.Title>Project Owner</DataTable.Title>
+                <DataTable.Title>Project Manager</DataTable.Title>
+                <DataTable.Title>Budget</DataTable.Title>
+                <DataTable.Title>Start date</DataTable.Title>
+                <DataTable.Title>End date</DataTable.Title>
+                <DataTable.Title>Go-Live date</DataTable.Title>
+                <DataTable.Title>Requested By</DataTable.Title>
+                <DataTable.Title>Requested On</DataTable.Title>
+                <DataTable.Title>Actions</DataTable.Title>
+              </DataTable.Header>
 
-                  {/* <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {new Date(project.requested_by_date).toLocaleDateString()}
-                  </Text>
-                </View> */}
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>
-                      {project.created_by_name}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    {new Date(project.created_at).toLocaleDateString()}
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
+              {projects.map((project, index) => (
+                <DataTable.Row key={project.project_id}>
+                  <DataTable.Cell>{index + 1}</DataTable.Cell>
+                  <DataTable.Cell>FPX{project.project_id}</DataTable.Cell>
+                  <DataTable.Cell>{project.project_name}</DataTable.Cell>
+                  <DataTable.Cell>{project.status_name}</DataTable.Cell>
+                  <DataTable.Cell>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
+                  <DataTable.Cell>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
+                  <DataTable.Cell>{project.budget}</DataTable.Cell>
+                  <DataTable.Cell>{new Date(project.start_date).toLocaleDateString()}</DataTable.Cell>
+                  <DataTable.Cell>{new Date(project.end_date).toLocaleDateString()}</DataTable.Cell>
+                  <DataTable.Cell>{new Date(project.golive_date).toLocaleDateString()}</DataTable.Cell>
+                  <DataTable.Cell>{project.created_by_name}</DataTable.Cell>
+                  <DataTable.Cell>{new Date(project.created_at).toLocaleDateString()}</DataTable.Cell>
+                  <DataTable.Cell>
                     <Menu
                       visible={project.menuVisible}
                       onDismiss={() => {
@@ -716,25 +457,18 @@ const IntakeList: React.FC = () => {
                         top: project.menuY ? project.menuY - 80 : 0,
                       }}>
                       <Menu.Item
-                        onPress={() => {
-                          console.log(
-                            'Project ID in onPress:',
-                            project.project_id,
-                          ); // Debugging log
-                          handleViewPress(project.project_id); // Call the function with the project ID
-                        }}
+                        onPress={() => handleViewPress(project.project_id)}
                         title="View"
                       />
                       <Menu.Item
-                        onPress={() => handleDeletePress(project.project_id)}
+                        onPress={() => HandleDeleteGoal(project.project_id)}
                         title="Edit"
                       />
-                      {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
                     </Menu>
-                  </View>
-                </View>
+                  </DataTable.Cell>
+                </DataTable.Row>
               ))}
-            </ScrollView>
+            </DataTable>
           </View>
 
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
@@ -743,7 +477,7 @@ const IntakeList: React.FC = () => {
       <CreateNewIntakeModal
         visible={modalVisible}
         onClose={closeModal}
-        // onSubmit={handleSubmit}
+        onSubmit={() => {}}
         editGoal={editGoal}
       />
     </PaperProvider>
@@ -753,7 +487,7 @@ const IntakeList: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    // padding: 10,
     width: '100%',
   },
   contentWrapper: {
@@ -775,7 +509,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
     width: '100%',
@@ -785,10 +519,12 @@ const styles = StyleSheet.create({
   },
   centerButtons: {
     flexDirection: 'row',
-    marginRight: 176,
+    justifyContent:'center'
+   
   },
   rightButtons: {
     flexDirection: 'row',
+    justifyContent:'center'
   },
   button: {
     flexDirection: 'row',
@@ -801,56 +537,13 @@ const styles = StyleSheet.create({
     color: '#044086',
     fontSize: 14,
   },
-  buttonText6: {
-    color: '#C4C4C4',
-  },
   buttonIcon: {
     marginRight: 5,
   },
   tableContainer: {
     flex: 1,
     width: '100%',
-    overflow: 'hidden',
     backgroundColor: '#fff',
-  },
-  headerRow: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
-    paddingVertical: 8,
-    backgroundColor: '#f5f5f5',
-    color: '#757575',
-    textAlign: 'center',
-    fontFamily: 'Source Sans Pro',
-    fontSize: 14,
-    fontStyle: 'normal',
-    fontWeight: '600',
-    lineHeight: 22,
-  },
-  headerCell: {
-    fontWeight: 'bold',
-    fontSize: 12,
-    paddingHorizontal: 2, // Reduce horizontal padding
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  row: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: 'transparent',
-    paddingVertical: 6,
-  },
-  cell: {
-    fontSize: 12,
-    paddingHorizontal: 2, // Reduce horizontal padding
-    textAlign: 'left',
-    alignItems: 'center',
-    justifyContent: 'center',
-    display: 'flex',
-  },
-  actionCell: {
-    justifyContent: 'center',
-    padding: 0,
   },
   centeredView: {
     flex: 1,
@@ -938,3 +631,4 @@ const styles = StyleSheet.create({
 });
 
 export default IntakeList;
+

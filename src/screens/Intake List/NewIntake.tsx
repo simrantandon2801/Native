@@ -74,7 +74,7 @@ const NewIntake = () => {
   const [risk, setRisk] = useState('');
   const [budgetImpact, setBudgetImpact] = useState('');
   const [isDraftSaved, setIsDraftSaved] = useState(false);
-  const [isApprovalSubmit, setIsApprovalSubmit] = useState(false);
+  const [isapprovalSubmitOpen, setIsapprovalSubmitopen] = useState(false);
 
   const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
@@ -571,7 +571,7 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          setIsApprovalSubmit(true);
+          setIsapprovalSubmitopen(true);
 
        
           setIsPopupVisible(false); 
@@ -1342,8 +1342,8 @@ const fetchSequence = async () => {
       <Modal
         animationType="fade"
         transparent={true}
-        visible={isApprovalSubmit}
-        onRequestClose={() => setIsApprovalSubmit(false)}
+        visible={isapprovalSubmitOpen}
+        onRequestClose={() => setIsapprovalSubmitopen(false)}
       >
         <View style={styles.centeredViewd}>
           <View style={styles.modalViewd}>
@@ -1526,9 +1526,9 @@ const fetchSequence = async () => {
             <Text style={styles.modalTexts}>{SubmitpopupMessage}</Text>
             <TouchableOpacity
               style={styles.closeButtons}
-              onPress={() => setIsPopupVisible(false)}
+              onPress={() => setIsSubmitPopupVisible(false)}
             >
-      
+        <Icon name="close" size={16} color="black" />
             </TouchableOpacity>
           </View>
         </View>
