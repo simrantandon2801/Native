@@ -51,6 +51,7 @@ const NewIntake = () => {
   const [endDate, setEndDate] = useState('');
   //const [endDate, setEndDate] = useState<Date | null>(null);
   const [goLiveDate, setGoLiveDate] = useState('');
+  const [BudgetmodalVisible, setBudgetModalVisible] = useState(false)
   const [businessProblem, setBusinessProblem] = useState('');
   const [scopeDefinition, setScopeDefinition] = useState('');
   const [keyAssumption, setKeyAssumption] = useState('');
@@ -124,6 +125,14 @@ const NewIntake = () => {
     setModalText('Sending for Review');
     setIsPopupVisible(true); 
   };
+  const getBudgetText = (value) => {
+    switch(value) {
+      case "1": return "High"
+      case "2": return "Medium" 
+      case "3": return "Low"
+      default: return ""
+    }
+  }
   const [isNewButtonVisible, setIsNewButtonVisible] = useState(false);
 /*   const addStep = () => {
     setSteps((prevSteps) => [
@@ -407,7 +416,9 @@ const fetchSequence = async () => {
   
       if (parsedResponse.status === 'success') {
         setIsDraftSaved(true);
-      
+        setTimeout(() => {
+          setIsDraftSaved(false);
+        }, 2000);
         const projectId = parsedResponse.data.project_id;
       console.log('Project ID:', projectId);
 
@@ -997,20 +1008,51 @@ const fetchSequence = async () => {
 
             </View>
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={budget}
-                onValueChange={(value) => setBudget(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Budget" value="" />
-                <Picker.Item label="High" value="1" />
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Low" value="3" />
-              </Picker>
-              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
+      <Text style={styles.inputLabel}>
+        Actual Budget<Text style={styles.asterisk}>*</Text>
+      </Text>
 
+        {/* disbale input box */}
+      <TextInput
+        style={[styles.input, { backgroundColor: '#f0f0f0' }]}
+        value={getBudgetText(budget)}
+        editable={false}
+        placeholder="Select Budget"
+      />
+
+    
+      <TouchableOpacity onPress={() => setBudgetModalVisible(true)}>
+        <Text style={styles.detailText}>Detail</Text>
+      </TouchableOpacity>
+
+    
+      {touched.budget && errors.budget && (
+        <Text style={{color:'red'}}>{errors.budget}</Text>
+      )}
+
+    {/* Budget Modal  */}
+    
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={BudgetmodalVisible}
+        onRequestClose={() => setBudgetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+        
+            <View style={styles.modalHeaderB}>
+              <TouchableOpacity 
+                onPress={() => setBudgetModalVisible(false)}
+                style={styles.closeButtonB}
+              >
+                <Text>✕</Text>
+              </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Go Live Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
@@ -2243,6 +2285,39 @@ const styles = StyleSheet.create({
       fontWeight: 'bold',
       textAlign: 'center',
     },
+    detailText: {
+      marginTop: 4,
+      color: '#044086',
+     
+    },
+    modalHeaderB: {
+      alignItems: 'flex-end',
+      marginBottom: 16,
+    },
+    closeButtonB: {
+      padding: 8,
+    },
+    budgetOptions: {
+      marginBottom: 16,
+    },
+    budgetOption: {
+      padding: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#eee',
+    },
+    detailsContainer: {
+      padding: 16,
+    },
+    detailsTitle: {
+      fontSize: 16,
+      marginBottom: 12,
+    },
+    detailItem: {
+      marginBottom: 8,
+    },
+    detailItemTitle: {
+      fontWeight: 'bold',
+    }
   });
   
   

@@ -452,7 +452,7 @@ const IntakeList: React.FC = () => {
                       }
                       style={{
                      
-                        left:screenWidth-380,
+                        left:screenWidth-390,
                          top: 150,
                        }}>
                       <Menu.Item
