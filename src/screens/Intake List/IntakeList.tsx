@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, TextInput, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, TextInput, Alert, ActivityIndicator, ScrollView ,useWindowDimensions} from 'react-native';
 import { Menu, Provider as PaperProvider, IconButton, DataTable } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Picker } from '@react-native-picker/picker';
@@ -106,7 +106,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
     setSelectedStakeholder(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
   };
-
+  const { width: screenWidth } = useWindowDimensions();
   return (
     <Modal
       animationType="fade"
@@ -347,7 +347,7 @@ const IntakeList: React.FC = () => {
       }),
     );
   };
-
+  const { width: screenWidth } = useWindowDimensions();
   return (
     <PaperProvider>
       <View style={styles.container}>
@@ -451,11 +451,10 @@ const IntakeList: React.FC = () => {
                         </TouchableOpacity>
                       }
                       style={{
-                        position: 'absolute',
-                        zIndex: 1000,
-                        left: project.menuX ? project.menuX - 150 : 0,
-                        top: project.menuY ? project.menuY - 80 : 0,
-                      }}>
+                     
+                        left:screenWidth-380,
+                         top: 150,
+                       }}>
                       <Menu.Item
                         onPress={() => handleViewPress(project.project_id)}
                         title="View"

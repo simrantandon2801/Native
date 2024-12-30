@@ -451,6 +451,7 @@ const ManageGoals: React.FC = () => {
                         );
                         setGoalData(updatedGoalData);
                       }}
+                      
                       anchor={
                         <TouchableOpacity
                           onPress={event => {
@@ -473,15 +474,14 @@ const ManageGoals: React.FC = () => {
                             style={{margin: 0, padding: 0}}
                           />
                         </TouchableOpacity>
-                      } style={{
-                       
-                        left: screenWidth - 265,
-                       
-                      
+                      }
+                      style={{
+                     
+                       left:screenWidth-390,
+                        top: 150,
                       }}
                     >
-                      <Menu.Item onPress={() => openModal(goal)} title="Edit" 
-                        />
+                      <Menu.Item onPress={() => openModal(goal)} title="Edit" />
                       <Menu.Item
                         onPress={() => handleDeletePress(goal.goal_id)}
                         title="Delete"

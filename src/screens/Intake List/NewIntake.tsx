@@ -407,9 +407,7 @@ const fetchSequence = async () => {
   
       if (parsedResponse.status === 'success') {
         setIsDraftSaved(true);
-        setTimeout(() => {
-          setIsDraftSaved(false);
-        }, 2000);
+      
         const projectId = parsedResponse.data.project_id;
       console.log('Project ID:', projectId);
 
