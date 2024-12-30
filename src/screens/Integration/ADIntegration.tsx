@@ -227,7 +227,7 @@ const ADIntegration = ({ onClose }) => {
                 {/* Close Button */}
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={closeModal}>
+                  onPress={onClose}>
                   <Text style={styles.submitButtonText}>Close</Text>
                 </TouchableOpacity>
               </View>
