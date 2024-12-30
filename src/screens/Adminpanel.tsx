@@ -79,9 +79,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   card: {
-    width: 200, // Adjust this value to control card width and spacing
-    aspectRatio: 1.25, // This will make the height 80% of the width
-    margin: '1.5%', // This adds space between cards
+    width: 200, 
+    aspectRatio: 1.25, 
+    margin: '1.5%', 
     backgroundColor: '#FFFFFF',
     borderRadius: 5,
     shadowColor: '#000',
