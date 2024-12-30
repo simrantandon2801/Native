@@ -55,6 +55,7 @@ const approvalHistory: ApprovalItem[] = [
 ];
 
 const IntakeView: React.FC = () => {
+    const [formIsEditable, setFormIsEditable] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const route = useRoute();
   const {project_id, isEditable} = route.params as {
@@ -63,10 +64,13 @@ const IntakeView: React.FC = () => {
   };
   console.log('Project ID from route:', project_id);
   console.log('Is editabe from route:', isEditable);
-
+  const resetStates = () => {
+    setFormIsEditable(false);
+    // Add any other state resets here if needed
+  };
   return (
     <View style={styles.container}>
-      <Header />
+      <Header resetStates={resetStates} />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'history' && <ApprovalHistory items={approvalHistory} />}
       {activeTab === 'details' && (
@@ -80,11 +84,14 @@ const IntakeView: React.FC = () => {
   );
 };
 
-const Header: React.FC = () => (
+const Header: React.FC<{ resetStates: () => void }> = ({ resetStates }) => (
   <View style={styles.header}>
     <TouchableOpacity
       style={styles.backButton}
-      onPress={() => navigate('IntakeList')}>
+      onPress={() => {
+        resetStates();
+      navigate('IntakeList')
+    }}>
       <Icon name="arrow-left" size={24} color="black" />
     </TouchableOpacity>
     <Text style={styles.projectName}>Go back to Intake Lists</Text>
@@ -254,6 +261,33 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
   const [steps, setSteps] = useState([
     {id: 1, forwardTo: '', designation: '', action: ''},
   ]);
+  const resetStates = () => {
+    //setActiveTab('details');
+    setFormIsEditable(false);
+    setClassification('');
+    setGoal('');
+    setProgram('');
+    setBusinessOwner('');
+    setBusinessOwnerDept(-1);
+    setProjectOwner('');
+    setProjectOwnerDept(-1);
+    setProjectManager('');
+    setImpactedFunction('');
+    setImpactedApp('');
+    setPriority('');
+    setBudget('');
+    setProjectSize('');
+    setStartDate('');
+    setEndDate('');
+    setGoLiveDate('');
+    setBusinessProblem('');
+    setScopeDefinition('');
+    setKeyAssumption('');
+    setBenefitsROI('');
+    setProjectDrivers('');
+    setIsChecked(false);
+    setSteps([{ id: 1, forwardTo: '', designation: '', action: '' }]);
+  };
   const [sequence, setSequence] = useState([]);
   const [users, setUsers] = useState([]);
   const [formIsEditable, setFormIsEditable] = useState(isEditable);
