@@ -155,10 +155,10 @@ const ImpactedApplications = () => {
             <Text style={[styles.actionText, { color: '#044086' }]}>Add Applications</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
+        {/* <TouchableOpacity style={[styles.actionButton, styles.rightAction]}>
           <IconButton icon="filter" size={16} />
           <Text style={[styles.actionText, {color: '#344054'}]}>Filters</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <DataTable>
         <DataTable.Header>
@@ -192,7 +192,7 @@ const ImpactedApplications = () => {
                     </TouchableOpacity>
                   }>
                   <Menu.Item onPress={() => openModal(application)} title="Edit" />
-                  <Menu.Item onPress={() => handleDeleteApplication(application.application_id)} title="Delete" />
+                  {/* <Menu.Item onPress={() => handleDeleteApplication(application.application_id)} title="Delete" /> */}
                 </Menu>
               </DataTable.Cell>
             </DataTable.Row>
