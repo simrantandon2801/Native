@@ -343,7 +343,11 @@ const IntakeList: React.FC = () => {
   };
   const handleViewPress = (id: number) => {
     console.log('Navigating with Project ID:', id);
-    navigate('IntakeView', {project_id: id});
+    navigate('IntakeView', { project_id: id, isEditable: false });
+  };
+  const handleEditPress = (id: number) => {
+    console.log('Navigating with Project ID:', id);
+    navigate('IntakeView', { project_id: id, isEditable: true });
   };
 
   //fetch Users
@@ -599,6 +603,7 @@ const IntakeList: React.FC = () => {
                 </View>
               ))}
             </View>
+            {/*Row items start */}
             <ScrollView showsVerticalScrollIndicator={false}>
               {projects.map((project, index) => (
                 <View key={project.project_id} style={styles.row}>
@@ -726,7 +731,7 @@ const IntakeList: React.FC = () => {
                         title="View"
                       />
                       <Menu.Item
-                        onPress={() => handleDeletePress(project.project_id)}
+                        onPress={() => handleEditPress(project.project_id)}
                         title="Edit"
                       />
                       {/* <Menu.Item onPress={() => {}} title="Reject" /> */}

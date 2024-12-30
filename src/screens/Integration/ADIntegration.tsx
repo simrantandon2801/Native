@@ -18,7 +18,7 @@ export type HomeStackNavigatorParamList = {
 
 type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
-const ADIntegration = ({ closeModal }) => {
+const ADIntegration = ({ onClose }) => {
   const deviceWidth = Dimensions.get('window').width;
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
@@ -50,8 +50,10 @@ const ADIntegration = ({ closeModal }) => {
     try {
     const response = await AddADForCustomer(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success')
+      if (parsedRes.status === 'success'){
         console.log('AD Added succesfully');
+      onClose();
+      }
       else
         console.error(
           'Failed',

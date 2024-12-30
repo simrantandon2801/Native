@@ -50,6 +50,8 @@ import NewIntake from '../screens/Intake List/NewIntake';
 import IntakeView from '../screens/Intake List/IntakeView';
 import IntakeList from '../screens/Intake List/IntakeList';
 import IntakeApproval from '../screens/Intake List/IntakeApproval';
+import ImpactedApps from '../screens/ImpactedApps';
+import IntakeApprovalView from '../screens/Intake List/IntakeApprovalView';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -311,6 +313,8 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="NewIntake" component={NewIntake} />
           <Drawer.Screen name="IntakeApproval" component={IntakeApproval} />
           <Drawer.Screen name="IntakeView" component={IntakeView} />
+          <Drawer.Screen name="ImpactedApps" component={ImpactedApps} />
+          <Drawer.Screen name="IntakeApprovalView" component={IntakeApprovalView} />
         
           {dynamicModules.map((module) => (
             <Drawer.Screen

@@ -211,7 +211,7 @@ const closeModal = () => {
         animationType="none"
         transparent={true}
         onRequestClose={() => {
-          setIsModalVisible(false)
+          setIsModalVisible(false);
         }}
       >
          {/* <ScrollView
@@ -251,7 +251,7 @@ const closeModal = () => {
             </View>
           </View>
         </View> */}
-        <ADIntegration closeModal={closeModal}/>
+        <ADIntegration onClose={closeModal}/>
         {/* </View>
         </View>
         </ScrollView> */}

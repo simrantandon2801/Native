@@ -1,8 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, SafeAreaView, Modal, TextInput } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  SafeAreaView,
+  Modal,
+  TextInput,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { GetHistory, GetProjects, GetSequence } from '../../database/Intake';
-import {format} from 'date-fns'
+import {GetHistory, GetProjects, GetSequence} from '../../database/Intake';
+import {format} from 'date-fns';
+import {RadioButton} from 'react-native-paper';
+import {navigate} from '../../navigations/RootNavigation';
+
 type TabType = 'details' | 'history';
 
 interface ApprovalItem {
@@ -11,47 +24,57 @@ interface ApprovalItem {
   actionTakenBy: string;
   comments: string;
 }
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { GetUsers } from '../../database/Departments';
-import { GetPrograms } from '../../database/ManageProgram';
-import { GetGoals } from '../../database/Goals';
-import { Picker } from '@react-native-picker/picker';
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {GetUsers} from '../../database/Departments';
+import {GetPrograms} from '../../database/ManageProgram';
+import {GetGoals} from '../../database/Goals';
+import {Picker} from '@react-native-picker/picker';
 import NestedDeptDropdownProjects from '../../modals/NestedDropdownProjects';
-import { RadioButton } from 'react-native-paper';
 const approvalHistory: ApprovalItem[] = [
   {
     date: '13/04/2023',
     actionTaken: 'Approved',
     actionTakenBy: 'John Smith',
-    comments: 'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
+    comments:
+      'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
   },
   {
     date: '12/04/2023',
     actionTaken: 'Rejected',
     actionTakenBy: 'Stuart J.',
-    comments: 'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
+    comments:
+      'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
   },
   {
     date: '11/04/2023',
     actionTaken: 'Rejected',
     actionTakenBy: 'Andrews Smith',
-    comments: 'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
+    comments:
+      'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
   },
 ];
 
 const IntakeView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const route = useRoute();
-  const { project_id } = route.params as { project_id: number };
-
+  const {project_id, isEditable} = route.params as {
+    project_id: number;
+    isEditable: boolean;
+  };
   console.log('Project ID from route:', project_id);
+  console.log('Is editabe from route:', isEditable);
+
   return (
     <View style={styles.container}>
       <Header />
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'history' && <ApprovalHistory items={approvalHistory} />}
       {activeTab === 'details' && (
-        <ProjectDetails items={approvalHistory} projectId={project_id} />
+        <ProjectDetails
+          items={approvalHistory}
+          projectId={project_id}
+          isEditable={isEditable}
+        />
       )}
     </View>
   );
@@ -59,10 +82,12 @@ const IntakeView: React.FC = () => {
 
 const Header: React.FC = () => (
   <View style={styles.header}>
-    <TouchableOpacity style={styles.backButton}>
+    <TouchableOpacity
+      style={styles.backButton}
+      onPress={() => navigate('IntakeList')}>
       <Icon name="arrow-left" size={24} color="black" />
     </TouchableOpacity>
-    <Text style={styles.projectName}>Project Name</Text>
+    <Text style={styles.projectName}>Go back to Intake Lists</Text>
   </View>
 );
 
@@ -71,18 +96,16 @@ interface TabsProps {
   setActiveTab: (tab: TabType) => void;
 }
 
-const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => (
+const Tabs: React.FC<TabsProps> = ({activeTab, setActiveTab}) => (
   <View style={styles.tabContainer}>
     <TouchableOpacity
       style={[styles.tab, activeTab === 'details' && styles.activeTab]}
-      onPress={() => setActiveTab('details')}
-    >
+      onPress={() => setActiveTab('details')}>
       <Text style={styles.tabText}>Project Intake Details</Text>
     </TouchableOpacity>
     <TouchableOpacity
       style={[styles.tab, activeTab === 'history' && styles.activeTab]}
-      onPress={() => setActiveTab('history')}
-    >
+      onPress={() => setActiveTab('history')}>
       <Text style={styles.tabText}>Approval History</Text>
     </TouchableOpacity>
   </View>
@@ -92,425 +115,425 @@ interface ApprovalHistoryProps {
   items: ApprovalItem[];
 }
 const ApprovalHistory: React.FC = () => {
-    const route = useRoute();
-  const { project_id } = route.params as { project_id: number };
-    const [historyData, setHistoryData] = useState<any[]>([]); // Store fetched data
-    const [loading, setLoading] = useState<boolean>(true); // Track loading state
-    const [error, setError] = useState<string>(''); // Handle any errors
-  
-    // GetHistory function to fetch data
-    const fetchHistory = async () => {
-      const projectId = project_id;  // Static project_id
-  
-      try {
-        // Include project_id in the request payload
-        const response = await GetHistory({ project_id: projectId });  // Adjust according to your API's requirements
-  
-        const result = JSON.parse(response);
-        if (result?.status === "success" && Array.isArray(result.data)) {
-          setHistoryData(result.data);
-        } else {
-          console.error("Invalid history data");
-          Alert.alert("Error", "Invalid history data received");
-        }
-      } catch (error) {
-        console.error("Error fetching history:", error);
-        setError("Failed to load history data");
-      } finally {
-        setLoading(false);
+  const route = useRoute();
+  const {project_id} = route.params as {project_id: number};
+  const [historyData, setHistoryData] = useState<any[]>([]); // Store fetched data
+  const [loading, setLoading] = useState<boolean>(true); // Track loading state
+  const [error, setError] = useState<string>(''); // Handle any errors
+
+  // GetHistory function to fetch data
+  const fetchHistory = async () => {
+    const projectId = project_id; // Static project_id
+
+    try {
+      // Include project_id in the request payload
+      const response = await GetHistory({project_id: projectId}); // Adjust according to your API's requirements
+
+      const result = JSON.parse(response);
+      if (result?.status === 'success' && Array.isArray(result.data)) {
+        setHistoryData(result.data);
+      } else {
+        console.error('Invalid history data');
+        Alert.alert('Error', 'Invalid history data received');
       }
-    };
-  
-    // Fetch the data when the component mounts
-    useEffect(() => {
-      fetchHistory();
-    }, []);
-  
-    if (loading) {
-      return <Text>Loading...</Text>;
+    } catch (error) {
+      console.error('Error fetching history:', error);
+      setError('Failed to load history data');
+    } finally {
+      setLoading(false);
     }
-  
-    if (error) {
-      return <Text>{error}</Text>;
-    }
-  
-    return (
-      <ScrollView>
-        {/* Header row for Approval History */}
-        <View style={styles.historyHeader}>
-          <Text style={[styles.columnHeader, { flex: 2 }]}>Project Name</Text>
-          <Text style={[styles.columnHeader, { flex: 1 }]}>Date</Text>
-          <Text style={[styles.columnHeader, { flex: 2 }]}>Status</Text>
-          <Text style={[styles.columnHeader, { flex: 2 }]}>Sent to</Text>
-          <Text style={[styles.columnHeader, { flex: 4 }]}>Comments</Text>
-        </View>
-  
-        {historyData.map((project, index) => (
-          <View key={index} style={styles.projectContainer}>
-            {/* Render project-level details for each sequence */}
-            {project.sequences.map((sequence: any, seqIndex: number) => (
-              <View key={seqIndex} style={styles.sequenceContainer}>
-                {/* Render project-level details for each sequence */}
-                <Text style={[styles.cellText, { flex: 2 }]}>
-                  {project.project_name}
-                </Text>
-                <Text style={[styles.cellText, { flex: 1 }]}>
-                  {new Date(project.project_intake_date).toLocaleDateString()}
-                </Text>
-  
-                {/* Render sequence-specific data */}
-                <Text style={[styles.cellText, { flex: 2 },{paddingRight:10}]}>
-                  {sequence.user_status_name || 'No Action Taken'}
-                </Text>
-                <Text style={[styles.cellText, { flex: 2 }]}>
-                  {sequence.user_name || 'No user assigned'}
-                </Text>
-                <Text style={[styles.commentCell, { flex: 4 }]}>
-                  {sequence.comment || 'No comments'}
-                </Text>
-  
-               {/*  <TouchableOpacity style={styles.actionButton}>
+  };
+
+  // Fetch the data when the component mounts
+  useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  if (loading) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (error) {
+    return <Text>{error}</Text>;
+  }
+
+  return (
+    <ScrollView>
+      {/* Header row for Approval History */}
+      <View style={styles.historyHeader}>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Project Name</Text>
+        <Text style={[styles.columnHeader, {flex: 1}]}>Date</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Status</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Sent to</Text>
+        <Text style={[styles.columnHeader, {flex: 4}]}>Comments</Text>
+      </View>
+
+      {historyData.map((project, index) => (
+        <View key={index} style={styles.projectContainer}>
+          {/* Render project-level details for each sequence */}
+          {project.sequences.map((sequence: any, seqIndex: number) => (
+            <View key={seqIndex} style={styles.sequenceContainer}>
+              {/* Render project-level details for each sequence */}
+              <Text style={[styles.cellText, {flex: 2}]}>
+                {project.project_name}
+              </Text>
+              <Text style={[styles.cellText, {flex: 1}]}>
+                {new Date(project.project_intake_date).toLocaleDateString()}
+              </Text>
+
+              {/* Render sequence-specific data */}
+              <Text style={[styles.cellText, {flex: 2}, {paddingRight: 10}]}>
+                {sequence.user_status_name || 'No Action Taken'}
+              </Text>
+              <Text style={[styles.cellText, {flex: 2}]}>
+                {sequence.user_name || 'No user assigned'}
+              </Text>
+              <Text style={[styles.commentCell, {flex: 4}]}>
+                {sequence.comment || 'No comments'}
+              </Text>
+
+              {/*  <TouchableOpacity style={styles.actionButton}>
                   <Icon name="dots-vertical" size={24} color="black" />
                 </TouchableOpacity> */}
-              </View>
-            ))}
-          </View>
-        ))}
-      </ScrollView>
-    );
-  };
-  
-  
+            </View>
+          ))}
+        </View>
+      ))}
+    </ScrollView>
+  );
+};
 
-  const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
-    items,
-    projectId
-  }) => {
-    const navigation = useNavigation();
-    const [project, setProject] = useState<Project | null>(null);
-    //-------------------------------------------Rushil's Code and States var new INtake------------------------------
-    const [nameTitle, setNameTitle] = useState('');
-    const [classification, setClassification] = useState('');
-    const [goal, setGoal] = useState('');
-    const [program, setProgram] = useState('');
-    const [businessOwner, setBusinessOwner] = useState('');
-    const [businessOwnerDept, setBusinessOwnerDept] = useState<number>(-1);
-    const [projectOwner, setProjectOwner] = useState('');
-    const [projectOwnerDept, setProjectOwnerDept] = useState<number>(-1);
-    const [projectManager, setProjectManager] = useState('');
-    const [impactedFunction, setImpactedFunction] = useState('');
-    const [impactedApp, setImpactedApp] = useState('');
-    const [priority, setPriority] = useState('');
-    const [budget, setBudget] = useState('');
-    const [projectSize, setProjectSize] = useState('');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [goLiveDate, setGoLiveDate] = useState('');
-    const [businessProblem, setBusinessProblem] = useState('');
-    const [scopeDefinition, setScopeDefinition] = useState('');
-    const [keyAssumption, setKeyAssumption] = useState('');
-    const [benefitsROI, setBenefitsROI] = useState('');
-    const [projectDrivers, setProjectDrivers] = useState('');
-    const [isChecked, setIsChecked] = useState(false);
-    const [isPopupVisible, setIsPopupVisible] = useState(false);
-    const [selectedOption, setSelectedOption] = useState('');
-    const [approvalPath, setApprovalPath] = useState('');
-    const [approvalPathid, setApprovalPathid] = useState('');
-    const [goals, setGoals] = useState([]);
-    const [goalSelected, setGoalSelected] = useState('');
-    const [programData, setProgramData] = useState([]);
-    const [businessData, setBusinessData] = useState([]);
-    const [projectData, setProjectData] = useState([]);
-    const [projectMgr, setprojectMgr] = useState([]);
-    const [roi, setRoi] = useState('');
-    const [risk, setRisk] = useState('');
-    const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-    const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
-    const [designation, setDesignation] = useState('');
-    const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
-    const [action, setAction] = useState('');
-    const [steps, setSteps] = useState([
-      {id: 1, forwardTo: '', designation: '', action: ''},
-    ]);
-    const [sequence, setSequence] = useState([]);
-    const [users, setUsers] = useState([]);
-    const [formIsEditable, setFormIsEditable] = useState(false);
-    /* 
+const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
+  items,
+  projectId,
+  isEditable,
+}) => {
+  const navigation = useNavigation();
+  const [project, setProject] = useState<Project | null>(null);
+  //-------------------------------------------Rushil's Code and States var new INtake------------------------------
+  const [nameTitle, setNameTitle] = useState('');
+  const [classification, setClassification] = useState('');
+  const [goal, setGoal] = useState('');
+  const [program, setProgram] = useState('');
+  const [businessOwner, setBusinessOwner] = useState('');
+  const [businessOwnerDept, setBusinessOwnerDept] = useState<number>(-1);
+  const [projectOwner, setProjectOwner] = useState('');
+  const [projectOwnerDept, setProjectOwnerDept] = useState<number>(-1);
+  const [projectManager, setProjectManager] = useState('');
+  const [impactedFunction, setImpactedFunction] = useState('');
+  const [impactedApp, setImpactedApp] = useState('');
+  const [priority, setPriority] = useState('');
+  const [budget, setBudget] = useState('');
+  const [projectSize, setProjectSize] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [goLiveDate, setGoLiveDate] = useState('');
+  const [businessProblem, setBusinessProblem] = useState('');
+  const [scopeDefinition, setScopeDefinition] = useState('');
+  const [keyAssumption, setKeyAssumption] = useState('');
+  const [benefitsROI, setBenefitsROI] = useState('');
+  const [projectDrivers, setProjectDrivers] = useState('');
+  const [isChecked, setIsChecked] = useState(false);
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [selectedOption, setSelectedOption] = useState('');
+  const [approvalPath, setApprovalPath] = useState('');
+  const [approvalPathid, setApprovalPathid] = useState('');
+  const [goals, setGoals] = useState([]);
+  const [goalSelected, setGoalSelected] = useState('');
+  const [programData, setProgramData] = useState([]);
+  const [businessData, setBusinessData] = useState([]);
+  const [projectData, setProjectData] = useState([]);
+  const [projectMgr, setprojectMgr] = useState([]);
+  const [roi, setRoi] = useState('');
+  const [risk, setRisk] = useState('');
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
+  const [designation, setDesignation] = useState('');
+  const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
+  const [action, setAction] = useState('');
+  const [steps, setSteps] = useState([
+    {id: 1, forwardTo: '', designation: '', action: ''},
+  ]);
+  const [sequence, setSequence] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [formIsEditable, setFormIsEditable] = useState(isEditable);
+  /* 
      const addStep = () => {
        setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
      }; */
-  
-    const removeStep = id => {
-      if (steps.length > 1) {
-        const newSteps = steps
-          .filter(step => step.id !== id)
-          .map((step, index) => ({
-            ...step,
-            id: index + 1,
-          }));
-        setSteps(newSteps);
-      }
-    };
-    const [isCreatingSequence, setIsCreatingSequence] = useState(false);
-  
-    useEffect(() => {
-      const fetchGoals = async () => {
-        try {
-          const response = await GetGoals('');
-          const result = JSON.parse(response);
-          if (result?.data?.goals && Array.isArray(result.data.goals)) {
-            setGoals(result.data.goals);
-          } else {
-            console.error('Invalid goals data');
-            Alert.alert('Error', 'Invalid goals data received');
-          }
-        } catch (error) {
-          console.error('Error fetching goals:', error);
-          //setGoals([]);
-        }
-      };
-      const fetchPrograms = async () => {
-        try {
-          const response = await GetPrograms('');
-          const result = JSON.parse(response);
-          if (
-            result?.status === 'success' &&
-            Array.isArray(result?.data?.programs)
-          ) {
-            setProgramData(result.data.programs);
-            console.log('Fetched Programs:', result.data.programs);
-          } else {
-            console.error('Invalid programs data');
-            Alert.alert('Error', 'Invalid goals data received');
-          }
-        } catch (error) {
-          console.error('Error fetching Programs:', error);
-          //setGoals([]);
-        }
-      };
-  
-      const fetchBusinessOwner = async () => {
-        try {
-          const response = await GetUsers('');
-          console.log('Raw Response:', response);
-          const result = JSON.parse(response);
-  
-          if (
-            result?.status === 'success' &&
-            Array.isArray(result?.data?.users)
-          ) {
-            setBusinessData(result.data.users);
-            console.log('Fetched Business Owners:', result.data.users);
-          } else {
-            console.error('Invalid users data structure');
-            Alert.alert('Error', 'Invalid business owner data received');
-          }
-        } catch (error) {
-          console.error('Error fetching Business Owners:', error);
-          Alert.alert(
-            'Error',
-            'Failed to fetch business owners. Please try again later.',
-          );
-        }
-      };
-  
-      const fetchProjectOwner = async () => {
-        try {
-          const response = await GetUsers('');
-          console.log('Raw Response:', response);
-          const result = JSON.parse(response);
-  
-          if (
-            result?.status === 'success' &&
-            Array.isArray(result?.data?.users)
-          ) {
-            setProjectData(result.data.users);
-            console.log('Fetched Project Owners:', result.data.users);
-          } else {
-            console.error('Invalid Project data structure');
-            Alert.alert('Error', 'Invalid Project owner data received');
-          }
-        } catch (error) {
-          console.error('Error fetching Project Owners:', error);
-          Alert.alert(
-            'Error',
-            'Failed to fetch Project owners. Please try again later.',
-          );
-        }
-      };
-      const fetchProjectManager = async () => {
-        try {
-          const response = await GetUsers('');
-          console.log('Raw Response:', response);
-          const result = JSON.parse(response);
-  
-          if (
-            result?.status === 'success' &&
-            Array.isArray(result?.data?.users)
-          ) {
-            setprojectMgr(result.data.users);
-            console.log('Fetched Project Manager:', result.data.users);
-          } else {
-            console.error('Invalid users data structure');
-            Alert.alert('Error', 'Invalid business owner data received');
-          }
-        } catch (error) {
-          console.error('Error fetching Project Manager:', error);
-          Alert.alert(
-            'Error',
-            'Failed to fetch Project Manager. Please try again later.',
-          );
-        }
-      };
-  
-      const fetchSequence = async () => {
-        try {
-          const response = await GetSequence('');
-          const result = JSON.parse(response);
-  
-          // Ensure the response format is correct and contains data
-          if (
-            result?.status === 'success' &&
-            result?.data &&
-            Array.isArray(result.data)
-          ) {
-            setSequence(result.data);
-          } else {
-            console.error('Invalid goals data');
-            Alert.alert('Error', 'Invalid goals data received');
-          }
-        } catch (error) {
-          console.error('Error fetching sequences:', error);
-          Alert.alert('Error', 'Error fetching sequences');
-        }
-      };
-      const fetchUsers = async () => {
-        try {
-          const response = await GetUsers('');
-          const result = JSON.parse(response);
-          if (
-            result?.status === 'success' &&
-            Array.isArray(result?.data?.users)
-          ) {
-            setUsers(result.data.users);
-            console.log('fetched user data', result.data.users);
-          } else {
-            console.error('Invalid Users data');
-            Alert.alert('Error', 'Invalid USERS data received');
-          }
-        } catch (error) {
-          console.error('Error fetching goals:', error);
-          //setGoals([]);
-        }
-      };
-  
-      // Call the function to fetch data
-      fetchSequence();
-      fetchProjectManager();
-      fetchGoals();
-      fetchPrograms();
-      fetchUsers();
-      fetchBusinessOwner();
-      fetchProjectOwner();
-    }, []);
-  
-    const handleBusinessOwnerDept = (deptID: number) => {
-      setBusinessOwnerDept(deptID);
-      console.log(`Selected Stakeholder: ${deptID}`);
-      console.log(`Updated Business Owner Department: ${deptID}`);
-    };
-  
-    const handleProjectOwnerDept = (deptID: number) => {
-      setProjectOwnerDept(deptID);
-      console.log(`Selected Stakeholder: ${deptID}`);
-      console.log(`Updated Project Owner Department: ${deptID}`);
-    };
-  
-    //   const validationSchema = Yup.object().shape({
-    //     project_name: Yup.string().required('Project Name is required'),
-    //     classification: Yup.string().required('Classification is required'),
-    //     goal_id: Yup.string().required('Goal is required'),
-    //     program_id: Yup.string().required('Program is required'),
-    //     start_date: Yup.string().required('Start Date is required'),
-    //     end_date: Yup.string().required('End Date is required'),
-    //     golive_date: Yup.string().required('Go Live Date is required'),
-    //     business_stakeholder_dept: Yup.number()
-    //       .min(0, 'Please select a Business Owner Department')
-    //       .required('Business Owner Department is required'),
-    //     project_owner_dept: Yup.number()
-    //       .min(0, 'Please select a Project Owner Department')
-    //       .required('Project Owner Department is required'),
-    //   });
-  
-    const handleSaveAsDraft = async () => {
+  console.log('this is form Editable', formIsEditable);
+
+  const removeStep = id => {
+    if (steps.length > 1) {
+      const newSteps = steps
+        .filter(step => step.id !== id)
+        .map((step, index) => ({
+          ...step,
+          id: index + 1,
+        }));
+      setSteps(newSteps);
+    }
+  };
+  const [isCreatingSequence, setIsCreatingSequence] = useState(false);
+
+  useEffect(() => {
+    const fetchGoals = async () => {
       try {
-        // Validate required fields
-        if (
-          !nameTitle ||
-          !classification ||
-          !goalSelected ||
-          !program ||
-          !startDate ||
-          !endDate ||
-          !goLiveDate
-        ) {
-          Alert.alert('Please fill in all required fields.');
-          return;
-        }
-  
-        const programDataToSubmit = {
-          project_name: nameTitle,
-          department_id: null,
-          classification: classification,
-          goal_id: Number(goalSelected),
-          program_id: Number(program),
-          business_stakeholder_user: Number(businessOwner),
-          business_stakeholder_dept: Number(businessOwnerDept),
-          project_owner_user: Number(projectOwner),
-          project_owner_dept: Number(projectOwnerDept),
-          project_manager_id: Number(projectManager),
-          // impacted_stakeholder_dept: ,
-          impacted_function: Number(impactedFunction),
-          impacted_applications: Number(impactedApp),
-          priority: Number(priority),
-          budget_size: budget,
-          project_size: projectSize,
-          start_date: startDate,
-          end_date: endDate,
-          golive_date: goLiveDate,
-          roi: roi,
-          business_desc: businessProblem,
-          scope_definition: scopeDefinition,
-          key_assumption: keyAssumption,
-          benefit_roi: benefitsROI,
-          risk: risk,
-        };
-  
-        // Log the object for debugging
-        console.log(programDataToSubmit);
-  
-        const response = await InsertDraft(programDataToSubmit);
-        const parsedResponse = JSON.parse(response);
-  
-        if (parsedResponse.status === 'success') {
-          Alert.alert('Draft saved successfully');
+        const response = await GetGoals('');
+        const result = JSON.parse(response);
+        if (result?.data?.goals && Array.isArray(result.data.goals)) {
+          setGoals(result.data.goals);
         } else {
-          Alert.alert('Failed to save draft. Please try again.');
+          console.error('Invalid goals data');
+          Alert.alert('Error', 'Invalid goals data received');
         }
       } catch (error) {
-        if (error instanceof Yup.ValidationError) {
-          Alert.alert(
-            'Validation Error',
-            error.errors.join('\n'), // Display all validation errors
-          );
-        } else {
-          console.error('Error saving draft:', error);
-          Alert.alert('An error occurred. Please try again.');
-        }
+        console.error('Error fetching goals:', error);
+        //setGoals([]);
       }
     };
-    const handleSubmit = async () => {
-      /* if (isCreatingSequence) {
+    const fetchPrograms = async () => {
+      try {
+        const response = await GetPrograms('');
+        const result = JSON.parse(response);
+        if (
+          result?.status === 'success' &&
+          Array.isArray(result?.data?.programs)
+        ) {
+          setProgramData(result.data.programs);
+          console.log('Fetched Programs:', result.data.programs);
+        } else {
+          console.error('Invalid programs data');
+          Alert.alert('Error', 'Invalid goals data received');
+        }
+      } catch (error) {
+        console.error('Error fetching Programs:', error);
+        //setGoals([]);
+      }
+    };
+
+    const fetchBusinessOwner = async () => {
+      try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response);
+        const result = JSON.parse(response);
+
+        if (
+          result?.status === 'success' &&
+          Array.isArray(result?.data?.users)
+        ) {
+          setBusinessData(result.data.users);
+          console.log('Fetched Business Owners:', result.data.users);
+        } else {
+          console.error('Invalid users data structure');
+          Alert.alert('Error', 'Invalid business owner data received');
+        }
+      } catch (error) {
+        console.error('Error fetching Business Owners:', error);
+        Alert.alert(
+          'Error',
+          'Failed to fetch business owners. Please try again later.',
+        );
+      }
+    };
+
+    const fetchProjectOwner = async () => {
+      try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response);
+        const result = JSON.parse(response);
+
+        if (
+          result?.status === 'success' &&
+          Array.isArray(result?.data?.users)
+        ) {
+          setProjectData(result.data.users);
+          console.log('Fetched Project Owners:', result.data.users);
+        } else {
+          console.error('Invalid Project data structure');
+          Alert.alert('Error', 'Invalid Project owner data received');
+        }
+      } catch (error) {
+        console.error('Error fetching Project Owners:', error);
+        Alert.alert(
+          'Error',
+          'Failed to fetch Project owners. Please try again later.',
+        );
+      }
+    };
+    const fetchProjectManager = async () => {
+      try {
+        const response = await GetUsers('');
+        console.log('Raw Response:', response);
+        const result = JSON.parse(response);
+
+        if (
+          result?.status === 'success' &&
+          Array.isArray(result?.data?.users)
+        ) {
+          setprojectMgr(result.data.users);
+          console.log('Fetched Project Manager:', result.data.users);
+        } else {
+          console.error('Invalid users data structure');
+          Alert.alert('Error', 'Invalid business owner data received');
+        }
+      } catch (error) {
+        console.error('Error fetching Project Manager:', error);
+        Alert.alert(
+          'Error',
+          'Failed to fetch Project Manager. Please try again later.',
+        );
+      }
+    };
+
+    const fetchSequence = async () => {
+      try {
+        const response = await GetSequence('');
+        const result = JSON.parse(response);
+
+        // Ensure the response format is correct and contains data
+        if (
+          result?.status === 'success' &&
+          result?.data &&
+          Array.isArray(result.data)
+        ) {
+          setSequence(result.data);
+        } else {
+          console.error('Invalid goals data');
+          Alert.alert('Error', 'Invalid goals data received');
+        }
+      } catch (error) {
+        console.error('Error fetching sequences:', error);
+        Alert.alert('Error', 'Error fetching sequences');
+      }
+    };
+    const fetchUsers = async () => {
+      try {
+        const response = await GetUsers('');
+        const result = JSON.parse(response);
+        if (
+          result?.status === 'success' &&
+          Array.isArray(result?.data?.users)
+        ) {
+          setUsers(result.data.users);
+          console.log('fetched user data', result.data.users);
+        } else {
+          console.error('Invalid Users data');
+          Alert.alert('Error', 'Invalid USERS data received');
+        }
+      } catch (error) {
+        console.error('Error fetching goals:', error);
+        //setGoals([]);
+      }
+    };
+
+    // Call the function to fetch data
+    fetchSequence();
+    fetchProjectManager();
+    fetchGoals();
+    fetchPrograms();
+    fetchUsers();
+    fetchBusinessOwner();
+    fetchProjectOwner();
+  }, []);
+
+  const handleBusinessOwnerDept = (deptID: number) => {
+    setBusinessOwnerDept(deptID);
+    console.log(`Selected Stakeholder: ${deptID}`);
+    console.log(`Updated Business Owner Department: ${deptID}`);
+  };
+
+  const handleProjectOwnerDept = (deptID: number) => {
+    setProjectOwnerDept(deptID);
+    console.log(`Selected Stakeholder: ${deptID}`);
+    console.log(`Updated Project Owner Department: ${deptID}`);
+  };
+
+  //   const validationSchema = Yup.object().shape({
+  //     project_name: Yup.string().required('Project Name is required'),
+  //     classification: Yup.string().required('Classification is required'),
+  //     goal_id: Yup.string().required('Goal is required'),
+  //     program_id: Yup.string().required('Program is required'),
+  //     start_date: Yup.string().required('Start Date is required'),
+  //     end_date: Yup.string().required('End Date is required'),
+  //     golive_date: Yup.string().required('Go Live Date is required'),
+  //     business_stakeholder_dept: Yup.number()
+  //       .min(0, 'Please select a Business Owner Department')
+  //       .required('Business Owner Department is required'),
+  //     project_owner_dept: Yup.number()
+  //       .min(0, 'Please select a Project Owner Department')
+  //       .required('Project Owner Department is required'),
+  //   });
+
+  const handleSaveAsDraft = async () => {
+    try {
+      // Validate required fields
+      if (
+        !nameTitle ||
+        !classification ||
+        !goalSelected ||
+        !program ||
+        !startDate ||
+        !endDate ||
+        !goLiveDate
+      ) {
+        Alert.alert('Please fill in all required fields.');
+        return;
+      }
+
+      const programDataToSubmit = {
+        project_name: nameTitle,
+        department_id: null,
+        classification: classification,
+        goal_id: Number(goalSelected),
+        program_id: Number(program),
+        business_stakeholder_user: Number(businessOwner),
+        business_stakeholder_dept: Number(businessOwnerDept),
+        project_owner_user: Number(projectOwner),
+        project_owner_dept: Number(projectOwnerDept),
+        project_manager_id: Number(projectManager),
+        // impacted_stakeholder_dept: ,
+        impacted_function: Number(impactedFunction),
+        impacted_applications: Number(impactedApp),
+        priority: Number(priority),
+        budget_size: budget,
+        project_size: projectSize,
+        start_date: startDate,
+        end_date: endDate,
+        golive_date: goLiveDate,
+        roi: roi,
+        business_desc: businessProblem,
+        scope_definition: scopeDefinition,
+        key_assumption: keyAssumption,
+        benefit_roi: benefitsROI,
+        risk: risk,
+      };
+
+      // Log the object for debugging
+      console.log(programDataToSubmit);
+
+      const response = await InsertDraft(programDataToSubmit);
+      const parsedResponse = JSON.parse(response);
+
+      if (parsedResponse.status === 'success') {
+        Alert.alert('Draft saved successfully');
+      } else {
+        Alert.alert('Failed to save draft. Please try again.');
+      }
+    } catch (error) {
+      if (error instanceof Yup.ValidationError) {
+        Alert.alert(
+          'Validation Error',
+          error.errors.join('\n'), // Display all validation errors
+        );
+      } else {
+        console.error('Error saving draft:', error);
+        Alert.alert('An error occurred. Please try again.');
+      }
+    }
+  };
+  const handleSubmit = async () => {
+    /* if (isCreatingSequence) {
            // Call the sequence creation API
            try {
              //await createSequence(); // Replace with your actual API call
@@ -525,560 +548,582 @@ const ApprovalHistory: React.FC = () => {
              setIsCreatingSequence(false);
            }
          } else { */
-      const payload = {
-        //project_id:,
-        aprvl_seq_id: approvalPathid, // Sending the selected sequence ID
-        // Add any other necessary data here
-      };
-  
-      try {
-        const response = await InsertReview(payload);
-        const result = JSON.parse(response);
-  
-        if (result.status === 'success') {
-          Alert.alert('Submission successful!');
-          setIsPopupVisible(false);
-        } else {
-          Alert.alert('Failed to submit. Please try again.');
-        }
-      } catch (error) {
-        console.error('Error submitting:', error);
-        Alert.alert('An error occurred while submitting. Please try again.');
-      }
+    const payload = {
+      //project_id:,
+      aprvl_seq_id: approvalPathid, // Sending the selected sequence ID
+      // Add any other necessary data here
     };
-    useEffect(() => {
-      // Fetch the project data when the component mounts or projectId changes
-      GetProjects('') // Assuming the query param is empty for now
-        .then(response => {
-          const parsedResponse = JSON.parse(response);
-          const projects = parsedResponse?.data?.projects || [];
-          const matchedProject = projects.find(
-            proj => proj.project_id === projectId,
-          );
-          setProject(matchedProject || null);
-        })
-        .catch(error => {
-          console.error('Error fetching project:', error);
-        });
-    }, [projectId]);
-  
-    return (
-      <ScrollView>
-        <Text style={styles.historyHeading}>Intake Approval</Text>
-  
-        {project ? (
-          //---------------------------Main View Screen----------------------
-          <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-              <TouchableOpacity style={styles.backButton}>
-                <Icon name="arrow-back" size={18} color="#232323" />
-                <Text style={styles.backText}>Back</Text>
-              </TouchableOpacity>
-              <Text style={styles.headerTitle}>Create New Intake</Text>
-              <View style={{width: 50}} />
-            </View>
-  
-            <ScrollView
-              style={styles.scrollView}
-              contentContainerStyle={styles.content}
-              showsVerticalScrollIndicator={false}>
-              <View>
-                {/* First Row */}
-                <View style={styles.row}>
-                  <View style={styles.largeInputContainer1}>
-                    <Text style={styles.inputLabel}>
-                      Name/Title <Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.largeInput}
-                      value={project.project_name || ''}
-                      editable={formIsEditable}
-                    />
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Classification <Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={classification || project.classification} // Default to project.classification
-                      onValueChange={value => setClassification(value)}
-                      style={styles.input}
-                      enabled={formIsEditable} // Disable the Picker
-                    >
-                      <Picker.Item label="Select Classification" value="" />
-                      <Picker.Item label="Business strategic" value="1" />
-                      <Picker.Item label="Self funded" value="2" />
-                      <Picker.Item label="Operations" value="3" />
-                    </Picker>
-                  </View>
-  
-                  <TouchableOpacity style={styles.approvalButton}>
-                    <Icon
-                      name="time-outline"
-                      size={18}
-                      color="#044086"
-                      style={styles.approvalIcon}
-                    />
-                    <Text style={styles.approvalButtonText}>
-                      Approval History
-                    </Text>
-                  </TouchableOpacity>
+
+    try {
+      const response = await InsertReview(payload);
+      const result = JSON.parse(response);
+
+      if (result.status === 'success') {
+        Alert.alert('Submission successful!');
+        setIsPopupVisible(false);
+      } else {
+        Alert.alert('Failed to submit. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting:', error);
+      Alert.alert('An error occurred while submitting. Please try again.');
+    }
+  };
+  useEffect(() => {
+    // Fetch the project data when the component mounts or projectId changes
+    GetProjects('') // Assuming the query param is empty for now
+      .then(response => {
+        const parsedResponse = JSON.parse(response);
+        const projects = parsedResponse?.data?.projects || [];
+        const matchedProject = projects.find(
+          proj => proj.project_id === projectId,
+        );
+        setProject(matchedProject || null);
+      })
+      .catch(error => {
+        console.error('Error fetching project:', error);
+      });
+  }, [projectId]);
+
+  return (
+    <ScrollView>
+      {/* <Text style={styles.historyHeading}>Intake Approval</Text> */}
+
+      {project ? (
+        //---------------------------Main View Screen----------------------
+        <SafeAreaView style={styles.container}>
+          {/* <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton}>
+              <Icon name="arrow-back" size={18} color="#232323" />
+              <Text style={styles.backText}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Create New Intake</Text>
+            <View style={{width: 50}} />
+          </View> */}
+
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}>
+            <View>
+              {/* First Row */}
+              <View style={styles.row}>
+                <View style={styles.largeInputContainer1}>
+                  <Text style={styles.inputLabel}>
+                    Name/Title <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.largeInput}
+                    value={project.project_name || ''}
+                    editable={formIsEditable}
+                  />
                 </View>
-  
-                {/* Second Row */}
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>Goal</Text>
-                    <Picker
-                      selectedValue={goalSelected || project.goal_id} // Default to project.goal_id
-                      onValueChange={value => setGoalSelected(value)}
-                      style={styles.input}
-                      enabled={formIsEditable} // Disable the Picker
-                    >
-                      <Picker.Item label="Select Goal" value="" />
-                      {goals.map(goalItem => (
-                        <Picker.Item
-                          key={goalItem.goal_id} // Use goal_id as key
-                          label={goalItem.goal_name} // Use goal_name as the label
-                          value={goalItem.goal_id} // Use goal_id as the value
-                        />
-                      ))}
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>Program</Text>
-                    <Picker
-                      selectedValue={program || project.program_id}
-                      onValueChange={value => setProgram(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Program" value="" />
-                      {programData.length > 0 ? (
-                        programData.map(ProgramItem => (
-                          <Picker.Item
-                            key={ProgramItem.program_id}
-                            label={ProgramItem.program_name}
-                            value={ProgramItem.program_id}
-                          />
-                        ))
-                      ) : (
-                        <Picker.Item label="No Programs Available" value="" />
-                      )}
-                    </Picker>
-                  </View>
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Classification <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={classification || project.classification} // Default to project.classification
+                    onValueChange={value => setClassification(value)}
+                    style={styles.input}
+                    enabled={formIsEditable} // Disable the Picker
+                  >
+                    <Picker.Item label="Select Classification" value="" />
+                    <Picker.Item label="Business strategic" value="1" />
+                    <Picker.Item label="Self funded" value="2" />
+                    <Picker.Item label="Operations" value="3" />
+                  </Picker>
                 </View>
-  
-                {/* Business Owner Row */}
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Business Owner<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={
-                        businessOwner || project.business_stakeholder_user
-                      }
-                      onValueChange={value => setBusinessOwner(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Business Owner" value="" />
-                      {businessData.length > 0 ? (
-                        businessData.map(BusinessItem => (
-                          <Picker.Item
-                            key={BusinessItem.user_id}
-                            label={BusinessItem.first_name}
-                            value={BusinessItem.user_id}
-                          />
-                        ))
-                      ) : (
+
+                {/* <TouchableOpacity style={styles.approvalButton}>
+                  <Icon
+                    name="time-outline"
+                    size={18}
+                    color="#044086"
+                    style={styles.approvalIcon}
+                  />
+                  <Text style={styles.approvalButtonText}>
+                    Approval History
+                  </Text>
+                </TouchableOpacity> */}
+              </View>
+
+              {/* Second Row */}
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>Goal</Text>
+                  <Picker
+                    selectedValue={goalSelected || project.goal_id} // Default to project.goal_id
+                    onValueChange={value => setGoalSelected(value)}
+                    style={styles.input}
+                    enabled={formIsEditable} // Disable the Picker
+                  >
+                    <Picker.Item label="Select Goal" value="" />
+                    {goals.map(goalItem => (
+                      <Picker.Item
+                        key={goalItem.goal_id} // Use goal_id as key
+                        label={goalItem.goal_name} // Use goal_name as the label
+                        value={goalItem.goal_id} // Use goal_id as the value
+                      />
+                    ))}
+                  </Picker>
+                </View>
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>Program</Text>
+                  <Picker
+                    selectedValue={program || project.program_id}
+                    onValueChange={value => setProgram(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Program" value="" />
+                    {programData.length > 0 ? (
+                      programData.map(ProgramItem => (
                         <Picker.Item
-                          label="No Business Owner Available"
-                          value=""
+                          key={ProgramItem.program_id}
+                          label={ProgramItem.program_name}
+                          value={ProgramItem.program_id}
                         />
-                      )}
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.largeInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Business Owner Department
-                      <Text style={styles.asterisk}>*</Text>
-                    </Text>
-  
+                      ))
+                    ) : (
+                      <Picker.Item label="No Programs Available" value="" />
+                    )}
+                  </Picker>
+                </View>
+              </View>
+
+              {/* Business Owner Row */}
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Business Owner<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={
+                      businessOwner || project.business_stakeholder_user
+                    }
+                    onValueChange={value => setBusinessOwner(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Business Owner" value="" />
+                    {businessData.length > 0 ? (
+                      businessData.map(BusinessItem => (
+                        <Picker.Item
+                          key={BusinessItem.user_id}
+                          label={BusinessItem.first_name}
+                          value={BusinessItem.user_id}
+                        />
+                      ))
+                    ) : (
+                      <Picker.Item
+                        label="No Business Owner Available"
+                        value=""
+                      />
+                    )}
+                  </Picker>
+                </View>
+
+                <View style={styles.largeInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Business Owner Department
+                    <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  {isEditable ? (
                     <NestedDeptDropdownProjects
                       onSelect={handleProjectOwnerDept}
                       placeholder={
                         project ? project.business_stakeholder_dept_name : ' '
                       }
                     />
-                  </View>
+                  ) : (
+                    <View style={{width: '40%'}}>
+                      <TextInput
+                        style={styles.largeInput}
+                        value={project.business_stakeholder_dept_name || ''}
+                        editable={formIsEditable}
+                      />
+                    </View>
+                  )}
                 </View>
-  
-                {/* Project Owner Row */}
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Project Owner<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={projectOwner || project.project_owner_user}
-                      onValueChange={value => setProjectOwner(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Project Owner" value="" />
-                      {projectData.length > 0 ? (
-                        projectData.map(projectItem => (
-                          <Picker.Item
-                            key={projectItem.user_id}
-                            label={projectItem.first_name}
-                            value={projectItem.user_id}
-                          />
-                        ))
-                      ) : (
+              </View>
+
+              {/* Project Owner Row */}
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project Owner<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={projectOwner || project.project_owner_user}
+                    onValueChange={value => setProjectOwner(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Project Owner" value="" />
+                    {projectData.length > 0 ? (
+                      projectData.map(projectItem => (
                         <Picker.Item
-                          label="No Project Owner Available"
-                          value=""
+                          key={projectItem.user_id}
+                          label={projectItem.first_name}
+                          value={projectItem.user_id}
                         />
-                      )}
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.largeInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Project Owner Department
-                      <Text style={styles.asterisk}>*</Text>
-                    </Text>
+                      ))
+                    ) : (
+                      <Picker.Item
+                        label="No Project Owner Available"
+                        value=""
+                      />
+                    )}
+                  </Picker>
+                </View>
+
+                <View style={styles.largeInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project Owner Department
+                    <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  {isEditable ? (
                     <NestedDeptDropdownProjects
                       onSelect={handleProjectOwnerDept}
                       placeholder={
                         project ? project.business_stakeholder_dept_name : ''
                       }
                     />
-                  </View>
+                  ) : (
+                    <View style={{width: '40%'}}>
+                      <TextInput
+                        style={styles.largeInput}
+                        value={project.business_stakeholder_dept_name || ''}
+                        editable={formIsEditable}
+                      />
+                    </View>
+                  )}
                 </View>
-  
-                {/* Project Manager Row */}
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Project Manager<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={projectManager || project.project_manager_id}
-                      onValueChange={value => setProjectManager(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Project Owner" value="" />
-                      {projectMgr.length > 0 ? (
-                        projectMgr.map(projectItem => (
-                          <Picker.Item
-                            key={projectItem.user_id}
-                            label={projectItem.first_name}
-                            value={projectItem.user_id}
-                          />
-                        ))
-                      ) : (
+              </View>
+
+              {/* Project Manager Row */}
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project Manager<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={projectManager || project.project_manager_id}
+                    onValueChange={value => setProjectManager(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Project Owner" value="" />
+                    {projectMgr.length > 0 ? (
+                      projectMgr.map(projectItem => (
                         <Picker.Item
-                          label="No Project Owner Available"
-                          value=""
+                          key={projectItem.user_id}
+                          label={projectItem.first_name}
+                          value={projectItem.user_id}
                         />
-                      )}
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Impacted Function<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={
-                        impactedFunction || project.impacted_function
-                      }
-                      onValueChange={value => setImpactedFunction(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Function" value="" />
-                      <Picker.Item label="Function 1" value="function1" />
-                      <Picker.Item label="Function 2" value="function2" />
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Impacted Application<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={impactedApp || project.impacted_applications}
-                      onValueChange={value => setImpactedApp(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Application" value="" />
-                      <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
-                      <Picker.Item label="Apps: Sharepoint" value="app2" />
-                    </Picker>
-                  </View>
+                      ))
+                    ) : (
+                      <Picker.Item
+                        label="No Project Owner Available"
+                        value=""
+                      />
+                    )}
+                  </Picker>
                 </View>
-  
-                {/* Priority Row */}
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Priority<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={priority || project.priority}
-                      onValueChange={value => setPriority(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Priority" value="" />
-                      <Picker.Item label="Critical" value="1" />
-                      <Picker.Item label="High" value="2" />
-                      <Picker.Item label="Medium" value="3" />
-                      <Picker.Item label="Low" value="4" />
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Budget<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={budget || project.budget_size}
-                      onValueChange={value => setBudget(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Budget" value="" />
-                      <Picker.Item label="High" value="1" />
-                      <Picker.Item label="Medium" value="2" />
-                      <Picker.Item label="Low" value="3" />
-                    </Picker>
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Project Size<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <Picker
-                      selectedValue={projectSize || project.project_size}
-                      onValueChange={value => setProjectSize(value)}
-                      style={styles.input}
-                      enabled={formIsEditable}>
-                      <Picker.Item label="Select Size" value="" />
-                      <Picker.Item label="Large" value="1" />
-  
-                      <Picker.Item label="Medium" value="2" />
-                      <Picker.Item label="Small" value="3" />
-                    </Picker>
-                  </View>
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Impacted Function<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={
+                      impactedFunction || project.impacted_function
+                    }
+                    onValueChange={value => setImpactedFunction(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Function" value="" />
+                    <Picker.Item label="Function 1" value="function1" />
+                    <Picker.Item label="Function 2" value="function2" />
+                  </Picker>
                 </View>
-  
-                {/* Dates Row */}
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Project Start Date<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.input}
-                      value={
-                        project.start_date
-                          ? format(new Date(project.start_date), 'MM/dd/yyyy')
-                          : ''
-                      }
-                      onFocus={() => setShowStartDatePicker(true)}
-                      placeholder="Select Start Date"
-                      editable={false}
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Impacted Application<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={impactedApp || project.impacted_applications}
+                    onValueChange={value => setImpactedApp(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Application" value="" />
+                    <Picker.Item
+                      label="Apps: ForgePortfolioXpert"
+                      value="app1"
                     />
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Project End Date<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.input}
-                      value={
-                        project.start_date
-                          ? format(new Date(project.end_date), 'MM/dd/yyyy')
-                          : ''
-                      }
-                      onFocus={() => setShowStartDatePicker(true)}
-                      placeholder="Select Start Date"
-                      editable={false}
-                    />
-                  </View>
-  
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Go Live Date<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.input}
-                      value={
-                        project.golive_date
-                          ? format(new Date(project.start_date), 'MM/dd/yyyy')
-                          : ''
-                      }
-                      onFocus={() => setShowStartDatePicker(true)}
-                      placeholder="Select Start Date"
-                      editable={false}
-                    />
-                  </View>
+                    <Picker.Item label="Apps: Sharepoint" value="app2" />
+                  </Picker>
                 </View>
-  
-                {/* ROI Section */}
-                <Text style={styles.roiHeading}>Return on Investment</Text>
-  
-                <View style={styles.row}>
-                  <View style={styles.smallInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Enter the approx. ROI <Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.input}
-                      value={project.roi}
-                      onChangeText={setRoi}
-                      placeholder="Enter ROI"
-                    />
-                  </View>
-                  <View style={styles.templateContainer}>
-                    <Text style={styles.customTemplateText}>Custom Template</Text>
-                    <View style={styles.customTemplateGroup}>
-                      <TouchableOpacity style={styles.templateButton}>
-                        <Icon
-                          name="download-outline"
-                          size={18}
-                          color="#000"
-                          style={styles.icon}
-                        />
-                        <Text style={styles.templateButtonText}>
-                          Download Template
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity style={styles.templateButton}>
-                        <Icon
-                          name="cloud-upload-outline"
-                          size={18}
-                          color="#000"
-                          style={styles.icon}
-                        />
-                        <Text style={styles.templateButtonText}>Upload</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+              </View>
+
+              {/* Priority Row */}
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Priority<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={priority || project.priority}
+                    onValueChange={value => setPriority(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Priority" value="" />
+                    <Picker.Item label="Critical" value="1" />
+                    <Picker.Item label="High" value="2" />
+                    <Picker.Item label="Medium" value="3" />
+                    <Picker.Item label="Low" value="4" />
+                  </Picker>
                 </View>
-  
-                <View style={styles.divider} />
-  
-                <Text style={styles.projectDriversHeading}>Project Drivers</Text>
-  
-                {/* Business Problem/Description and Scope Definition Row */}
-                <View style={styles.row5}>
-                  <View style={styles.halfInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Business Problem/Description
-                      <Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.outlinedInput}
-                      placeholder="Enter Business Problem/Description"
-                      value={businessProblem}
-                      onChangeText={setBusinessProblem}
-                    />
-                  </View>
-                  <View style={styles.halfInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Scope Definition<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.outlinedInput}
-                      placeholder="Enter Scope Definition"
-                      value={scopeDefinition}
-                      onChangeText={setScopeDefinition}
-                    />
-                  </View>
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Budget<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={budget || project.budget_size}
+                    onValueChange={value => setBudget(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Budget" value="" />
+                    <Picker.Item label="High" value="1" />
+                    <Picker.Item label="Medium" value="2" />
+                    <Picker.Item label="Low" value="3" />
+                  </Picker>
                 </View>
-  
-                {/* Key Assumption and Benefits/ROI Row */}
-                <View style={styles.row5}>
-                  <View style={styles.halfInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Key Assumption<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.outlinedInput}
-                      placeholder="Enter Key Assumption"
-                      value={keyAssumption}
-                      onChangeText={setKeyAssumption}
-                    />
-                  </View>
-                  <View style={styles.halfInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Benefits/ROI<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.outlinedInput}
-                      placeholder="Enter Benefits/ROI"
-                      value={benefitsROI}
-                      onChangeText={setBenefitsROI}
-                    />
-                  </View>
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project Size<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <Picker
+                    selectedValue={projectSize || project.project_size}
+                    onValueChange={value => setProjectSize(value)}
+                    style={styles.input}
+                    enabled={formIsEditable}>
+                    <Picker.Item label="Select Size" value="" />
+                    <Picker.Item label="Large" value="1" />
+
+                    <Picker.Item label="Medium" value="2" />
+                    <Picker.Item label="Small" value="3" />
+                  </Picker>
                 </View>
-  
-                {/* Risk Input */}
-                <View style={styles.row5}>
-                  <View style={styles.halfInputContainer}>
-                    <Text style={styles.inputLabel}>
-                      Risk<Text style={styles.asterisk}>*</Text>
-                    </Text>
-                    <TextInput
-                      style={styles.outlinedInput}
-                      placeholder="Enter Risk"
-                      value={risk}
-                      onChangeText={setRisk}
-                    />
-                  </View>
+              </View>
+
+              {/* Dates Row */}
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project Start Date<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    value={
+                      project.start_date
+                        ? format(new Date(project.start_date), 'MM/dd/yyyy')
+                        : ''
+                    }
+                    onFocus={() => setShowStartDatePicker(true)}
+                    placeholder="Select Start Date"
+                    editable={false}
+                  />
                 </View>
-  
-                {/* Custom Fields Button and Checkbox */}
-                <View style={styles.row}>
-                  <View style={styles.customFieldsContainer}>
-                    <View style={styles.checkboxContainer}>
-                      <TouchableOpacity
-                        style={[styles.checkbox, isChecked && styles.checked]}
-                        onPress={() => setIsChecked(!isChecked)}>
-                        {isChecked && (
-                          <Icon name="checkmark" size={18} color="#fff" />
-                        )}
-                      </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity style={styles.customFieldsButton}>
-                      <Text style={styles.customFieldsButtonText}>
-                        Add custom fields
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project End Date<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    value={
+                      project.start_date
+                        ? format(new Date(project.end_date), 'MM/dd/yyyy')
+                        : ''
+                    }
+                    onFocus={() => setShowStartDatePicker(true)}
+                    placeholder="Select Start Date"
+                    editable={false}
+                  />
+                </View>
+
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Go Live Date<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    value={
+                      project.golive_date
+                        ? format(new Date(project.start_date), 'MM/dd/yyyy')
+                        : ''
+                    }
+                    onFocus={() => setShowStartDatePicker(true)}
+                    placeholder="Select Start Date"
+                    editable={false}
+                  />
+                </View>
+              </View>
+
+              {/* ROI Section */}
+              <Text style={styles.roiHeading}>Return on Investment</Text>
+
+              <View style={styles.row}>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Enter the approx. ROI <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    value={project.roi}
+                    onChangeText={setRoi}
+                    placeholder="Enter ROI"
+                  />
+                </View>
+                <View style={styles.templateContainer}>
+                  <Text style={styles.customTemplateText}>Custom Template</Text>
+                  <View style={styles.customTemplateGroup}>
+                    <TouchableOpacity style={styles.templateButton}>
+                      <Icon
+                        name="download-outline"
+                        size={18}
+                        color="#000"
+                        style={styles.icon}
+                      />
+                      <Text style={styles.templateButtonText}>
+                        Download Template
                       </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.templateButton}>
+                      <Icon
+                        name="cloud-upload-outline"
+                        size={18}
+                        color="#000"
+                        style={styles.icon}
+                      />
+                      <Text style={styles.templateButtonText}>Upload</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
-  
-                {/* Bottom Buttons */}
-                <View style={styles.bottomButtonsContainer}>
-                  <TouchableOpacity
-                    style={styles.saveAsDraftButton}
-                    onPress={handleSaveAsDraft}>
-                    <Icon
-                      name="save-outline"
-                      size={18}
-                      color="#044086"
-                      style={styles.saveIcon}
-                    />
-                    <Text style={styles.saveAsDraftButtonText}>
-                      Save as draft
+              </View>
+
+              <View style={styles.divider} />
+
+              <Text style={styles.projectDriversHeading}>Project Drivers</Text>
+
+              {/* Business Problem/Description and Scope Definition Row */}
+              <View style={styles.row5}>
+                <View style={styles.halfInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Business Problem/Description
+                    <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.outlinedInput}
+                    placeholder="Enter Business Problem/Description"
+                    value={businessProblem}
+                    onChangeText={setBusinessProblem}
+                  />
+                </View>
+                <View style={styles.halfInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Scope Definition<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.outlinedInput}
+                    placeholder="Enter Scope Definition"
+                    value={scopeDefinition || project.scope_definition}
+                    onChangeText={setScopeDefinition}
+                  />
+                </View>
+              </View>
+
+              {/* Key Assumption and Benefits/ROI Row */}
+              <View style={styles.row5}>
+                <View style={styles.halfInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Key Assumption<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.outlinedInput}
+                    placeholder="Enter Key Assumption"
+                    value={keyAssumption || project.key_assumption}
+                    onChangeText={setKeyAssumption}
+                  />
+                </View>
+                <View style={styles.halfInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Benefits/ROI<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.outlinedInput}
+                    placeholder="Enter Benefits/ROI"
+                    value={benefitsROI || project.benefit_roi}
+                    onChangeText={setBenefitsROI}
+                  />
+                </View>
+              </View>
+
+              {/* Risk Input */}
+              <View style={styles.row5}>
+                <View style={styles.halfInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Risk<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.outlinedInput}
+                    placeholder="Enter Risk"
+                    value={risk || project.risk}
+                    onChangeText={setRisk}
+                  />
+                </View>
+              </View>
+
+              {/* Custom Fields Button and Checkbox */}
+              <View style={styles.row}>
+                <View style={styles.customFieldsContainer}>
+                  <View style={styles.checkboxContainer}>
+                    <TouchableOpacity
+                      style={[styles.checkbox, isChecked && styles.checked]}
+                      onPress={() => setIsChecked(!isChecked)}>
+                      {isChecked && (
+                        <Icon name="checkmark" size={18} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity style={styles.customFieldsButton}>
+                    <Text style={styles.customFieldsButtonText}>
+                      Add custom fields
                     </Text>
                   </TouchableOpacity>
-                  {/*Send for review Button */}
-                  {/* <TouchableOpacity
+                </View>
+              </View>
+
+              {/* Bottom Buttons */}
+              <View style={styles.bottomButtonsContainer}>
+                <TouchableOpacity
+                  style={styles.saveAsDraftButton}
+                  onPress={handleSaveAsDraft}>
+                  <Icon
+                    name="save-outline"
+                    size={18}
+                    color="#044086"
+                    style={styles.saveIcon}
+                  />
+                  <Text style={styles.saveAsDraftButtonText}>
+                    Save as draft
+                  </Text>
+                </TouchableOpacity>
+                {/*Send for review Button */}
+                {/* <TouchableOpacity
                     style={styles.sendForReviewButton}
                     onPress={() => setIsPopupVisible(true)}>
                     <Icon
@@ -1100,242 +1145,239 @@ const ApprovalHistory: React.FC = () => {
                       style={styles.arrowIcon}
                     />
                   </TouchableOpacity> */}
-                </View>
               </View>
-            </ScrollView>
-  
-            {/* Send for Approval Popup */}
-            <Modal
-              visible={isPopupVisible}
-              transparent={true}
-              animationType="fade">
-              <View style={styles.modalOverlay}>
-                <View style={styles.modalContent}>
-                  <TouchableOpacity
-                    style={styles.closeIcon}
-                    onPress={() => setIsPopupVisible(false)}>
-                    <Icon name="close" size={24} color="#000" />
-                  </TouchableOpacity>
-                  <Text style={styles.popupHeading}>Sending for Approval</Text>
-  
-                  <ScrollView
-                    style={styles.modalScrollView}
-                    showsVerticalScrollIndicator={false}>
-                    <RadioButton.Group
-                      onValueChange={value => setSelectedOption(value)}
-                      value={selectedOption}>
-                      <View style={styles.radioOptionsRow}>
-                        <View style={styles.radioOption}>
-                          <RadioButton.Android value="inPerson" color="#044086" />
-                          <Text style={styles.radioText}>In person meeting</Text>
-                        </View>
-                        <View style={styles.radioOption1}>
-                          <RadioButton.Android
-                            value="authorization"
-                            color="#044086"
-                          />
-                          <Text style={styles.radioText}>
-                            Authorization process
-                          </Text>
-                        </View>
+            </View>
+          </ScrollView>
+
+          {/* Send for Approval Popup */}
+          <Modal
+            visible={isPopupVisible}
+            transparent={true}
+            animationType="fade">
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <TouchableOpacity
+                  style={styles.closeIcon}
+                  onPress={() => setIsPopupVisible(false)}>
+                  <Icon name="close" size={24} color="#000" />
+                </TouchableOpacity>
+                <Text style={styles.popupHeading}>Sending for Approval</Text>
+
+                <ScrollView
+                  style={styles.modalScrollView}
+                  showsVerticalScrollIndicator={false}>
+                  <RadioButton.Group
+                    onValueChange={value => setSelectedOption(value)}
+                    value={selectedOption}>
+                    <View style={styles.radioOptionsRow}>
+                      <View style={styles.radioOption}>
+                        <RadioButton.Android value="inPerson" color="#044086" />
+                        <Text style={styles.radioText}>In person meeting</Text>
                       </View>
-                      {selectedOption === 'authorization' && (
-                        <View style={styles.newApprovalContainer}>
-                          {showNewApprovalForm ? (
-                            <>
-                              <View style={styles.newApprovalHeader}>
-                                <TouchableOpacity
-                                  style={styles.backButton}
-                                  onPress={() => {
-                                    setShowNewApprovalForm(false);
-                                  }}>
-                                  <Icon
-                                    name="arrow-back"
-                                    size={18}
-                                    color="#232323"
-                                  />
-                                  <Text style={styles.backText}>Back</Text>
-                                </TouchableOpacity>
-                                <Text style={styles.newApprovalTitle}>
-                                  Create New Approval
+                      <View style={styles.radioOption1}>
+                        <RadioButton.Android
+                          value="authorization"
+                          color="#044086"
+                        />
+                        <Text style={styles.radioText}>
+                          Authorization process
+                        </Text>
+                      </View>
+                    </View>
+                    {selectedOption === 'authorization' && (
+                      <View style={styles.newApprovalContainer}>
+                        {showNewApprovalForm ? (
+                          <>
+                            <View style={styles.newApprovalHeader}>
+                              <TouchableOpacity
+                                style={styles.backButton}
+                                onPress={() => {
+                                  setShowNewApprovalForm(false);
+                                }}>
+                                <Icon
+                                  name="arrow-back"
+                                  size={18}
+                                  color="#232323"
+                                />
+                                <Text style={styles.backText}>Back</Text>
+                              </TouchableOpacity>
+                              <Text style={styles.newApprovalTitle}>
+                                Create New Approval
+                              </Text>
+                            </View>
+
+                            <TextInput
+                              style={styles.newApprovalInput}
+                              placeholder="Enter text"
+                            />
+
+                            <View style={styles.columnsContainer}>
+                              <View style={styles.columnsHeader}>
+                                <Text style={styles.columnTitle}>Steps</Text>
+                                <Text style={styles.columnTitle}>
+                                  Forwardto
+                                </Text>
+                                <Text style={styles.columnTitle}>
+                                  Designation
+                                </Text>
+                                <Text style={styles.columnTitle}>
+                                  Their Action
                                 </Text>
                               </View>
-  
-                              <TextInput
-                                style={styles.newApprovalInput}
-                                placeholder="Enter text"
-                              />
-  
-                              <View style={styles.columnsContainer}>
-                                <View style={styles.columnsHeader}>
-                                  <Text style={styles.columnTitle}>Steps</Text>
-                                  <Text style={styles.columnTitle}>
-                                    Forwardto
+                              {steps.map((step, index) => (
+                                <View
+                                  key={step.id}
+                                  style={styles.columnContent}>
+                                  <Text style={styles.stepText}>
+                                    Step {step.id}
                                   </Text>
-                                  <Text style={styles.columnTitle}>
-                                    Designation
-                                  </Text>
-                                  <Text style={styles.columnTitle}>
-                                    Their Action
-                                  </Text>
-                                </View>
-                                {steps.map((step, index) => (
-                                  <View
-                                    key={step.id}
-                                    style={styles.columnContent}>
-                                    <Text style={styles.stepText}>
-                                      Step {step.id}
-                                    </Text>
-                                    <View style={styles.searchableDropdown}>
-                                      <Picker
-                                        selectedValue={step.forwardTo}
-                                        onValueChange={itemValue => {
-                                          const newSteps = [...steps];
-                                          newSteps[index].forwardTo = itemValue;
-                                          setSteps(newSteps);
-                                        }}
-                                        style={styles.input}>
-                                        <Picker.Item
-                                          label="Select User"
-                                          value=""
-                                        />
-                                        {users.map(user => (
-                                          <Picker.Item
-                                            key={user.user_id}
-                                            label={user.first_name}
-                                            value={user.user_id}
-                                          />
-                                        ))}
-                                      </Picker>
-                                      <Icon
-                                        name="search"
-                                        size={14}
-                                        color="#000"
-                                        style={styles.iconsearch}
-                                      />
-                                    </View>
-                                    <Text style={styles.autoPopulatedText}>
-                                      {step.designation || 'Project Manager'}
-                                    </Text>
-                                    <View style={styles.actionContainer}>
-                                      <Picker
-                                        style={styles.actionPicker}
-                                        selectedValue={step.action}
-                                        onValueChange={itemValue => {
-                                          const newSteps = [...steps];
-                                          newSteps[index].action = itemValue;
-                                          setSteps(newSteps);
-                                        }}>
-                                        <Picker.Item label="Select" value="" />
-                                        <Picker.Item
-                                          label="Approval"
-                                          value="approval"
-                                        />
-                                        <Picker.Item
-                                          label="Review"
-                                          value="review"
-                                        />
-                                      </Picker>
-                                      {steps.length > 1 && (
-                                        <TouchableOpacity
-                                          style={styles.cancelIcon}
-                                          onPress={() => removeStep(step.id)}>
-                                          <Icon
-                                            name="close"
-                                            size={18}
-                                            color="#B40A0A"
-                                          />
-                                        </TouchableOpacity>
-                                      )}
-                                    </View>
-                                  </View>
-                                ))}
-                                <TouchableOpacity
-                                  style={styles.addStepButton}
-                                  onPress={addStep}>
-                                  <Icon name="add" size={18} color="#044086" />
-                                  <Text style={styles.addStepButtonText}>
-                                    Add Step
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </>
-                          ) : (
-                            <>
-                              <View style={styles.approvalPathContainer}>
-                                <View style={styles.approvalPathInputContainer}>
-                                  <Text style={styles.approvalPathLabel}>
-                                    Pick Approval Path{' '}
-                                    <Text style={styles.asterisk}>*</Text>
-                                  </Text>
-                                  <View style={styles.approvalPathInput}>
+                                  <View style={styles.searchableDropdown}>
                                     <Picker
-                                      selectedValue={approvalPath}
-                                      onValueChange={itemValue =>
-                                        setApprovalPathid(itemValue)
-                                      }
+                                      selectedValue={step.forwardTo}
+                                      onValueChange={itemValue => {
+                                        const newSteps = [...steps];
+                                        newSteps[index].forwardTo = itemValue;
+                                        setSteps(newSteps);
+                                      }}
                                       style={styles.input}>
-                                      {sequence.length > 0 ? (
-                                        sequence.map(projectItem => (
-                                          <Picker.Item
-                                            key={projectItem.aprvl_seq_id}
-                                            label={projectItem.aprvl_seq_name}
-                                            value={projectItem.aprvl_seq_id}
-                                          />
-                                        ))
-                                      ) : (
+                                      <Picker.Item
+                                        label="Select User"
+                                        value=""
+                                      />
+                                      {users.map(user => (
                                         <Picker.Item
-                                          label="No Approval path available"
-                                          value=""
+                                          key={user.user_id}
+                                          label={user.first_name}
+                                          value={user.user_id}
                                         />
-                                      )}
+                                      ))}
                                     </Picker>
+                                    <Icon
+                                      name="search"
+                                      size={14}
+                                      color="#000"
+                                      style={styles.iconsearch}
+                                    />
+                                  </View>
+                                  <Text style={styles.autoPopulatedText}>
+                                    {step.designation || 'Project Manager'}
+                                  </Text>
+                                  <View style={styles.actionContainer}>
+                                    <Picker
+                                      style={styles.actionPicker}
+                                      selectedValue={step.action}
+                                      onValueChange={itemValue => {
+                                        const newSteps = [...steps];
+                                        newSteps[index].action = itemValue;
+                                        setSteps(newSteps);
+                                      }}>
+                                      <Picker.Item label="Select" value="" />
+                                      <Picker.Item
+                                        label="Approval"
+                                        value="approval"
+                                      />
+                                      <Picker.Item
+                                        label="Review"
+                                        value="review"
+                                      />
+                                    </Picker>
+                                    {steps.length > 1 && (
+                                      <TouchableOpacity
+                                        style={styles.cancelIcon}
+                                        onPress={() => removeStep(step.id)}>
+                                        <Icon
+                                          name="close"
+                                          size={18}
+                                          color="#B40A0A"
+                                        />
+                                      </TouchableOpacity>
+                                    )}
                                   </View>
                                 </View>
-                                <TouchableOpacity
-                                  style={styles.createNewApprovalButton}
-                                  onPress={() => {
-                                    setShowNewApprovalForm(true);
-                                    setIsCreatingSequence(true);
-                                  }}>
-                                  <Icon name="add" size={24} color="#FFF" />
-                                  <Text
-                                    style={styles.createNewApprovalButtonText}>
-                                    Create New Approval
-                                  </Text>
-                                </TouchableOpacity>
+                              ))}
+                              <TouchableOpacity
+                                style={styles.addStepButton}
+                                onPress={addStep}>
+                                <Icon name="add" size={18} color="#044086" />
+                                <Text style={styles.addStepButtonText}>
+                                  Add Step
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </>
+                        ) : (
+                          <>
+                            <View style={styles.approvalPathContainer}>
+                              <View style={styles.approvalPathInputContainer}>
+                                <Text style={styles.approvalPathLabel}>
+                                  Pick Approval Path{' '}
+                                  <Text style={styles.asterisk}>*</Text>
+                                </Text>
+                                <View style={styles.approvalPathInput}>
+                                  <Picker
+                                    selectedValue={approvalPath}
+                                    onValueChange={itemValue =>
+                                      setApprovalPathid(itemValue)
+                                    }
+                                    style={styles.input}>
+                                    {sequence.length > 0 ? (
+                                      sequence.map(projectItem => (
+                                        <Picker.Item
+                                          key={projectItem.aprvl_seq_id}
+                                          label={projectItem.aprvl_seq_name}
+                                          value={projectItem.aprvl_seq_id}
+                                        />
+                                      ))
+                                    ) : (
+                                      <Picker.Item
+                                        label="No Approval path available"
+                                        value=""
+                                      />
+                                    )}
+                                  </Picker>
+                                </View>
                               </View>
-                            </>
-                          )}
-                        </View>
-                      )}
-                    </RadioButton.Group>
-                  </ScrollView>
-                  <View style={styles.popupButtonContainer}>
-                    <TouchableOpacity
-                      style={styles.popupSubmitButton}
-                      onPress={handleSubmit}>
-                      <Text style={styles.popupSubmitButtonText}>Submit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.popupCancelButton}
-                      onPress={() => setIsPopupVisible(false)}>
-                      <Text style={styles.popupCancelButtonText}>Cancel</Text>
-                    </TouchableOpacity>
-                  </View>
+                              <TouchableOpacity
+                                style={styles.createNewApprovalButton}
+                                onPress={() => {
+                                  setShowNewApprovalForm(true);
+                                  setIsCreatingSequence(true);
+                                }}>
+                                <Icon name="add" size={24} color="#FFF" />
+                                <Text
+                                  style={styles.createNewApprovalButtonText}>
+                                  Create New Approval
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </>
+                        )}
+                      </View>
+                    )}
+                  </RadioButton.Group>
+                </ScrollView>
+                <View style={styles.popupButtonContainer}>
+                  <TouchableOpacity
+                    style={styles.popupSubmitButton}
+                    onPress={handleSubmit}>
+                    <Text style={styles.popupSubmitButtonText}>Submit</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.popupCancelButton}
+                    onPress={() => setIsPopupVisible(false)}>
+                    <Text style={styles.popupCancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
-            </Modal>
-          </SafeAreaView>
-        ) : (
-          <Text>Loading project details...</Text>
-        )}
-      </ScrollView>
-    );
-  };
-  
-
-
+            </View>
+          </Modal>
+        </SafeAreaView>
+      ) : (
+        <Text>Loading project details...</Text>
+      )}
+    </ScrollView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -1346,7 +1388,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-     
   },
   backButton: {
     marginRight: 16,
@@ -1389,6 +1430,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 22,
     padding: 16,
+    justifyContent: 'center',
   },
   tableHeader: {
     flexDirection: 'row',
@@ -1396,14 +1438,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     backgroundColor: '#f5f5f5',
   },
-  
+
   tableRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
-   
   },
 
   commentCell: {
@@ -1411,7 +1452,7 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 4,
   },
- 
+
   historyHeader: {
     flexDirection: 'row',
     backgroundColor: '#f5f5f5',
@@ -1443,7 +1484,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
- /*  container: {
+  /*  container: {
     flex: 1,
     backgroundColor: '#fff',
   },
@@ -1514,14 +1555,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   }, */
-/*   cellText: {
+  /*   cellText: {
     color: '#232323',
     fontFamily: 'Source Sans Pro',
     fontSize: 14,
     fontWeight: '400',
     lineHeight: 22,
   }, */
-/*   commentCell: {
+  /*   commentCell: {
     backgroundColor: '#D3E6FC',
     padding: 8,
     borderRadius: 4,
@@ -1530,7 +1571,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   }, */
- /*  container: {
+  /*  container: {
     flex: 1,
     backgroundColor: '#FFF',
   }, */
@@ -1542,7 +1583,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 30,
   },
- /*  header: {
+  /*  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
