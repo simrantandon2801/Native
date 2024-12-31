@@ -11,10 +11,8 @@ import {
   Alert,
   Platform,
 } from 'react-native';
-
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
-// import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RadioButton } from 'react-native-paper';
 import { GetGoals } from '../../database/Goals';
 import { GetPrograms, GetProgramsByGoalId} from '../../database/ManageProgram';
@@ -52,7 +50,6 @@ const NewIntake = () => {
   const [endDate, setEndDate] = useState('');
   //const [endDate, setEndDate] = useState<Date | null>(null);
   const [goLiveDate, setGoLiveDate] = useState('');
-  const [BudgetmodalVisible, setBudgetModalVisible] = useState(false)
   const [businessProblem, setBusinessProblem] = useState('');
   const [scopeDefinition, setScopeDefinition] = useState('');
   const [keyAssumption, setKeyAssumption] = useState('');
@@ -66,6 +63,7 @@ const NewIntake = () => {
   const [approvalPathidApp, setApprovalPathidApp] = useState('');
   const [approvalPathid, setApprovalPathid] = useState('');
   const [approvalPathOther, setApprovalPathOther] = useState('');
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [goals, setGoals] = useState([]);
   const [goalSelected, setGoalSelected] = useState('');
   const[programData,setProgramData]= useState([]);
@@ -74,11 +72,7 @@ const NewIntake = () => {
   const[projectMgr,setprojectMgr]= useState([]);
   const [roi, setRoi] = useState('');
   const [risk, setRisk] = useState('');
-  const [budgetImpact, setBudgetImpact] = useState('');
-  const [isDraftSaved, setIsDraftSaved] = useState(false);
-  const [isapprovalSubmitOpen, setIsapprovalSubmitopen] = useState(false);
-
-  const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
+  const [BudgetmodalVisible, setBudgetModalVisible] = useState(false)
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
   const [designation, setDesignation] = useState('');
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
@@ -89,7 +83,7 @@ const NewIntake = () => {
   const [sequenceName, setSequenceName] = useState('');
   const [projectId, setProjectId] = useState('');
   const [isApprovalPopupVisible, setIsApprovalPopupVisible] = useState(false);
-  const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
+  const [isapprovalSubmitOpen, setIsapprovalSubmitopen] = useState(false);
   const [rawStartDate, setRawStartDate] = useState(null);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [rawEndDate, setRawEndDate] = useState(null); 
@@ -101,7 +95,10 @@ const NewIntake = () => {
   const [liveDateDisplay, setLiveDateDisplay] = useState('');
   const [isOtherUserChecked, setIsOtherUserChecked] = useState(false);
   const [addOtherUser, setAddOtherUser] = useState(false);
+  const [budgetImpact, setBudgetImpact] = useState('');
   const [departments, setDepartments] = useState([]);
+  const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
+  const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '',department_name: '' }]);
   };
@@ -545,10 +542,11 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          setSubmitPopupMessage('Your review has been submitted successfully!');
+            setSubmitPopupMessage('Your review has been submitted successfully!');
+
           setIsPopupVisible(false); 
         } else {
-          setSubmitPopupMessage('Failed to submit. Please try again.');
+            setSubmitPopupMessage('Failed to submit. Please try again.');
         }
       } else {
         setSubmitPopupMessage('Unable to retrieve project ID. Submission aborted.');
@@ -557,7 +555,6 @@ const fetchSequence = async () => {
       console.error('Error submitting:', error);
       setSubmitPopupMessage('An error occurred while submitting. Please try again.');
     }
-    setIsSubmitPopupVisible(true);
   };
   
   const handleapproval = async () => {
@@ -576,14 +573,12 @@ const fetchSequence = async () => {
           type: "approval",
           approval_type: Number(selectedOptionApp),
         };
-  console.log(payload)
+  console.log(payload) 
         const response = await InsertApproval(payload); 
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          setIsapprovalSubmitopen(true);
-
-       
+          Alert.alert('Submission successful!');
           setIsPopupVisible(false); 
           setIsApprovalPopupVisible(false)
         } else {
@@ -713,7 +708,8 @@ const handleBudgetDetail = () =>{
         showsVerticalScrollIndicator={false}
       >
         <View>
-          {/* First Row */}  <View style={styles.row}>
+          {/* First Row */}
+          <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>
                 Name/Title <Text style={styles.asterisk}>*</Text>
@@ -768,6 +764,7 @@ const handleBudgetDetail = () =>{
          
           </View>
 
+
           {/* Second Row */}
           <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
@@ -813,7 +810,8 @@ const handleBudgetDetail = () =>{
         
           </View>
 
-          {/* Business Owner Row */}
+
+
           <View style={styles.row}>
               <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Program</Text>
@@ -870,7 +868,10 @@ const handleBudgetDetail = () =>{
             </View>
             </View>
         
-            <View style={styles.row}>
+
+
+          {/* Project Owner Row */}
+          <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Business Owner<Text style={styles.asterisk}>*</Text></Text>
               <Picker
@@ -896,10 +897,9 @@ const handleBudgetDetail = () =>{
 
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Business Owner Department<Text style={styles.asterisk}>*</Text></Text>
-            
-                 <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner) } editable={false}/>
+             
+                <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner)}/>
                 {touched.businessOwnerDept && errors.businessOwnerDept && (<Text style={{color:'red'}} >{errors.businessOwnerDept}</Text>)}
-            
             </View>
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Proposed Start Date<Text style={styles.asterisk}>*</Text></Text>
@@ -929,7 +929,11 @@ const handleBudgetDetail = () =>{
           </View>
 
 
-          {/* Project Owner Row */}
+
+        
+
+
+          {/* Project Manager Row */}
           <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Project Owner<Text style={styles.asterisk}>*</Text></Text>
@@ -987,7 +991,12 @@ const handleBudgetDetail = () =>{
     </View>
           </View>
 
-          {/* Project Manager Row */}
+
+
+          {/* Priority Row */}
+        
+
+          {/* Dates Row */}
           <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Project Manager<Text style={styles.asterisk}>*</Text></Text>
@@ -1025,21 +1034,15 @@ const handleBudgetDetail = () =>{
         placeholder="Select Budget"
       />
 
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={budget}
-                onValueChange={(value) => setBudget(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Budget" value="" />
-                <Picker.Item label="High" value="1" />
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Low" value="3" />
-              </Picker>
-              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
-          
-            </View>
+    
+<TouchableOpacity onPress={handleBudgetDetail}>
+  <Text style={styles.detailText}>Detail</Text>
+</TouchableOpacity>
+
+    
+      {touched.budget && errors.budget && (
+        <Text style={{color:'red'}}>{errors.budget}</Text>
+      )}
 
     {/* Budget Modal  */}
     
@@ -1096,6 +1099,8 @@ const handleBudgetDetail = () =>{
           </View>
 
 
+
+
           {/* ROI Section */}
           <Text style={styles.roiHeading}>Return on Investment</Text>
 
@@ -1109,13 +1114,12 @@ const handleBudgetDetail = () =>{
                 value={roi}
                 onChangeText={setRoi}
                 placeholder="Enter ROI"
-                 placeholderTextColor="#757575"
               />
               {touched.roi && errors.roi && (<Text style={{color:'red'}} >{errors.roi}</Text>)}
 
             </View>
             <View style={styles.templateContainer}>
-              {/* <Text style={styles.customTemplateText}>Custom Template</Text> */}
+              <Text style={styles.customTemplateText}>Custom Template</Text>
               <View style={styles.customTemplateGroup}>
                 <TouchableOpacity style={styles.templateButton}>
                   <Icon name="download-outline" size={18} color="#000" style={styles.icon} />
@@ -1134,26 +1138,21 @@ const handleBudgetDetail = () =>{
           <Text style={styles.projectDriversHeading}>Project Drivers</Text>
 
           {/* Business Problem/Description and Scope Definition Row */}
-          <View style={styles.contentContainer}>
-        <View style={styles.formContainer}>
-          {/* Business Problem/Description and Scope Definition Row */}
-          <View style={styles.row}>
-            <View style={styles.inputContainer}>
+          <View style={styles.row5}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Business Problem/Description<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput} 
+                style={styles.outlinedInput}
                 placeholder="Enter Business Problem/Description"
-                placeholderTextColor="#757575"
                 value={businessProblem}
                 onChangeText={setBusinessProblem}
               />
             </View>
-            <View style={styles.inputContainer}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Scope Definition<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Scope Definition"
-                placeholderTextColor="#757575"
                 value={scopeDefinition}
                 onChangeText={setScopeDefinition}
               />
@@ -1161,42 +1160,39 @@ const handleBudgetDetail = () =>{
           </View>
 
           {/* Key Assumption and Benefits/ROI Row */}
-          <View style={styles.row}>
-            <View style={styles.inputContainer}>
+          <View style={styles.row5}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Key Assumption<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Key Assumption"
-                placeholderTextColor="#757575"
                 value={keyAssumption}
                 onChangeText={setKeyAssumption}
               />
             </View>
-            <View style={styles.inputContainer}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Benefits/ROI<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Benefits/ROI"
-                placeholderTextColor="#757575"
                 value={benefitsROI}
                 onChangeText={setBenefitsROI}
               />
             </View>
           </View>
 
-          {/* Risk and Budget Impact Row */}
-          <View style={styles.row}>
-            <View style={styles.inputContainer}>
+          {/* Risk Input */}
+          <View style={styles.row5}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Risk<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
                 placeholder="Enter Risk"
-                placeholderTextColor="#757575"
                 value={risk}
                 onChangeText={setRisk}
               />
             </View>
-            <View style={styles.inputContainer}>
+            <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Budget Impact<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
                 style={styles.outlinedInput}
@@ -1207,10 +1203,7 @@ const handleBudgetDetail = () =>{
               />
             </View>
           </View>
-        </View>
-        {/* <View style={styles.verticalDivider} /> */}
-      </View>
-          {/* <View style={styles.verticalDivider} /> */}
+
           {/* Custom Fields Button and Checkbox */}
           <View style={styles.row}>
             <View style={styles.customFieldsContainer}>
@@ -1256,6 +1249,7 @@ const handleBudgetDetail = () =>{
           </View>
         </View>
       </Modal>
+
   <View style={styles.rightButtonsContainer}>
   {/* Approval Button */}
   <TouchableOpacity 
@@ -1394,11 +1388,7 @@ const handleBudgetDetail = () =>{
           </View>
         </Modal>
 
-      
-      {/* Modal for approval submit */}
-
-
-      <Modal
+        <Modal
         animationType="fade"
         transparent={true}
         visible={isapprovalSubmitOpen}
@@ -1410,6 +1400,7 @@ const handleBudgetDetail = () =>{
           </View>
         </View>
       </Modal>
+
 
       {/* Send for Review modal */}
       <Modal
@@ -1600,9 +1591,6 @@ const handleBudgetDetail = () =>{
           </View>
         </View>
       </Modal>
-
-      {/* Submitt Modal */}
-
       <Modal
         animationType="fade"
         transparent={true}
@@ -1664,7 +1652,7 @@ const styles = StyleSheet.create({
     },
     backText: {
       color: '#232323',
-      fontFamily: 'Inter',
+      fontFamily: 'Source Sans Pro',
       fontSize: 14,
       fontWeight: '400',
       lineHeight: 22,
@@ -1842,13 +1830,13 @@ const styles = StyleSheet.create({
     },
     projectDriversHeading: {
       color: '#000',
-      fontFamily: 'Inter',
+      fontFamily: 'Source Sans Pro',
       fontSize: 16,
-      fontWeight: '600',
+      fontWeight: '500',
       lineHeight: 22,
       marginBottom: 16,
       marginTop: 24,
-      // textAlign: 'center',
+      textAlign: 'center',
     },
     customFieldsContainer: {
       flexDirection: 'row',
@@ -1889,12 +1877,6 @@ const styles = StyleSheet.create({
       width: '100%',
       maxWidth: 1200,
       paddingHorizontal: 8,
-    },
-    newApprovalContainer:{
-
-    },
-    newApprovalHeader:{
-
     },
     saveAsDraftButton: {
       backgroundColor: '#FFF',
@@ -2027,11 +2009,6 @@ const styles = StyleSheet.create({
       fontWeight: '400',
       marginBottom: 4,
     },
-    BackButton: {
-      marginLeft: 8, 
-      color: '#232323',
-      fontFamily: 'Inter',
-    },
     approvalPathPicker: {
       height: 40,
     },
@@ -2061,11 +2038,6 @@ const styles = StyleSheet.create({
       textTransform: 'capitalize',
      textAlign:'center'
     },
-    divider1: {
-      height: 1,
-      backgroundColor: '#E0E0E0',
-      marginVertical: 16,
-    },
     newApprovalInput: {
       borderRadius: 5,
       borderBottomWidth: 1,
@@ -2085,7 +2057,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
-      // paddingHorizontal: 10,
+      paddingHorizontal: 10,
       marginBottom: 10,
     },
     columnContent: {
@@ -2122,12 +2094,6 @@ const styles = StyleSheet.create({
     rightButtonsContainer: {
         // flex: 1,
         gap: 8,
-      },
-      verticalDivider: {
-        width: 1,
-        height:'10%',
-        backgroundColor: '#044786',
-        marginVertical: 16,
       },
       leftButtonContainer:{
         alignSelf:'flex-start'
@@ -2169,9 +2135,6 @@ const styles = StyleSheet.create({
       width: '80%',
       height: 40,
     },
-    approvalPathInput:{
-
-    },
     addButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -2210,7 +2173,7 @@ const styles = StyleSheet.create({
       color: '#000',
     },
     autoPopulatedText: {
-      // width: '67%',
+      width: '67%',
       color: '#000',
       fontFamily: 'Source Sans Pro',
       fontSize: 12,
@@ -2255,118 +2218,39 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      // width: '25%',
+      width: '25%',
     },
     cancelIcon: {
       padding: 5,
     },
     centeredViewd: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalViewd: {
-      margin: 20,
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 35,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
       },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-    },
-    modalTextd: {
-      marginBottom: 15,
-      textAlign: 'center',
-      fontSize: 16,
-      fontWeight: '600',
-      fontFamily:'Inter',
-    },
-    contentContainer: {
-      flexDirection: 'row',
-    },
-    formContainer: {
-      flex: 1,
-    },
-    inputContainer: {
-      flex: 1,
-      marginRight: 16,
-    },
-    centeredViews: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalViews: {
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 20,
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 2,
+      modalViewd: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
       },
-      shadowOpacity: 0.25,
-      shadowRadius: 4,
-      elevation: 5,
-    },
-    modalTexts: {
-      fontSize: 18,
-      marginBottom: 15,
-      textAlign: 'center',
-    },
-    closeButtons: {
-      // backgroundColor: '#2196F3',
-      borderRadius: 5,
-      padding: 10,
-      elevation: 2,
-    },
-    closeButtonTexts: {
-      color: 'white',
-      fontWeight: 'bold',
-      textAlign: 'center',
-    },
-    detailText: {
-      marginTop: 4,
-      color: '#044086',
-     
-    },
-    modalHeaderB: {
-      alignItems: 'flex-end',
-      marginBottom: 16,
-    },
-    closeButtonB: {
-      padding: 8,
-    },
-    budgetOptions: {
-      marginBottom: 16,
-    },
-    budgetOption: {
-      padding: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#eee',
-    },
-    detailsContainer: {
-      padding: 16,
-    },
-    detailsTitle: {
-      fontSize: 16,
-      marginBottom: 12,
-    },
-    detailItem: {
-      marginBottom: 8,
-    },
-    detailItemTitle: {
-      fontWeight: 'bold',
-    }
+      modalTextd: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: '600',
+        fontFamily:'Inter',
+      },
   });
   
   
