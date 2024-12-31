@@ -332,16 +332,16 @@ const ManageUsers: React.FC = () => {
       user_ids: [user_id],
     };
     try {
-      const response = await DeleteUser(payload); // API call to delete user
+      const response = await DeleteUser(payload); 
       const parsedRes = JSON.parse(response);
       if (parsedRes.status === 'success') {
-        setisDeleteModalVisible(false); // Close the modal after successful deletion
+        setisDeleteModalVisible(false); 
         fetchUser();
       } else {
-        console.error('Failed to delete user:', parsedRes.message); // Handle failure
+        console.error('Failed to delete user:', parsedRes.message); 
       }
     } catch (error) {
-      console.error('Error deleting user:', error); // Handle any errors
+      console.error('Error deleting user:', error); 
     }
   };
 
@@ -606,6 +606,7 @@ const ManageUsers: React.FC = () => {
 
       <View style={styles.actions}>
         {/*Delete Button in Action Bar */}
+        
         <TouchableOpacity
           style={[styles.actionButton, styles.leftAction]}
           onPress={() => {
@@ -647,7 +648,7 @@ const ManageUsers: React.FC = () => {
             </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionButton}>
+          {/* <TouchableOpacity style={styles.actionButton}>
             <IconButton
               icon="table-column-plus-after"
               size={16}
@@ -656,7 +657,7 @@ const ManageUsers: React.FC = () => {
             <Text style={[styles.actionText, {color: '#044086'}]}>
               Set Columns
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity style={styles.actionButton} onPress={toggleModal}>
             <IconButton icon="sync" size={16} color="#044086" />
             <Text style={[styles.actionText, {color: '#044086'}]}>Sync AD</Text>
@@ -694,7 +695,7 @@ const ManageUsers: React.FC = () => {
           <DataTable.Title>Department</DataTable.Title>
           <DataTable.Title>Reporting Manager</DataTable.Title>
           {/* <DataTable.Title>Projects Active</DataTable.Title> */}
-          <DataTable.Title>Approval Limit</DataTable.Title>
+          <DataTable.Title>Approval Limit($)</DataTable.Title>
           {/* <DataTable.Title >
             Average Cost
           </DataTable.Title> */}
@@ -1830,16 +1831,18 @@ const styles = StyleSheet.create({
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
   },
   actionText: {
     fontSize: 14,
   },
   middleActions: {
     flexDirection: 'row',
+    justifyContent:'center'
   },
   leftAction: {
     marginRight: 2,
+    // paddingLeft:10
   },
   rightAction: {
     marginLeft: 'auto', // To push the element to the right
@@ -1861,11 +1864,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
     color: '#757575',
+    backgroundColor:'#fff'
     //maxHeight: 10000,
   },
   tableCell: {
     flex: 1,
     fontSize: 14,
+     backgroundColor:'#fff'
   },
   center: {
     textAlign: 'center',

@@ -93,7 +93,7 @@ const ADIntegration = ({ onClose }) => {
   return (
     <PaperProvider>
       <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Configure AD</Text>
+        {/* <Text style={styles.heading}>Configure AD</Text> */}
         <View style={{ margin: 16 }}>
           {/* Menu for AD selection */}
        {/*    <Menu
@@ -119,7 +119,7 @@ const ADIntegration = ({ onClose }) => {
           ))}
         </Menu> */}
           
-            <View style={styles.input}>
+            <View style={styles.input1}>
                     <Text style={styles.label}>*  AD Selection</Text>
                     <Picker
                       selectedValue={selectedAD}
@@ -127,7 +127,7 @@ const ADIntegration = ({ onClose }) => {
                         setSelectedAD(itemValue)
                         
                       }
-                      style={styles.picker}>
+                      style={styles.input}>
                       <Picker.Item label="Select Provider" value="" />
                         {ad.map((item, index) => (
                           <Picker.Item
@@ -227,7 +227,7 @@ const ADIntegration = ({ onClose }) => {
                 {/* Close Button */}
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={closeModal}>
+                  onPress={onClose}>
                   <Text style={styles.submitButtonText}>Close</Text>
                 </TouchableOpacity>
               </View>
@@ -272,7 +272,17 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 15,
     borderRadius: 5,
-    backgroundColor: 'transparent',
+  
+  
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '100%',
   },
   button: {
     width: '46%',
@@ -288,10 +298,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   picker: {
-    height: 50,
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#044086',
-    backgroundColor: 'transparent',
+    // height: 50,
+    // borderBottomWidth: 1.5,
+    // borderBottomColor: '#044086',
+    // backgroundColor: 'transparent',
   },
   submitButton: {
     backgroundColor: '#044086',
@@ -347,5 +357,8 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       zIndex: 1000,
     },
-
+   
+input1:{
+  
+}
 });
