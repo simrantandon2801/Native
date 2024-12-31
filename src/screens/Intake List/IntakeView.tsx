@@ -256,6 +256,7 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
   const [action, setAction] = useState('');
   const [isApprovalPopupVisible, setIsApprovalPopupVisible] = useState(false);
+  const [isReviewPopupVisible, setIsReviewPopupVisible] = useState(false);
   const [approvalPathidApp, setApprovalPathidApp] = useState('');
   const [selectedOptionApp, setSelectedOptionApp] = useState('2');
   const [steps, setSteps] = useState([
@@ -1189,7 +1190,8 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
                    
                   )}
                 {/*Send for review Button */}
-                {status === 4 && (
+                
+                {(status === 4 || status === 2) && (
   <>
     
     <TouchableOpacity 
@@ -1198,6 +1200,19 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
     >
       <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
       <Text style={styles.newButtonText}>Send for Approval</Text>
+    </TouchableOpacity>
+  </>
+)}
+
+{(status === 2) && (
+  <>
+    
+    <TouchableOpacity 
+      style={styles.newButton}
+      onPress={() => { setIsApprovalPopupVisible(true); }}
+    >
+      <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
+      <Text style={styles.newButtonText}>Send for Review</Text>
     </TouchableOpacity>
   </>
 )}
@@ -1322,6 +1337,196 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
           </View>
         </Modal>
 
+ {/* Send for Review Popup */}
+
+        <Modal
+        visible={isReviewPopupVisible}
+        transparent={true}
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity 
+              style={styles.closeIcon} 
+              onPress={() => setIsReviewPopupVisible(false)}
+            >
+              <Icon name="close" size={24} color="#000" />
+            </TouchableOpacity>
+            <Text style={styles.popupHeading}>Send for Review</Text>
+            
+            <ScrollView 
+              style={styles.modalScrollView}
+              showsVerticalScrollIndicator={false}
+            >
+             <RadioButton.Group 
+          onValueChange={(value) => {
+            setSelectedOption(value);
+            if (value === '2') {
+              setShowNewApprovalForm(true);
+              setIsCreatingSequence(true);
+            }
+          }} 
+          value={selectedOption}
+        >
+              <View style={styles.radioOptionsRow}>
+                <View style={styles.radioOption}>
+                  <RadioButton.Android value="1" color="#044086" />
+                  <Text style={styles.radioText}>In person meeting</Text>
+                </View>
+                <View style={styles.radioOption1}>
+                  <RadioButton.Android value="2" color="#044086" />
+                  <Text style={styles.radioText}>Authorization process</Text>
+                </View>
+              </View>
+              {selectedOption === '2' && (
+                <View style={styles.newApprovalContainer}>
+                  {showNewApprovalForm ? (
+                    <>
+                      <View style={styles.newApprovalHeader}>
+                        {/* <TouchableOpacity 
+                          style={styles.backButton}
+                          onPress={() => {
+                            setShowNewApprovalForm(false);
+                          }}
+                        >
+                          <Icon name="arrow-back" size={18} color="#232323" />
+                          <Text style={styles.backText}>Back</Text>
+                        </TouchableOpacity> */}
+                       {/*  <Text style={styles.newApprovalTitle}>Create New Review</Text> */}
+                      </View>
+
+                    {/*   <TextInput
+  style={styles.newApprovalInput}
+  placeholder="Enter text"
+  value={sequenceName}  
+  onChangeText={(text) => setSequenceName(text)}  
+/>
+ */}
+                      <View style={styles.columnsContainer}>
+                        <View style={styles.columnsHeader}>
+                          <Text style={styles.columnTitle}>S.No</Text>
+                          <Text style={styles.columnTitle}>Forwardto</Text>
+                          <Text style={styles.columnTitle}>Department</Text>
+                         {/*  <Text style={styles.columnTitle}>Their Action</Text> */}
+                        </View>
+                        {steps.map((step, index) => (
+                      <View key={step.id} style={styles.columnContent}>
+                        <Text style={styles.stepText}> {step.id}</Text>
+                        <View style={styles.searchableDropdown}>
+                          <Picker
+                            selectedValue={step.forwardTo}
+                            onValueChange={(itemValue) => {
+                                const selectedUser = users.find((user) => user.user_id === Number(itemValue));
+                                console.log('Selected User:', selectedUser);
+                              const newSteps = [...steps];
+                              newSteps[index].forwardTo = itemValue;
+                              newSteps[index].department_name = selectedUser?.department_name || 'No Department';
+                              setSteps(newSteps);
+                            }}
+                            style={styles.input}
+                          >
+                            <Picker.Item label="Select User" value="" />
+                            {users.map((user) => (
+                              <Picker.Item key={user.user_id} label={user.first_name + ' ' + user.last_name } value={user.user_id} />
+                            ))}
+                          </Picker>
+                          {/* <Icon name="search" size={14} color="#000" style={styles.iconsearch} /> */}
+                        </View>
+                        <Text style={styles.autoPopulatedText}>
+                          {step.department_name || 'No Department'}
+                        </Text>
+                            <View style={styles.actionContainer}>
+                             {/*  <Picker
+                                style={styles.actionPicker}
+                                selectedValue={step.action}
+                                onValueChange={(itemValue) => {
+                                  const newSteps = [...steps];
+                                  newSteps[index].action = itemValue;
+                                  setSteps(newSteps);
+                                }}
+                              >
+                                <Picker.Item label="Select" value="" />
+                                <Picker.Item label="Approval" value="approval" />
+                                <Picker.Item label="Review" value="review" />
+                              </Picker> */}
+                              {steps.length > 1 && (
+                                <TouchableOpacity style={styles.cancelIcon} onPress={() => removeStep(step.id)}>
+                                  <Icon name="close" size={18} color="#B40A0A" />
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                          </View>
+                        ))}
+                         <View style={styles.popupButtonContainer}>
+                        <TouchableOpacity style={styles.addStepButton} onPress={addStep}>
+                          <Icon name="add" size={18} color="#044086" />
+                          <Text style={styles.addStepButtonText}>Add User</Text>
+                        </TouchableOpacity>
+                        {/* <TouchableOpacity style={styles.sequence} onPress={createSequence}>
+                <Text style={styles.popupSubmitButtonText}>Create Sequence</Text>
+              </TouchableOpacity> */}
+              </View>
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <View style={styles.approvalPathContainer}>
+                        <View style={styles.approvalPathInputContainer}>
+                          <Text style={styles.approvalPathLabel}>
+                            Pick Review Path <Text style={styles.asterisk}>*</Text>
+                          </Text>
+                          <View style={styles.approvalPathInput}>
+                          <Picker
+  key={approvalPathid}
+  selectedValue={approvalPathid}
+  onValueChange={(itemValue) => {
+    console.log("Selected Value:", itemValue);
+    setApprovalPathid(itemValue);
+  }}
+  style={styles.input}
+>
+  {sequence.length > 0 ? (
+    sequence.map((projectItem) => (
+      <Picker.Item
+        key={projectItem.aprvl_seq_id}
+        label={projectItem.aprvl_seq_name}
+        value={projectItem.aprvl_seq_id}
+      />
+    ))
+  ) : (
+    <Picker.Item label="No Approval path available" value="" />
+  )}
+</Picker>
+                          </View>
+                        </View>
+                        <TouchableOpacity 
+                          style={styles.createNewApprovalButton}
+                          onPress={() => {
+                            setShowNewApprovalForm(true);
+                            setIsCreatingSequence(true);
+                          }}
+                        >
+                          <Icon name="add" size={24} color="#FFF" />
+                          <Text style={styles.createNewApprovalButtonText}>Create New Approval</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </>
+                  )}
+                </View>
+              )}
+            </RadioButton.Group>
+            </ScrollView>
+            <View style={styles.popupButtonContainer}>
+              <TouchableOpacity style={styles.popupSubmitButton}/*  onPress={handlereview} */>
+                <Text style={styles.popupSubmitButtonText}>Submit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.popupCancelButton} onPress={() => setIsPopupVisible(false)}>
+                <Text style={styles.popupCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
         </SafeAreaView>
       ) : (
         <Text>Loading project details...</Text>

@@ -63,6 +63,7 @@ const NewIntake = () => {
   const [approvalPathidApp, setApprovalPathidApp] = useState('');
   const [approvalPathid, setApprovalPathid] = useState('');
   const [approvalPathOther, setApprovalPathOther] = useState('');
+  const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [goals, setGoals] = useState([]);
   const [goalSelected, setGoalSelected] = useState('');
   const[programData,setProgramData]= useState([]);
@@ -71,7 +72,7 @@ const NewIntake = () => {
   const[projectMgr,setprojectMgr]= useState([]);
   const [roi, setRoi] = useState('');
   const [risk, setRisk] = useState('');
-  
+  const [BudgetmodalVisible, setBudgetModalVisible] = useState(false)
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
   const [designation, setDesignation] = useState('');
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
@@ -82,7 +83,7 @@ const NewIntake = () => {
   const [sequenceName, setSequenceName] = useState('');
   const [projectId, setProjectId] = useState('');
   const [isApprovalPopupVisible, setIsApprovalPopupVisible] = useState(false);
-  
+  const [isapprovalSubmitOpen, setIsapprovalSubmitopen] = useState(false);
   const [rawStartDate, setRawStartDate] = useState(null);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [rawEndDate, setRawEndDate] = useState(null); 
@@ -94,7 +95,10 @@ const NewIntake = () => {
   const [liveDateDisplay, setLiveDateDisplay] = useState('');
   const [isOtherUserChecked, setIsOtherUserChecked] = useState(false);
   const [addOtherUser, setAddOtherUser] = useState(false);
+  const [budgetImpact, setBudgetImpact] = useState('');
   const [departments, setDepartments] = useState([]);
+  const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
+  const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
   const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '',department_name: '' }]);
   };
@@ -119,6 +123,14 @@ const NewIntake = () => {
     setModalText('Send for Review');
     setIsPopupVisible(true); 
   };
+  const getBudgetText = (value) => {
+    switch(value) {
+      case "1": return "High"
+      case "2": return "Medium" 
+      case "3": return "Low"
+      default: return ""
+    }
+  }
   const [isNewButtonVisible, setIsNewButtonVisible] = useState(false);
 /*   const addStep = () => {
     setSteps((prevSteps) => [
@@ -401,7 +413,10 @@ const fetchSequence = async () => {
       const parsedResponse = JSON.parse(response);
   
       if (parsedResponse.status === 'success') {
-        Alert.alert('Draft saved successfully');
+        setIsDraftSaved(true);
+        setTimeout(() => {
+          setIsDraftSaved(false);
+        }, 2000);
         const projectId = parsedResponse.data.project_id;
       console.log('Project ID:', projectId);
 
@@ -527,17 +542,18 @@ const fetchSequence = async () => {
         const result = JSON.parse(response);
   
         if (result.status === 'success') {
-          Alert.alert('Submission successful!');
+            setSubmitPopupMessage('Your review has been submitted successfully!');
+
           setIsPopupVisible(false); 
         } else {
-          Alert.alert('Failed to submit. Please try again.');
+            setSubmitPopupMessage('Failed to submit. Please try again.');
         }
       } else {
-        Alert.alert('Unable to retrieve project ID. Submission aborted.');
+        setSubmitPopupMessage('Unable to retrieve project ID. Submission aborted.');
       }
     } catch (error) {
       console.error('Error submitting:', error);
-      Alert.alert('An error occurred while submitting. Please try again.');
+      setSubmitPopupMessage('An error occurred while submitting. Please try again.');
     }
   };
   
@@ -723,16 +739,35 @@ const handleBudgetDetail = () =>{
               </Picker>
               {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
+              
+           
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Priority<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={priority}
+                onValueChange={(value) => setPriority(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Priority" value="" />
+                <Picker.Item label="Critical" value="1" />
+                <Picker.Item label="High" value="2" />
+                <Picker.Item label="Medium" value="3" />
+                <Picker.Item label="Low" value="4" />
+              </Picker>
+              {touched.priority && errors.priority && (<Text style={{color:'red'}} >{errors.priority}</Text>)}
 
+            </View>
             {/* <TouchableOpacity style={styles.approvalButton}>
               <Icon name="time-outline" size={18} color="#044086" style={styles.approvalIcon} />
               <Text style={styles.approvalButtonText}>Approval History</Text>
             </TouchableOpacity> */}
+         
           </View>
+
 
           {/* Second Row */}
           <View style={styles.row}>
-            <View style={styles.smallInputContainer}>
+            <View style={styles.largeInputContainer1}>
             <Text style={styles.inputLabel}>Goal</Text>
       <Picker
         selectedValue={goalSelected}
@@ -750,8 +785,35 @@ const handleBudgetDetail = () =>{
       </Picker>
       {/* {touched.goalSelected && errors.goalSelected && (<Text style={{color:'red'}} >{errors.goalSelected}</Text>)} */}
             </View>
-
             <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Impacted Functions<Text style={styles.asterisk}>*</Text></Text>
+              <NestedDeptDropdownNewProjects onSelect={handleImpactedFunctions} buisnessPersonId={parseInt(impactedFunction)}/>
+             {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
+
+            </View>
+            
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={budget}
+                onValueChange={(value) => setBudget(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Budget" value="" />
+                <Picker.Item label="High" value="1" />
+                <Picker.Item label="Medium" value="2" />
+                <Picker.Item label="Low" value="3" />
+              </Picker>
+              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
+
+            </View>
+        
+          </View>
+
+
+
+          <View style={styles.row}>
+              <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Program</Text>
               <Picker
                 selectedValue={program}
@@ -772,11 +834,45 @@ const handleBudgetDetail = () =>{
     )}
               </Picker>
             </View>
-          </View>
 
-          {/* Business Owner Row */}
-          <View style={styles.row}>
             <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={impactedApp}
+                onValueChange={(value) => setImpactedApp(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Application" value="" />
+                <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
+                <Picker.Item label="Apps: Sharepoint" value="app2" />
+              </Picker>
+              {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
+
+            </View>
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Project Size<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={projectSize}
+                onValueChange={(value) => setProjectSize(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Size" value="" />
+                <Picker.Item label="Large" value="1" />
+               
+                <Picker.Item label="Medium" value="2" />
+                <Picker.Item label="Small" value="3" />
+               
+              </Picker>
+              {touched.projectSize && errors.projectSize && (<Text style={{color:'red'}} >{errors.projectSize}</Text>)}
+
+            </View>
+            </View>
+        
+
+
+          {/* Project Owner Row */}
+          <View style={styles.row}>
+            <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Business Owner<Text style={styles.asterisk}>*</Text></Text>
               <Picker
                 selectedValue={businessOwner}
@@ -799,155 +895,14 @@ const handleBudgetDetail = () =>{
               {touched.businessOwner && errors.businessOwner && (<Text style={{color:'red'}} >{errors.businessOwner}</Text>)}
             </View>
 
-            <View style={styles.largeInputContainer}>
+            <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Business Owner Department<Text style={styles.asterisk}>*</Text></Text>
-            
-                 <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner) } editable={false}/>
+             
+                <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner)}/>
                 {touched.businessOwnerDept && errors.businessOwnerDept && (<Text style={{color:'red'}} >{errors.businessOwnerDept}</Text>)}
-            
             </View>
-          </View>
-
-          {/* Project Owner Row */}
-          <View style={styles.row}>
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Owner<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={projectOwner}
-                onValueChange={(value) => setProjectOwner(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Project Owner" value="" />
-    {projectData.length > 0 ? (
-        projectData.map((projectItem) => (
-            <Picker.Item 
-                key={projectItem.user_id} 
-                label={projectItem.first_name} 
-                value={projectItem.user_id} 
-            />
-        ))
-    ) : (
-        <Picker.Item label="No Project Owner Available" value="" />
-    )}
-              </Picker>
-              {touched.projectOwner && errors.projectOwner && (<Text style={{color:'red'}} >{errors.projectOwner}</Text>)}
-            </View>
-
-            <View style={styles.largeInputContainer}>
-              <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownNewProjects onSelect={handleProjectOwnerDept}  buisnessPersonId={parseInt(projectOwner)}/>
-
-              {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
-            </View>
-          </View>
-
-          {/* Project Manager Row */}
-          <View style={styles.row}>
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Manager<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={projectManager}
-                onValueChange={(value) => setProjectManager(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Project Owner" value="" />
-    {projectMgr.length > 0 ? (
-        projectMgr.map((projectItem) => (
-            <Picker.Item 
-                key={projectItem.user_id} 
-                label={projectItem.first_name} 
-                value={projectItem.user_id} 
-            />
-        ))
-    ) : (
-        <Picker.Item label="No Project Owner Available" value="" />
-    )}
-              </Picker>
-              {touched.projectManager && errors.projectManager && (<Text style={{color:'red'}} >{errors.projectManager}</Text>)}
-
-            </View>
-
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Functions<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownNewProjects onSelect={handleImpactedFunctions} buisnessPersonId={parseInt(impactedFunction)}/>
-             {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
-
-            </View>
-
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={impactedApp}
-                onValueChange={(value) => setImpactedApp(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Application" value="" />
-                <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
-                <Picker.Item label="Apps: Sharepoint" value="app2" />
-              </Picker>
-              {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
-
-            </View>
-          </View>
-
-          {/* Priority Row */}
-          <View style={styles.row}>
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Priority<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={priority}
-                onValueChange={(value) => setPriority(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Priority" value="" />
-                <Picker.Item label="Critical" value="1" />
-                <Picker.Item label="High" value="2" />
-                <Picker.Item label="Medium" value="3" />
-                <Picker.Item label="Low" value="4" />
-              </Picker>
-              {touched.priority && errors.priority && (<Text style={{color:'red'}} >{errors.priority}</Text>)}
-
-            </View>
-
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={budget}
-                onValueChange={(value) => setBudget(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Budget" value="" />
-                <Picker.Item label="High" value="1" />
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Low" value="3" />
-              </Picker>
-              {touched.budget && errors.budget && (<Text style={{color:'red'}} >{errors.budget}</Text>)}
-          
-            </View>
-
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Size<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-                selectedValue={projectSize}
-                onValueChange={(value) => setProjectSize(value)}
-                style={styles.input}
-              >
-                <Picker.Item label="Select Size" value="" />
-                <Picker.Item label="Large" value="1" />
-               
-                <Picker.Item label="Medium" value="2" />
-                <Picker.Item label="Small" value="3" />
-               
-              </Picker>
-              {touched.projectSize && errors.projectSize && (<Text style={{color:'red'}} >{errors.projectSize}</Text>)}
-
-            </View>
-          </View>
-
-          {/* Dates Row */}
-          <View style={styles.row}>
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Start Date<Text style={styles.asterisk}>*</Text></Text>
+              <Text style={styles.inputLabel}>Proposed Start Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
         style={styles.input}
         value={startDateDisplay}
@@ -971,8 +926,46 @@ const handleBudgetDetail = () =>{
         />
       )}
       </View>
+          </View>
+
+
+
+        
+
+
+          {/* Project Manager Row */}
+          <View style={styles.row}>
+            <View style={styles.largeInputContainer1}>
+              <Text style={styles.inputLabel}>Project Owner<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={projectOwner}
+                onValueChange={(value) => setProjectOwner(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Project Owner" value="" />
+    {projectData.length > 0 ? (
+        projectData.map((projectItem) => (
+            <Picker.Item 
+                key={projectItem.user_id} 
+                label={projectItem.first_name} 
+                value={projectItem.user_id} 
+            />
+        ))
+    ) : (
+        <Picker.Item label="No Project Owner Available" value="" />
+    )}
+              </Picker>
+              {touched.projectOwner && errors.projectOwner && (<Text style={{color:'red'}} >{errors.projectOwner}</Text>)}
+            </View>
+
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project End Date<Text style={styles.asterisk}>*</Text></Text>
+              <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
+              <NestedDeptDropdownNewProjects onSelect={handleProjectOwnerDept}  buisnessPersonId={parseInt(projectOwner)}/>
+
+              {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
+            </View>
+            <View style={styles.smallInputContainer}>
+              <Text style={styles.inputLabel}>Proposed End Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
         style={styles.input}
         value={endDateDisplay}
@@ -996,8 +989,84 @@ const handleBudgetDetail = () =>{
         />
       )}
     </View>
-         
+          </View>
 
+
+
+          {/* Priority Row */}
+        
+
+          {/* Dates Row */}
+          <View style={styles.row}>
+            <View style={styles.largeInputContainer1}>
+              <Text style={styles.inputLabel}>Project Manager<Text style={styles.asterisk}>*</Text></Text>
+              <Picker
+                selectedValue={projectManager}
+                onValueChange={(value) => setProjectManager(value)}
+                style={styles.input}
+              >
+                <Picker.Item label="Select Project Owner" value="" />
+    {projectMgr.length > 0 ? (
+        projectMgr.map((projectItem) => (
+            <Picker.Item 
+                key={projectItem.user_id} 
+                label={projectItem.first_name} 
+                value={projectItem.user_id} 
+            />
+        ))
+    ) : (
+        <Picker.Item label="No Project Owner Available" value="" />
+    )}
+              </Picker>
+              {touched.projectManager && errors.projectManager && (<Text style={{color:'red'}} >{errors.projectManager}</Text>)}
+
+            </View>
+            <View style={styles.smallInputContainer}>
+      <Text style={styles.inputLabel}>
+        Actual Budget<Text style={styles.asterisk}>*</Text>
+      </Text>
+
+        {/* disbale input box */}
+      <TextInput
+        style={[styles.input, { backgroundColor: '#f0f0f0' }]}
+        value={getBudgetText(budget)}
+        editable={false}
+        placeholder="Select Budget"
+      />
+
+    
+<TouchableOpacity onPress={handleBudgetDetail}>
+  <Text style={styles.detailText}>Detail</Text>
+</TouchableOpacity>
+
+    
+      {touched.budget && errors.budget && (
+        <Text style={{color:'red'}}>{errors.budget}</Text>
+      )}
+
+    {/* Budget Modal  */}
+    
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={BudgetmodalVisible}
+        onRequestClose={() => setBudgetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+        
+            <View style={styles.modalHeaderB}>
+              <TouchableOpacity 
+                onPress={() => setBudgetModalVisible(false)}
+                style={styles.closeButtonB}
+              >
+                <Text>✕</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Go Live Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
@@ -1023,7 +1092,14 @@ const handleBudgetDetail = () =>{
         />
       )}
     </View>
+
+          
+
+         
           </View>
+
+
+
 
           {/* ROI Section */}
           <Text style={styles.roiHeading}>Return on Investment</Text>
@@ -1116,6 +1192,16 @@ const handleBudgetDetail = () =>{
                 onChangeText={setRisk}
               />
             </View>
+            <View style={styles.halfInputContainer}>
+              <Text style={styles.inputLabel}>Budget Impact<Text style={styles.asterisk}>*</Text></Text>
+              <TextInput
+                style={styles.outlinedInput}
+                placeholder="Enter Budget Impact"
+                placeholderTextColor="#757575"
+                value={budgetImpact}
+                onChangeText={setBudgetImpact}
+              />
+            </View>
           </View>
 
           {/* Custom Fields Button and Checkbox */}
@@ -1151,6 +1237,18 @@ const handleBudgetDetail = () =>{
     <Text style={styles.saveAsDraftButtonText}>Save as draft</Text>
   </TouchableOpacity>
   </View>
+  <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isDraftSaved}
+        onRequestClose={() => setIsDraftSaved(false)}
+      >
+        <View style={styles.centeredViewd}>
+          <View style={styles.modalViewd}>
+            <Text style={styles.modalTextd}>Draft successfully saved</Text>
+          </View>
+        </View>
+      </Modal>
 
   <View style={styles.rightButtonsContainer}>
   {/* Approval Button */}
@@ -1289,6 +1387,20 @@ const handleBudgetDetail = () =>{
             </View>
           </View>
         </Modal>
+
+        <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isapprovalSubmitOpen}
+        onRequestClose={() => setIsapprovalSubmitopen(false)}
+      >
+        <View style={styles.centeredViewd}>
+          <View style={styles.modalViewd}>
+            <Text style={styles.modalTextd}>Approval sucessfully Saved</Text>
+          </View>
+        </View>
+      </Modal>
+
 
       {/* Send for Review modal */}
       <Modal
@@ -1476,6 +1588,24 @@ const handleBudgetDetail = () =>{
                 <Text style={styles.popupCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isSubmitPopupVisible}
+        onRequestClose={() => setIsSubmitPopupVisible(false)}
+      >
+        <View style={styles.centeredViews}>
+          <View style={styles.modalViews}>
+            <Text style={styles.modalTexts}>{SubmitpopupMessage}</Text>
+            <TouchableOpacity
+              style={styles.closeButtons}
+              onPress={() => setIsSubmitPopupVisible(false)}
+            >
+        <Icon name="close" size={16} color="black" />
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -2093,6 +2223,34 @@ const styles = StyleSheet.create({
     cancelIcon: {
       padding: 5,
     },
+    centeredViewd: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      },
+      modalViewd: {
+        margin: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+      },
+      modalTextd: {
+        marginBottom: 15,
+        textAlign: 'center',
+        fontSize: 16,
+        fontWeight: '600',
+        fontFamily:'Inter',
+      },
   });
   
   
