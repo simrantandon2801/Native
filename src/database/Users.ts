@@ -270,6 +270,23 @@ export const fetchModules = async (query: string): Promise<string> => {
     throw Error('Failed' + error);
   }
 };
+export const getDesignation = async (query: string): Promise<string> => {
+  try {
+    //debugger;
+    //const UserID = await AsyncStorage.getItem('UserID');
+    var uri = `${BASE_URL}/customeradmin/get_designations${query}`;
+    //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+    const token = await AsyncStorage.getItem('Token');
+    console.log(uri);
+    var jsonResult = await GetAsync_with_token(uri, token);
+    console.log(jsonResult);
+    //debugger;
+    return JSON.stringify(jsonResult ?? '');
+  } catch (error) {
+    console.error(error);
+    throw Error('Failed' + error);
+  }
+};
 export const addmodule = async (values: Object): Promise<string> => {
   try {
     //

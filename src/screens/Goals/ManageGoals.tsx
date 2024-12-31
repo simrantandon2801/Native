@@ -10,7 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
-  useWindowDimensions
+  useWindowDimensions,
 } from 'react-native';
 import {
   Checkbox,
@@ -25,6 +25,8 @@ import {AppImages} from '../../assets';
 import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
+import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
+
 import {GetDept} from '../../database/Departments';
 
 interface CreateNewIntakeModalProps {
@@ -73,14 +75,14 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
       goalName &&
       selectedGoalOwner &&
       description &&
-      selectedStakeholder &&
+      selectedStakeholders &&
       selectedYear
     ) {
       const newGoal = {
         goal_id: goalId,
         goal_name: goalName,
         description: description,
-        stakeholders: selectedStakeholder,
+        stakeholders: selectedStakeholders.join(','),
         goal_owner: selectedGoalOwner,
         target_year: selectedYear,
         start_date: new Date().toISOString(),
@@ -114,11 +116,18 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
     console.log(`Selected GoalOwner: ${deptID}`);
   };
 
-  const handleStakeSelect = (deptID: number) => {
-    setSelectedStakeholder(deptID);
-    console.log(`Selected Stakeholder: ${deptID}`);
+  // const handleStakeSelect = (deptID: number) => {
+  //   setSelectedStakeholder(deptID);
+  //   console.log(`Selected Stakeholder: ${deptID}`);
+  // };
+
+  const [selectedStakeholders, setSelectedStakeholders] = useState<number[]>([]);
+  const handleSelectionChange = (newSelectedStakeholders: number[]) => {
+    setSelectedStakeholders(newSelectedStakeholders);
+    console.log('Updated Selected Items:', newSelectedStakeholders);
   };
-  const { width: screenWidth } = useWindowDimensions();
+
+  const {width: screenWidth} = useWindowDimensions();
   return (
     <Modal
       animationType="fade"
@@ -156,7 +165,11 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                 <Text style={styles.inputLabel}>
                   Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
                 </Text>
-                <NestedDeptDropdownGoals onSelect={handleStakeSelect} editGoal={editGoal} />
+                {/* <NestedDeptDropdownGoals onSelect={handleStakeSelect} editGoal={editGoal} /> */}
+                <NestedMultiselectDropdown
+                  onSelectionChange={handleSelectionChange}
+                  editGoal={editGoal} // Pass editGoal if in edit mode
+                />
               </View>
             </View>
             <View style={styles.inputRow}>
@@ -336,7 +349,7 @@ const ManageGoals: React.FC = () => {
       }),
     );
   };
-  const { width: screenWidth } = useWindowDimensions();
+  const {width: screenWidth} = useWindowDimensions();
   return (
     <PaperProvider>
       <View style={styles.container}>
@@ -406,15 +419,17 @@ const ManageGoals: React.FC = () => {
               /> */}
               <DataTable.Title>S.No.</DataTable.Title>
               <DataTable.Title>Goal</DataTable.Title>
-              <DataTable.Title >Description</DataTable.Title>
+              <DataTable.Title>Description</DataTable.Title>
               <DataTable.Title>Impacted Stakeholders</DataTable.Title>
-              <DataTable.Title >Goal Owner</DataTable.Title>
+              <DataTable.Title>Goal Owner</DataTable.Title>
               <DataTable.Title>Target Year</DataTable.Title>
               <DataTable.Title>Created On</DataTable.Title>
               <DataTable.Title>Actions</DataTable.Title>
             </DataTable.Header>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{maxHeight: 4150}}>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              style={{maxHeight: 4150}}>
               {goalData.map((goal, index) => (
                 <DataTable.Row key={goal.goal_id}>
                   {/* <Checkbox
@@ -435,11 +450,15 @@ const ManageGoals: React.FC = () => {
                   /> */}
                   <DataTable.Cell>{index + 1}</DataTable.Cell>
                   <DataTable.Cell>{goal.goal_name}</DataTable.Cell>
-                  <DataTable.Cell >{goal.description}</DataTable.Cell>
-                  <DataTable.Cell >{mapDepartmentIdToName(parseInt(goal.stakeholders))}</DataTable.Cell>
-                  <DataTable.Cell >{mapDepartmentIdToName(parseInt(goal.goal_owner))}</DataTable.Cell>
+                  <DataTable.Cell>{goal.description}</DataTable.Cell>
+                  <DataTable.Cell>{goal.stakeholder_names}</DataTable.Cell>
+                  <DataTable.Cell>
+                    {mapDepartmentIdToName(parseInt(goal.goal_owner))}
+                  </DataTable.Cell>
                   <DataTable.Cell>{goal.target_year}</DataTable.Cell>
-                  <DataTable.Cell>{new Date(goal.created_at).toLocaleDateString()}</DataTable.Cell>
+                  <DataTable.Cell>
+                    {new Date(goal.created_at).toLocaleDateString()}
+                  </DataTable.Cell>
                   <DataTable.Cell>
                     <Menu
                       visible={goal.menuVisible}
@@ -451,7 +470,6 @@ const ManageGoals: React.FC = () => {
                         );
                         setGoalData(updatedGoalData);
                       }}
-                      
                       anchor={
                         <TouchableOpacity
                           onPress={event => {
@@ -477,10 +495,9 @@ const ManageGoals: React.FC = () => {
                       }
                       style={{
                         flexGrow: 1,
-                       left:screenWidth-390,
+                        left: screenWidth - 390,
                         top: 150,
-                      }}
-                    >
+                      }}>
                       <Menu.Item onPress={() => openModal(goal)} title="Edit" />
                       <Menu.Item
                         onPress={() => handleDeletePress(goal.goal_id)}
@@ -508,12 +525,10 @@ const ManageGoals: React.FC = () => {
 
 const styles = StyleSheet.create({
   container: {
-
     // padding: 10,
     width: '100%',
   },
   contentWrapper: {
- 
     width: '100%',
   },
   heading: {
@@ -521,8 +536,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 10,
-    marginTop:10,
-    fontFamily:'Outfit'
+    marginTop: 10,
+    fontFamily: 'Outfit',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -542,7 +557,7 @@ const styles = StyleSheet.create({
   },
   centerButtons: {
     flexDirection: 'row',
-    justifyContent:'center'
+    justifyContent: 'center',
   },
   rightButtons: {
     flexDirection: 'row',
@@ -557,18 +572,16 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#044086',
     fontSize: 14,
-    fontFamily:'Inter'
+    fontFamily: 'Inter',
   },
   buttonText6: {
     color: '#C4C4C4',
   },
   buttonIcon: {
     marginRight: 5,
-    justifyContent:'center'
+    justifyContent: 'center',
   },
   tableContainer: {
-    
- 
     backgroundColor: '#fff',
   },
   headerRow: {
@@ -588,7 +601,7 @@ const styles = StyleSheet.create({
   headerCell: {
     fontWeight: 'bold',
     fontSize: 12,
-    paddingHorizontal: 2, 
+    paddingHorizontal: 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -600,7 +613,7 @@ const styles = StyleSheet.create({
   },
   cell: {
     fontSize: 12,
-    paddingHorizontal: 2, 
+    paddingHorizontal: 2,
     textAlign: 'left',
     alignItems: 'center',
     justifyContent: 'center',
@@ -611,7 +624,7 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   centeredView: {
-     justifyContent: 'center',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
@@ -666,7 +679,6 @@ const styles = StyleSheet.create({
     color: 'black',
   },
   inputContainer: {
- 
     marginHorizontal: 5,
     
   },
