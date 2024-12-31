@@ -283,3 +283,41 @@ import { BASE_URL } from "@env";
        throw Error('Failed' + error);
      }
   };
+
+  // const filters = {
+  //   status: "1,2",           // multiple statuses
+  //   budget: "123",
+  //   project_manager: "1,2,3" // multiple project managers
+  // };  // Example filters object
+  export const GetProjectsWithFilters = async (filters: {
+    status?: string;
+    budget?: string;
+    project_manager?: string;
+  }): Promise<string> => {
+    try {
+      let uri = `${BASE_URL}/projectFlow/get_project_intake`;
+  
+      // Build the query string dynamically from the filters object
+      const queryParams = new URLSearchParams();
+  
+      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.budget) queryParams.append('budget', filters.budget);
+      if (filters.project_manager) queryParams.append('project_manager', filters.project_manager); 
+  
+      // Append the query string to the base URL
+      uri += `?${queryParams.toString()}`;
+  
+      const token = await AsyncStorage.getItem('Token');
+      console.log("Making API call to:", uri);
+  
+      // Make the API request with the token
+      const jsonResult = await GetAsync_with_token(uri, token);
+      console.log("jsonResult:", jsonResult);
+  
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error('Error in GetProjects API call:', error);
+      throw Error('Failed to fetch projects: ' + error);
+    }
+  };
+  
