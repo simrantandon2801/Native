@@ -8,6 +8,9 @@ import { Picker } from '@react-native-picker/picker';
 import BinaryTree from './Tree/BinaryTree';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BASE_URL} from '@env';
+import ConfirmationBox from './Utilities/ConfirmationBox';
+import AlertBox from './Utilities/AlertBox';
+
 
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
@@ -33,6 +36,41 @@ const DepartmentList = () => {
     department_level: 1,
     is_active: true,
   });
+  const [dialogVisible, setDialogVisible] = useState<boolean>(false);
+  const [selectedDept, setSelectedDept] = useState(null);
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>('');
+
+ // Show confirmation dialog
+ const handleShowDialog = (deptId) => {
+  setSelectedDept(deptId);
+  setIsMenuVisible(false);
+  setDialogVisible(true);
+};
+  const handleCloseDialog = () => {
+    setDialogVisible(false);
+  };
+
+// Confirm delete
+const handleConfirmDelete = () => {
+  if (selectedDept) {
+    handleDelete(selectedDept);
+  }
+  handleCloseDialog();
+};
+
+  // Show the alert dialog
+  const showAlert = (message: string) => {
+    setAlertMessage(message); // Set the alert message dynamically
+    setAlertVisible(true); // Show the alert dialog
+    setIsMenuVisible(false);
+  };
+
+  // Close the alert dialog
+  const closeAlert = () => {
+    setAlertVisible(false);
+    setAlertMessage('');
+  };
   
   useEffect(() => {
     const fetchUsers = async () => {
@@ -188,6 +226,7 @@ const handleDelete = async (departmentId) => {
       fetchSubDepartments(null); 
       fetchDepartments();
       setShouldFetch(true);
+      //showAlert();
     } else {
       Alert.alert('Error', 'Failed to delete department');
     }
@@ -276,6 +315,7 @@ const handleDelete = async (departmentId) => {
       if (response.ok) {
         Alert.alert('Success', 'New department added successfully');
         setIsModalVisible(false);
+        showAlert('New department added successfully');
   
         // Reset the new department details
         setNewDepartment({
@@ -356,7 +396,7 @@ const handleDelete = async (departmentId) => {
         }
       >
         <Menu.Item title="Edit" onPress={() => handleEdit(department)} />
-        <Menu.Item title="Delete" onPress={() => handleDelete(department.department_id)} />
+        <Menu.Item title="Delete" onPress={() => handleShowDialog(department.department_id)} />
         <Menu.Item title="Add Sub-Department" onPress={() => handleAddSubDepartment(department.department_id,department.department_name)} />
       </Menu>
     );
@@ -469,7 +509,7 @@ const renderSubDepartments = (department, level = 0) => {
             onValueChange={(itemValue) => {
               setNewDepartmentDetails((prev) => ({ ...prev, department_head: itemValue }));
             }}
-            style={styles.picker}
+            style={styles.input}
           >
             <Picker.Item label="Select a user" value="" />
             {users.map((user) => (
@@ -598,7 +638,7 @@ const renderSubDepartments = (department, level = 0) => {
             onValueChange={(itemValue) => {
               setNewDepartmentDetails((prev) => ({ ...prev, department_head: itemValue }));
             }}
-            style={styles.picker}
+            style={styles.input}
           >
             <Picker.Item label="Select a user" value="" />
             {users.map((user) => (
@@ -626,7 +666,7 @@ const renderSubDepartments = (department, level = 0) => {
   />
   {/* Render Sub-Departments */}
   
-  <View style={styles.subDept}>
+<View style={styles.subDept}>
   {/* Render sub-department block only if headingDepartment is set */}
   {headingDepartment && (
     <>
@@ -796,8 +836,20 @@ style={{
         </View>
       </Modal>
     </View>
-    </ScrollView>
-    </Provider>
+    <ConfirmationBox
+          visible={dialogVisible}
+          onClose={handleCloseDialog}
+          onConfirm={handleConfirmDelete}
+          message="The department you are deleting may have the users associated with it. Do you still want to proceed with this action?"
+        />
+
+<AlertBox
+          visible={alertVisible}
+          onClose={closeAlert}
+          message={alertMessage}
+        />
+  </ScrollView>
+</Provider>
     
   );
 };
@@ -893,6 +945,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#007bff',
     paddingVertical: 2,
+    marginRight: 10,
   },
   modalOverlay: {
     flex: 1,
@@ -1010,6 +1063,19 @@ const styles = StyleSheet.create({
     fontSize: 18,       
     color: '#000',      
     marginVertical: 10, 
+  },
+  input: {
+    marginBottom: 15,
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '50%',
   },
 });
 
