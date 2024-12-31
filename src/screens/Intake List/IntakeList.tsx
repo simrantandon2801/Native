@@ -1,14 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, TextInput, Alert, ActivityIndicator, ScrollView ,useWindowDimensions} from 'react-native';
-import { Menu, Provider as PaperProvider, IconButton, DataTable } from 'react-native-paper';
+import React, {useState, useEffect} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  Image,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
+import {
+  Checkbox,
+  Menu,
+  Provider as PaperProvider,
+  IconButton,
+  Button,
+} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Picker } from '@react-native-picker/picker';
-import { AppImages } from '../../assets';
-import { DeleteGoal, GetGoals, InsertGoal } from '../../database/Goals';
+import {Picker} from '@react-native-picker/picker';
+import {AppImages} from '../../assets';
+import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
-import {GetProjects} from '../../database/Intake';
+import {GetProjects, GetProjectsWithFilters} from '../../database/Intake';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useNavigation} from '@react-navigation/native';
 import {navigate} from '../../navigations/RootNavigation';
@@ -109,7 +125,7 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
     setSelectedStakeholder(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
   };
-  const { width: screenWidth } = useWindowDimensions();
+
   return (
     <Modal
       animationType="fade"
@@ -224,16 +240,103 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   );
 };
 
+interface Project {
+  project_id: number;
+  program_id: number;
+  goal_id: number;
+  portfolio_id: number;
+  department_id: number;
+  project_manager_id: number;
+  project_name: string;
+  project_short_name: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  golive_date: string;
+  priority: number;
+  phase: string;
+  classification: string;
+  initial_budget: number;
+  initial_budget_unit: string;
+  project_owner_user: number;
+  project_owner_dept: number;
+  business_stakeholder_user: number;
+  business_stakeholder_dept: number;
+  impacted_stakeholder_user: number;
+  impacted_stakeholder_dept: number;
+  impacted_applications: number;
+  resource_deployed_percentage: number;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  customer_id: number;
+  impacted_function: number;
+  project_size: string;
+  budget_size: string;
+  business_desc: string;
+  scope_definition: string;
+  key_assumption: string;
+  benefit_roi: string;
+  risk: string;
+  roi: string;
+  created_by: number;
+  updated_by: number;
+  status: number;
+  status_name: string;
+}
+
+// const navigation = useNavigation();
+
 const IntakeList: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [sortColumn, setSortColumn] = useState('');
   const [isAscending, setIsAscending] = useState(true);
   const [projects, setProjects] = useState<any[]>([]);
   const [editGoal, setEditGoal] = useState<any | null>(null);
+  const [headerChecked, setHeaderChecked] = useState(false);
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
-  const [departments, setDepartments] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [status, setStatus] = useState('');
+  const [budget, setBudget] = useState('');
+  const [projectManager, setProjectManager] = useState('');
 
+  const toggleFilter = () => setFilterVisible(!filterVisible);
+
+   // Function to handle filter submit
+   const handleFilterSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const filterData = {
+        status,
+        budget,
+        project_manager: projectManager,
+      };
+      const data = await GetProjectsWithFilters(filterData);
+      const result = JSON.parse(data);
+      if (result?.data?.projects && Array.isArray(result.data.projects) && result.data.projects.length > 0) {
+        setProjects(result.data.projects); // Set the projects data
+      } else {
+        setProjects([]); // If no projects found, clear the table
+        Alert.alert('No Projects Found', 'No projects match the selected filters.');
+      }
+      //setProjects(result.data.projects);
+      setFilterVisible(false);
+    } catch (error) {
+      console.error("Failed to fetch projects:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setHeaderChecked(checkedItems.size === projects.length);
+  }, [checkedItems, projects]);
+
+  const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
+  const [users, setUsers] = useState<any[]>([]); // State to hold departments
+
+  // Fetch goals
   const fetchProjects = async () => {
     try {
       const response = await GetProjects('');
@@ -252,6 +355,7 @@ const IntakeList: React.FC = () => {
     }
   };
 
+  //   Fetch departments
   const fetchDepartments = async () => {
     try {
       const response = await GetDept('');
@@ -279,6 +383,7 @@ const IntakeList: React.FC = () => {
     navigate('IntakeView', { project_id: id, isEditable: true });
   };
 
+  //fetch Users
   const fetchUsers = async () => {
     try {
       const response = await GetUsers('');
@@ -308,7 +413,6 @@ const IntakeList: React.FC = () => {
     const department = departments.find(dept => dept.department_id === id);
     return department ? department.department_name : ' ';
   };
-
   const mapIdIdToUser = (id: number) => {
     const user = users.find(user => user.user_id === id);
     return user ? `${user.first_name}${user.last_name}` : ' ';
@@ -327,6 +431,11 @@ const IntakeList: React.FC = () => {
     }
   };
 
+  //   const handleDeletePress = goal_id => {
+  //     console.log(goal_id);
+  //     HandleDeleteGoal(goal_id);
+  //   };
+
   const openModal = (goal = null) => {
     setModalVisible(true);
     setEditGoal(goal);
@@ -341,6 +450,17 @@ const IntakeList: React.FC = () => {
     setModalVisible(false);
     setEditGoal(null);
   };
+  //   const handleSubmit = (newGoal: any) => {
+  //     if (editGoal) {
+  //       setGoalData(prevData =>
+  //         prevData.map(goal =>
+  //           goal.goal_id === editGoal.goal_id ? {...goal, ...newGoal} : goal,
+  //         ),
+  //       );
+  //     } else {
+  //       setGoalData(prevData => [...prevData, newGoal]);
+  //     }
+  //   };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -350,7 +470,7 @@ const IntakeList: React.FC = () => {
       setIsAscending(true);
     }
 
-    setProjects(prevData =>
+    setGoalData(prevData =>
       [...prevData].sort((a, b) => {
         if (a[column] < b[column]) return isAscending ? -1 : 1;
         if (a[column] > b[column]) return isAscending ? 1 : -1;
@@ -358,7 +478,7 @@ const IntakeList: React.FC = () => {
       }),
     );
   };
-  const { width: screenWidth } = useWindowDimensions();
+
   return (
     <PaperProvider>
       <View style={styles.container}>
@@ -366,10 +486,26 @@ const IntakeList: React.FC = () => {
           <Text style={styles.heading}>Intake List</Text>
           <View style={styles.topBar}>
             <View style={styles.leftButtons}>
-              {/*Removed Delete Button*/}
+              {/* <TouchableOpacity style={styles.button}>
+                <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                <Text style={styles.buttonText6}>Approve</Text>
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity style={styles.button}>
+                <Icon
+                  name="delete"
+                  size={18}
+                  color="#C4C4C4"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText6}>Delete</Text>
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity style={styles.button}>
+                <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
+                <Text style={styles.buttonText6}>Export</Text>
+              </TouchableOpacity> */}
             </View>
             <View style={styles.centerButtons}>
-              <TouchableOpacity
+              {/* <TouchableOpacity
                 style={styles.button}
                 onPress={() => openModal()}>
                 <Text style={styles.buttonText}>
@@ -381,10 +517,19 @@ const IntakeList: React.FC = () => {
                   />{' '}
                   Create New
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
+              {/* <TouchableOpacity style={styles.button}>
+                <Icon
+                  name="table-column-plus-after"
+                  size={18}
+                  color="#044086"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText}>Set Column</Text>
+              </TouchableOpacity> */}
             </View>
-            {/* <View style={styles.rightButtons}>
-              <TouchableOpacity style={styles.button}>
+            <View style={styles.rightButtons}>
+              <TouchableOpacity style={styles.button} onPress={toggleFilter}>
                 <Icon
                   name="filter"
                   size={18}
@@ -393,41 +538,260 @@ const IntakeList: React.FC = () => {
                 />
                 <Text style={styles.buttonText}>Filter</Text>
               </TouchableOpacity>
-            </View> */}
+            </View>
           </View>
-          <View style={styles.tableContainer}>
-            <DataTable>
-              <DataTable.Header>
-                <DataTable.Title>S.No.</DataTable.Title>
-                <DataTable.Title>Project ID</DataTable.Title>
-                <DataTable.Title>Project Name</DataTable.Title>
-                <DataTable.Title>Status</DataTable.Title>
-                <DataTable.Title>Project Owner</DataTable.Title>
-                <DataTable.Title>Project Manager</DataTable.Title>
-                <DataTable.Title>Budget</DataTable.Title>
-                <DataTable.Title>Start date</DataTable.Title>
-                <DataTable.Title>End date</DataTable.Title>
-                <DataTable.Title>Go-Live date</DataTable.Title>
-                <DataTable.Title>Requested By</DataTable.Title>
-                <DataTable.Title>Requested On</DataTable.Title>
-                <DataTable.Title>Actions</DataTable.Title>
-              </DataTable.Header>
+          {/* Filter Modal */}
+          <Modal visible={filterVisible} animationType="slide" transparent={true}>
+  <View style={styles.modalBackground}>
+    <View style={styles.filterModal}>
+      <Text style={styles.filterTitle}>Apply Filters</Text>
 
+      {/* Status Dropdown */}
+      <View style={styles.pickerContainer}>
+        <Text style={styles.pickerHeading}>Select Status</Text> {/* Added Heading */}
+        <Picker
+          selectedValue={status}
+          onValueChange={(itemValue) => setStatus(itemValue)}
+        >
+          <Picker.Item label="Select Status" value="" />
+          <Picker.Item label="In Draft" value="2" />
+          <Picker.Item label="Review Pending" value="3" />
+          <Picker.Item label="Reviewed" value="4" />
+          <Picker.Item label="Approval Pending" value="1" />
+          <Picker.Item label="Approved" value="5" />
+          <Picker.Item label="Approval Rejected" value="9" />
+          <Picker.Item label="Rejected" value="10" />
+        </Picker>
+      </View>
+
+      {/* Budget Dropdown */}
+      <View style={styles.pickerContainer}>
+        <Text style={styles.pickerHeading}>Select Budget</Text> {/* Added Heading */}
+        <Picker
+          selectedValue={budget}
+          onValueChange={(itemValue) => setBudget(itemValue)}
+        >
+          <Picker.Item label="Select Budget" value="" />
+          <Picker.Item label="High" value="1" />
+          <Picker.Item label="Medium" value="2" />
+          <Picker.Item label="Low" value="3" />
+        </Picker>
+      </View>
+
+      {/* Project Manager Dropdown */}
+      <View style={styles.pickerContainer}>
+        <Text style={styles.pickerHeading}>Select Project Manager</Text> {/* Added Heading */}
+        <Picker
+          selectedValue={projectManager}
+          onValueChange={(itemValue) => setProjectManager(itemValue)}
+        >
+          <Picker.Item label="Select Project Manager" value="" />
+          {users.map((user) => (
+            <Picker.Item
+              key={user.user_id}
+              label={user.first_name}
+              value={user.user_id}
+            />
+          ))}
+        </Picker>
+      </View>
+
+      {/* Buttons */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.buttonFilter} onPress={handleFilterSubmit}>
+          <Text style={styles.buttonText}>Apply Filters</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.buttonFilter, styles.closeButton]}
+          onPress={toggleFilter}
+        >
+          <Text style={styles.buttonText}>Close</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+
+
+          <View style={styles.tableContainer}>
+            <View style={styles.headerRow}>
+              {[
+                '',
+                'S.No.',
+                'Project ID',
+                'Project Name',
+                'Status',
+                'Project Owner',
+                'Project Manager',
+                'Budget',
+                'Start date',
+                'End date',
+                'Go-Live date',
+                'Requested By',
+                'Requested On',
+                'Actions',
+              ].map((header, index) => (
+                <View
+                  key={index}
+                  style={[
+                    styles.headerCell,
+                    index === 0
+                      ? {flex: 0.3}
+                      : index === 1
+                      ? {flex: 0.4}
+                      : index === 2
+                      ? {flex: 1}
+                      : index >= 3 && index <= 4
+                      ? {flex: 1.3}
+                      : index >= 5 && index <= 6
+                      ? {flex: 1.5}
+                      : index >= 9 && index <= 10
+                      ? {flex: 1.5}
+                      : {flex: 1},
+                  ]}>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
+                    {index === 0 && (
+                      <Checkbox
+                        status={headerChecked ? 'checked' : 'unchecked'}
+                        onPress={() => {
+                          if (headerChecked) {
+                            setCheckedItems(new Set());
+                          } else {
+                            setCheckedItems(
+                              new Set(
+                                projects.map(project =>
+                                  project.project_id.toString(),
+                                ),
+                              ),
+                            );
+                          }
+                        }}
+                      />
+                    )}
+                    <Text
+                      style={{
+                        color: '#757575',
+                        fontFamily: 'Source Sans Pro',
+                        fontSize: 13,
+                        fontStyle: 'normal',
+                        fontWeight: '600',
+                        lineHeight: 22,
+                      }}>
+                      {header}
+                    </Text>
+                    {index > 2 && index < 10 && (
+                      <TouchableOpacity
+                        onPress={() => handleSort(header.toLowerCase())}>
+                        <Image
+                          source={AppImages.Arrow}
+                          style={{
+                            width: 16,
+                            height: 16,
+                            marginLeft: 4,
+                            tintColor:
+                              sortColumn === header.toLowerCase()
+                                ? '#757575'
+                                : '#757575',
+                            transform: [
+                              {
+                                rotate:
+                                  sortColumn === header.toLowerCase() &&
+                                  !isAscending
+                                    ? '180deg'
+                                    : '0deg',
+                              },
+                            ],
+                          }}
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              ))}
+            </View>
+            {/*Row items start */}
+            <ScrollView showsVerticalScrollIndicator={false}>
               {projects.map((project, index) => (
-                <DataTable.Row key={project.project_id}>
-                  <DataTable.Cell>{index + 1}</DataTable.Cell>
-                  <DataTable.Cell>FPX{project.project_id}</DataTable.Cell>
-                  <DataTable.Cell>{project.project_name}</DataTable.Cell>
-                  <DataTable.Cell>{project.status_name}</DataTable.Cell>
-                  <DataTable.Cell>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
-                  <DataTable.Cell>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
-                  <DataTable.Cell>{project.budget}</DataTable.Cell>
-                  <DataTable.Cell>{new Date(project.start_date).toLocaleDateString()}</DataTable.Cell>
-                  <DataTable.Cell>{new Date(project.end_date).toLocaleDateString()}</DataTable.Cell>
-                  <DataTable.Cell>{new Date(project.golive_date).toLocaleDateString()}</DataTable.Cell>
-                  <DataTable.Cell>{project.created_by_name}</DataTable.Cell>
-                  <DataTable.Cell>{new Date(project.created_at).toLocaleDateString()}</DataTable.Cell>
-                  <DataTable.Cell>
+                <View key={project.project_id} style={styles.row}>
+                  <View style={[styles.cell, {flex: 0.3}]}>
+                    <Checkbox
+                      status={
+                        checkedItems.has(project.project_id.toString())
+                          ? 'checked'
+                          : 'unchecked'
+                      }
+                      onPress={() => {
+                        setCheckedItems(prevChecked => {
+                          const newChecked = new Set(prevChecked);
+                          if (newChecked.has(project.project_id.toString())) {
+                            newChecked.delete(project.project_id.toString());
+                          } else {
+                            newChecked.add(project.project_id.toString());
+                          }
+                          return newChecked;
+                        });
+                      }}
+                    />
+                  </View>
+                  <View style={[styles.cell, {flex: 0.4}]}>
+                    <Text>{index + 1}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>FPX{project.project_id}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.3}]}>
+                    <Text>{project.project_name}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.3}]}>
+                    {/* <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(project.project_owner_dept)}
+                    </Text> */}
+                    <Text>{project.status_name}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>{project.budget}</Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.start_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.end_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    <Text>
+                      {new Date(project.golive_date).toLocaleDateString()}
+                    </Text>
+                  </View>
+
+                  {/* <View style={[styles.cell, {flex: 1.5}]}>
+                  <Text>
+                    {new Date(project.requested_by_date).toLocaleDateString()}
+                  </Text>
+                </View> */}
+                  <View style={[styles.cell, {flex: 1.5}]}>
+                    <Text>
+                      {project.created_by_name}
+                    </Text>
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
+                    {new Date(project.created_at).toLocaleDateString()}
+                  </View>
+                  <View style={[styles.cell, {flex: 1}]}>
                     <Menu
                       visible={project.menuVisible}
                       onDismiss={() => {
@@ -462,10 +826,11 @@ const IntakeList: React.FC = () => {
                         </TouchableOpacity>
                       }
                       style={{
-                     
-                        left:screenWidth-390,
-                         top: 150,
-                       }}>
+                        position: 'absolute',
+                        zIndex: 1000,
+                        left: project.menuX ? project.menuX - 150 : 0,
+                        top: project.menuY ? project.menuY - 80 : 0,
+                      }}>
                       <Menu.Item
                         onPress={() => {
                           console.log(
@@ -484,10 +849,10 @@ const IntakeList: React.FC = () => {
   )}
                       {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
                     </Menu>
-                  </DataTable.Cell>
-                </DataTable.Row>
+                  </View>
+                </View>
               ))}
-            </DataTable>
+            </ScrollView>
           </View>
 
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
@@ -496,7 +861,7 @@ const IntakeList: React.FC = () => {
       <CreateNewIntakeModal
         visible={modalVisible}
         onClose={closeModal}
-        onSubmit={() => {}}
+        // onSubmit={handleSubmit}
         editGoal={editGoal}
       />
     </PaperProvider>
@@ -506,7 +871,7 @@ const IntakeList: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // padding: 10,
+    padding: 10,
     width: '100%',
   },
   contentWrapper: {
@@ -528,7 +893,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
     width: '100%',
@@ -538,12 +903,10 @@ const styles = StyleSheet.create({
   },
   centerButtons: {
     flexDirection: 'row',
-    justifyContent:'center'
-   
+    marginRight: 176,
   },
   rightButtons: {
     flexDirection: 'row',
-    justifyContent:'center'
   },
   button: {
     flexDirection: 'row',
@@ -556,13 +919,56 @@ const styles = StyleSheet.create({
     color: '#044086',
     fontSize: 14,
   },
+  buttonText6: {
+    color: '#C4C4C4',
+  },
   buttonIcon: {
     marginRight: 5,
   },
   tableContainer: {
     flex: 1,
     width: '100%',
+    overflow: 'hidden',
     backgroundColor: '#fff',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+    paddingVertical: 8,
+    backgroundColor: '#f5f5f5',
+    color: '#757575',
+    textAlign: 'center',
+    fontFamily: 'Source Sans Pro',
+    fontSize: 14,
+    fontStyle: 'normal',
+    fontWeight: '600',
+    lineHeight: 22,
+  },
+  headerCell: {
+    fontWeight: 'bold',
+    fontSize: 12,
+    paddingHorizontal: 2, // Reduce horizontal padding
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  row: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: 'transparent',
+    paddingVertical: 6,
+  },
+  cell: {
+    fontSize: 12,
+    paddingHorizontal: 2, // Reduce horizontal padding
+    textAlign: 'left',
+    alignItems: 'center',
+    justifyContent: 'center',
+    display: 'flex',
+  },
+  actionCell: {
+    justifyContent: 'center',
+    padding: 0,
   },
   centeredView: {
     flex: 1,
@@ -647,6 +1053,60 @@ const styles = StyleSheet.create({
   fullWidth: {
     width: '100%',
   },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  },
+  filterModal: {
+    width: '30%', // Slightly larger for better spacing
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 15, // Softer corners
+    shadowColor: '#000', // Shadow for better visibility
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5, // For Android shadow
+  },
+  filterTitle: {
+    fontSize: 20, // Slightly larger title
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center', // Centered title
+  },
+  pickerContainer: {
+    marginVertical: 10, // Add spacing between pickers
+  },
+  buttonContainer: {
+    flexDirection: 'row', // Arrange buttons side-by-side
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  buttonFilter: {
+    flex: 1, // Equal width for both buttons
+    marginHorizontal: 5, // Add spacing between buttons
+    padding: 10,
+    backgroundColor: '#007BFF', // Primary button color
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  closeButton: {
+    backgroundColor: '#FF6347', // Red color for the close button
+  },
+  pickerHeading: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333', // Optional: Add a color for better readability
+  },
+  
+  
 });
 
 export default IntakeList;
