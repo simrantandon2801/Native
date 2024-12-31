@@ -81,11 +81,11 @@ const Header: React.FC<HeaderNavigationProp> = ({navigation}) => {
     <>
       <View style={styles.headerContainer}>
         <View style={styles.leftContainer}>
-          <TouchableOpacity
+         {/*  <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigate('Main', {screen: 'Adminpanel'})}>
             <Ionicons name="arrow-back" size={24} color="black" />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <ForgeLogo width={30} height={30} /> */}
         </View>
 

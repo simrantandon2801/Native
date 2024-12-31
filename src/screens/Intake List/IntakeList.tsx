@@ -7,11 +7,14 @@ import { AppImages } from '../../assets';
 import { DeleteGoal, GetGoals, InsertGoal } from '../../database/Goals';
 import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import { GetDept, GetUsers } from '../../database/Departments';
-import { GetProjects } from '../../database/Intake';
-import { useNavigation } from '@react-navigation/native';
-import { navigate } from '../../navigations/RootNavigation';
-
+import {GetDept, GetUsers} from '../../database/Departments';
+import {GetProjects} from '../../database/Intake';
+import {ScrollView} from 'react-native-gesture-handler';
+import {useNavigation} from '@react-navigation/native';
+import {navigate} from '../../navigations/RootNavigation';
+// import {useNavigation} from '@react-navigation/native';
+// import ProjectIntakeDetails from './ProjectIntakeDetails';
+import { useFocusEffect } from '@react-navigation/native';
 interface CreateNewIntakeModalProps {
   visible: boolean;
   onClose: () => void;
@@ -267,10 +270,13 @@ const IntakeList: React.FC = () => {
       Alert.alert('Error', 'Failed to fetch departments');
     }
   };
-
-  const handleViewPress = (id: number) => {
+  const handleViewPress = (id: number,status:number) => {
     console.log('Navigating with Project ID:', id);
-    navigate('IntakeView', {project_id: id});
+    navigate('IntakeView', { project_id: id, isEditable: false,status:status });
+  };
+  const handleEditPress = (id: number) => {
+    console.log('Navigating with Project ID:', id);
+    navigate('IntakeView', { project_id: id, isEditable: true });
   };
 
   const fetchUsers = async () => {
@@ -325,7 +331,12 @@ const IntakeList: React.FC = () => {
     setModalVisible(true);
     setEditGoal(goal);
   };
-
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fetch data or refresh the screen every time it gains focus
+      fetchProjects();
+    }, [])
+  );
   const closeModal = () => {
     setModalVisible(false);
     setEditGoal(null);
@@ -456,13 +467,22 @@ const IntakeList: React.FC = () => {
                          top: 150,
                        }}>
                       <Menu.Item
-                        onPress={() => handleViewPress(project.project_id)}
+                        onPress={() => {
+                          console.log(
+                            'Project ID in onPress:',
+                            project.project_id,
+                          ); // Debugging log
+                          handleViewPress(project.project_id,project.status); // Call the function with the project ID
+                        }}
                         title="View"
                       />
-                      <Menu.Item
-                        onPress={() => HandleDeleteGoal(project.project_id)}
-                        title="Edit"
-                      />
+                      {project.status === 2 && (
+    <Menu.Item
+      onPress={() => handleEditPress(project.project_id)}
+      title="Edit"
+    />
+  )}
+                      {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
                     </Menu>
                   </DataTable.Cell>
                 </DataTable.Row>

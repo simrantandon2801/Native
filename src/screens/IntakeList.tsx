@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput, ScrollView } from 'react-native';
 import { Checkbox } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const Dropdown = ({ label, options }) => {
   const [isOpen, setIsOpen] = useState(false);
