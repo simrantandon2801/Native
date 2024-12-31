@@ -137,8 +137,9 @@ const ApprovalHistory: React.FC = () => {
       const response = await GetHistory({project_id: projectId}); // Adjust according to your API's requirements
 
       const result = JSON.parse(response);
-      if (result?.status === 'success' && Array.isArray(result.data)) {
-        setHistoryData(result.data);
+      if (result?.status === 'success' && Array.isArray(result.data.project)) {
+        setHistoryData(result.data.project);
+        console.log('Fetched history data:', result.data.project);
       } else {
         console.error('Invalid history data');
         Alert.alert('Error', 'Invalid history data received');
@@ -178,32 +179,32 @@ const ApprovalHistory: React.FC = () => {
       {historyData.map((project, index) => (
         <View key={index} style={styles.projectContainer}>
           {/* Render project-level details for each sequence */}
-          {project.sequences.map((sequence: any, seqIndex: number) => (
-            <View key={seqIndex} style={styles.sequenceContainer}>
+          {/* {project.sequences.map((sequence: any, seqIndex: number) => ( */}
+            <View key={index} style={styles.sequenceContainer}>
               {/* Render project-level details for each sequence */}
               <Text style={[styles.cellText, {flex: 2}]}>
                 {project.project_name}
               </Text>
               <Text style={[styles.cellText, {flex: 1}]}>
-                {new Date(project.project_intake_date).toLocaleDateString()}
+                {new Date(project.created_at).toLocaleDateString()}
               </Text>
 
               {/* Render sequence-specific data */}
               <Text style={[styles.cellText, {flex: 2}, {paddingRight: 10}]}>
-                {sequence.user_status_name || 'No Action Taken'}
+                {project.status_name || 'No Action Taken'}
               </Text>
               <Text style={[styles.cellText, {flex: 2}]}>
-                {sequence.user_name || 'No user assigned'}
+                {project.sent_to_name || 'No user assigned'}
               </Text>
               <Text style={[styles.commentCell, {flex: 4}]}>
-                {sequence.comment || 'No comments'}
+                {project.comment || 'No comments'}
               </Text>
 
               {/*  <TouchableOpacity style={styles.actionButton}>
                   <Icon name="dots-vertical" size={24} color="black" />
                 </TouchableOpacity> */}
             </View>
-          ))}
+          {/* ))} */}
         </View>
       ))}
     </ScrollView>

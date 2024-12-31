@@ -109,7 +109,8 @@ import { BASE_URL } from "@env";
 
   export const GetHistory = async (query: object): Promise<string> => {
     try {
-      const uri = `${BASE_URL}/projectflow/get_review_approval_process_history`;
+      // const uri = `${BASE_URL}/projectflow/get_review_approval_process_history`;
+      const uri = `${BASE_URL}/projectFlow/get_project_history`;
   
       
       const projectId = query?.project_id;
