@@ -16,6 +16,7 @@ import {
   Provider as PaperProvider,
   IconButton,
   Button,
+  DataTable,
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Picker} from '@react-native-picker/picker';
@@ -300,6 +301,7 @@ const IntakeList: React.FC = () => {
   const [status, setStatus] = useState('');
   const [budget, setBudget] = useState('');
   const [projectManager, setProjectManager] = useState('');
+  const [visibleMenu, setVisibleMenu] = useState(null); // Track which menu is visible
 
   const toggleFilter = () => setFilterVisible(!filterVisible);
 
@@ -541,318 +543,180 @@ const IntakeList: React.FC = () => {
             </View>
           </View>
           {/* Filter Modal */}
-          <Modal visible={filterVisible} animationType="slide" transparent={true}>
-  <View style={styles.modalBackground}>
-    <View style={styles.filterModal}>
-      <Text style={styles.filterTitle}>Apply Filters</Text>
+            <Modal
+              visible={filterVisible}
+              animationType="none"
+              transparent={true}
+              onRequestClose={toggleFilter}>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.modalScrollContainer}>
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContainerRight}>
+                    <Text style={styles.modalHeader}>Apply Filters</Text>
 
-      {/* Status Dropdown */}
-      <View style={styles.pickerContainer}>
-        <Text style={styles.pickerHeading}>Select Status</Text> {/* Added Heading */}
-        <Picker
-          selectedValue={status}
-          onValueChange={(itemValue) => setStatus(itemValue)}
-        >
-          <Picker.Item label="Select Status" value="" />
-          <Picker.Item label="In Draft" value="2" />
-          <Picker.Item label="Review Pending" value="3" />
-          <Picker.Item label="Reviewed" value="4" />
-          <Picker.Item label="Approval Pending" value="1" />
-          <Picker.Item label="Approved" value="5" />
-          <Picker.Item label="Approval Rejected" value="9" />
-          <Picker.Item label="Rejected" value="10" />
-        </Picker>
-      </View>
+                    {/* Status Dropdown */}
+                    <View style={styles.inputRow}>
+                      <View style={styles.inputWrapper}>
+                        <Text style={styles.label}>Select Status</Text>
+                        <Picker
+                          selectedValue={status}
+                          onValueChange={(itemValue) => setStatus(itemValue)}
+                          style={styles.input1}>
+                          <Picker.Item label="Select Status" value="" color="#aaa" />
+                          <Picker.Item label="In Draft" value="2" />
+                          <Picker.Item label="Review Pending" value="3" />
+                          <Picker.Item label="Reviewed" value="4" />
+                          <Picker.Item label="Approval Pending" value="1" />
+                          <Picker.Item label="Approved" value="5" />
+                          <Picker.Item label="Approval Rejected" value="9" />
+                          <Picker.Item label="Rejected" value="10" />
+                        </Picker>
+                      </View>
+                    </View>
 
-      {/* Budget Dropdown */}
-      <View style={styles.pickerContainer}>
-        <Text style={styles.pickerHeading}>Select Budget</Text> {/* Added Heading */}
-        <Picker
-          selectedValue={budget}
-          onValueChange={(itemValue) => setBudget(itemValue)}
-        >
-          <Picker.Item label="Select Budget" value="" />
-          <Picker.Item label="High" value="1" />
-          <Picker.Item label="Medium" value="2" />
-          <Picker.Item label="Low" value="3" />
-        </Picker>
-      </View>
+                    {/* Budget Dropdown */}
+                    <View style={styles.inputRow}>
+                      <View style={styles.inputWrapper}>
+                        <Text style={styles.label}>Select Budget</Text>
+                        <Picker
+                          selectedValue={budget}
+                          onValueChange={(itemValue) => setBudget(itemValue)}
+                          style={styles.input1}>
+                          <Picker.Item label="Select Budget" value="" color="#aaa" />
+                          <Picker.Item label="High" value="1" />
+                          <Picker.Item label="Medium" value="2" />
+                          <Picker.Item label="Low" value="3" />
+                        </Picker>
+                      </View>
+                    </View>
 
-      {/* Project Manager Dropdown */}
-      <View style={styles.pickerContainer}>
-        <Text style={styles.pickerHeading}>Select Project Manager</Text> {/* Added Heading */}
-        <Picker
-          selectedValue={projectManager}
-          onValueChange={(itemValue) => setProjectManager(itemValue)}
-        >
-          <Picker.Item label="Select Project Manager" value="" />
-          {users.map((user) => (
-            <Picker.Item
-              key={user.user_id}
-              label={user.first_name}
-              value={user.user_id}
-            />
-          ))}
-        </Picker>
-      </View>
+                    {/* Project Manager Dropdown */}
+                    <View style={styles.inputRow1}>
+                      <View style={styles.inputWrapper}>
+                        <Text style={styles.label}>Select Project Manager</Text>
+                        <Picker
+                          selectedValue={projectManager}
+                          onValueChange={(itemValue) => setProjectManager(itemValue)}
+                          style={styles.input1}>
+                          <Picker.Item label="Select Project Manager" value="" color="#aaa" />
+                          {users.map((user) => (
+                            <Picker.Item
+                              key={user.user_id}
+                              label={user.first_name}
+                              value={user.user_id}
+                            />
+                          ))}
+                        </Picker>
+                      </View>
+                    </View>
 
-      {/* Buttons */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.buttonFilter} onPress={handleFilterSubmit}>
-          <Text style={styles.buttonText}>Apply Filters</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.buttonFilter, styles.closeButton]}
-          onPress={toggleFilter}
-        >
-          <Text style={styles.buttonText}>Close</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
-
-
-          <View style={styles.tableContainer}>
-            <View style={styles.headerRow}>
-              {[
-                '',
-                'S.No.',
-                'Project ID',
-                'Project Name',
-                'Status',
-                'Project Owner',
-                'Project Manager',
-                'Budget',
-                'Start date',
-                'End date',
-                'Go-Live date',
-                'Requested By',
-                'Requested On',
-                'Actions',
-              ].map((header, index) => (
-                <View
-                  key={index}
-                  style={[
-                    styles.headerCell,
-                    index === 0
-                      ? {flex: 0.3}
-                      : index === 1
-                      ? {flex: 0.4}
-                      : index === 2
-                      ? {flex: 1}
-                      : index >= 3 && index <= 4
-                      ? {flex: 1.3}
-                      : index >= 5 && index <= 6
-                      ? {flex: 1.5}
-                      : index >= 9 && index <= 10
-                      ? {flex: 1.5}
-                      : {flex: 1},
-                  ]}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}>
-                    {index === 0 && (
-                      <Checkbox
-                        status={headerChecked ? 'checked' : 'unchecked'}
-                        onPress={() => {
-                          if (headerChecked) {
-                            setCheckedItems(new Set());
-                          } else {
-                            setCheckedItems(
-                              new Set(
-                                projects.map(project =>
-                                  project.project_id.toString(),
-                                ),
-                              ),
-                            );
-                          }
-                        }}
-                      />
-                    )}
-                    <Text
-                      style={{
-                        color: '#757575',
-                        fontFamily: 'Source Sans Pro',
-                        fontSize: 13,
-                        fontStyle: 'normal',
-                        fontWeight: '600',
-                        lineHeight: 22,
-                      }}>
-                      {header}
-                    </Text>
-                    {index > 2 && index < 10 && (
+                    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
+                      {/* Clear Filter Button */}
                       <TouchableOpacity
-                        onPress={() => handleSort(header.toLowerCase())}>
-                        <Image
-                          source={AppImages.Arrow}
-                          style={{
-                            width: 16,
-                            height: 16,
-                            marginLeft: 4,
-                            tintColor:
-                              sortColumn === header.toLowerCase()
-                                ? '#757575'
-                                : '#757575',
-                            transform: [
-                              {
-                                rotate:
-                                  sortColumn === header.toLowerCase() &&
-                                  !isAscending
-                                    ? '180deg'
-                                    : '0deg',
-                              },
-                            ],
-                          }}
-                        />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              ))}
-            </View>
-            {/*Row items start */}
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {projects.map((project, index) => (
-                <View key={project.project_id} style={styles.row}>
-                  <View style={[styles.cell, {flex: 0.3}]}>
-                    <Checkbox
-                      status={
-                        checkedItems.has(project.project_id.toString())
-                          ? 'checked'
-                          : 'unchecked'
-                      }
-                      onPress={() => {
-                        setCheckedItems(prevChecked => {
-                          const newChecked = new Set(prevChecked);
-                          if (newChecked.has(project.project_id.toString())) {
-                            newChecked.delete(project.project_id.toString());
-                          } else {
-                            newChecked.add(project.project_id.toString());
-                          }
-                          return newChecked;
-                        });
-                      }}
-                    />
-                  </View>
-                  <View style={[styles.cell, {flex: 0.4}]}>
-                    <Text>{index + 1}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>FPX{project.project_id}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text>{project.project_name}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    {/* <Text numberOfLines={1} ellipsizeMode="tail">
-                      {mapDepartmentIdToName(project.project_owner_dept)}
-                    </Text> */}
-                    <Text>{project.status_name}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.budget}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.start_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.end_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.golive_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-
-                  {/* <View style={[styles.cell, {flex: 1.5}]}>
-                  <Text>
-                    {new Date(project.requested_by_date).toLocaleDateString()}
-                  </Text>
-                </View> */}
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>
-                      {project.created_by_name}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    {new Date(project.created_at).toLocaleDateString()}
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Menu
-                      visible={project.menuVisible}
-                      onDismiss={() => {
-                        const updatedProjectsData = projects.map(item =>
-                          item.project_id === project.project_id
-                            ? {...item, menuVisible: false}
-                            : item,
-                        );
-                        setProjects(updatedProjectsData);
-                      }}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={event => {
-                            const {pageX, pageY} = event.nativeEvent;
-                            const updatedProjectsData = projects.map(item =>
-                              item.project_id === project.project_id
-                                ? {
-                                    ...item,
-                                    menuVisible: true,
-                                    menuX: pageX,
-                                    menuY: pageY,
-                                  }
-                                : {...item, menuVisible: false},
-                            );
-                            setProjects(updatedProjectsData);
-                          }}>
-                          <IconButton
-                            icon="dots-vertical"
-                            size={20}
-                            style={{margin: 0, padding: 0}}
-                          />
-                        </TouchableOpacity>
-                      }
-                      style={{
-                        position: 'absolute',
-                        zIndex: 1000,
-                        left: project.menuX ? project.menuX - 150 : 0,
-                        top: project.menuY ? project.menuY - 80 : 0,
-                      }}>
-                      <Menu.Item
+                        style={styles.closeButton}
                         onPress={() => {
-                          console.log(
-                            'Project ID in onPress:',
-                            project.project_id,
-                          ); // Debugging log
-                          handleViewPress(project.project_id,project.status); // Call the function with the project ID
-                        }}
-                        title="View"
-                      />
-                      {project.status === 2 && (
-    <Menu.Item
-      onPress={() => handleEditPress(project.project_id)}
-      title="Edit"
-    />
-  )}
-                      {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
-                    </Menu>
+                          // Reset all filters
+                          setStatus("");
+                          setBudget("");
+                          setProjectManager("");
+                          //fetchUser(); // Refresh data if necessary
+                          toggleFilter(); // Close the filter modal
+                          fetchProjects(); // Apply the filters
+                        }}>
+                        <Text style={styles.closeButtonText}>Clear Filter</Text>
+                      </TouchableOpacity>
+
+                      {/* Apply Filter Button */}
+                      <TouchableOpacity style={styles.submitButton1} onPress={handleFilterSubmit}>
+                        <Text style={styles.submitButtonText}>Apply Filters</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              ))}
-            </ScrollView>
+              </ScrollView>
+            </Modal>
+
+
+          {/*Table*/}
+          <View style={styles.container1}>
+              <DataTable>
+                {/* Header */}
+                <DataTable.Header style={styles.header}>
+                  <DataTable.Title style={styles.columnSNo}>S.No.</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Project ID</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Project Name</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Status</DataTable.Title>
+                  <DataTable.Title style={styles.columnWide}>Project Owner</DataTable.Title>
+                  <DataTable.Title style={styles.columnWide}>Project Manager</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Budget</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Start Date</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>End Date</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Go-Live Date</DataTable.Title>
+                  <DataTable.Title style={styles.columnWide}>Requested By</DataTable.Title>
+                  <DataTable.Title style={styles.columnDefault}>Requested On</DataTable.Title>
+                  <DataTable.Title style={styles.columnActions}>Actions</DataTable.Title>
+                </DataTable.Header>
+
+                {/* Rows */}
+                <ScrollView>
+                  {projects.map((project, index) => (
+                    <DataTable.Row key={project.project_id} style={styles.row1}>
+                      <DataTable.Cell style={styles.columnSNo}>{index + 1}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>{`FPX${project.project_id}`}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>{project.project_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>{project.status_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>{project.budget}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>
+                        {new Date(project.start_date).toLocaleDateString()}
+                      </DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>
+                        {new Date(project.end_date).toLocaleDateString()}
+                      </DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>
+                        {new Date(project.golive_date).toLocaleDateString()}
+                      </DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWide}>{project.created_by_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefault}>
+                        {new Date(project.created_at).toLocaleDateString()}
+                      </DataTable.Cell>
+                      <DataTable.Cell style={styles.columnActions}>
+                      <Menu
+                          visible={visibleMenu === project.project_id}
+                          onDismiss={() => setVisibleMenu(null)}
+                          anchor={
+                            <IconButton
+                              icon="dots-vertical"
+                              size={20}
+                              onPress={() => setVisibleMenu(project.project_id)}
+                            />
+                          }>
+                          <Menu.Item
+                            onPress={() => {
+                              console.log('View:', project.project_id);
+                              handleViewPress(project.project_id,project.status); // Call the function with the project ID
+                              setVisibleMenu(null);
+                            }}
+                            title="View"
+                          />
+                          {project.status === 2 && (
+                            <Menu.Item
+                              onPress={() => {
+                                handleEditPress(project.project_id);
+                                setVisibleMenu(null);
+                              }}
+                              title="Edit"
+                            />
+                          )}
+                          {/* <Menu.Item onPress={() => {}} title="Reject" /> */}
+                        </Menu>
+                      </DataTable.Cell>
+                    </DataTable.Row>
+                  ))}
+                </ScrollView>
+              </DataTable>
           </View>
 
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
@@ -1079,7 +943,7 @@ const styles = StyleSheet.create({
   pickerContainer: {
     marginVertical: 10, // Add spacing between pickers
   },
-  buttonContainer: {
+  buttonContainer1: {
     flexDirection: 'row', // Arrange buttons side-by-side
     justifyContent: 'space-between',
     marginTop: 20,
@@ -1092,18 +956,128 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
   },
-  buttonText: {
+  buttonText7: {
     color: 'white',
     fontWeight: 'bold',
-  },
-  closeButton: {
-    backgroundColor: '#FF6347', // Red color for the close button
   },
   pickerHeading: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
     color: '#333', // Optional: Add a color for better readability
+  },
+  headerText: {
+    fontWeight: '600',
+    fontSize: 13,
+    color: '#757575',
+    textAlign: 'center',
+  },
+  container1: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: '#fff',
+  },
+  header: {
+    backgroundColor: '#f5f5f5',
+  },
+  row1: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  columnSNo: {
+    flex: 0.4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  columnDefault: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  columnWide: {
+    flex: 1.5,
+    justifyContent: 'center',
+  },
+  columnActions: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalScrollContainer: {
+    maxHeight: 800,
+    paddingBottom: 40,
+    flexGrow: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainerRight: {
+    width: '25%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 40,
+    position: 'absolute',
+    top: '20%',
+    right: 10,
+    zIndex: 100,
+    flexGrow: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5, // For Android shadows
+  },
+  modalHeader: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  inputRow1: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+    gap: 20,
+  },
+  inputWrapper: {
+    flex: 1,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333',
+  },
+  input1: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 5,
+    padding: 10,
+  },
+  closeButton: {
+    backgroundColor: '#FF6347',
+    borderRadius: 5,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  closeButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  submitButton1: {
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   
   
