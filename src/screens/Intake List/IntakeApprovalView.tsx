@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, SafeAreaView, Modal, TextInput } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { GetHistory, GetProjects, GetSequence } from '../../database/Intake';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, SafeAreaView, Modal, TextInput, Button } from 'react-native';
+/* import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; */
+import Icon from 'react-native-vector-icons/Ionicons';
+import { GetHistory, GetProjects, GetSequence, UpdateProjectApproval } from '../../database/Intake';
+
 import {format} from 'date-fns'
 type TabType = 'details' | 'history';
 
@@ -44,8 +46,13 @@ const IntakeView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const route = useRoute();
   const { project_id } = route.params as { project_id: number };
-
+  const { status } = route.params as { status: number };
+  const { proj_intk_aprvl_id } = route.params as { projectintk: any };
+  const { sequence_id } = route.params as { sequenceid: any };
+  console.log('proj_intk_aprvl_id from route:', proj_intk_aprvl_id);
+  console.log('sequence_id from route:', sequence_id);
   console.log('Project ID from route:', project_id);
+  console.log('status from route:', status);
   return (
     <View style={styles.container}>
       <Header />
@@ -242,7 +249,12 @@ const ApprovalHistory: React.FC = () => {
      const addStep = () => {
        setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '' }]);
      }; */
-  
+     const route = useRoute();
+     const { status } = route.params as { status: number };
+     const { project_id } = route.params as { project_id: number };
+    
+     const { proj_intk_aprvl_id } = route.params as { projectintk: any };
+     const { sequence_id } = route.params as { sequenceid: any };
     const removeStep = id => {
       if (steps.length > 1) {
         const newSteps = steps
@@ -564,7 +576,103 @@ const ApprovalHistory: React.FC = () => {
           console.error('Error fetching project:', error);
         });
     }, [projectId]);
+
+
+    const [projectid, setProjectid] = useState<number | null>(null); // Store the project ID
+    const [statusId, setStatusId] = useState<number | null>(null); // Track status_id
+    const [approvalType, setApprovalType] = useState<string>(''); // Track approval_type
+    const [sequenceId, setSequenceId] = useState<number | null>(null); // Track sequence_id
+    const [projectintake, setProjectintake] = useState<number | null>(null);
+    const [projIntkAprvlId, setprojIntkAprvlId] = useState(null);
   
+    const [type, setType] = useState<string>('');
+    const [comment, setComment] = useState<string>('');
+    const [isapproveModalVisible, setIsapproveModalVisible] = useState(false);
+    const [isReviewModalVisible, setIsreviewModalVisible] = useState(false);
+    const [isRejectModalVisible, setIsrejectModalVisible] = useState(false);
+    const handleApprovePress = (projIntkAprvlId, seqId, projId, approvalType) => {
+      
+      setProjectid(projId);
+      setSequenceId(seqId);
+      setStatusId(5); // Assuming 4 is the status ID to set here
+      setApprovalType(approvalType);
+      setprojIntkAprvlId(projIntkAprvlId);
+      setType('approval'); // Assuming a default type, you can change it if needed
+      setIsapproveModalVisible(true); // Open the modal
+      
+    };
+    const handleReviewPress = (projIntkAprvlId, seqId, projId, approvalType) => {
+      // Update state with the correct values
+      setProjectid(projId);
+      setSequenceId(seqId);
+      setStatusId(4); // Assuming 4 is the status ID to set here
+      setApprovalType(approvalType);
+      setprojIntkAprvlId(projIntkAprvlId);
+      setType('review'); // Assuming a default type, you can change it if needed
+      setIsreviewModalVisible(true); // Open the modal
+      
+    };
+    const handleRejectPress = (projIntkAprvlId, seqId, projId, approvalType) => {
+      // Update state with the correct values
+      setProjectid(projId);
+      setSequenceId(seqId);
+      setStatusId(10); 
+      setApprovalType(approvalType);
+      setprojIntkAprvlId(projIntkAprvlId);
+      setType('approval'); // Assuming a default type, you can change it if needed
+      setIsrejectModalVisible(true); // Open the modal
+      
+    };
+
+    const handleOkPress = async () => {
+      
+      console.log('Project ID:', projectid);
+      console.log('Status ID:', statusId);
+      console.log('Approval Type:', approvalType);
+      console.log('Sequence ID:', sequenceId);
+      console.log('Type:', type);
+      console.log('Comment:', comment);
+  
+      if (
+        projectId !== null &&
+        statusId !== null &&
+        approvalType!== null
+       
+      ) {
+        // Construct the payload with the required values
+        const payload = {
+          proj_intk_aprvl_id: projIntkAprvlId, 
+          sequence_id:sequenceId,
+          project_id: projectId, 
+          status_id: statusId, 
+          approval_type: 2, 
+          comment: comment, 
+          type: type, 
+          
+        };
+  
+        console.log('Payload:', payload);
+  
+        try {
+          const response = await UpdateProjectApproval(payload);
+          const parsedResponse = JSON.parse(response);
+  
+          if (parsedResponse.status === 'success') {
+            Alert.alert('Goal created successfully');
+            setIsapproveModalVisible(false);
+            setIsrejectModalVisible(false);
+            setIsreviewModalVisible(false);
+          } else {
+            Alert.alert('Failed to create goal. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error creating goal:', error);
+          Alert.alert('An error occurred. Please try again.');
+        }
+      } else {
+        Alert.alert('Please fill in all required fields.');
+      }
+    };
     return (
       <ScrollView>
         {/* <Text style={styles.historyHeading}>Intake Approval</Text> */}
@@ -1048,7 +1156,7 @@ const ApprovalHistory: React.FC = () => {
                 {/* Custom Fields Button and Checkbox */}
                 <View style={styles.row}>
                   <View style={styles.customFieldsContainer}>
-                    <View style={styles.checkboxContainer}>
+                   {/*  <View style={styles.checkboxContainer}>
                       <TouchableOpacity
                         style={[styles.checkbox, isChecked && styles.checked]}
                         onPress={() => setIsChecked(!isChecked)}>
@@ -1056,53 +1164,249 @@ const ApprovalHistory: React.FC = () => {
                           <Icon name="checkmark" size={18} color="#fff" />
                         )}
                       </TouchableOpacity>
-                    </View>
-                    <TouchableOpacity style={styles.customFieldsButton}>
+                    </View> */}
+                   {/*  <TouchableOpacity style={styles.customFieldsButton}>
                       <Text style={styles.customFieldsButtonText}>
                         Add custom fields
                       </Text>
-                    </TouchableOpacity>
+                    </TouchableOpacity> */}
                   </View>
                 </View>
   
                 {/* Bottom Buttons */}
                 <View style={styles.bottomButtonsContainer}>
-                  <TouchableOpacity
-                    style={styles.saveAsDraftButton}
-                    onPress={handleSaveAsDraft}>
-                    <Icon
-                      name="save-outline"
-                      size={18}
-                      color="#044086"
-                      style={styles.saveIcon}
-                    />
-                    <Text style={styles.saveAsDraftButtonText}>
-                      Save as draft
-                    </Text>
-                  </TouchableOpacity>
+            {status === 2 && (
+  <View style={styles.bottomButtonsContainer}>
+    <TouchableOpacity
+      style={styles.saveAsDraftButton}
+      onPress={handleSaveAsDraft}>
+      <Icon
+        name="save-outline"
+        size={18}
+        color="#044086"
+        style={styles.saveIcon}
+      />
+      <Text style={styles.saveAsDraftButtonText}>
+        Save as draft
+      </Text>
+    </TouchableOpacity>
+  </View>
+)}
                   {/*Send for review Button */}
-                  {/* <TouchableOpacity
-                    style={styles.sendForReviewButton}
-                    onPress={() => setIsPopupVisible(true)}>
-                    <Icon
-                      name="paper-plane-outline"
-                      size={18}
-                      color="#fff"
-                      style={styles.sendIcon}
-                    />
-                    <Text style={styles.sendForReviewButtonText}>
-                      Send for review
-                    </Text>
-                    <View style={styles.verticalLine} />
-                    <Icon
-                      name={
-                        isApprovalButtonVisible ? 'chevron-down' : 'chevron-up'
-                      }
-                      size={18}
-                      color="#fff"
-                      style={styles.arrowIcon}
-                    />
-                  </TouchableOpacity> */}
+                  {status === 2 && (
+  <TouchableOpacity
+    style={styles.sendForReviewButton}
+    onPress={() => setIsPopupVisible(true)}>
+    <Icon
+      name="paper-plane-outline"
+      size={18}
+      color="#fff"
+      style={styles.sendIcon}
+    />
+    <Text style={styles.sendForReviewButtonText}>
+      Send for review
+    </Text>
+    <View style={styles.verticalLine} />
+    <Icon
+      name={isApprovalButtonVisible ? 'chevron-down' : 'chevron-up'}
+      size={18}
+      color="#fff"
+      style={styles.arrowIcon}
+    />
+  </TouchableOpacity>
+)}
+{status === 3 && (
+  <View style={styles.bottomButtonsContainer}>
+    <TouchableOpacity
+      style={styles.saveAsDraftButton}
+      onPress={() => {
+        console.log('Project Approval ID:', proj_intk_aprvl_id);
+        console.log('Sequence ID:', sequence_id);
+        console.log('Project ID:', project_id);
+        console.log('Type:', 'review');
+
+       
+        handleReviewPress(proj_intk_aprvl_id, sequence_id, project_id, 'review');
+      }}>
+      <Icon
+        name="save-outline"
+        size={18}
+        color="#044086"
+        style={styles.saveIcon}
+      />
+      <Text style={styles.saveAsDraftButtonText}>
+       Review
+      </Text>
+    </TouchableOpacity>
+  </View>
+)}
+ <Modal
+            visible={isReviewModalVisible}
+            animationType="slide"
+            transparent={true}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}>
+              <View
+                style={{
+                  width: 300,
+                  padding: 20,
+                  backgroundColor: 'white',
+                  borderRadius: 10,
+                }}>
+                <Text>Add a Comment</Text>
+                <TextInput
+                  value={comment}
+                  onChangeText={setComment} 
+                  placeholder="Type your comment here"
+                  style={{
+                    height: 40,
+                    borderColor: 'gray',
+                    borderWidth: 1,
+                    marginBottom: 20,
+                    paddingLeft: 10,
+                  }}
+                />
+                <Button title="OK" onPress={handleOkPress} />
+                <Button
+                  title="Cancel"
+                  onPress={() => setIsreviewModalVisible(false)}
+                />
+              </View>
+            </View>
+          </Modal>
+{(status === 1 || status === 4) && (
+        <View style={styles.bottomButtonsContainer}>
+          <TouchableOpacity
+            style={styles.saveAsDraftButton}
+            onPress={() => {
+              console.log('Project Approval ID:', proj_intk_aprvl_id);
+              console.log('Sequence ID:', sequence_id);
+              console.log('Project ID:', project_id);
+              console.log('Type:', 'approval');
+
+              // Pass values to handleApprovePress
+              handleApprovePress(proj_intk_aprvl_id, sequence_id, project_id, 'approval');
+            }}
+          >
+            <Icon
+              name="save-outline"
+              size={18}
+              color="#044086"
+              style={styles.saveIcon}
+            />
+            <Text style={styles.saveAsDraftButtonText}>Approve</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      <Modal
+            visible={isapproveModalVisible}
+            animationType="slide"
+            transparent={true}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}>
+              <View
+                style={{
+                  width: 300,
+                  padding: 20,
+                  backgroundColor: 'white',
+                  borderRadius: 10,
+                }}>
+                <Text>Add a Comment</Text>
+                <TextInput
+                  value={comment}
+                  onChangeText={setComment} 
+                  placeholder="Type your comment here"
+                  style={{
+                    height: 40,
+                    borderColor: 'gray',
+                    borderWidth: 1,
+                    marginBottom: 20,
+                    paddingLeft: 10,
+                  }}
+                />
+                <Button title="OK" onPress={handleOkPress} />
+                <Button
+                  title="Cancel"
+                  onPress={() => setIsapproveModalVisible(false)}
+                />
+              </View>
+            </View>
+          </Modal>
+{(status === 1 || status === 4) && (
+  <View style={styles.bottomButtonsContainer}>
+    <TouchableOpacity
+      style={styles.saveAsDraftButton}
+      onPress={() => {
+        console.log('Project Approval ID:', proj_intk_aprvl_id);
+        console.log('Sequence ID:', sequence_id);
+        console.log('Project ID:', project_id);
+        console.log('Type:', 'approval');
+
+        // Pass values to handleApprovePress
+        handleRejectPress(proj_intk_aprvl_id, sequence_id, project_id, 'approval');
+      }}>
+      <Icon
+        name="save-outline"
+        size={18}
+        color="#044086"
+        style={styles.saveIcon}
+      />
+      <Text style={styles.saveAsDraftButtonText}>
+      Reject
+      </Text>
+    </TouchableOpacity>
+  </View>
+)}
+
+<Modal
+            visible={isRejectModalVisible}
+            animationType="slide"
+            transparent={true}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              }}>
+              <View
+                style={{
+                  width: 300,
+                  padding: 20,
+                  backgroundColor: 'white',
+                  borderRadius: 10,
+                }}>
+                <Text>Add a Comment</Text>
+                <TextInput
+                  value={comment}
+                  onChangeText={setComment} 
+                  placeholder="Type your comment here"
+                  style={{
+                    height: 40,
+                    borderColor: 'gray',
+                    borderWidth: 1,
+                    marginBottom: 20,
+                    paddingLeft: 10,
+                  }}
+                />
+                <Button title="OK" onPress={handleOkPress} />
+                <Button
+                  title="Cancel"
+                  onPress={() => setIsrejectModalVisible(false)}
+                />
+              </View>
+            </View> 
+          </Modal>
                 </View>
               </View>
             </ScrollView>

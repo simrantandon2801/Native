@@ -27,6 +27,7 @@ import {GetDept, GetUsers} from '../../database/Departments';
 import {GetProjectApproval, UpdateProjectApproval} from '../../database/Intake';
 import {ScrollView} from 'react-native-gesture-handler';
 import { navigate } from '../../navigations/RootNavigation';
+import { useFocusEffect } from '@react-navigation/native';
 
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
@@ -307,6 +308,7 @@ const IntakeApproval: React.FC = () => {
     setprojIntkAprvlId(projIntkAprvlId);
     setType('review'); // Assuming a default type, you can change it if needed
     setIsModalVisible(true); // Open the modal
+    fetchProjects();
   };
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null); // Store the project ID
@@ -437,7 +439,12 @@ const IntakeApproval: React.FC = () => {
     fetchDepartments();
     fetchUsers();
   }, []);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fetch data or refresh the screen every time it gains focus
+      fetchProjects();
+    }, [])
+  );
   const mapDepartmentIdToName = (id: number) => {
     const department = departments.find(dept => dept.department_id === id);
     return department ? department.department_name : ' ';
@@ -450,6 +457,13 @@ const IntakeApproval: React.FC = () => {
   const handleViewPress = (id: number) => {
     console.log('Navigating with Project ID:', id);
     navigate('IntakeApprovalView', {project_id: id});
+  };
+
+
+  const handlestatus = (id: number,status:number,projectintk:any,sequenceid:any) => {
+    console.log('Navigating with Project ID:', id);
+    console.log('Navigating with Project status:', status);
+    navigate('IntakeApprovalView', {project_id: id,status:status,proj_intk_aprvl_id:projectintk,sequence_id:sequenceid});
   };
 
   const HandleDeleteGoal = async goal_id => {
@@ -512,7 +526,7 @@ const IntakeApproval: React.FC = () => {
     <PaperProvider>
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
-          <Text style={styles.heading}>Intake Approval</Text>
+          <Text style={styles.heading}>Intake Review/Approval</Text>
           <View style={styles.topBar}>
             <View style={styles.leftButtons}>
               {/* <TouchableOpacity style={styles.button}>
@@ -801,7 +815,7 @@ const IntakeApproval: React.FC = () => {
                           left: project.menuX ? project.menuX - 150 : 0,
                           top: project.menuY ? project.menuY - 80 : 0,
                         }}>
-                        <Menu.Item
+                        {/* <Menu.Item
                         onPress={() => {
                           console.log(
                             'Project ID in onPress:',
@@ -810,10 +824,61 @@ const IntakeApproval: React.FC = () => {
                           handleViewPress(project.project_id); // Call the function with the project ID
                         }}
                         title="View"
-                      />
+                      /> */}
+
+{project.status === 3 && (
+  <Menu.Item
+    onPress={() => {
+      console.log('Project ID in onPress:', project.project_id); // Debugging log
+      handlestatus(project.project_id,project.status,project.proj_intk_aprvl_id,project.sequence_id); // Call the function with the project ID
+    }}
+    title="Review"
+  />
+)}
+{project.status === 1 && (
+  <Menu.Item
+  onPress={() => {
+    console.log(
+      'Project ID in onPress:',
+      project.project_id,
+    ); // Debugging log
+    handlestatus(project.project_id,project.status,project.proj_intk_aprvl_id,project.sequence_id); // Call the function with the project ID
+  }}
+  title="View"
+/>
+)}
 
 
-                        <Menu.Item
+
+{project.status === 1 && (
+ <Menu.Item
+ onPress={() => {
+   console.log(
+     'Project Approval ID:',
+     project.proj_intk_aprvl_id,
+   );
+   console.log('Sequence ID:', project.sequence_id);
+   console.log('Project ID:', project.project_id);
+   console.log('Type:', project.type);
+   console.log('Project:', project);
+
+   handleApprovePress(
+     project.proj_intk_aprvl_id,
+     project.sequence_id,
+     project.project_id,
+     project.type,
+   );
+ }}
+ title="Approve"
+/>
+)}
+
+{project.status === 1 && (
+  <Menu.Item onPress={() => {}} title="Reject" />
+)}
+
+
+                      {/*   <Menu.Item
                           onPress={() => {
                             console.log(
                               'Project Approval ID:',
@@ -832,8 +897,8 @@ const IntakeApproval: React.FC = () => {
                             );
                           }}
                           title="Approve"
-                        />
-                        <Menu.Item onPress={() => {}} title="Reject" />
+                        /> */}
+                       {/*  <Menu.Item onPress={() => {}} title="Reject" /> */}
                       </Menu>
                     </View>
                   </View>
@@ -861,7 +926,7 @@ const IntakeApproval: React.FC = () => {
                 <Text>Add a Comment</Text>
                 <TextInput
                   value={comment}
-                  onChangeText={setComment} // Update the comment state
+                  onChangeText={setComment} 
                   placeholder="Type your comment here"
                   style={{
                     height: 40,

@@ -1,12 +1,13 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState,forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  ScrollView,
   StyleSheet,
   TouchableWithoutFeedback,
 } from 'react-native';
+
+import { ScrollView } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {GetNestedDepartments} from '../database/NestedDept';
 
@@ -86,7 +87,7 @@ const RecursiveDropdown = ({
   );
 };
 
-const NestedMultiselectDropdown = ({onSelectionChange, editGoal}) => {
+const NestedMultiselectDropdown = forwardRef(({ onSelectionChange, editGoal }, ref) => {
   const [dept, setDept] = useState<[]>([]);
 
   const FetchDept = async () => {
@@ -187,6 +188,13 @@ const NestedMultiselectDropdown = ({onSelectionChange, editGoal}) => {
       setDropdownVisible(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    dismissDropdown: () => {
+      setDropdownVisible(false);
+    },
+  }));
+
   return (
     <TouchableWithoutFeedback onPress={handleDismiss} accessible={false}>
       <View style={styles.container}>
@@ -223,7 +231,7 @@ const NestedMultiselectDropdown = ({onSelectionChange, editGoal}) => {
       </View>
     </TouchableWithoutFeedback>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
