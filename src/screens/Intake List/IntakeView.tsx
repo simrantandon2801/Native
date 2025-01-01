@@ -53,7 +53,9 @@ const approvalHistory: ApprovalItem[] = [
       'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
   },
 ];
-
+const addStep = () => {
+    setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '',department_name: '' }]);
+  };
 const IntakeView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('details');
   const route = useRoute();
@@ -303,7 +305,46 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
       Alert.alert('An error occurred while submitting. Please try again.');
     }
   };
+  const handlereview = async () => {
+    try {
+        let currentProjectId = projectId;
+    
+        if (!currentProjectId) {
+          currentProjectId = project_id; 
+        }
   
+      if (currentProjectId) {
+        const payload = {
+            project_id: Number(currentProjectId),
+            approval_type: Number(selectedOption),
+            type: 'review',
+            sent_to: Number(approvalPathid), // Assuming this is a single user ID for initial approval path
+            approval_sequence_details: steps.map((step, index) => ({
+              sequence_no: index + 1, // Sequence number (1-based index)
+              user_id: Number(step.forwardTo), // User ID from the step
+            })),
+          };
+
+          console.log("Generated Payload:", payload);
+  
+        const response = await InsertReview(payload); 
+        const result = JSON.parse(response);
+  
+        if (result.status === 'success') {
+           /*  setSubmitPopupMessage('Your review has been submitted successfully!'); */
+
+          setIsReviewPopupVisible(false); 
+        } else {
+           /*  setSubmitPopupMessage('Failed to submit. Please try again.'); */
+        }
+      } else {
+       /*  setReviewPopupMessage('Unable to retrieve project ID. Submission aborted.'); */
+      }
+    } catch (error) {
+      console.error('Error submitting:', error);
+     /*  setSubmitPopupMessage('An error occurred while submitting. Please try again.'); */
+    }
+  };
 
   useEffect(() => {
     if (typeof isEditable === 'boolean') {
@@ -1210,7 +1251,7 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
     
     <TouchableOpacity 
       style={styles.newButton}
-      onPress={() => { setIsApprovalPopupVisible(true); }}
+      onPress={() => { setIsReviewPopupVisible(true); }}
     >
       <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
       <Text style={styles.newButtonText}>Send for Review</Text>
@@ -1518,10 +1559,10 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
             </RadioButton.Group>
             </ScrollView>
             <View style={styles.popupButtonContainer}>
-              <TouchableOpacity style={styles.popupSubmitButton}/*  onPress={handlereview} */>
+              <TouchableOpacity style={styles.popupSubmitButton} onPress={handlereview}>
                 <Text style={styles.popupSubmitButtonText}>Submit</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.popupCancelButton} onPress={() => setIsPopupVisible(false)}>
+              <TouchableOpacity style={styles.popupCancelButton} onPress={() => setIsReviewPopupVisible(false)}>
                 <Text style={styles.popupCancelButtonText}>Cancel</Text>
               </TouchableOpacity>
             </View>

@@ -57,7 +57,7 @@ const NewIntake = () => {
   const [projectDrivers, setProjectDrivers] = useState('');
   const [isChecked, setIsChecked] = useState(false);
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [selectedOption, setSelectedOption] = useState('');
+  const [selectedOption, setSelectedOption] = useState('2');
   const [selectedOptionApp, setSelectedOptionApp] = useState('2');
   const [approvalPath, setApprovalPath] = useState('');
   const [approvalPathidApp, setApprovalPathidApp] = useState('');
@@ -652,6 +652,13 @@ const fetchSequence = async () => {
 const handleBudgetDetail = () =>{
     navigate('BudgetDetails');
 }
+
+useEffect(() => {    // addition of review
+    if (isPopupVisible) {
+      setShowNewApprovalForm(true);
+      setIsCreatingSequence(true);
+    }
+  }, [isPopupVisible]);
   return (<Formik
     initialValues={{
       nameTitle: '',
@@ -687,7 +694,7 @@ const handleBudgetDetail = () =>{
       handleChange,
       handleBlur,
       handleSubmit,
-    
+      setFieldValue,
       values,
       errors,
       touched,
@@ -709,6 +716,7 @@ const handleBudgetDetail = () =>{
       >
         <View>
           {/* First Row */}
+          
           <View style={styles.row}>
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>
@@ -716,10 +724,15 @@ const handleBudgetDetail = () =>{
               </Text>
             
               <TextInput
-                style={styles.largeInput}
-                value={nameTitle}
-                onChangeText={setNameTitle}
-              />
+  style={styles.largeInput}
+  value={nameTitle} // Custom state for managing the input value
+  onBlur={handleBlur('nameTitle')} // Mark field as touched for Formik
+  onChangeText={(text) => {
+    setNameTitle(text); // Update custom state
+    setFieldValue('nameTitle', text); // Update Formik's state
+  }}
+  placeholder="Enter Name/Title"
+/>
                {touched.nameTitle && errors.nameTitle && (<Text style={{color:'red'}} >{errors.nameTitle}</Text>)}
             </View>
 
@@ -728,10 +741,14 @@ const handleBudgetDetail = () =>{
                 Classification <Text style={styles.asterisk}>*</Text>
               </Text>
               <Picker
-                selectedValue={classification}
-                onValueChange={(value) => setClassification(value)}
-                style={styles.input}
-              >
+  selectedValue={values.classification} // Bind to Formik's state
+  onValueChange={(value) => {
+    setFieldValue('classification', value); // Update Formik's state
+    setClassification(value); // Update custom state
+  }}
+  onBlur={handleBlur('classification')} // Trigger Formik's validation
+  style={styles.input}
+>
                 <Picker.Item label="Select Classification" value="" />
                 <Picker.Item label="Business strategic" value="1" />
                 <Picker.Item label="Self funded" value="2" />
@@ -740,14 +757,18 @@ const handleBudgetDetail = () =>{
               {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
               
-           
+            <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Priority<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={priority}
-                onValueChange={(value) => setPriority(value)}
-                style={styles.input}
-              >
+  selectedValue={values.priority} // Bind to Formik's state
+  onValueChange={(value) => {
+    setFieldValue('priority', value); // Update Formik's state
+    setPriority(value); // Update custom state
+  }}
+  onBlur={handleBlur('priority')} // Trigger Formik's validation
+  style={styles.input}
+>
                 <Picker.Item label="Select Priority" value="" />
                 <Picker.Item label="Critical" value="1" />
                 <Picker.Item label="High" value="2" />
@@ -791,14 +812,18 @@ const handleBudgetDetail = () =>{
              {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
 
             </View>
-            
+            <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={budget}
-                onValueChange={(value) => setBudget(value)}
-                style={styles.input}
-              >
+  selectedValue={values.budget} // Formik-managed state
+  onValueChange={(value) => {
+    setFieldValue('budget', value); // Update Formik's state
+    setBudget(value); // Optional: Update custom state if required
+  }}
+  onBlur={handleBlur('budget')} // Mark field as touched for validation
+  style={styles.input}
+>
                 <Picker.Item label="Select Budget" value="" />
                 <Picker.Item label="High" value="1" />
                 <Picker.Item label="Medium" value="2" />
@@ -816,10 +841,14 @@ const handleBudgetDetail = () =>{
               <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Program</Text>
               <Picker
-                selectedValue={program}
-                onValueChange={(value) => setProgram(value)}
-                style={styles.input}
-              >
+  selectedValue={values.program} // Bind to Formik's state
+  onValueChange={(value) => {
+    setFieldValue('program', value); // Update Formik's state
+    setProgram(value); // Update custom state
+  }}
+  onBlur={handleBlur('program')} // Mark the field as touched for validation
+  style={styles.input}
+>
                  <Picker.Item label="Select Program" value="" />
     {programData.length > 0 ? (
         programData.map((ProgramItem) => (
@@ -838,24 +867,33 @@ const handleBudgetDetail = () =>{
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={impactedApp}
-                onValueChange={(value) => setImpactedApp(value)}
-                style={styles.input}
-              >
+  selectedValue={values.impactedApp} // Bind to Formik's state
+  onValueChange={(value) => {
+    setFieldValue('impactedApp', value); // Update Formik's state
+    setImpactedApp(value); // Update custom state
+  }}
+  onBlur={handleBlur('impactedApp')} // Mark the field as touched for validation
+  style={styles.input}
+>
                 <Picker.Item label="Select Application" value="" />
-                <Picker.Item label="Apps: ForgePortfolioXpert" value="app1" />
-                <Picker.Item label="Apps: Sharepoint" value="app2" />
+                <Picker.Item label="Apps: ForgePortfolioXpert" value="2" />
+                <Picker.Item label="Apps: Sharepoint" value="3" />
               </Picker>
               {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
 
             </View>
+            <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Project Size<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={projectSize}
-                onValueChange={(value) => setProjectSize(value)}
-                style={styles.input}
-              >
+  selectedValue={values.projectSize} // Bind to Formik's state
+  onValueChange={(value) => {
+    setFieldValue('projectSize', value); // Update Formik's state
+    setProjectSize(value); // Update custom state
+  }}
+  onBlur={handleBlur('projectSize')} // Mark the field as touched for validation
+  style={styles.input}
+>
                 <Picker.Item label="Select Size" value="" />
                 <Picker.Item label="Large" value="1" />
                
@@ -875,10 +913,14 @@ const handleBudgetDetail = () =>{
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Business Owner<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={businessOwner}
-                onValueChange={(value) => setBusinessOwner(value)}
-                style={styles.input}
-              >
+  selectedValue={values.businessOwner} // Bind to Formik's state
+  onValueChange={(value) => {
+    setFieldValue('businessOwner', value); // Update Formik's state
+    setBusinessOwner(value); // Update custom state
+  }}
+  onBlur={handleBlur('businessOwner')} // Mark the field as touched for validation
+  style={styles.input}
+>
                 <Picker.Item label="Select Business Owner" value="" />
     {businessData.length > 0 ? (
         businessData.map((BusinessItem) => (
@@ -901,15 +943,17 @@ const handleBudgetDetail = () =>{
                 <NestedDeptDropdownNewProjects onSelect={handleBusinessOwnerDept} buisnessPersonId={parseInt(businessOwner)}/>
                 {touched.businessOwnerDept && errors.businessOwnerDept && (<Text style={{color:'red'}} >{errors.businessOwnerDept}</Text>)}
             </View>
+            <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Proposed Start Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-        style={styles.input}
-        value={startDateDisplay}
-        onFocus={() => setShowStartDatePicker(true)}
-        placeholder="Select Start Date"
-        editable={Platform.OS !== 'web'} // Disable manual input on web
-      />
+  style={styles.input}
+  value={values.startDate || startDateDisplay} // Bind to Formik's state or use custom state
+  onFocus={() => setShowStartDatePicker(true)} // Open date picker on focus
+  onBlur={handleBlur('startDate')} // Trigger Formik validation on blur
+  placeholder="Select Start Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
       {/* <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
         <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
       </TouchableOpacity> */}
@@ -920,7 +964,10 @@ const handleBudgetDetail = () =>{
       {Platform.OS === 'web' && showStartDatePicker && (
         <DatePicker
           selected={rawStartDate}
-          onChange={handleDateChange}
+          onChange={(date) => {
+            handleDateChange(date); // Handle date change
+            setShowStartDatePicker(false); // Close picker
+          }}
           dateFormat="MM-dd-yyyy"
           inline // Inline style for better usability
         />
@@ -938,10 +985,14 @@ const handleBudgetDetail = () =>{
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Project Owner<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={projectOwner}
-                onValueChange={(value) => setProjectOwner(value)}
-                style={styles.input}
-              >
+  selectedValue={values.projectOwner || projectOwner} // Use Formik's value or custom state
+  onValueChange={(value) => {
+    setFieldValue('projectOwner', value); // Update Formik's state
+    setProjectOwner(value); // Update custom state
+  }}
+  onBlur={handleBlur('projectOwner')} // Trigger validation on blur
+  style={styles.input}
+>
                 <Picker.Item label="Select Project Owner" value="" />
     {projectData.length > 0 ? (
         projectData.map((projectItem) => (
@@ -964,15 +1015,17 @@ const handleBudgetDetail = () =>{
 
               {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
             </View>
+            <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Proposed End Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-        style={styles.input}
-        value={endDateDisplay}
-        onFocus={() => setShowEndDatePicker(true)}
-        placeholder="Select End Date"
-        editable={Platform.OS !== 'web'} // Disable manual input on web
-      />
+  style={styles.input}
+  value={values.endDate || endDateDisplay} // Use Formik's value or custom state
+  onFocus={() => setShowEndDatePicker(true)} // Open date picker on focus
+  onBlur={handleBlur('endDate')} // Trigger Formik validation on blur
+  placeholder="Select End Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
       {/* <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
         <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
       </TouchableOpacity> */}
@@ -1001,10 +1054,14 @@ const handleBudgetDetail = () =>{
             <View style={styles.largeInputContainer1}>
               <Text style={styles.inputLabel}>Project Manager<Text style={styles.asterisk}>*</Text></Text>
               <Picker
-                selectedValue={projectManager}
-                onValueChange={(value) => setProjectManager(value)}
-                style={styles.input}
-              >
+  selectedValue={values.projectManager || projectManager} // Use Formik's value or custom state
+  onValueChange={(value) => {
+    setFieldValue('projectManager', value); // Update Formik's state
+    setProjectManager(value); // Update custom state
+  }}
+  onBlur={handleBlur('projectManager')} // Trigger Formik validation on blur
+  style={styles.input}
+>
                 <Picker.Item label="Select Project Owner" value="" />
     {projectMgr.length > 0 ? (
         projectMgr.map((projectItem) => (
@@ -1026,13 +1083,24 @@ const handleBudgetDetail = () =>{
         Actual Budget<Text style={styles.asterisk}>*</Text>
       </Text>
 
-        {/* disbale input box */}
+        
       <TextInput
-        style={[styles.input, { backgroundColor: '#f0f0f0' }]}
-        value={getBudgetText(budget)}
-        editable={false}
-        placeholder="Select Budget"
-      />
+  style={[styles.input, { backgroundColor: '#f0f0f0' }]} // Read-only style
+  value={getBudgetText(values.budget || budget)} // Use Formik's value or custom state
+  onChangeText={(text) => {
+    // Allow numeric input only
+    const numericValue = text.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+    setFieldValue('budget', numericValue); // Update Formik's state
+    setBudget(numericValue); // Update custom state
+  }}
+  onBlur={handleBlur('budget')} // Trigger Formik validation on blur
+  placeholder="Select Budget"
+/>
+
+{/* Validation Error Display */}
+{touched?.budget && errors?.budget && (
+  <Text style={{ color: 'red' }}>{errors.budget}</Text>
+)}
 
     
 <TouchableOpacity onPress={handleBudgetDetail}>
@@ -1067,15 +1135,17 @@ const handleBudgetDetail = () =>{
         </View>
       </Modal>
     </View>
+    <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Go Live Date<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-        style={styles.input}
-        value={liveDateDisplay}
-        onFocus={() => setShowGoLiveDatePicker(true)}
-        placeholder="Select Go Live Date"
-        editable={Platform.OS !== 'web'} // Disable manual input on web
-      />
+  style={styles.input}
+  value={values.goLiveDate || liveDateDisplay} 
+  onFocus={() => setShowGoLiveDatePicker(true)} // Open the date picker on focus
+  onBlur={handleBlur('goLiveDate')} // Trigger Formik validation on blur
+  placeholder="Select Go Live Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
       {/* <TouchableOpacity onPress={() => setShowGoLiveDatePicker(true)}>
         <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
       </TouchableOpacity> */}
@@ -1110,11 +1180,16 @@ const handleBudgetDetail = () =>{
                 Enter the approx. ROI <Text style={styles.asterisk}>*</Text>
               </Text>
               <TextInput
-                style={styles.input}
-                value={roi}
-                onChangeText={setRoi}
-                placeholder="Enter ROI"
-              />
+  style={styles.input}
+  value={values.roi || roi} // Use Formik's value or custom state
+  onChangeText={(text) => {
+    const numericValue = text.replace(/[^0-9.]/g, ''); // Allow only numbers and one decimal
+    setFieldValue('roi', numericValue); // Update Formik state
+    setRoi(numericValue); // Update custom state
+  }}
+  placeholder="Enter ROI"
+  keyboardType="numeric" // Display numeric keyboard
+/>
               {touched.roi && errors.roi && (<Text style={{color:'red'}} >{errors.roi}</Text>)}
 
             </View>
@@ -1142,20 +1217,38 @@ const handleBudgetDetail = () =>{
             <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Business Problem/Description<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Business Problem/Description"
-                value={businessProblem}
-                onChangeText={setBusinessProblem}
-              />
+  style={styles.outlinedInput}
+  placeholder="Enter Business Problem/Description"
+  placeholderTextColor="#757575"
+  value={values.businessProblem || businessProblem} // Use Formik's state or fallback to custom state
+  onChangeText={(text) => {
+    setFieldValue('businessProblem', text); // Update Formik's state
+    setBusinessProblem(text); // Update custom state
+  }}
+  onBlur={handleBlur('businessProblem')} // Trigger Formik validation on blur
+  multiline={true} // Enable multi-line input
+  numberOfLines={4} // Set height of the text box
+  textAlignVertical="top" // Align text to the top for multi-line input
+/>
+{touched.businessProblem && errors.businessProblem && (
+  <Text style={{ color: 'red', marginTop: 4 }}>{errors.businessProblem}</Text>
+)}
             </View>
             <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Scope Definition<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Scope Definition"
-                value={scopeDefinition}
-                onChangeText={setScopeDefinition}
-              />
+  style={styles.outlinedInput}
+  placeholder="Enter Scope Definition"
+  value={values.scopeDefinition || scopeDefinition} // Use Formik's value or custom state
+  onChangeText={(text) => {
+    setFieldValue('scopeDefinition', text); // Update Formik state
+    setScopeDefinition(text); // Update custom state
+  }}
+  onBlur={handleBlur('scopeDefinition')} // Mark field as touched for validation
+/>
+{touched.scopeDefinition && errors.scopeDefinition && (
+  <Text style={{ color: 'red', marginTop: 4 }}>{errors.scopeDefinition}</Text>
+)}
             </View>
           </View>
 
@@ -1164,20 +1257,40 @@ const handleBudgetDetail = () =>{
             <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Key Assumption<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Key Assumption"
-                value={keyAssumption}
-                onChangeText={setKeyAssumption}
-              />
+  style={styles.outlinedInput}
+  placeholder="Enter Key Assumption"
+  value={values.keyAssumption || keyAssumption} // Use Formik's state or custom state
+  onChangeText={(text) => {
+    setFieldValue('keyAssumption', text); // Update Formik state
+    setKeyAssumption(text); // Update custom state
+  }}
+  onBlur={handleBlur('keyAssumption')} // Mark field as touched
+  multiline={true} // Enable multi-line input
+  numberOfLines={4} // Set the height of the text box
+  textAlignVertical="top" // Align text to the top for multi-line input
+/>
+{touched.keyAssumption && errors.keyAssumption && (
+  <Text style={{ color: 'red', marginTop: 4 }}>{errors.keyAssumption}</Text>
+)}
             </View>
             <View style={styles.halfInputContainer}>
-              <Text style={styles.inputLabel}>Benefits/ROI<Text style={styles.asterisk}>*</Text></Text>
-              <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Benefits/ROI"
-                value={benefitsROI}
-                onChangeText={setBenefitsROI}
-              />
+            <Text style={styles.inputLabel}>Benefits/ROI<Text style={styles.asterisk}>*</Text></Text>
+            <TextInput
+  style={styles.outlinedInput}
+  placeholder="Enter Benefits/ROI"
+  value={values.benefitsROI || benefitsROI} // Use Formik's state or custom state
+  onChangeText={(text) => {
+    setFieldValue('benefitsROI', text); // Update Formik's state
+    setBenefitsROI(text); // Update custom state
+  }}
+  onBlur={handleBlur('benefitsROI')} // Mark field as touched
+  multiline={true} // Enable multi-line input for longer text
+  numberOfLines={4} // Suggest a specific height for the input box
+  textAlignVertical="top" // Align text to the top for multi-line input
+/>
+{touched.benefitsROI && errors.benefitsROI && (
+  <Text style={{ color: 'red', marginTop: 4 }}>{errors.benefitsROI}</Text>
+)}
             </View>
           </View>
 
@@ -1186,21 +1299,40 @@ const handleBudgetDetail = () =>{
             <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Risk<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Risk"
-                value={risk}
-                onChangeText={setRisk}
-              />
+  style={styles.outlinedInput}
+  placeholder="Enter Risk"
+  value={values.risk || risk} // Use Formik's state or fallback to custom state
+  onChangeText={(text) => {
+    setFieldValue('risk', text); // Update Formik's state
+    setRisk(text); // Update custom state
+  }}
+  onBlur={handleBlur('risk')} // Mark the field as touched
+  multiline={true} // Enable multi-line input for detailed descriptions
+  numberOfLines={4} // Suggest a specific height for the input
+  textAlignVertical="top" // Align text to the top for multi-line input
+/>
+{touched.risk && errors.risk && (
+  <Text style={{ color: 'red', marginTop: 4 }}>{errors.risk}</Text>
+)}
             </View>
             <View style={styles.halfInputContainer}>
               <Text style={styles.inputLabel}>Budget Impact<Text style={styles.asterisk}>*</Text></Text>
               <TextInput
-                style={styles.outlinedInput}
-                placeholder="Enter Budget Impact"
-                placeholderTextColor="#757575"
-                value={budgetImpact}
-                onChangeText={setBudgetImpact}
-              />
+  style={styles.outlinedInput}
+  placeholder="Enter Budget Impact"
+  placeholderTextColor="#757575"
+  value={values.budget || budgetImpact} // Use Formik's state or fallback to custom state
+  onChangeText={(text) => {
+    setFieldValue('budgetImpact', text); // Update Formik's state
+    setBudgetImpact(text); // Update custom state
+  }}
+  multiline={true} // Allow multi-line input
+  numberOfLines={4} // Adjust height
+  textAlignVertical="top" // Align text to the top
+/>
+{touched.budget && errors.budget && (
+  <Text style={{ color: 'red', marginTop: 4 }}>{errors.budget}</Text>
+)}
             </View>
           </View>
 
@@ -1412,7 +1544,9 @@ const handleBudgetDetail = () =>{
           <View style={styles.modalContent}>
             <TouchableOpacity 
               style={styles.closeIcon} 
-              onPress={() => setIsPopupVisible(false)}
+              onPress={() => setIsPopupVisible(false)
+                
+              }
             >
               <Icon name="close" size={24} color="#000" />
             </TouchableOpacity>
@@ -1422,7 +1556,7 @@ const handleBudgetDetail = () =>{
               style={styles.modalScrollView}
               showsVerticalScrollIndicator={false}
             >
-             <RadioButton.Group 
+           {/*   <RadioButton.Group 
           onValueChange={(value) => {
             setSelectedOption(value);
             if (value === '2') {
@@ -1431,8 +1565,8 @@ const handleBudgetDetail = () =>{
             }
           }} 
           value={selectedOption}
-        >
-              <View style={styles.radioOptionsRow}>
+        > */}
+              {/* <View style={styles.radioOptionsRow}>
                 <View style={styles.radioOption}>
                   <RadioButton.Android value="1" color="#044086" />
                   <Text style={styles.radioText}>In person meeting</Text>
@@ -1441,11 +1575,12 @@ const handleBudgetDetail = () =>{
                   <RadioButton.Android value="2" color="#044086" />
                   <Text style={styles.radioText}>Authorization process</Text>
                 </View>
-              </View>
-              {selectedOption === '2' && (
+              </View> */}
+       {/*  {selectedOption === '2' && ( */} 
                 <View style={styles.newApprovalContainer}>
                   {showNewApprovalForm ? (
                     <>
+                    
                       <View style={styles.newApprovalHeader}>
                         {/* <TouchableOpacity 
                           style={styles.backButton}
@@ -1577,8 +1712,8 @@ const handleBudgetDetail = () =>{
                     </>
                   )}
                 </View>
-              )}
-            </RadioButton.Group>
+              {/*  )}  */}
+           {/*  </RadioButton.Group> */}
             </ScrollView>
             <View style={styles.popupButtonContainer}>
               <TouchableOpacity style={styles.popupSubmitButton} onPress={handlereview}>
@@ -1663,7 +1798,8 @@ const styles = StyleSheet.create({
       flexWrap: 'wrap',
       width: '100%',
       maxWidth: 1200,
-      marginBottom: 6,
+      
+      
     },
     row5: {
       flexDirection: 'row',
@@ -2250,6 +2386,49 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         fontFamily:'Inter',
+      },
+      centeredViews: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      },
+      modalViews: {
+        backgroundColor: 'white',
+        borderRadius: 10,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+      },
+      modalTexts: {
+        fontSize: 18,
+        marginBottom: 15,
+        textAlign: 'center',
+      },
+      closeButtons: {
+        // backgroundColor: '#2196F3',
+        borderRadius: 5,
+        padding: 10,
+        elevation: 2,
+      },
+      closeButtonTexts: {
+        color: 'white',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      },
+      verticalDivider: {
+        width: 1, 
+        backgroundColor: '#ccc', 
+        alignSelf: 'stretch', 
+        marginHorizontal: 10, 
+        
       },
   });
   
