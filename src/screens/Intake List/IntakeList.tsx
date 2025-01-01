@@ -667,8 +667,8 @@ const IntakeList: React.FC = () => {
                       <DataTable.Cell style={styles.columnDefaultLeft}>{`FPX${project.project_id}`}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefaultLeft}>{project.project_name}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefaultLeft}>{project.status_name}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWideLeft}>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWideLeft}>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefaultLeft}>{project.budget}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.start_date).toLocaleDateString()}
@@ -679,7 +679,7 @@ const IntakeList: React.FC = () => {
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.golive_date).toLocaleDateString()}
                       </DataTable.Cell>
-                      <DataTable.Cell style={styles.columnWide}>{project.created_by_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWideLeft}>{project.created_by_name}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.created_at).toLocaleDateString()}
                       </DataTable.Cell>
@@ -1006,10 +1006,16 @@ const styles = StyleSheet.create({
   columnDefaultLeft: {
     flex: 1,
     justifyContent: 'flex-start',
+    padding: 4,
   },
   columnWide: {
     flex: 1.5,
+    justifyContent: 'center',
+  },
+  columnWideLeft: {
+    flex: 1.5,
     justifyContent: 'flex-start',
+    padding: 4,
   },
   columnActions: {
     flex: 1,
