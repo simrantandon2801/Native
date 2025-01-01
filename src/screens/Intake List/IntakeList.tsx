@@ -417,7 +417,7 @@ const IntakeList: React.FC = () => {
   };
   const mapIdIdToUser = (id: number) => {
     const user = users.find(user => user.user_id === id);
-    return user ? `${user.first_name}${user.last_name}` : ' ';
+    return user ? `${user.first_name} ${user.last_name}` : ' ';
   };
 
   const HandleDeleteGoal = async goal_id => {
@@ -553,16 +553,16 @@ const IntakeList: React.FC = () => {
                 contentContainerStyle={styles.modalScrollContainer}>
                 <View style={styles.modalOverlay}>
                   <View style={styles.modalContainerRight}>
-                    <Text style={styles.modalHeader}>Apply Filters</Text>
+                    <Text style={styles.modalHeader}>Filter Options</Text>
 
                     {/* Status Dropdown */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>Select Status</Text>
+                        <Text style={styles.label}>Status</Text>
                         <Picker
                           selectedValue={status}
                           onValueChange={(itemValue) => setStatus(itemValue)}
-                          style={styles.input1}>
+                          style={styles.input}>
                           <Picker.Item label="Select Status" value="" color="#aaa" />
                           <Picker.Item label="In Draft" value="2" />
                           <Picker.Item label="Review Pending" value="3" />
@@ -578,11 +578,11 @@ const IntakeList: React.FC = () => {
                     {/* Budget Dropdown */}
                     <View style={styles.inputRow}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>Select Budget</Text>
+                        <Text style={styles.label}>Budget</Text>
                         <Picker
                           selectedValue={budget}
                           onValueChange={(itemValue) => setBudget(itemValue)}
-                          style={styles.input1}>
+                          style={styles.input}>
                           <Picker.Item label="Select Budget" value="" color="#aaa" />
                           <Picker.Item label="High" value="1" />
                           <Picker.Item label="Medium" value="2" />
@@ -594,16 +594,16 @@ const IntakeList: React.FC = () => {
                     {/* Project Manager Dropdown */}
                     <View style={styles.inputRow1}>
                       <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>Select Project Manager</Text>
+                        <Text style={styles.label}>Project Manager</Text>
                         <Picker
                           selectedValue={projectManager}
                           onValueChange={(itemValue) => setProjectManager(itemValue)}
-                          style={styles.input1}>
+                          style={styles.input}>
                           <Picker.Item label="Select Project Manager" value="" color="#aaa" />
-                          {users.map((user) => (
+                          {users.map((user,index) => (
                             <Picker.Item
-                              key={user.user_id}
-                              label={user.first_name}
+                              key={index}
+                              label={`${user.first_name} ${user.last_name}`}
                               value={user.user_id}
                             />
                           ))}
@@ -628,7 +628,7 @@ const IntakeList: React.FC = () => {
                       </TouchableOpacity>
 
                       {/* Apply Filter Button */}
-                      <TouchableOpacity style={styles.submitButton1} onPress={handleFilterSubmit}>
+                      <TouchableOpacity style={styles.submitButton} onPress={handleFilterSubmit}>
                         <Text style={styles.submitButtonText}>Apply Filters</Text>
                       </TouchableOpacity>
                     </View>
@@ -659,16 +659,17 @@ const IntakeList: React.FC = () => {
                 </DataTable.Header>
 
                 {/* Rows */}
-                <ScrollView>
+                <ScrollView style={styles.scrollContainer}
+                showsVerticalScrollIndicator={false}>
                   {projects.map((project, index) => (
                     <DataTable.Row key={project.project_id} style={styles.row1}>
                       <DataTable.Cell style={styles.columnSNo}>{index + 1}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{`FPX${project.project_id}`}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{project.project_name}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{project.status_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{`FPX${project.project_id}`}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{project.project_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{project.status_name}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{project.budget}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{project.budget}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.start_date).toLocaleDateString()}
                       </DataTable.Cell>
@@ -683,7 +684,7 @@ const IntakeList: React.FC = () => {
                         {new Date(project.created_at).toLocaleDateString()}
                       </DataTable.Cell>
                       <DataTable.Cell style={styles.columnActions}>
-                      <Menu
+                        <Menu
                           visible={visibleMenu === project.project_id}
                           onDismiss={() => setVisibleMenu(null)}
                           anchor={
@@ -882,6 +883,11 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#044086',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
   },
   buttonText1: {
     color: 'white',
@@ -974,8 +980,12 @@ const styles = StyleSheet.create({
   },
   container1: {
     flex: 1,
+    margin: 10,
     padding: 10,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   header: {
     backgroundColor: '#f5f5f5',
@@ -993,9 +1003,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  columnDefaultLeft: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
   columnWide: {
     flex: 1.5,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   columnActions: {
     flex: 1,
@@ -1004,7 +1018,7 @@ const styles = StyleSheet.create({
   },
   modalScrollContainer: {
     maxHeight: 800,
-    paddingBottom: 40,
+    paddingBottom: 20,
     flexGrow: 1,
   },
   modalOverlay: {
@@ -1046,38 +1060,31 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
-  },
-  input1: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    padding: 10,
+    fontWeight: '600',
+    color: '#044086',
+    marginBottom: 5, // Adds space between the label and the input
   },
   closeButton: {
-    backgroundColor: '#FF6347',
+    paddingVertical: 10,
     borderRadius: 5,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
+    color: '#232323',
+    alignSelf: 'flex-end',
   },
   closeButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  submitButton1: {
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+    color: '#232323',
+    fontSize: 16,
+    textAlign: 'center',
   },
   submitButtonText: {
     color: 'white',
     fontWeight: 'bold',
+  },
+  scrollContainer: {
+    maxHeight: 450, // Adjust the height as needed
+    overflow: 'hidden',
   },
   
   
