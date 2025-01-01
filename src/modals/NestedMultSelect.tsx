@@ -86,7 +86,7 @@ const RecursiveDropdown = ({
   );
 };
 
-const NestedMultiselectDropdown = ({ onSelectionChange }) => {
+const NestedMultiselectDropdown = ({onSelectionChange, editGoal}) => {
   const [dept, setDept] = useState<[]>([]);
 
   const FetchDept = async () => {
@@ -128,8 +128,8 @@ const NestedMultiselectDropdown = ({ onSelectionChange }) => {
   const toggleSelect = item => {
     setSelectedItems(prevSelected => {
       const updatedSelected = prevSelected.includes(item.department_id)
-        ? prevSelected.filter(id => id !== item.department_id) 
-        : [...prevSelected, item.department_id]; 
+        ? prevSelected.filter(id => id !== item.department_id)
+        : [...prevSelected, item.department_id];
 
       // Notify the parent about the updated selection
       onSelectionChange(updatedSelected);
@@ -145,10 +145,10 @@ const NestedMultiselectDropdown = ({ onSelectionChange }) => {
         : [...prev, parentId],
     );
   };
-  const flattenDepartments = (departments) => {
+  const flattenDepartments = departments => {
     const flatList = [];
-    
-    const traverse = (nodes) => {
+
+    const traverse = nodes => {
       nodes.forEach(node => {
         flatList.push(node);
         if (node.sub_departments && node.sub_departments.length) {
@@ -156,15 +156,15 @@ const NestedMultiselectDropdown = ({ onSelectionChange }) => {
         }
       });
     };
-  
+
     traverse(departments);
     return flatList;
   };
-  
+
   const getSelectedNames = () => {
     // Flatten the department hierarchy
     const flatDepartments = flattenDepartments(dept);
-  
+
     return selectedItems
       .map(id => {
         const department = flatDepartments.find(d => d.department_id === id);
@@ -174,45 +174,53 @@ const NestedMultiselectDropdown = ({ onSelectionChange }) => {
       .join(', '); // Join names with a comma
   };
 
+  const getAlreadySelectedNames = () => {
+    if (editGoal && editGoal.stakeholder_names) {
+      // Use editGoal names if in edit mode
+      return editGoal.stakeholder_names;
+    }
+  };
+
   const handleDismiss = () => {
-    console.log("Dismiss triggered"); 
+    console.log('Dismiss triggered');
     if (dropdownVisible) {
       setDropdownVisible(false);
     }
   };
   return (
     <TouchableWithoutFeedback onPress={handleDismiss} accessible={false}>
-      
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={styles.selectItemField}
-        onPress={() => setDropdownVisible(!dropdownVisible)}>
-         <Text style={styles.input}>
-            {selectedItems.length
-              ? getSelectedNames() // Display selected names
+      <View style={styles.container}>
+        <TouchableOpacity
+          style={styles.selectItemField}
+          onPress={() => setDropdownVisible(!dropdownVisible)}>
+          <Text style={styles.input}>
+            {editGoal
+              ? getAlreadySelectedNames() // Call this if editGoal is not null
+              : selectedItems.length
+              ? getSelectedNames() // Otherwise, display dynamically selected names
               : 'Select Department'}
           </Text>
-        <Icon
-          name={dropdownVisible ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
-          size={20}
-          color="#333"
-        />
-      </TouchableOpacity>
-
-      {dropdownVisible && (
-        <ScrollView style={styles.scrollContainer}>
-          <RecursiveDropdown
-            items={dept} // Ensure data is an array
-            selectedItems={selectedItems}
-            toggleSelect={toggleSelect}
-            expandedParents={expandedParents}
-            toggleExpanded={toggleExpanded}
-            hoveredItem={hoveredItem}
-            setHoveredItem={setHoveredItem}
+          <Icon
+            name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color="#333"
           />
-        </ScrollView>
-      )}
-    </View>
+        </TouchableOpacity>
+
+        {dropdownVisible && (
+          <ScrollView style={styles.scrollContainer}>
+            <RecursiveDropdown
+              items={dept} // Ensure data is an array
+              selectedItems={selectedItems}
+              toggleSelect={toggleSelect}
+              expandedParents={expandedParents}
+              toggleExpanded={toggleExpanded}
+              hoveredItem={hoveredItem}
+              setHoveredItem={setHoveredItem}
+            />
+          </ScrollView>
+        )}
+      </View>
     </TouchableWithoutFeedback>
   );
 };

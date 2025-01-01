@@ -37,6 +37,18 @@ const ADIntegration = ({ onClose }) => {
 
   const handleSave = async () => {
 
+    let tempErrors: { [key: string]: string } = {};
+
+    // Validation checks
+    if (!integrationName) tempErrors.integrationName = 'Integration Name is required';
+    if (!clientId) tempErrors.clientId = 'Client Id is required';
+    if (!clientSecret) tempErrors.clientSecret = 'Client Secret is required';
+    if (!tenantId) tempErrors.tenantId = 'Tenant Id is required';
+
+    setErrors(tempErrors);
+
+    if (Object.keys(tempErrors).length > 0) return;
+
     const payload = {
       integration_customer_id: '',
       integration_id:selectedAD,
@@ -139,6 +151,7 @@ const ADIntegration = ({ onClose }) => {
           </Picker>
                   </View>
          <View style={{ display: selectedAD==1 ? 'flex' : 'none' }}>
+
           <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Integration Name <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -157,6 +170,8 @@ const ADIntegration = ({ onClose }) => {
               },
             }}
           /> 
+      
+          {errors.integrationName && <Text style={styles.errorText}>{errors.integrationName}</Text>}
           <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Client Id <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -173,6 +188,7 @@ const ADIntegration = ({ onClose }) => {
               },
             }}
           />
+           {errors.clientId && <Text style={styles.errorText}>{errors.clientId}</Text>}
 
           <TextInput
             style={styles.input}
@@ -190,7 +206,7 @@ const ADIntegration = ({ onClose }) => {
               },
             }}
           />
-
+ {errors.clientSecret && <Text style={styles.errorText}>{errors.clientSecret}</Text>}
           <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Tenant Id <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -207,6 +223,7 @@ const ADIntegration = ({ onClose }) => {
               },
             }}
           />
+           {errors.tenantId && <Text style={styles.errorText}>{errors.tenantId}</Text>}
 </View>
 
                   <View
@@ -357,8 +374,15 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       zIndex: 1000,
     },
-   
-input1:{
-  
-}
+    inputRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 15,
+      gap: 20,
+    },
+    errorText: {
+      color: 'red',
+      fontSize: 12,
+      marginTop: 5,
+    },
 });

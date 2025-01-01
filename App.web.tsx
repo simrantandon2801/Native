@@ -39,7 +39,6 @@ const App: React.FC = () => {
             component={SignupScreen}
             options={{headerShown: false}}
           />
-
           {/* Drawer Content */}
           <Stack.Screen
             name="Main"
