@@ -113,21 +113,22 @@ const LoginScreen: React.FC = () => {
           /* navigation.replace('Main'); */
           navigate('Main', {screen: 'Adminpanel'});
         }
-        if (UserType === '1' || userrole === 1) {
+        else if (UserType === '1' || userrole === 1) {
           console.log('Decoded UserType:', UserType);
           console.log('Navigating to Main screen');
           navigate('Main', {screen: 'SignupScreen'});
         }
-        if (UserType === '2' || userrole === 2) {
+        else{
           console.log('Decoded UserType:', UserType);
           console.log('Navigating to Main screen');
-          navigation.replace('Main');
-        } else {
-          Alert.alert(
-            'Access denied',
-            'You do not have the required permissions.',
-          );
-        }
+          navigate('Main', {screen: 'AdminDboard'});
+        } 
+        // else {
+        //   Alert.alert(
+        //     'Access denied',
+        //     'You do not have the required permissions.',
+        //   );
+        // }
       } else {
         Alert.alert('Incorrect, User Name/ Password');
       }

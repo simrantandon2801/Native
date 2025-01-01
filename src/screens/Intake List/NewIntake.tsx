@@ -27,6 +27,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import NestedDeptDropdownNewProjects from '../../modals/NestedDeptDropDownNewProjects';
 import { navigate } from '../../navigations/RootNavigation';
+import BudgetDetail from './BudgetDetails';
 
 
 const NewIntake = () => {
@@ -44,6 +45,7 @@ const NewIntake = () => {
   const [impactedApp, setImpactedApp] = useState('');
   const [priority, setPriority] = useState('');
   const [budget, setBudget] = useState('');
+  const [actualBudget, setActualBudget] = useState('');
   const [projectSize, setProjectSize] = useState('');
   const [startDate, setStartDate] = useState('');
   //const [startDate, setStartDate] = useState<Date | null>(null);
@@ -156,6 +158,7 @@ const NewIntake = () => {
   const [isCreatingSequence, setIsCreatingSequence] = useState(false);
   
   const fetchPrograms = async (goalId:string) => {
+    setProgramData([]);
     try {
       const response = await GetProgramsByGoalId(goalId);
       const result = JSON.parse(response);
@@ -354,6 +357,7 @@ const fetchSequence = async () => {
     impactedApp: Yup.string().required('Impacted Application is required'),
     priority: Yup.string().required('Priority is required'),
     budget: Yup.string().required('Budget is required'),
+   // actualBudget: Yup.string().required('Actual Budget is required'),
     projectSize: Yup.string().required('Project Size is required'),
     startDate: Yup.date().required('Project Start Date is required'),
     endDate: Yup.date().required('Project End Date is required'),
@@ -649,9 +653,10 @@ const fetchSequence = async () => {
       await fetchPrograms(goalId);
     };
 
-const handleBudgetDetail = () =>{
-    navigate('BudgetDetails');
-}
+const closeModal = (total:string) => {
+  setActualBudget(total);
+  setBudgetModalVisible(false);
+};
 
 useEffect(() => {    // addition of review
     if (isPopupVisible) {
@@ -659,6 +664,8 @@ useEffect(() => {    // addition of review
       setIsCreatingSequence(true);
     }
   }, [isPopupVisible]);
+
+
   return (<Formik
     initialValues={{
       nameTitle: '',
@@ -1085,55 +1092,32 @@ useEffect(() => {    // addition of review
 
         
       <TextInput
-  style={[styles.input, { backgroundColor: '#f0f0f0' }]} // Read-only style
-  value={getBudgetText(values.budget || budget)} // Use Formik's value or custom state
+  style={[styles.input]} // Read-only style
+  value={actualBudget} // Use Formik's value or custom state
   onChangeText={(text) => {
     // Allow numeric input only
     const numericValue = text.replace(/[^0-9]/g, ''); // Remove non-numeric characters
-    setFieldValue('budget', numericValue); // Update Formik's state
-    setBudget(numericValue); // Update custom state
+    setFieldValue('actualBudget', numericValue); // Update Formik's state
+    setActualBudget(numericValue); // Update custom state
   }}
-  onBlur={handleBlur('budget')} // Trigger Formik validation on blur
-  placeholder="Select Budget"
+  onBlur={handleBlur('actualBudget')} // Trigger Formik validation on blur
+  placeholder="Actual Budget"
 />
 
 {/* Validation Error Display */}
-{touched?.budget && errors?.budget && (
+{/* {touched?.budget && errors?.budget && (
   <Text style={{ color: 'red' }}>{errors.budget}</Text>
-)}
+)} */}
 
     
-<TouchableOpacity onPress={handleBudgetDetail}>
-  <Text style={styles.detailText}>Detail</Text>
+<TouchableOpacity onPress={()=>{setBudgetModalVisible(true);}}>
+  <Text style={{color:'blue'}}>Add Budget Details</Text>
 </TouchableOpacity>
 
     
-      {touched.budget && errors.budget && (
+      {/* {touched.budget && errors.budget && (
         <Text style={{color:'red'}}>{errors.budget}</Text>
-      )}
-
-    {/* Budget Modal  */}
-    
-      <Modal
-        animationType="none"
-        transparent={true}
-        visible={BudgetmodalVisible}
-        onRequestClose={() => setBudgetModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-        
-            <View style={styles.modalHeaderB}>
-              <TouchableOpacity 
-                onPress={() => setBudgetModalVisible(false)}
-                style={styles.closeButtonB}
-              >
-                <Text>✕</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      )} */}
     </View>
     <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
@@ -1321,7 +1305,7 @@ useEffect(() => {    // addition of review
   style={styles.outlinedInput}
   placeholder="Enter Budget Impact"
   placeholderTextColor="#757575"
-  value={values.budget || budgetImpact} // Use Formik's state or fallback to custom state
+  value={budgetImpact} // Use Formik's state or fallback to custom state
   onChangeText={(text) => {
     setFieldValue('budgetImpact', text); // Update Formik's state
     setBudgetImpact(text); // Update custom state
@@ -1357,12 +1341,12 @@ useEffect(() => {    // addition of review
           {/* Bottom Buttons */}
           <View style={styles.bottomButtonsContainer}>
           <View style={styles.leftButtonContainer}>
-          <TouchableOpacity style={[styles.saveAsDraftButton, { marginBottom: 20 }]} onPress={handleBudgetDetail}>
+          {/* <TouchableOpacity style={[styles.saveAsDraftButton, { marginBottom: 20 }]} onPress={handleBudgetDetail}>
               <Icon name="time-outline" size={18} color="#044086" style={styles.approvalIcon} />
               <Text style={[styles.saveAsDraftButtonText]}>
   Enter Budget details
 </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
             
   <TouchableOpacity style={styles.saveAsDraftButton}  onPress={handleSaveDraft}  >
     <Icon name="save-outline" size={18} color="#044086" style={styles.saveIcon} />
@@ -1393,7 +1377,12 @@ useEffect(() => {    // addition of review
   </TouchableOpacity>
   <TouchableOpacity 
       style={styles.newButton}
-      onPress={() => {setIsApprovalPopupVisible(true)}}
+      onPress={() => {
+        handleSubmit;
+        
+        setIsApprovalPopupVisible(true);
+      }
+      }
     >
       <Icon name="checkmark-circle-outline" size={18} color="#044086" style={styles.newButtonIcon} />
       <Text style={styles.newButtonText}>Send for Approval</Text>
@@ -1556,51 +1545,10 @@ useEffect(() => {    // addition of review
               style={styles.modalScrollView}
               showsVerticalScrollIndicator={false}
             >
-           {/*   <RadioButton.Group 
-          onValueChange={(value) => {
-            setSelectedOption(value);
-            if (value === '2') {
-              setShowNewApprovalForm(true);
-              setIsCreatingSequence(true);
-            }
-          }} 
-          value={selectedOption}
-        > */}
-              {/* <View style={styles.radioOptionsRow}>
-                <View style={styles.radioOption}>
-                  <RadioButton.Android value="1" color="#044086" />
-                  <Text style={styles.radioText}>In person meeting</Text>
-                </View>
-                <View style={styles.radioOption1}>
-                  <RadioButton.Android value="2" color="#044086" />
-                  <Text style={styles.radioText}>Authorization process</Text>
-                </View>
-              </View> */}
        {/*  {selectedOption === '2' && ( */} 
                 <View style={styles.newApprovalContainer}>
                   {showNewApprovalForm ? (
                     <>
-                    
-                      <View style={styles.newApprovalHeader}>
-                        {/* <TouchableOpacity 
-                          style={styles.backButton}
-                          onPress={() => {
-                            setShowNewApprovalForm(false);
-                          }}
-                        >
-                          <Icon name="arrow-back" size={18} color="#232323" />
-                          <Text style={styles.backText}>Back</Text>
-                        </TouchableOpacity> */}
-                       {/*  <Text style={styles.newApprovalTitle}>Create New Review</Text> */}
-                      </View>
-
-                    {/*   <TextInput
-  style={styles.newApprovalInput}
-  placeholder="Enter text"
-  value={sequenceName}  
-  onChangeText={(text) => setSequenceName(text)}  
-/>
- */}
                       <View style={styles.columnsContainer}>
                         <View style={styles.columnsHeader}>
                           <Text style={styles.columnTitle}>S.No</Text>
@@ -1744,6 +1692,31 @@ useEffect(() => {    // addition of review
           </View>
         </View>
       </Modal>
+
+      {/* Budget Modal  */}
+    <BudgetDetail projectId={projectId} visible={BudgetmodalVisible}
+        onClose={closeModal} 
+        />
+      {/* <Modal
+        animationType="none"
+        transparent={true}
+        visible={BudgetmodalVisible}
+        onRequestClose={() => setBudgetModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+        
+            <View style={styles.modalHeaderB}>
+              <TouchableOpacity 
+                onPress={() => setBudgetModalVisible(false)}
+                style={styles.closeButtonB}
+              >
+                <BudgetDetail onClose="closeBudgetModal"/>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal> */}
     </SafeAreaView>
    )}
    </Formik>
@@ -2302,6 +2275,7 @@ const styles = StyleSheet.create({
       height: 40,
       padding: 7,
       borderRadius: 5,
+      marginLeft:20
     },
     searchInput: {
       flex: 1,
@@ -2312,11 +2286,12 @@ const styles = StyleSheet.create({
       width: '67%',
       color: '#000',
       fontFamily: 'Source Sans Pro',
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: '400',
       alignItems:'center',
       display:'flex',
       textAlign: 'center',
+      marginLeft: 50 
     },
     addStepButton: {
       flexDirection: 'row',
