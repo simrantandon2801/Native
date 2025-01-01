@@ -168,9 +168,10 @@ const ApprovalHistory: React.FC = () => {
       {/* Header row for Approval History */}
       <View style={styles.historyHeader}>
         <Text style={[styles.columnHeader, {flex: 2}]}>Project Name</Text>
-        <Text style={[styles.columnHeader, {flex: 1}]}>Date</Text>
-        <Text style={[styles.columnHeader, {flex: 2}]}>Status</Text>
-        <Text style={[styles.columnHeader, {flex: 2}]}>Sent to</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Sent From</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Sent To</Text>
+        <Text style={[styles.columnHeader, {flex: 1}]}>Sent On</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Purpose</Text>
         <Text style={[styles.columnHeader, {flex: 4}]}>Comments</Text>
       </View>
 
@@ -183,6 +184,12 @@ const ApprovalHistory: React.FC = () => {
               <Text style={[styles.cellText, {flex: 2}]}>
                 {project.project_name}
               </Text>
+              <Text style={[styles.cellText, {flex: 2}]}>
+                {project.sent_from_name || 'No user assigned'}
+              </Text>
+              <Text style={[styles.cellText, {flex: 2}]}>
+                {project.sent_to_name || 'No user assigned'}
+              </Text>
               <Text style={[styles.cellText, {flex: 1}]}>
                 {new Date(project.created_at).toLocaleDateString()}
               </Text>
@@ -190,9 +197,6 @@ const ApprovalHistory: React.FC = () => {
               {/* Render sequence-specific data */}
               <Text style={[styles.cellText, {flex: 2}, {paddingRight: 10}]}>
                 {project.status_name || 'No Action Taken'}
-              </Text>
-              <Text style={[styles.cellText, {flex: 2}]}>
-                {project.sent_to_name || 'No user assigned'}
               </Text>
               <Text style={[styles.commentCell, {flex: 4}]}>
                 {project.comment || 'No comments'}

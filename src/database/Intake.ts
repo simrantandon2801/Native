@@ -292,6 +292,10 @@ import { BASE_URL } from "@env";
     status?: string;
     budget?: string;
     project_manager?: string;
+    project_owner_user?: string;
+    project_owner_dept?: string;
+    goal_id?: string;
+    golive_date?: string;
   }): Promise<string> => {
     try {
       let uri = `${BASE_URL}/projectFlow/get_project_intake`;
@@ -302,6 +306,10 @@ import { BASE_URL } from "@env";
       if (filters.status) queryParams.append('status', filters.status);
       if (filters.budget) queryParams.append('budget', filters.budget);
       if (filters.project_manager) queryParams.append('project_manager', filters.project_manager); 
+      if (filters.project_owner_user) queryParams.append('project_owner_user', filters.project_owner_user); 
+      if (filters.project_owner_dept) queryParams.append('project_owner_dept', filters.project_owner_dept); 
+      if (filters.goal_id) queryParams.append('goal_id', filters.goal_id); 
+      if (filters.golive_date) queryParams.append('golive_date', filters.golive_date); 
   
       // Append the query string to the base URL
       uri += `?${queryParams.toString()}`;

@@ -9,6 +9,7 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import {
   Checkbox,
@@ -20,10 +21,6 @@ import {
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Picker} from '@react-native-picker/picker';
-import {AppImages} from '../../assets';
-import {DeleteGoal, GetGoals, InsertGoal} from '../../database/Goals';
-import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
-import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
 import {GetProjects, GetProjectsWithFilters} from '../../database/Intake';
 import {ScrollView} from 'react-native-gesture-handler';
@@ -32,214 +29,9 @@ import {navigate} from '../../navigations/RootNavigation';
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
 import { useFocusEffect } from '@react-navigation/native';
-interface CreateNewIntakeModalProps {
-  visible: boolean;
-  onClose: () => void;
-  onSubmit: (newGoal: any) => void;
-  editGoal?: any;
-}
-
-const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
-  visible,
-  onClose,
-  onSubmit,
-  editGoal,
-}) => {
-  const navigation = useNavigation();
-  const [selectedStakeholder, setSelectedStakeholder] = useState<number>(-1);
-  const [selectedYear, setSelectedYear] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedGoalOwner, setSelectedGoalOwner] = useState<number>(-1);
-  const [goalName, setGoalName] = useState('');
-  const [description, setDescription] = useState('');
-  const [goalId, setGoalId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    console.log('Edit Goal:', editGoal);
-    if (editGoal) {
-      setGoalId(editGoal.goal_id);
-      setGoalName(editGoal.goal_name || '');
-      setDescription(editGoal.description || '');
-      setSelectedStakeholder(editGoal.stakeholders);
-      setSelectedYear(editGoal.target_year || '');
-      setSelectedStatus(editGoal.status || '');
-      setSelectedGoalOwner(editGoal.goal_owner);
-    } else {
-      setGoalId(undefined);
-      setGoalName('');
-      setDescription('');
-      setSelectedStakeholder(-1);
-      setSelectedYear('');
-      setSelectedStatus('');
-      setSelectedGoalOwner(-1);
-    }
-  }, [editGoal]);
-
-  const handleSubmit = async () => {
-    if (
-      goalName &&
-      selectedStatus &&
-      selectedGoalOwner &&
-      description &&
-      selectedStakeholder &&
-      selectedYear
-    ) {
-      const newGoal = {
-        goal_id: goalId,
-        goal_name: goalName,
-        description: description,
-        stakeholders: selectedStakeholder,
-        goal_owner: selectedGoalOwner,
-        target_year: selectedYear,
-        start_date: new Date().toISOString(),
-        end_date: new Date().toISOString(),
-        status: selectedStatus,
-      };
-      console.log(newGoal);
-      try {
-        const response = await InsertGoal(newGoal);
-        const parsedResponse = JSON.parse(response);
-
-        if (parsedResponse.status === 'success') {
-          Alert.alert('Goal created successfully');
-          onSubmit(newGoal);
-          onClose();
-        } else {
-          Alert.alert('Failed to create goal. Please try again.');
-          onClose();
-        }
-      } catch (error) {
-        console.error('Error creating goal:', error);
-        Alert.alert('An error occurred. Please try again.');
-      }
-    } else {
-      Alert.alert('Please fill in all required fields.');
-    }
-  };
-
-  const handleDeptSelect = (deptID: number) => {
-    setSelectedGoalOwner(deptID);
-    console.log(`Selected GoalOwner: ${deptID}`);
-  };
-
-  const handleStakeSelect = (deptID: number) => {
-    setSelectedStakeholder(deptID);
-    console.log(`Selected Stakeholder: ${deptID}`);
-  };
-
-  return (
-    <Modal
-      animationType="fade"
-      transparent={true}
-      visible={visible}
-      onRequestClose={onClose}>
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <Text style={styles.modalTitle}>Add New Strategic Goal</Text>
-          <View style={styles.modalContent}>
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Name/Title <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={goalName}
-                  onChangeText={setGoalName}
-                />
-              </View>
-            </View>
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Status <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedStatus}
-                  onValueChange={itemValue => setSelectedStatus(itemValue)}
-                  style={styles.input}>
-                  <Picker.Item label="Select Status" value="" />
-                  <Picker.Item label="Active" value="active" />
-                  <Picker.Item label="Inactive" value="inactive" />
-                  <Picker.Item label="Pending" value="pending" />
-                </Picker>
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Goal Owner <Text style={styles.asterisk}>*</Text>
-                </Text>
-
-                <NestedDeptDropdownGoals
-                  onSelect={handleDeptSelect}
-                  editGoal={editGoal}
-                />
-              </View>
-            </View>
-            <View style={styles.inputRow}>
-              <View style={[styles.inputContainer, styles.fullWidth]}>
-                <Text style={styles.inputLabel}>
-                  Description <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  value={description}
-                  onChangeText={setDescription}
-                />
-              </View>
-            </View>
-            <View style={styles.inputRow}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Impacted Stakeholders <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <NestedDeptDropdownGoals
-                  onSelect={handleDeptSelect}
-                  editGoal={editGoal}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  Target Year <Text style={styles.asterisk}>*</Text>
-                </Text>
-                <Picker
-                  selectedValue={selectedYear}
-                  onValueChange={itemValue => setSelectedYear(itemValue)}
-                  style={styles.input}>
-                  <Picker.Item label="Select Year" value="" />
-                  <Picker.Item label="2024" value="2024" />
-                  <Picker.Item label="2025" value="2025" />
-                  <Picker.Item label="2026" value="2026" />
-                  <Picker.Item label="2027" value="2027" />
-                  <Picker.Item label="2028" value="2028" />
-                  <Picker.Item label="2029" value="2029" />
-                  <Picker.Item label="2030" value="2030" />
-                </Picker>
-              </View>
-            </View>
-          </View>
-          <View style={{alignItems: 'center'}}>
-            <View
-              style={[
-                styles.buttonContainer,
-                {flexDirection: 'row', justifyContent: 'space-between'},
-              ]}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={onClose}>
-                <Text style={styles.buttonText2}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.submitButton]}
-                onPress={handleSubmit}>
-                <Text style={styles.buttonText1}>Submit</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-};
+import { GetGoals } from '../../database/Goals';
+import { format } from 'date-fns';
+import DatePicker from 'react-datepicker';
 
 interface Project {
   project_id: number;
@@ -301,9 +93,16 @@ const IntakeList: React.FC = () => {
   const [status, setStatus] = useState('');
   const [budget, setBudget] = useState('');
   const [projectManager, setProjectManager] = useState('');
+  const [projectOwnerUser, setProjectOwnerUser] = useState('');
+  const [projectOwnerDept, setProjectOwnerDept] = useState('');
+  const [goalId, setGoalId] = useState('');
+  const [goLiveDate, setGoLiveDate] = useState('');
+  const [rawGoLiveDate, setRawGoLiveDate] = useState(null);
+  const [showGoLiveDatePicker, setShowGoLiveDatePicker] = useState(false);
   const [visibleMenu, setVisibleMenu] = useState(null); // Track which menu is visible
 
   const toggleFilter = () => setFilterVisible(!filterVisible);
+  const navigation = useNavigation();
 
    // Function to handle filter submit
    const handleFilterSubmit = async () => {
@@ -313,6 +112,10 @@ const IntakeList: React.FC = () => {
         status,
         budget,
         project_manager: projectManager,
+        project_owner_user: projectOwnerUser,
+        project_owner_dept: projectOwnerDept,
+        goal_id: goalId,
+        golive_date: goLiveDate,
       };
       const data = await GetProjectsWithFilters(filterData);
       const result = JSON.parse(data);
@@ -337,6 +140,7 @@ const IntakeList: React.FC = () => {
 
   const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
   const [users, setUsers] = useState<any[]>([]); // State to hold departments
+  const [goals, setGoals] = useState<any[]>([]); // State to hold departments
 
   // Fetch goals
   const fetchProjects = async () => {
@@ -405,10 +209,31 @@ const IntakeList: React.FC = () => {
     }
   };
 
+  //fetch Goals
+  const fetchGoals = async () => {
+    try {
+      const response = await GetGoals('');
+      console.log('unparsed Goals Response:', response);
+      const result = JSON.parse(response);
+
+      console.log('API Response:', result);
+      if (result?.data?.goals && Array.isArray(result.data.goals)) {
+        setGoals(result.data.goals);
+      } else {
+        console.error('Invalid Goals data');
+        Alert.alert('Error', 'Invalid Goals data received');
+      }
+    } catch (error) {
+      console.error('Error fetching Goals:', error);
+      Alert.alert('Error', 'Failed to fetch Goals');
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
     fetchDepartments();
     fetchUsers();
+    fetchGoals();
   }, []);
 
   const mapDepartmentIdToName = (id: number) => {
@@ -417,30 +242,17 @@ const IntakeList: React.FC = () => {
   };
   const mapIdIdToUser = (id: number) => {
     const user = users.find(user => user.user_id === id);
-    return user ? `${user.first_name}${user.last_name}` : ' ';
+    return user ? `${user.first_name} ${user.last_name}` : ' ';
   };
 
-  const HandleDeleteGoal = async goal_id => {
-    const GoalDel = {
-      goal_id: goal_id,
-    };
-    try {
-      const response = await DeleteGoal(GoalDel);
-      const result = await JSON.parse(response);
-      fetchGoals();
-    } catch (error) {
-      console.error('Error Deleting Goals:', error);
-    }
-  };
 
   //   const handleDeletePress = goal_id => {
   //     console.log(goal_id);
   //     HandleDeleteGoal(goal_id);
   //   };
 
-  const openModal = (goal = null) => {
+  const openModal = () => {
     setModalVisible(true);
-    setEditGoal(goal);
   };
   useFocusEffect(
     React.useCallback(() => {
@@ -450,19 +262,7 @@ const IntakeList: React.FC = () => {
   );
   const closeModal = () => {
     setModalVisible(false);
-    setEditGoal(null);
   };
-  //   const handleSubmit = (newGoal: any) => {
-  //     if (editGoal) {
-  //       setGoalData(prevData =>
-  //         prevData.map(goal =>
-  //           goal.goal_id === editGoal.goal_id ? {...goal, ...newGoal} : goal,
-  //         ),
-  //       );
-  //     } else {
-  //       setGoalData(prevData => [...prevData, newGoal]);
-  //     }
-  //   };
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -472,14 +272,13 @@ const IntakeList: React.FC = () => {
       setIsAscending(true);
     }
 
-    setGoalData(prevData =>
-      [...prevData].sort((a, b) => {
-        if (a[column] < b[column]) return isAscending ? -1 : 1;
-        if (a[column] > b[column]) return isAscending ? 1 : -1;
-        return 0;
-      }),
-    );
   };
+  const handleGoLiveDateChange = (date) => {
+      setRawGoLiveDate(date);
+      //setLiveDateDisplay(format(date, 'MM-dd-yyyy'));
+      setGoLiveDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+      setShowGoLiveDatePicker(false); // Close the picker
+    };
 
   return (
     <PaperProvider>
@@ -487,12 +286,12 @@ const IntakeList: React.FC = () => {
         <View style={styles.contentWrapper}>
           <Text style={styles.heading}>Intake List</Text>
           <View style={styles.topBar}>
-            <View style={styles.leftButtons}>
-              {/* <TouchableOpacity style={styles.button}>
+            {/* <View style={styles.leftButtons}>
+              <TouchableOpacity style={styles.button}>
                 <Icon name="check-circle" size={18} color="#C4C4C4" style={styles.buttonIcon} />
                 <Text style={styles.buttonText6}>Approve</Text>
-              </TouchableOpacity> */}
-              {/* <TouchableOpacity style={styles.button}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button}>
                 <Icon
                   name="delete"
                   size={18}
@@ -500,16 +299,16 @@ const IntakeList: React.FC = () => {
                   style={styles.buttonIcon}
                 />
                 <Text style={styles.buttonText6}>Delete</Text>
-              </TouchableOpacity> */}
-              {/* <TouchableOpacity style={styles.button}>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.button}>
                 <Icon name="export" size={18} color="#C4C4C4" style={styles.buttonIcon} />
                 <Text style={styles.buttonText6}>Export</Text>
-              </TouchableOpacity> */}
-            </View>
+              </TouchableOpacity>
+            </View> */}
             <View style={styles.centerButtons}>
-              {/* <TouchableOpacity
+              <TouchableOpacity
                 style={styles.button}
-                onPress={() => openModal()}>
+                onPress={() => navigation.navigate("NewIntake" as never)}>
                 <Text style={styles.buttonText}>
                   <Icon
                     name="plus"
@@ -519,7 +318,7 @@ const IntakeList: React.FC = () => {
                   />{' '}
                   Create New
                 </Text>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
               {/* <TouchableOpacity style={styles.button}>
                 <Icon
                   name="table-column-plus-after"
@@ -542,6 +341,8 @@ const IntakeList: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
+
+
           {/* Filter Modal */}
             <Modal
               visible={filterVisible}
@@ -553,85 +354,186 @@ const IntakeList: React.FC = () => {
                 contentContainerStyle={styles.modalScrollContainer}>
                 <View style={styles.modalOverlay}>
                   <View style={styles.modalContainerRight}>
-                    <Text style={styles.modalHeader}>Apply Filters</Text>
+                    <Text style={styles.modalHeader}>Filter Options</Text>
 
-                    {/* Status Dropdown */}
-                    <View style={styles.inputRow}>
-                      <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>Select Status</Text>
-                        <Picker
-                          selectedValue={status}
-                          onValueChange={(itemValue) => setStatus(itemValue)}
-                          style={styles.input1}>
-                          <Picker.Item label="Select Status" value="" color="#aaa" />
-                          <Picker.Item label="In Draft" value="2" />
-                          <Picker.Item label="Review Pending" value="3" />
-                          <Picker.Item label="Reviewed" value="4" />
-                          <Picker.Item label="Approval Pending" value="1" />
-                          <Picker.Item label="Approved" value="5" />
-                          <Picker.Item label="Approval Rejected" value="9" />
-                          <Picker.Item label="Rejected" value="10" />
-                        </Picker>
+                    {/* Scrollable Content */}
+                    <ScrollView
+                      showsVerticalScrollIndicator={true}
+                      contentContainerStyle={styles.scrollContent}>
+
+                      {/* Status Dropdown */}
+                      <View style={styles.inputRow}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.label}>Status</Text>
+                          <Picker
+                            selectedValue={status}
+                            onValueChange={(itemValue) => setStatus(itemValue)}
+                            style={styles.input}>
+                            <Picker.Item label="Select Status" value="" color="#aaa" />
+                            <Picker.Item label="In Draft" value="2" />
+                            <Picker.Item label="Review Pending" value="3" />
+                            <Picker.Item label="Reviewed" value="4" />
+                            <Picker.Item label="Approval Pending" value="1" />
+                            <Picker.Item label="Approved" value="5" />
+                            <Picker.Item label="Approval Rejected" value="9" />
+                            <Picker.Item label="Rejected" value="10" />
+                          </Picker>
+                        </View>
                       </View>
-                    </View>
 
-                    {/* Budget Dropdown */}
-                    <View style={styles.inputRow}>
-                      <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>Select Budget</Text>
-                        <Picker
-                          selectedValue={budget}
-                          onValueChange={(itemValue) => setBudget(itemValue)}
-                          style={styles.input1}>
-                          <Picker.Item label="Select Budget" value="" color="#aaa" />
-                          <Picker.Item label="High" value="1" />
-                          <Picker.Item label="Medium" value="2" />
-                          <Picker.Item label="Low" value="3" />
-                        </Picker>
+                      {/* Budget Dropdown */}
+                      <View style={styles.inputRow}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.label}>Budget</Text>
+                          <Picker
+                            selectedValue={budget}
+                            onValueChange={(itemValue) => setBudget(itemValue)}
+                            style={styles.input}>
+                            <Picker.Item label="Select Budget" value="" color="#aaa" />
+                            <Picker.Item label="High" value="1" />
+                            <Picker.Item label="Medium" value="2" />
+                            <Picker.Item label="Low" value="3" />
+                          </Picker>
+                        </View>
                       </View>
-                    </View>
 
-                    {/* Project Manager Dropdown */}
-                    <View style={styles.inputRow1}>
-                      <View style={styles.inputWrapper}>
-                        <Text style={styles.label}>Select Project Manager</Text>
-                        <Picker
-                          selectedValue={projectManager}
-                          onValueChange={(itemValue) => setProjectManager(itemValue)}
-                          style={styles.input1}>
-                          <Picker.Item label="Select Project Manager" value="" color="#aaa" />
-                          {users.map((user) => (
-                            <Picker.Item
-                              key={user.user_id}
-                              label={user.first_name}
-                              value={user.user_id}
+                      {/* Project Manager Dropdown */}
+                      <View style={styles.inputRow1}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.label}>Project Manager</Text>
+                          <Picker
+                            selectedValue={projectManager}
+                            onValueChange={(itemValue) => setProjectManager(itemValue)}
+                            style={styles.input}>
+                            <Picker.Item label="Select Project Manager" value="" color="#aaa" />
+                            {users.map((user,index) => (
+                              <Picker.Item
+                                key={index}
+                                label={`${user.first_name} ${user.last_name}`}
+                                value={user.user_id}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+
+                      {/* Project Owner Dropdown */}
+                      <View style={styles.inputRow1}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.label}>Project Owner</Text>
+                          <Picker
+                            selectedValue={projectOwnerUser}
+                            onValueChange={(itemValue) => setProjectOwnerUser(itemValue)}
+                            style={styles.input}>
+                            <Picker.Item label="Select Project Owner" value="" color="#aaa" />
+                            {users.map((user,index) => (
+                              <Picker.Item
+                                key={index}
+                                label={`${user.first_name} ${user.last_name}`}
+                                value={user.user_id}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+
+                      {/* Project Owner Department Dropdown */}
+                      <View style={styles.inputRow1}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.label}>Project Owner Department</Text>
+                          <Picker
+                            selectedValue={projectOwnerDept}
+                            onValueChange={(itemValue) => setProjectOwnerDept(itemValue)}
+                            style={styles.input}>
+                            <Picker.Item label="Select Project Owner Department" value="" color="#aaa" />
+                            {departments.map((department,index) => (
+                              <Picker.Item
+                                key={index}
+                                label={`${department.department_name}`}
+                                value={department.department_id}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+
+                      {/* Project goal Dropdown */}
+                      <View style={styles.inputRow1}>
+                        <View style={styles.inputWrapper}>
+                          <Text style={styles.label}>Project goal</Text>
+                          <Picker
+                            selectedValue={goalId}
+                            onValueChange={(itemValue) => setGoalId(itemValue)}
+                            style={styles.input}>
+                            <Picker.Item label="Select goal" value="" color="#aaa" />
+                            {goals.map((goal,index) => (
+                              <Picker.Item
+                                key={index}
+                                label={`${goal.goal_name}`}
+                                value={goal.goal_id}
+                              />
+                            ))}
+                          </Picker>
+                        </View>
+                      </View>
+
+                      {/* Project Go Live Date */}
+                      <View style={styles.inputRow1}>
+                        <View style={styles.smallInputContainer}>
+                          <Text style={styles.inputLabel}>
+                            Go Live Date
+                          </Text>
+                          <TextInput
+                            style={styles.input}
+                            value={goLiveDate}
+                            onFocus={() => setShowGoLiveDatePicker(true)}
+                            placeholder="Select Go Live Date"
+                            editable={Platform.OS !== 'web'} // Disable manual input on web
+                          />
+
+                          {/* Inline Date Picker for Web */}
+                          {Platform.OS === 'web' && showGoLiveDatePicker && (
+                            <DatePicker
+                              selected={rawGoLiveDate}
+                              onChange={handleGoLiveDateChange}
+                              dateFormat="MM-dd-yyyy"
+                              inline
                             />
-                          ))}
-                        </Picker>
+                          )}
+                        </View>
                       </View>
-                    </View>
 
-                    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
-                      {/* Clear Filter Button */}
-                      <TouchableOpacity
-                        style={styles.closeButton}
-                        onPress={() => {
-                          // Reset all filters
-                          setStatus("");
-                          setBudget("");
-                          setProjectManager("");
-                          //fetchUser(); // Refresh data if necessary
-                          toggleFilter(); // Close the filter modal
-                          fetchProjects(); // Apply the filters
-                        }}>
-                        <Text style={styles.closeButtonText}>Clear Filter</Text>
-                      </TouchableOpacity>
+                    </ScrollView>
+                    
+                      {/* Buttons */}
+                      <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
+                        {/* Clear Filter Button */}
+                        <TouchableOpacity
+                          style={styles.closeButton}
+                          onPress={() => {
+                            // Reset all filters
+                            setStatus("");
+                            setBudget("");
+                            setProjectManager("");
+                            setProjectOwnerUser("");
+                            setGoLiveDate("");
+                            setGoalId("");
+                            setProjectOwnerDept("");
+                            //fetchUser(); // Refresh data if necessary
+                            toggleFilter(); // Close the filter modal
+                            fetchProjects(); // Apply the filters
+                          }}>
+                          <Text style={styles.closeButtonText}>Clear Filter</Text>
+                        </TouchableOpacity>
 
-                      {/* Apply Filter Button */}
-                      <TouchableOpacity style={styles.submitButton1} onPress={handleFilterSubmit}>
-                        <Text style={styles.submitButtonText}>Apply Filters</Text>
-                      </TouchableOpacity>
-                    </View>
+                        {/* Apply Filter Button */}
+                        <TouchableOpacity style={styles.submitButton} onPress={handleFilterSubmit}>
+                          <Text style={styles.submitButtonText}>Apply Filters</Text>
+                        </TouchableOpacity>
+
+                        
+                      </View>
+
                   </View>
                 </View>
               </ScrollView>
@@ -659,16 +561,17 @@ const IntakeList: React.FC = () => {
                 </DataTable.Header>
 
                 {/* Rows */}
-                <ScrollView>
+                <ScrollView style={styles.scrollContainer}
+                showsVerticalScrollIndicator={false}>
                   {projects.map((project, index) => (
                     <DataTable.Row key={project.project_id} style={styles.row1}>
                       <DataTable.Cell style={styles.columnSNo}>{index + 1}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{`FPX${project.project_id}`}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{project.project_name}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{project.status_name}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnWide}>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
-                      <DataTable.Cell style={styles.columnDefault}>{project.budget}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{`FPX${project.project_id}`}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{project.project_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{project.status_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWideLeft}>{mapIdIdToUser(project.project_owner_user)}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWideLeft}>{mapIdIdToUser(project.project_manager_id)}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnDefaultLeft}>{project.budget}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.start_date).toLocaleDateString()}
                       </DataTable.Cell>
@@ -678,12 +581,12 @@ const IntakeList: React.FC = () => {
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.golive_date).toLocaleDateString()}
                       </DataTable.Cell>
-                      <DataTable.Cell style={styles.columnWide}>{project.created_by_name}</DataTable.Cell>
+                      <DataTable.Cell style={styles.columnWideLeft}>{project.created_by_name}</DataTable.Cell>
                       <DataTable.Cell style={styles.columnDefault}>
                         {new Date(project.created_at).toLocaleDateString()}
                       </DataTable.Cell>
                       <DataTable.Cell style={styles.columnActions}>
-                      <Menu
+                        <Menu
                           visible={visibleMenu === project.project_id}
                           onDismiss={() => setVisibleMenu(null)}
                           anchor={
@@ -722,12 +625,6 @@ const IntakeList: React.FC = () => {
           {isLoading && <ActivityIndicator size="large" color="#044086" />}
         </View>
       </View>
-      <CreateNewIntakeModal
-        visible={modalVisible}
-        onClose={closeModal}
-        // onSubmit={handleSubmit}
-        editGoal={editGoal}
-      />
     </PaperProvider>
   );
 };
@@ -882,6 +779,11 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#044086',
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
   },
   buttonText1: {
     color: 'white',
@@ -974,8 +876,12 @@ const styles = StyleSheet.create({
   },
   container1: {
     flex: 1,
+    margin: 10,
     padding: 10,
+    width: '100%',
+    height: '100%',
     backgroundColor: '#fff',
+    overflow: 'hidden',
   },
   header: {
     backgroundColor: '#f5f5f5',
@@ -993,9 +899,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  columnDefaultLeft: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    padding: 4,
+  },
   columnWide: {
     flex: 1.5,
     justifyContent: 'center',
+  },
+  columnWideLeft: {
+    flex: 1.5,
+    justifyContent: 'flex-start',
+    padding: 4,
   },
   columnActions: {
     flex: 1,
@@ -1003,8 +919,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalScrollContainer: {
-    maxHeight: 800,
-    paddingBottom: 40,
+    maxHeight: 1400,
+    paddingBottom: 20,
     flexGrow: 1,
   },
   modalOverlay: {
@@ -1013,7 +929,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContainerRight: {
+  modalContainerRight1: {
     width: '25%',
     backgroundColor: 'white',
     borderRadius: 10,
@@ -1046,41 +962,62 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
-  },
-  input1: {
-    backgroundColor: '#f9f9f9',
-    borderRadius: 5,
-    padding: 10,
+    fontWeight: '600',
+    color: '#044086',
+    marginBottom: 5, // Adds space between the label and the input
   },
   closeButton: {
-    backgroundColor: '#FF6347',
+    paddingVertical: 10,
     borderRadius: 5,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
+    color: '#232323',
+    alignSelf: 'flex-end',
   },
   closeButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-  submitButton1: {
-    backgroundColor: '#007BFF',
-    borderRadius: 5,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
+    color: '#232323',
+    fontSize: 16,
+    textAlign: 'center',
   },
   submitButtonText: {
     color: 'white',
     fontWeight: 'bold',
   },
-  
-  
+  scrollContainer: {
+    maxHeight: 450, // Adjust the height as needed
+    overflow: 'hidden',
+  },
+  smallInputContainer: {
+    width: '40%',
+    minWidth: 250,
+    maxWidth: 220,
+    padding: 8,
+  },
+  scrollContent: {
+    flexGrow: 1, // Ensures content is scrollable
+    paddingBottom: 16,
+  },
+  modalContainerRight: {
+    width: '25%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    height: 450,
+    padding: 40,
+    position: 'absolute',
+    top: '20%',
+    right: 10,
+    overflow: 'hidden',
+    zIndex: 100,
+    flexGrow: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 5, // For Android shadows
+  },
+
+
 });
 
 export default IntakeList;
