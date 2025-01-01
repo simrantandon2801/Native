@@ -9,6 +9,7 @@ import {
   Platform,
   Alert,
   TouchableOpacity,
+  Modal,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { GetBudgetCategories, GetBudgetSubCategories, GetBudgetDetails, InsertBudgetDetails, DeleteBudgetDetail} from '../../database/Intake';
@@ -28,10 +29,17 @@ interface BudgetRow {
 }
 
 interface BudgetAppProps {
-  projectId: number;
+  projectId: string;
+  visible: boolean;
+  onClose: (total:string) => void;
 }
 
-const BudgetDetail: React.FC<BudgetAppProps> = ({ projectId=1 }) => {
+
+const BudgetDetail: React.FC<BudgetAppProps> = ({ 
+  projectId=1,  
+  visible,
+  onClose, 
+}) => {
   const [rows, setRows] = useState<BudgetRow[]>([]);
   const [newRow, setNewRow] = useState<BudgetRow>({
     budget_detail_id:0,
@@ -231,15 +239,23 @@ const loadBudgetData = async (project_id) => {
       //.map((item) => item.details)
   : [];
   return (
-    <>
-    <View style={styles.header}>
+    <Modal
+         animationType="fade"
+         transparent={true}
+         visible={visible}
+         onRequestClose={()=>onClose(totals.totalBudget.toString())}>
+         <View style={styles.centeredView}>
+           <View style={styles.modalView}>
+             <Text style={styles.modalTitle}>Budget Details</Text>
+             <View style={styles.modalContent}>
+    {/* <View style={styles.header}>
     <TouchableOpacity
       style={styles.backButton}
       onPress={() => navigate('NewIntake')}>
       <Icon name="arrow-back" size={24} color="black" />
     </TouchableOpacity>
     <Text style={styles.projectName}></Text>
-  </View>
+  </View> */}
     <View style={styles.container}>
       <Text style={styles.heading}>Project Budget</Text>
 
@@ -330,9 +346,14 @@ const loadBudgetData = async (project_id) => {
             <Text style={styles.tableCell}>{item.qty}</Text>
             <Text style={styles.tableCell}>{item.value}</Text>
             <Text style={styles.tableCell}>{item.qty * item.value}</Text>
-            <Button mode="contained" onPress={()=>handleDelete(item.budget_detail_id)}>
+            {/* <Button mode="contained" onPress={()=>handleDelete(item.budget_detail_id)}>
     Delete
-  </Button>
+  </Button> */}
+  <TouchableOpacity
+                      style={[styles.button]}
+                      onPress={()=>handleDelete(item.budget_detail_id)}>
+                      <Text style={styles.errorText}>Delete</Text>
+                    </TouchableOpacity>
           </View>
         )}
       />
@@ -345,13 +366,33 @@ const loadBudgetData = async (project_id) => {
         <Text style={styles.footerCell}>{totals.totalValue}</Text>
         <Text style={styles.footerCell}>{totals.totalBudget}</Text>
       </View>
+        <View style={{alignItems: 'center'}}>
+                  <View
+                    style={[
+                      styles.buttonContainer,
+                      {flexDirection: 'row', justifyContent: 'space-between'},
+                    ]}>
+                    <TouchableOpacity
+                      style={[styles.button, styles.cancelButton]}
+                      onPress={()=>onClose(totals.totalBudget.toString())}>
+                      <Text style={styles.buttonText2}>Close</Text>
+                    </TouchableOpacity>
+                    {/* <TouchableOpacity
+                      style={[styles.button, styles.submitButton]}
+                      onPress={handleSubmit}>
+                      <Text style={styles.buttonText1}>Submit</Text>
+                    </TouchableOpacity> */}
+                  </View>
+                </View>
     </View>
-    </>
+    </View>
+    </View>
+    </View></Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
+  container: { padding: 20, width:1000 },
   heading: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
   tableRow: {
     flexDirection: 'row',
@@ -378,6 +419,51 @@ const styles = StyleSheet.create({
   },
   input: { borderWidth: 1, borderColor: '#ddd', padding: 5 },
   errorText: { color: 'red', fontSize: 12, textAlign: 'center', marginTop: 2 },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    width: '100%',
+    maxWidth: 1000,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalContent: {
+    marginBottom: 20,
+  },
+  inputRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+    marginHorizontal: 5,
+    borderRadius: 4,
+  },
+  buttonText: {
+    color: '#044086',
+    fontSize: 14,
+  },
+  cancelButton: {
+    backgroundColor: '#ddd',
+    marginRight: 10,
+  },
+  submitButton: {
+    backgroundColor: '#044086',
+  },
   });
   
   export default BudgetDetail;

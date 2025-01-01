@@ -193,7 +193,6 @@ import { BASE_URL } from "@env";
        throw Error('Failed' + error);
      }
   };
-
   export const GetBudgetCategories = async (query:string): Promise<string> => {
     try {
       //debugger;
