@@ -36,6 +36,7 @@ import {format} from 'date-fns';
 import NestedDeptDropdownNewProjects from '../../modals/NestedDeptDropDownNewProjects';
 import { navigate } from '../../navigations/RootNavigation';
 import BudgetDetail from './BudgetDetails';
+import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
 
 
 const NewIntake = () => {
@@ -720,7 +721,63 @@ useEffect(() => {    // addition of review
     }
   }, [isPopupVisible]);
 
+  const nestedDropdownRef = useRef();
 
+  const handleDismiss = () => {
+    console.log('Parent: handleDismiss triggered');
+    if (nestedDropdownRef.current) {
+      console.log(
+        'Parent: Calling dismissDropdown on NestedMultiselectDropdown',
+      );
+      nestedDropdownRef.current.dismissDropdown();
+    } else {
+      console.log('Parent: nestedDropdownRef is null');
+    }
+  };
+
+  const [selectedImpactedFunction, setSelectedImpactedFunction] = useState<
+    number[]
+  >([]);
+  const handleSelectionChange = (newSelectedStakeholders: number[]) => {
+    setSelectedImpactedFunction(newSelectedStakeholders);
+    console.log('Updated Selected Items:', newSelectedStakeholders);
+  };
+
+  const [impactedApp, setImpactedApp] = useState(''); // Selected value
+  const [applications, setApplications] = useState([]); // Store fetched applications
+  const [loading, setLoading] = useState(true); // For loading state
+  const [error, setError] = useState(null); // For error handling
+
+  const fetchImpactedApplications = async () => {
+    try {
+      console.log('Fetching impacted applications...');
+      const response = await GetImpactedApplication(''); // Replace with your API function
+      const parsedResponse =
+        typeof response === 'string' ? JSON.parse(response) : response;
+
+      console.log('API Response:', parsedResponse);
+
+      if (
+        parsedResponse?.status === 'success' &&
+        parsedResponse?.data?.impacted_applications
+      ) {
+        const applications = parsedResponse.data.impacted_applications;
+        setApplications(applications); // Update applications state
+        console.log('Impacted Applications:', applications);
+      } else {
+        throw new Error('Unexpected response structure');
+      }
+    } catch (err) {
+      console.error('Error fetching applications:', err);
+      setError('Failed to load applications.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchImpactedApplications(); // Fetch data on component load
+  }, []);
   return (<Formik
     initialValues={{
       nameTitle: '',
@@ -869,11 +926,20 @@ useEffect(() => {    // addition of review
       {/* {touched.goalSelected && errors.goalSelected && (<Text style={{color:'red'}} >{errors.goalSelected}</Text>)} */}
             </View>
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Functions<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownNewProjects onSelect={handleImpactedFunctions} buisnessPersonId={parseInt(impactedFunction)}/>
-             {touched.impactedFunction && errors.impactedFunction && (<Text style={{color:'red'}} >{errors.impactedFunction}</Text>)}
+                    <Text style={styles.inputLabel}>
+                      Impacted Functions<Text style={styles.asterisk}>*</Text>
+                    </Text>
+                    <NestedMultiselectDropdown
+                      ref={nestedDropdownRef}
+                      onSelectionChange={handleSelectionChange}
+                    />
 
-            </View>
+                    {touched.impactedFunction && errors.impactedFunction && (
+                      <Text style={{color: 'red'}}>
+                        {errors.impactedFunction}
+                      </Text>
+                    )}
+                  </View>
             <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Budget<Text style={styles.asterisk}>*</Text></Text>
@@ -927,23 +993,32 @@ useEffect(() => {    // addition of review
             </View>
 
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Impacted Applications<Text style={styles.asterisk}>*</Text></Text>
-              <Picker
-  selectedValue={values.impactedApp} // Bind to Formik's state
-  onValueChange={(value) => {
-    setFieldValue('impactedApp', value); // Update Formik's state
-    setImpactedApp(value); // Update custom state
-  }}
-  onBlur={handleBlur('impactedApp')} // Mark the field as touched for validation
-  style={styles.input}
->
-                <Picker.Item label="Select Application" value="" />
-                <Picker.Item label="Apps: ForgePortfolioXpert" value="2" />
-                <Picker.Item label="Apps: Sharepoint" value="3" />
-              </Picker>
-              {touched.impactedApp && errors.impactedApp && (<Text style={{color:'red'}} >{errors.impactedApp}</Text>)}
-
-            </View>
+                  <Text style={styles.inputLabel}>
+                    Impacted Applications<Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  {loading ? (
+                    <Text>Loading...</Text>
+                  ) : error ? (
+                    <Text style={{color: 'red'}}>{error}</Text>
+                  ) : (
+                    <Picker
+                      selectedValue={impactedApp}
+                      onValueChange={value => setImpactedApp(value)}
+                      style={styles.input}>
+                      <Picker.Item label="Select Application" value="" />
+                      {applications.map(app => (
+                        <Picker.Item
+                          key={app.application_id} // Use a unique key, replace `id` with the actual field name in your API
+                          label={`${app.application_name}`} // Replace `name` with the actual field name
+                          value={app.application_id} // Replace `id` with the actual field for value
+                        />
+                      ))}
+                    </Picker>
+                  )}
+                  {touched?.impactedApp && errors?.impactedApp && (
+                    <Text style={{color: 'red'}}>{errors.impactedApp}</Text>
+                  )}
+                </View>
             <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>
               <Text style={styles.inputLabel}>Project Size<Text style={styles.asterisk}>*</Text></Text>

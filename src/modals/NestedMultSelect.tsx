@@ -274,8 +274,9 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 5,
     zIndex: 1, // Ensure it is on top of other components
-    maxHeight: 250, // Optional: Limit the height of the dropdown
+    maxHeight: 100, // Optional: Limit the height of the dropdown
     overflow: 'auto', // Optional: Allow scrolling if content exceeds maxHeight
+    flexgrow:1,
   },
   levelContainer: {
     paddingLeft: 16,
