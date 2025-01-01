@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, SafeAreaView, Modal, TextInput, Button } from 'react-native';
 /* import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; */
 import Icon from 'react-native-vector-icons/Ionicons';
-import { GetHistory, GetProjects, GetSequence, UpdateProjectApproval } from '../../database/Intake';
+import { GetHistory, GetProjectApproval, GetProjects, GetSequence, UpdateProjectApproval } from '../../database/Intake';
 
 import {format} from 'date-fns'
 type TabType = 'details' | 'history';
@@ -563,10 +563,10 @@ const ApprovalHistory: React.FC = () => {
     };
     useEffect(() => {
       // Fetch the project data when the component mounts or projectId changes
-      GetProjects('') // Assuming the query param is empty for now
+      GetProjectApproval('') // Assuming the query param is empty for now
         .then(response => {
           const parsedResponse = JSON.parse(response);
-          const projects = parsedResponse?.data?.projects || [];
+          const projects = parsedResponse?.data || [];
           const matchedProject = projects.find(
             proj => proj.project_id === projectId,
           );
