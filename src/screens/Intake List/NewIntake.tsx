@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -10,21 +10,29 @@ import {
   Modal,
   Alert,
   Platform,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Picker } from '@react-native-picker/picker';
-import { RadioButton } from 'react-native-paper';
-import { GetGoals } from '../../database/Goals';
-import { GetPrograms, GetProgramsByGoalId} from '../../database/ManageProgram';
-import { GetDept, GetUsers } from '../../database/Departments';
+import {Picker} from '@react-native-picker/picker';
+import {RadioButton} from 'react-native-paper';
+import {GetGoals} from '../../database/Goals';
+import {GetPrograms, GetProgramsByGoalId} from '../../database/ManageProgram';
+import {GetDept, GetUsers} from '../../database/Departments';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
-import { GetSequence, InsertApproval, InsertDraft, InsertReview, InsertSequence } from '../../database/Intake';
+import {
+  GetImpactedApplication,
+  GetSequence,
+  InsertApproval,
+  InsertDraft,
+  InsertReview,
+  InsertSequence,
+} from '../../database/Intake';
 import * as Yup from 'yup';
-import { Formik } from 'formik';
-import DatePicker from 'react-datepicker'; 
+import {Formik} from 'formik';
+import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { format } from 'date-fns';
+import {format} from 'date-fns';
 import NestedDeptDropdownNewProjects from '../../modals/NestedDeptDropDownNewProjects';
 import { navigate } from '../../navigations/RootNavigation';
 import BudgetDetail from './BudgetDetails';
@@ -42,7 +50,7 @@ const NewIntake = () => {
   const [projectOwnerDept, setProjectOwnerDept] = useState<number>(-1);
   const [projectManager, setProjectManager] = useState('');
   const [impactedFunction, setImpactedFunction] = useState<number>(-1);
-  const [impactedApp, setImpactedApp] = useState('');
+  // const [impactedApp, setImpactedApp] = useState('');
   const [priority, setPriority] = useState('');
   const [budget, setBudget] = useState('');
   const [actualBudget, setActualBudget] = useState('');
@@ -68,19 +76,21 @@ const NewIntake = () => {
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [goals, setGoals] = useState([]);
   const [goalSelected, setGoalSelected] = useState('');
-  const[programData,setProgramData]= useState([]);
-  const[businessData,setBusinessData]= useState([]);
-  const[projectData,setProjectData]= useState([]);
-  const[projectMgr,setprojectMgr]= useState([]);
+  const [programData, setProgramData] = useState([]);
+  const [businessData, setBusinessData] = useState([]);
+  const [projectData, setProjectData] = useState([]);
+  const [projectMgr, setprojectMgr] = useState([]);
   const [roi, setRoi] = useState('');
   const [risk, setRisk] = useState('');
-  const [BudgetmodalVisible, setBudgetModalVisible] = useState(false)
+  const [BudgetmodalVisible, setBudgetModalVisible] = useState(false);
   const [showNewApprovalForm, setShowNewApprovalForm] = useState(false);
   const [designation, setDesignation] = useState('');
   const [isApprovalButtonVisible, setIsApprovalButtonVisible] = useState(false);
   const [action, setAction] = useState('');
-  const [steps, setSteps] = useState([{ id: 1, forwardTo: '', designation: '', action: '' ,department_name: ''}]);
-  const[sequence,setSequence]= useState([]);
+  const [steps, setSteps] = useState([
+    {id: 1, forwardTo: '', designation: '', action: '', department_name: ''},
+  ]);
+  const [sequence, setSequence] = useState([]);
   const [users, setUsers] = useState([]);
   const [sequenceName, setSequenceName] = useState('');
   const [projectId, setProjectId] = useState('');
@@ -88,7 +98,7 @@ const NewIntake = () => {
   const [isapprovalSubmitOpen, setIsapprovalSubmitopen] = useState(false);
   const [rawStartDate, setRawStartDate] = useState(null);
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [rawEndDate, setRawEndDate] = useState(null); 
+  const [rawEndDate, setRawEndDate] = useState(null);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [rawGoLiveDate, setRawGoLiveDate] = useState(null);
   const [showGoLiveDatePicker, setShowGoLiveDatePicker] = useState(false);
@@ -102,39 +112,50 @@ const NewIntake = () => {
   const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
   const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
   const addStep = () => {
-    setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '',department_name: '' }]);
+    setSteps([
+      ...steps,
+      {
+        id: steps.length + 1,
+        forwardTo: '',
+        designation: '',
+        action: '',
+        department_name: '',
+      },
+    ]);
   };
-  const [modalText, setModalText] = useState('Send for Review');  // Default modal text
+  const [modalText, setModalText] = useState('Send for Review'); // Default modal text
 
+  const mapUserIdToDeptId = (id: number) => {
+    console.log(id);
+    const ChosenUser = users.find(item => item.user_id === id);
+    console.log(ChosenUser);
+    return ChosenUser ? ChosenUser.department_id : ' ';
+  };
 
-
-    const mapUserIdToDeptId= (id: number) => {
-      console.log(id);
-      const ChosenUser = users.find(item => item.user_id === id);
-      console.log(ChosenUser);
-      return ChosenUser ? ChosenUser.department_id : ' ';
-    };
-  
   // Handlers to change modal text and show the popup
   const handleApprovalClick = () => {
     setModalText('Sending for Approval');
-    setIsPopupVisible(true);  
+    setIsPopupVisible(true);
   };
 
   const handleReviewClick = () => {
     setModalText('Send for Review');
-    setIsPopupVisible(true); 
+    setIsPopupVisible(true);
   };
-  const getBudgetText = (value) => {
-    switch(value) {
-      case "1": return "High"
-      case "2": return "Medium" 
-      case "3": return "Low"
-      default: return ""
+  const getBudgetText = value => {
+    switch (value) {
+      case '1':
+        return 'High';
+      case '2':
+        return 'Medium';
+      case '3':
+        return 'Low';
+      default:
+        return '';
     }
-  }
+  };
   const [isNewButtonVisible, setIsNewButtonVisible] = useState(false);
-/*   const addStep = () => {
+  /*   const addStep = () => {
     setSteps((prevSteps) => [
       ...prevSteps,
       { 
@@ -146,12 +167,14 @@ const NewIntake = () => {
       },
     ]);
   }; */
-  const removeStep = (id) => {
+  const removeStep = id => {
     if (steps.length > 1) {
-      const newSteps = steps.filter(step => step.id !== id).map((step, index) => ({
-        ...step,
-        id: index + 1
-      }));
+      const newSteps = steps
+        .filter(step => step.id !== id)
+        .map((step, index) => ({
+          ...step,
+          id: index + 1,
+        }));
       setSteps(newSteps);
     }
   };
@@ -162,145 +185,165 @@ const NewIntake = () => {
     try {
       const response = await GetProgramsByGoalId(goalId);
       const result = JSON.parse(response);
-      if (result?.status === 'success' && Array.isArray(result?.data?.programs)) {
+      if (
+        result?.status === 'success' &&
+        Array.isArray(result?.data?.programs)
+      ) {
         setProgramData(result.data.programs);
         console.log('Fetched Programs:', result.data.programs);
-    }  else {
-        console.error("Invalid programs data");
-        Alert.alert("Error", "Invalid goals data received");
+      } else {
+        console.error('Invalid programs data');
+        Alert.alert('Error', 'Invalid goals data received');
       }
-  } catch (error) {
+    } catch (error) {
       console.error('Error fetching Programs:', error);
       //setGoals([]);
-  }
+    }
   };
   const fetchGoals = async () => {
     try {
-      const response = await GetGoals(''); 
+      const response = await GetGoals('');
       const result = JSON.parse(response);
       if (result?.data?.goals && Array.isArray(result.data.goals)) {
-      setGoals(result.data.goals); 
-    } else {
-      console.error("Invalid goals data");
-      Alert.alert("Error", "Invalid goals data received");
-    }
-  } catch (error) {
+        setGoals(result.data.goals);
+      } else {
+        console.error('Invalid goals data');
+        Alert.alert('Error', 'Invalid goals data received');
+      }
+    } catch (error) {
       console.error('Error fetching goals:', error);
       //setGoals([]);
-  }
+    }
   };
   const fetchBusinessOwner = async () => {
     try {
-        const response = await GetUsers('');
-        console.log('Raw Response:', response); 
-        const result = JSON.parse(response);
-        
-        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-            setBusinessData(result.data.users);
-            console.log('Fetched Business Owners:', result.data.users);
-        } else {
-            console.error("Invalid users data structure");
-            Alert.alert("Error", "Invalid business owner data received");
-        }
-    } catch (error) {
-        console.error('Error fetching Business Owners:', error);
-        Alert.alert("Error", "Failed to fetch business owners. Please try again later.");
-    }
-};
+      const response = await GetUsers('');
+      console.log('Raw Response:', response);
+      const result = JSON.parse(response);
 
-const fetchProjectOwner = async () => {
-    try {
-        const response = await GetUsers('');
-        console.log('Raw Response:', response); 
-        const result = JSON.parse(response);
-        
-        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-            setProjectData(result.data.users);
-            console.log('Fetched Project Owners:', result.data.users);
-        } else {
-            console.error("Invalid Project data structure");
-            Alert.alert("Error", "Invalid Project owner data received");
-        }
+      if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+        setBusinessData(result.data.users);
+        console.log('Fetched Business Owners:', result.data.users);
+      } else {
+        console.error('Invalid users data structure');
+        Alert.alert('Error', 'Invalid business owner data received');
+      }
     } catch (error) {
-        console.error('Error fetching Project Owners:', error);
-        Alert.alert("Error", "Failed to fetch Project owners. Please try again later.");
+      console.error('Error fetching Business Owners:', error);
+      Alert.alert(
+        'Error',
+        'Failed to fetch business owners. Please try again later.',
+      );
     }
-};
-const fetchProjectManager = async () => {
-    try {
-        const response = await GetUsers('');
-        console.log('Raw Response:', response); 
-        const result = JSON.parse(response);
-        
-        if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-            setprojectMgr(result.data.users);
-            console.log('Fetched Project Manager:', result.data.users);
-        } else {
-            console.error("Invalid users data structure");
-            Alert.alert("Error", "Invalid business owner data received");
-        }
-    } catch (error) {
-        console.error('Error fetching Project Manager:', error);
-        Alert.alert("Error", "Failed to fetch Project Manager. Please try again later.");
-    }
-};
+  };
 
-const fetchSequence = async () => {
+  const fetchProjectOwner = async () => {
+    try {
+      const response = await GetUsers('');
+      console.log('Raw Response:', response);
+      const result = JSON.parse(response);
+
+      if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+        setProjectData(result.data.users);
+        console.log('Fetched Project Owners:', result.data.users);
+      } else {
+        console.error('Invalid Project data structure');
+        Alert.alert('Error', 'Invalid Project owner data received');
+      }
+    } catch (error) {
+      console.error('Error fetching Project Owners:', error);
+      Alert.alert(
+        'Error',
+        'Failed to fetch Project owners. Please try again later.',
+      );
+    }
+  };
+  const fetchProjectManager = async () => {
+    try {
+      const response = await GetUsers('');
+      console.log('Raw Response:', response);
+      const result = JSON.parse(response);
+
+      if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
+        setprojectMgr(result.data.users);
+        console.log('Fetched Project Manager:', result.data.users);
+      } else {
+        console.error('Invalid users data structure');
+        Alert.alert('Error', 'Invalid business owner data received');
+      }
+    } catch (error) {
+      console.error('Error fetching Project Manager:', error);
+      Alert.alert(
+        'Error',
+        'Failed to fetch Project Manager. Please try again later.',
+      );
+    }
+  };
+
+  const fetchSequence = async () => {
     try {
       const response = await GetSequence('');
       const result = JSON.parse(response);
 
       // Ensure the response format is correct and contains data
-      if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
-        setSequence(result.data); 
+      if (
+        result?.status === 'success' &&
+        result?.data &&
+        Array.isArray(result.data)
+      ) {
+        setSequence(result.data);
       } else {
-        console.error("Invalid goals data");
-        Alert.alert("Error", "Invalid goals data received");
+        console.error('Invalid goals data');
+        Alert.alert('Error', 'Invalid goals data received');
       }
     } catch (error) {
       console.error('Error fetching sequences:', error);
-      Alert.alert("Error", "Error fetching sequences");
+      Alert.alert('Error', 'Error fetching sequences');
     }
   };
   const fetchUsers = async () => {
     try {
-      const response = await GetUsers(''); 
+      const response = await GetUsers('');
       const result = JSON.parse(response);
       if (result?.status === 'success' && Array.isArray(result?.data?.users)) {
-      setUsers(result.data.users); 
-      console.log('fetched user data',result.data.users)
-    } else {
-      console.error("Invalid Users data");
-      Alert.alert("Error", "Invalid USERS data received");
-    }
-  } catch (error) {
+        setUsers(result.data.users);
+        console.log('fetched user data', result.data.users);
+      } else {
+        console.error('Invalid Users data');
+        Alert.alert('Error', 'Invalid USERS data received');
+      }
+    } catch (error) {
       console.error('Error fetching goals:', error);
       //setGoals([]);
-  }
+    }
   };
 
   const fetchDepartments = async () => {
     try {
       const response = await GetDept(''); // Replace with your API call
       const result = JSON.parse(response);
-      if (result?.status === 'success' && Array.isArray(result?.data?.departments)) {
+      if (
+        result?.status === 'success' &&
+        Array.isArray(result?.data?.departments)
+      ) {
         setDepartments(result.data.departments);
         console.log('Fetched Departments:', result.data.departments);
       } else {
-        console.error("Invalid department data");
-        Alert.alert("Error", "Invalid department data received");
+        console.error('Invalid department data');
+        Alert.alert('Error', 'Invalid department data received');
       }
     } catch (error) {
       console.error('Error fetching Departments:', error);
-      Alert.alert("Error", "Failed to fetch departments. Please try again later.");
+      Alert.alert(
+        'Error',
+        'Failed to fetch departments. Please try again later.',
+      );
     }
   };
   useEffect(() => {
-     
-     
-      // Call the function to fetch data
-      fetchSequence();
-      fetchDepartments();
+    // Call the function to fetch data
+    fetchSequence();
+    fetchDepartments();
     fetchProjectManager();
     fetchGoals();
     fetchPrograms('');
@@ -312,10 +355,10 @@ const fetchSequence = async () => {
   //       try {
   //         const response = await GetSequence('');
   //         const result = JSON.parse(response);
-  
+
   //         // Ensure the response format is correct and contains data
   //         if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
-  //           setSequence(result.data); 
+  //           setSequence(result.data);
   //         } else {
   //           console.error("Invalid goals data");
   //           Alert.alert("Error", "Invalid goals data received");
@@ -326,22 +369,20 @@ const fetchSequence = async () => {
   //       }
   //     };
   const handleBusinessOwnerDept = (deptID: number) => {
-    setBusinessOwnerDept(deptID); 
+    setBusinessOwnerDept(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
     console.log(`Updated Business Owner Department: ${deptID}`);
   };
   const handleProjectOwnerDept = (deptID: number) => {
-    setProjectOwnerDept(deptID); 
+    setProjectOwnerDept(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
     console.log(`Updated Project Owner Department: ${deptID}`);
   };
   const handleImpactedFunctions = (deptID: number) => {
-    setImpactedFunction(deptID); 
+    setImpactedFunction(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
     console.log(`Updated Business Owner Department: ${deptID}`);
   };
-
-
 
   const validationSchema = Yup.object().shape({
     nameTitle: Yup.string().required('Name/Title is required'),
@@ -349,9 +390,13 @@ const fetchSequence = async () => {
     goalSelected: Yup.string().required('Goal is required'),
     program: Yup.string().required('Program is required'),
     businessOwner: Yup.string().required('Business Owner is required'),
-    businessOwnerDept: Yup.string().required('Business Owner Department is required'),
+    businessOwnerDept: Yup.string().required(
+      'Business Owner Department is required',
+    ),
     projectOwner: Yup.string().required('Project Owner is required'),
-    projectOwnerDept: Yup.string().required('Project Owner Department is required'),
+    projectOwnerDept: Yup.string().required(
+      'Project Owner Department is required',
+    ),
     projectManager: Yup.string().required('Project Manager is required'),
     impactedFunction: Yup.string().required('Impacted Function is required'),
     impactedApp: Yup.string().required('Impacted Application is required'),
@@ -362,27 +407,38 @@ const fetchSequence = async () => {
     startDate: Yup.date().required('Project Start Date is required'),
     endDate: Yup.date().required('Project End Date is required'),
     goLiveDate: Yup.date().required('Go Live Date is required'),
-    roi: Yup.number().required('ROI is required').positive('ROI must be a positive number'),
-    businessProblem: Yup.string().required('Business Problem/Description is required'),
+    roi: Yup.number()
+      .required('ROI is required')
+      .positive('ROI must be a positive number'),
+    businessProblem: Yup.string().required(
+      'Business Problem/Description is required',
+    ),
     scopeDefinition: Yup.string().required('Scope Definition is required'),
     keyAssumption: Yup.string().required('Key Assumption is required'),
     benefitsROI: Yup.string().required('Benefits/ROI is required'),
     risk: Yup.string().required('Risk is required'),
   });
-  
 
   const handleSaveDraft = async () => {
     console.log(nameTitle);
     try {
       // Validate required fields
-      if (!nameTitle || !classification || !goalSelected || !program || !startDate || !endDate || !goLiveDate) {
+      if (
+        !nameTitle ||
+        !classification ||
+        !goalSelected ||
+        !program ||
+        !startDate ||
+        !endDate ||
+        !goLiveDate
+      ) {
         console.log('Please fill in all required fields.');
         return;
       }
-  
+
       const programDataToSubmit = {
         project_name: nameTitle,
-        department_id:null,
+        department_id: null,
         classification: classification,
         goal_id: Number(goalSelected),
         program_id: Number(program),
@@ -390,69 +446,65 @@ const fetchSequence = async () => {
         business_stakeholder_dept: mapUserIdToDeptId(parseInt(businessOwner)), // automatically bind the deptid if user id has a dept defined already
         project_owner_user: Number(projectOwner),
         project_owner_dept: mapUserIdToDeptId(parseInt(projectOwner)),
-        project_manager_id:Number(projectManager) ,
-        // impacted_stakeholder_dept: , 
-        impacted_function:Number(impactedFunction),
-        impacted_applications:Number(impactedApp),
+        project_manager_id: Number(projectManager),
+        // impacted_stakeholder_dept: ,
+        impacted_function:selectedImpactedFunction.join(','),
+        impacted_applications: impactedApp,
         priority: Number(priority),
         budget_size: budget,
-        project_size: projectSize, 
+        project_size: projectSize,
         start_date: startDate,
         end_date: endDate,
         golive_date: goLiveDate,
-        roi:roi,
-        business_desc:businessProblem,
-        scope_definition:scopeDefinition,
-        key_assumption:keyAssumption,
-        benefit_roi:benefitsROI,
-        risk:risk,
+        roi: roi,
+        business_desc: businessProblem,
+        scope_definition: scopeDefinition,
+        key_assumption: keyAssumption,
+        benefit_roi: benefitsROI,
+        risk: risk,
       };
-  
+
       // Log the object for debugging
       console.log(programDataToSubmit);
-     
-      
-  
+
       const response = await InsertDraft(programDataToSubmit);
       const parsedResponse = JSON.parse(response);
-  
+
       if (parsedResponse.status === 'success') {
         setIsDraftSaved(true);
         setTimeout(() => {
           setIsDraftSaved(false);
         }, 2000);
         const projectId = parsedResponse.data.project_id;
-      console.log('Project ID:', projectId);
+        console.log('Project ID:', projectId);
 
+        setProjectId(projectId);
 
-      setProjectId(projectId);
-      
+        setNameTitle('');
+        setClassification('');
+        setGoalSelected('');
+        setProgram('');
+        setBusinessOwner('');
+        setBusinessOwnerDept(0);
+        setProjectOwner('');
+        setProjectOwnerDept(0);
+        setProjectManager('');
+        setImpactedFunction('');
+        setImpactedApp('');
+        setPriority('');
+        setBudget('');
+        setProjectSize('');
+        setStartDate('');
+        setEndDate('');
+        setGoLiveDate('');
+        setRoi('');
+        setBusinessProblem('');
+        setScopeDefinition('');
+        setKeyAssumption('');
+        setBenefitsROI('');
+        setRisk('');
 
-      setNameTitle('');
-      setClassification('');
-      setGoalSelected('');
-      setProgram('');
-      setBusinessOwner('');
-      setBusinessOwnerDept(0);
-      setProjectOwner('');
-      setProjectOwnerDept(0);
-      setProjectManager('');
-      setImpactedFunction('');
-      setImpactedApp('');
-      setPriority('');
-      setBudget('');
-      setProjectSize('');
-      setStartDate('');
-      setEndDate('');
-      setGoLiveDate('');
-      setRoi('');
-      setBusinessProblem('');
-      setScopeDefinition('');
-      setKeyAssumption('');
-      setBenefitsROI('');
-      setRisk('');
-
-      return projectId;
+        return projectId;
       } else {
         Alert.alert('Failed to save draft. Please try again.');
       }
@@ -460,7 +512,7 @@ const fetchSequence = async () => {
       if (error instanceof Yup.ValidationError) {
         Alert.alert(
           'Validation Error',
-          error.errors.join('\n') // Display all validation errors
+          error.errors.join('\n'), // Display all validation errors
         );
       } else {
         console.error('Error saving draft:', error);
@@ -523,68 +575,72 @@ const fetchSequence = async () => {
   const handlereview = async () => {
     try {
       let currentProjectId = projectId;
-  console.log('handle review')
+      console.log('handle review');
       if (!currentProjectId) {
-        currentProjectId = await handleSaveDraft(); 
+        currentProjectId = await handleSaveDraft();
       }
-  
+
       if (currentProjectId) {
         const payload = {
-            project_id: Number(currentProjectId),
-            approval_type: Number(selectedOption),
-            type: 'review',
-            sent_to: Number(approvalPathid), // Assuming this is a single user ID for initial approval path
-            approval_sequence_details: steps.map((step, index) => ({
-              sequence_no: index + 1, // Sequence number (1-based index)
-              user_id: Number(step.forwardTo), // User ID from the step
-            })),
-          };
+          project_id: Number(currentProjectId),
+          approval_type: Number(selectedOption),
+          type: 'review',
+          sent_to: Number(approvalPathid), // Assuming this is a single user ID for initial approval path
+          approval_sequence_details: steps.map((step, index) => ({
+            sequence_no: index + 1, // Sequence number (1-based index)
+            user_id: Number(step.forwardTo), // User ID from the step
+          })),
+        };
 
-          console.log("Generated Payload:", payload);
-  
-        const response = await InsertReview(payload); 
+        console.log('Generated Payload:', payload);
+
+        const response = await InsertReview(payload);
         const result = JSON.parse(response);
-  
-        if (result.status === 'success') {
-            setSubmitPopupMessage('Your review has been submitted successfully!');
 
-          setIsPopupVisible(false); 
+        if (result.status === 'success') {
+          setSubmitPopupMessage('Your review has been submitted successfully!');
+
+          setIsPopupVisible(false);
         } else {
-            setSubmitPopupMessage('Failed to submit. Please try again.');
+          setSubmitPopupMessage('Failed to submit. Please try again.');
         }
       } else {
-        setSubmitPopupMessage('Unable to retrieve project ID. Submission aborted.');
+        setSubmitPopupMessage(
+          'Unable to retrieve project ID. Submission aborted.',
+        );
       }
     } catch (error) {
       console.error('Error submitting:', error);
-      setSubmitPopupMessage('An error occurred while submitting. Please try again.');
+      setSubmitPopupMessage(
+        'An error occurred while submitting. Please try again.',
+      );
     }
   };
-  
+
   const handleapproval = async () => {
     try {
       let currentProjectId = projectId;
-  
+
       if (!currentProjectId) {
-        currentProjectId = await handleSaveDraft(); 
+        currentProjectId = await handleSaveDraft();
       }
-  
+
       if (currentProjectId) {
         const payload = {
           //aprvl_seq_id: Number(approvalPathidApp),
           project_id: Number(currentProjectId),
           sent_to: Number(approvalPathidApp),
-          type: "approval",
+          type: 'approval',
           approval_type: Number(selectedOptionApp),
         };
-  console.log(payload) 
-        const response = await InsertApproval(payload); 
+        console.log(payload);
+        const response = await InsertApproval(payload);
         const result = JSON.parse(response);
-  
+
         if (result.status === 'success') {
           Alert.alert('Submission successful!');
-          setIsPopupVisible(false); 
-          setIsApprovalPopupVisible(false)
+          setIsPopupVisible(false);
+          setIsApprovalPopupVisible(false);
         } else {
           Alert.alert('Failed to submit. Please try again.');
         }
@@ -596,62 +652,61 @@ const fetchSequence = async () => {
       Alert.alert('An error occurred while submitting. Please try again.');
     }
   };
-  
-  
+
   const createSequence = async () => {
     const approvalSequenceDetails = steps.map((step, index) => ({
-      sequence_no: index + 1,  // Sequence number based on index
+      sequence_no: index + 1, // Sequence number based on index
       user_id: step.forwardTo,
-      is_active: true,  // User ID selected for each step
+      is_active: true, // User ID selected for each step
     }));
-  
+
     const payload1 = {
-      aprvl_seq_name: sequenceName,  // Name of the approval sequence (from input)
-      approval_sequence_details: approvalSequenceDetails,  // Array of user IDs with sequence numbers
+      aprvl_seq_name: sequenceName, // Name of the approval sequence (from input)
+      approval_sequence_details: approvalSequenceDetails, // Array of user IDs with sequence numbers
     };
     console.log('Creating sequence with payload:', payload1);
-  
+
     try {
       // Call the API to create the sequence
-      await InsertSequence(payload1);  // Replace with your actual API call
+      await InsertSequence(payload1); // Replace with your actual API call
       console.log('Sequence created successfully');
       Alert.alert('Sequence created successfully!');
       setShowNewApprovalForm(false);
-      fetchSequence()
-      return true;  // Return true to indicate sequence creation success
+      fetchSequence();
+      return true; // Return true to indicate sequence creation success
     } catch (error) {
       console.error('Error creating sequence:', error);
       Alert.alert('Error creating sequence. Please try again.');
-      return false;  // Return false if there was an error
+      return false; // Return false if there was an error
     }
   };
-  const handleDateChange = (date) => {
+  const handleDateChange = date => {
     setRawStartDate(date);
     setStartDateDisplay(format(date, 'MM-dd-yyyy'));
     setStartDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowStartDatePicker(false); // Close the picker
   };
-  const handleEndDateChange = (date) => {
+  const handleEndDateChange = date => {
     setRawEndDate(date);
     setEndDateDisplay(format(date, 'MM-dd-yyyy'));
     setEndDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowEndDatePicker(false); // Close the picker
   };
 
-  const handleGoLiveDateChange = (date) => {
+  const handleGoLiveDateChange = date => {
     setRawGoLiveDate(date);
     setLiveDateDisplay(format(date, 'MM-dd-yyyy'));
     setGoLiveDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowGoLiveDatePicker(false); // Close the picker
   };
 
-    // Handle category change
-    const handleGoalSelection = async (goalId: string) => {
-      //setLoading(true);
-      setGoalSelected(goalId)
-      console.log('handleGoal')
-      await fetchPrograms(goalId);
-    };
+  // Handle category change
+  const handleGoalSelection = async (goalId: string) => {
+    //setLoading(true);
+    setGoalSelected(goalId);
+    console.log('handleGoal');
+    await fetchPrograms(goalId);
+  };
 
 const closeModal = (total:string) => {
   setActualBudget(total);
@@ -964,9 +1019,9 @@ useEffect(() => {    // addition of review
       {/* <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
         <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
       </TouchableOpacity> */}
-      {touched?.startDate && errors?.startDate && (
-        <Text style={{ color: 'red' }}>{errors.startDate}</Text>
-      )}
+                  {touched?.startDate && errors?.startDate && (
+                    <Text style={{color: 'red'}}>{errors.startDate}</Text>
+                  )}
 
       {Platform.OS === 'web' && showStartDatePicker && (
         <DatePicker
@@ -1016,9 +1071,15 @@ useEffect(() => {    // addition of review
               {touched.projectOwner && errors.projectOwner && (<Text style={{color:'red'}} >{errors.projectOwner}</Text>)}
             </View>
 
-            <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>Project Owner Department<Text style={styles.asterisk}>*</Text></Text>
-              <NestedDeptDropdownNewProjects onSelect={handleProjectOwnerDept}  buisnessPersonId={parseInt(projectOwner)}/>
+                <View style={styles.smallInputContainer}>
+                  <Text style={styles.inputLabel}>
+                    Project Owner Department
+                    <Text style={styles.asterisk}>*</Text>
+                  </Text>
+                  <NestedDeptDropdownNewProjects
+                    onSelect={handleProjectOwnerDept}
+                    buisnessPersonId={parseInt(projectOwner)}
+                  />
 
               {touched.projectOwnerDept && errors.projectOwnerDept && (<Text style={{color:'red'}} >{errors.projectOwnerDept}</Text>)}
             </View>
@@ -1036,25 +1097,22 @@ useEffect(() => {    // addition of review
       {/* <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
         <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
       </TouchableOpacity> */}
-      {touched?.endDate && errors?.endDate && (
-        <Text style={{ color: 'red' }}>{errors.endDate}</Text>
-      )}
+                  {touched?.endDate && errors?.endDate && (
+                    <Text style={{color: 'red'}}>{errors.endDate}</Text>
+                  )}
 
-      {Platform.OS === 'web' && showEndDatePicker && (
-        <DatePicker
-          selected={rawEndDate}
-          onChange={handleEndDateChange}
-          dateFormat="MM-dd-yyyy"
-          inline // Inline style for better usability
-        />
-      )}
-    </View>
-          </View>
+                  {Platform.OS === 'web' && showEndDatePicker && (
+                    <DatePicker
+                      selected={rawEndDate}
+                      onChange={handleEndDateChange}
+                      dateFormat="MM-dd-yyyy"
+                      inline // Inline style for better usability
+                    />
+                  )}
+                </View>
+              </View>
 
-
-
-          {/* Priority Row */}
-        
+              {/* Priority Row */}
 
           {/* Dates Row */}
           <View style={styles.row}>
@@ -1133,30 +1191,23 @@ useEffect(() => {    // addition of review
       {/* <TouchableOpacity onPress={() => setShowGoLiveDatePicker(true)}>
         <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
       </TouchableOpacity> */}
-      {touched?.goLiveDate && errors?.goLiveDate && (
-        <Text style={{ color: 'red' }}>{errors.goLiveDate}</Text>
-      )}
+                  {touched?.goLiveDate && errors?.goLiveDate && (
+                    <Text style={{color: 'red'}}>{errors.goLiveDate}</Text>
+                  )}
 
-      {Platform.OS === 'web' && showGoLiveDatePicker && (
-        <DatePicker
-          selected={rawGoLiveDate}
-          onChange={handleGoLiveDateChange}
-          dateFormat="MM-dd-yyyy"
-          inline // Inline style for better usability
-        />
-      )}
-    </View>
+                  {Platform.OS === 'web' && showGoLiveDatePicker && (
+                    <DatePicker
+                      selected={rawGoLiveDate}
+                      onChange={handleGoLiveDateChange}
+                      dateFormat="MM-dd-yyyy"
+                      inline // Inline style for better usability
+                    />
+                  )}
+                </View>
+              </View>
 
-          
-
-         
-          </View>
-
-
-
-
-          {/* ROI Section */}
-          <Text style={styles.roiHeading}>Return on Investment</Text>
+              {/* ROI Section */}
+              <Text style={styles.roiHeading}>Return on Investment</Text>
 
           <View style={styles.row}>
             <View style={styles.smallInputContainer}>
@@ -1192,9 +1243,9 @@ useEffect(() => {    // addition of review
             </View>
           </View>
 
-          <View style={styles.divider} />
+              <View style={styles.divider} />
 
-          <Text style={styles.projectDriversHeading}>Project Drivers</Text>
+              <Text style={styles.projectDriversHeading}>Project Drivers</Text>
 
           {/* Business Problem/Description and Scope Definition Row */}
           <View style={styles.row5}>
@@ -1320,23 +1371,22 @@ useEffect(() => {    // addition of review
             </View>
           </View>
 
-          {/* Custom Fields Button and Checkbox */}
-          <View style={styles.row}>
-            <View style={styles.customFieldsContainer}>
-              <View style={styles.checkboxContainer}>
-                {/* <TouchableOpacity
+              {/* Custom Fields Button and Checkbox */}
+              <View style={styles.row}>
+                <View style={styles.customFieldsContainer}>
+                  <View style={styles.checkboxContainer}>
+                    {/* <TouchableOpacity
                   style={[styles.checkbox, isChecked && styles.checked]}
                   onPress={() => setIsChecked(!isChecked)}
                 >
                   {isChecked && <Icon name="checkmark" size={18} color="#fff" />}
                 </TouchableOpacity> */}
-           
-              </View>
-              {/* <TouchableOpacity style={styles.customFieldsButton}>
+                  </View>
+                  {/* <TouchableOpacity style={styles.customFieldsButton}>
                 <Text style={styles.customFieldsButtonText}>Add custom fields</Text>
               </TouchableOpacity> */}
-            </View>
-          </View>
+                </View>
+              </View>
 
           {/* Bottom Buttons */}
           <View style={styles.bottomButtonsContainer}>
@@ -1596,20 +1646,30 @@ useEffect(() => {    // addition of review
                                 <Picker.Item label="Approval" value="approval" />
                                 <Picker.Item label="Review" value="review" />
                               </Picker> */}
-                              {steps.length > 1 && (
-                                <TouchableOpacity style={styles.cancelIcon} onPress={() => removeStep(step.id)}>
-                                  <Icon name="close" size={18} color="#B40A0A" />
+                                    {steps.length > 1 && (
+                                      <TouchableOpacity
+                                        style={styles.cancelIcon}
+                                        onPress={() => removeStep(step.id)}>
+                                        <Icon
+                                          name="close"
+                                          size={18}
+                                          color="#B40A0A"
+                                        />
+                                      </TouchableOpacity>
+                                    )}
+                                  </View>
+                                </View>
+                              ))}
+                              <View style={styles.popupButtonContainer}>
+                                <TouchableOpacity
+                                  style={styles.addStepButton}
+                                  onPress={addStep}>
+                                  <Icon name="add" size={18} color="#044086" />
+                                  <Text style={styles.addStepButtonText}>
+                                    Add User
+                                  </Text>
                                 </TouchableOpacity>
-                              )}
-                            </View>
-                          </View>
-                        ))}
-                         <View style={styles.popupButtonContainer}>
-                        <TouchableOpacity style={styles.addStepButton} onPress={addStep}>
-                          <Icon name="add" size={18} color="#044086" />
-                          <Text style={styles.addStepButtonText}>Add User</Text>
-                        </TouchableOpacity>
-                        {/* <TouchableOpacity style={styles.sequence} onPress={createSequence}>
+                                {/* <TouchableOpacity style={styles.sequence} onPress={createSequence}>
                 <Text style={styles.popupSubmitButtonText}>Create Sequence</Text>
               </TouchableOpacity> */}
               </View>

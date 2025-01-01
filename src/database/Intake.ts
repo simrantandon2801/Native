@@ -320,3 +320,22 @@ import { BASE_URL } from "@env";
     }
   };
   
+
+  
+  export const GetImpactedApplication = async (query:string): Promise<string> => {
+    try {
+      
+      var uri = `${BASE_URL}/utils/get_impacted_applications/`;
+      
+      const token = await AsyncStorage.getItem('Token');
+      
+      var jsonResult = await GetAsync_with_token(uri, token);
+      
+      //debugger;
+     // console.log("jsonResult from API:", jsonResult);
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };

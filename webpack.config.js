@@ -14,12 +14,11 @@ const compileNodeModules = [
   '@types/geojson',
   'react-native-gifted-charts',
   'react-native-linear-gradient',
-  'react-native-svg'
-  
+  'react-native-svg',
+  'react-native-dropdown-picker', // Added here
 ].map(moduleName => path.resolve(appDirectory, `node_modules/${moduleName}`));
 
 module.exports = {
-  
   mode: 'production',
   entry: {
     app: path.join(__dirname, 'index.web.js'),
@@ -27,7 +26,7 @@ module.exports = {
   output: {
     path: path.resolve(appDirectory, 'dist'),
     publicPath: '/',
-    filename: 'bundle.js', // Updated filename
+    filename: 'bundle.js',
   },
   resolve: {
     extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
@@ -43,14 +42,13 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
-       /*  test: /\.js$|tsx?$/, */
-       test: /\.(js|jsx|ts|tsx)$/,
+        test: /\.(js|jsx|ts|tsx)$/,
         include: [
           path.resolve(__dirname, 'index.web.js'),
           path.resolve(__dirname, 'App.web.tsx'),
           path.resolve(__dirname, 'src'),
           path.resolve(__dirname, 'node_modules/react-native-vector-icons'),
-          ...compileNodeModules,
+          ...compileNodeModules, // Include the extended compileNodeModules list
         ],
         use: {
           loader: 'babel-loader',
@@ -70,8 +68,8 @@ module.exports = {
         },
       },
       {
-        test: /\.d\.ts$/, // Handle type definition files
-        use: 'ignore-loader', // Ignore them as they are not needed for runtime
+        test: /\.d\.ts$/,
+        use: 'ignore-loader',
       },
       {
         test: /\.svg$/,
@@ -80,7 +78,12 @@ module.exports = {
             loader: '@svgr/webpack',
             options: {
               svgoConfig: {
-                plugins: [{ name: 'preset-default', params: { overrides: { removeViewBox: false } } },], // Disable unnecessary viewBox removal
+                plugins: [
+                  {
+                    name: 'preset-default',
+                    params: { overrides: { removeViewBox: false } },
+                  },
+                ],
               },
             },
           },
@@ -91,8 +94,8 @@ module.exports = {
         use: {
           loader: 'url-loader',
           options: {
-            limit: 8192, // Inline images below 8 KB as base64
-            name: 'assets/images/[name].[hash].[ext]', // Output location
+            limit: 8192,
+            name: 'assets/images/[name].[hash].[ext]',
           },
         },
       },
@@ -103,13 +106,13 @@ module.exports = {
           path.resolve(appDirectory, 'node_modules/react-native-vector-icons'),
         ],
         options: {
-          name: 'assets/fonts/[name].[hash].[ext]', // Output location for fonts
+          name: 'assets/fonts/[name].[hash].[ext]',
         },
       },
     ],
   },
   optimization: {
-    usedExports: true, // Tree shaking
+    usedExports: true,
   },
   plugins: [
     new HtmlWebpackPlugin({

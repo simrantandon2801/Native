@@ -121,7 +121,9 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   //   console.log(`Selected Stakeholder: ${deptID}`);
   // };
 
-  const [selectedStakeholders, setSelectedStakeholders] = useState<number[]>([]);
+  const [selectedStakeholders, setSelectedStakeholders] = useState<number[]>(
+    [],
+  );
   const handleSelectionChange = (newSelectedStakeholders: number[]) => {
     setSelectedStakeholders(newSelectedStakeholders);
     console.log('Updated Selected Items:', newSelectedStakeholders);
@@ -150,7 +152,11 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
                 />
               </View>
             </View>
-            <View style={styles.inputRow}>
+            <View
+              style={{
+                flexDirection: 'row',
+                marginBottom: 14, // Replace `someNumber` with your desired value
+              }}>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
                   Goal Owner <Text style={styles.asterisk}>*</Text>
@@ -627,6 +633,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    flexGrow: 1,
   },
   modalView: {
     backgroundColor: 'white',
@@ -646,9 +653,8 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     flexDirection: 'row',
-    // justifyContent: 'space-between',
+    justifyContent: 'space-between',
     marginBottom: 10,
-    
   },
   input: {
     borderRadius: 5,
@@ -680,7 +686,6 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginHorizontal: 5,
-    
   },
   inputLabel: {
     fontSize: 14,
@@ -709,4 +714,3 @@ const styles = StyleSheet.create({
 });
 
 export default ManageGoals;
-
