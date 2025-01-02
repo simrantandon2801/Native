@@ -405,9 +405,9 @@ const NewIntake = () => {
     budget: Yup.string().required('Budget is required'),
    // actualBudget: Yup.string().required('Actual Budget is required'),
     projectSize: Yup.string().required('Project Size is required'),
-    startDate: Yup.date().required('Project Start Date is required'),
-    endDate: Yup.date().required('Project End Date is required'),
-    goLiveDate: Yup.date().required('Go Live Date is required'),
+    //startDate: Yup.date().required('Project Start Date is required'),
+    //endDate: Yup.date().required('Project End Date is required'),
+    //goLiveDate: Yup.date().required('Go Live Date is required'),
     roi: Yup.number()
       .required('ROI is required')
       .positive('ROI must be a positive number'),
