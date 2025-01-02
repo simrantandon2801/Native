@@ -109,7 +109,7 @@ const Tabs: React.FC<TabsProps> = ({activeTab, setActiveTab}) => (
     <TouchableOpacity
       style={[styles.tab, activeTab === 'history' && styles.activeTab]}
       onPress={() => setActiveTab('history')}>
-      <Text style={styles.tabText}>Approval History</Text>
+      <Text style={styles.tabText}>Review/Approval History</Text>
     </TouchableOpacity>
   </View>
 );
@@ -267,9 +267,11 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
   const [approvalPathidApp, setApprovalPathidApp] = useState('');
   const [selectedOptionApp, setSelectedOptionApp] = useState('2');
   const [steps, setSteps] = useState([
-    {id: 1, forwardTo: '', designation: '', action: ''},
+    {id: 1, forwardTo: '', designation: '', action: '', department_name: ''},
   ]);
-
+  const addStep = () => {
+    setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '',department_name: '' }]);
+  };
   const [sequence, setSequence] = useState([]);
   const [users, setUsers] = useState([]);
   const [formIsEditable, setFormIsEditable] = useState(isEditable);

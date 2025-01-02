@@ -70,7 +70,7 @@ const Header: React.FC = () => (
     <TouchableOpacity
       style={styles.backButton}
       onPress={() => navigate('IntakeApproval')}>
-      <Icon name="arrow-left" size={24} color="black" />
+      <Icon name="arrow-back" size={24} color="black" />
     </TouchableOpacity>
     <Text style={styles.projectName}>Go back to Approval/Review Lists</Text>
   </View>
@@ -93,7 +93,7 @@ const Tabs: React.FC<TabsProps> = ({ activeTab, setActiveTab }) => (
       style={[styles.tab, activeTab === 'history' && styles.activeTab]}
       onPress={() => setActiveTab('history')}
     >
-      <Text style={styles.tabText}>Approval History</Text>
+      <Text style={styles.tabText}>Review/Approval History</Text>
     </TouchableOpacity>
   </View>
 );
