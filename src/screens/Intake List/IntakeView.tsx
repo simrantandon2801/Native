@@ -717,12 +717,10 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
                   <Text style={styles.inputLabel}>
                     Name/Title <Text style={styles.asterisk}>*</Text>
                   </Text>
-                  <TextInput
-                    style={styles.largeInput}
-                    value={nameTitle || project.project_name }
-                    onChangeText={(text) => setNameTitle(text)}
-                    editable={formIsEditable}
-                  />
+                 <Text
+                                     style={styles.largeInput}>
+                                     {nameTitle || project.project_name }
+                                     </Text>
                 </View>
 
                 <View style={styles.smallInputContainer}>
@@ -1898,8 +1896,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: 'white',
     color: '#000',
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#044086',
     borderWidth: 0,
     height: 40,
   },

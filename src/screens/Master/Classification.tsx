@@ -21,7 +21,7 @@ import {
   DataTable,
   Switch,
 } from 'react-native-paper';
-import { AddAndEditClassification,deleteClassification, GetClasssifcation } from '../../database/Classification';
+import { AddAndEditClassification,deleteClassification, GetClasssifcation } from '../../database/Masters';
 
 const { height } = Dimensions.get('window');
 

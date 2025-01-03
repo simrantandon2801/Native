@@ -35,8 +35,8 @@ interface BudgetAppProps {
 }
 
 
-const BudgetDetail: React.FC<BudgetAppProps> = ({ 
-  projectId=1,  
+const BudgetDetails: React.FC<BudgetAppProps> = ({ 
+  projectId,  
   visible,
   onClose, 
 }) => {
@@ -466,4 +466,4 @@ const styles = StyleSheet.create({
   },
   });
   
-  export default BudgetDetail;
+  export default BudgetDetails;
