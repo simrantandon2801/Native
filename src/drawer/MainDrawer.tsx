@@ -30,10 +30,9 @@ import {decodeBase64} from '../core/securedata';
 import Excel from '../screens/Excel';
 import DepartmentList from '../screens/DepartmentList';
 import RoleMaster from '../screens/RoleMaster';
-import ADIntegration from '../screens/ADIntegration';
-import IntegrationList from '../screens/IntegrationList';
+import ADIntegration from '../screens/Integration/ADIntegration';
+import ADIntegrationList from '../screens/Integration/ADIntegrationList';
 import Adminpanel from '../screens/Adminpanel';
-import AdComponent from '../screens/Adcomponent';
 import Adcomponent from '../screens/Adcomponent';
 
 import AdminDboard from '../screens/AdminDboard';
@@ -51,6 +50,12 @@ import NewIntake from '../screens/Intake List/NewIntake';
 import IntakeView from '../screens/Intake List/IntakeView';
 import IntakeList from '../screens/Intake List/IntakeList';
 import IntakeApproval from '../screens/Intake List/IntakeApproval';
+import ImpactedApps from '../screens/ImpactedApps';
+import IntakeApprovalView from '../screens/Intake List/IntakeApprovalView';
+import Classification from '../screens/Master/Classification';
+import Designation from '../screens/Master/Designation';
+import BudgetDetail from '../screens/Intake List/BudgetDetail';
+import BudgetCategory from '../screens/Master/BudgetCategory';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -297,7 +302,7 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="Excel" component={Excel} /> 
           <Drawer.Screen name="WelcomeScreen" component={WelcomeScreen} />
           <Drawer.Screen name="ADIntegration" component={ADIntegration} />
-          <Drawer.Screen name="IntegrationList" component={IntegrationList} />
+          <Drawer.Screen name="ADIntegrationList" component={ADIntegrationList} />
           <Drawer.Screen name="Adminpanel" component={Adminpanel} />
           <Drawer.Screen name="Adcomponent" component={Adcomponent} />
           <Drawer.Screen name="AdminDboard" component={AdminDboard} />
@@ -312,6 +317,13 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="NewIntake" component={NewIntake} />
           <Drawer.Screen name="IntakeApproval" component={IntakeApproval} />
           <Drawer.Screen name="IntakeView" component={IntakeView} />
+          <Drawer.Screen name="ImpactedApps" component={ImpactedApps} />
+          <Drawer.Screen name="IntakeApprovalView" component={IntakeApprovalView} />
+          <Drawer.Screen name="Classification" component={Classification} />
+          <Drawer.Screen name="Designation" component={Designation} />
+          
+          <Drawer.Screen name="BudgetDetail" component={BudgetDetail} />
+          <Drawer.Screen name="BudgetCategory" component={BudgetCategory} />
         
           {dynamicModules.map((module) => (
             <Drawer.Screen
@@ -342,6 +354,7 @@ const styles = StyleSheet.create({
   drawerContent: {
     flex: 1,
     paddingTop: 20,
+    /* backgroundColor: '#D3D3D3', */
   },
   drawerSection: {
     marginBottom: 10,

@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, Text, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { TextInput, PaperProvider } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import { Dimensions } from 'react-native';
 import { Button, ActivityIndicator } from 'react-native-paper';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BASE_URL } from "@env";
+import { BASE_URL } from '@env';
 
 export type HomeStackNavigatorParamList = {
   LoginScreen: {};
@@ -30,6 +30,7 @@ const SignupScreen = () => {
   const [companyContact, setCompanyContact] = useState<string>('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isRegistered, setIsRegistered] = useState<boolean>(false);
 
   const handleSignup = async () => {
     let tempErrors: { [key: string]: string } = {};
@@ -44,9 +45,11 @@ const SignupScreen = () => {
     if (!companyEmail || !/\S+@\S+\.\S+/.test(companyEmail)) {
       tempErrors.companyEmail = 'Valid email is required';
     }
-    // if (!companyContact || !/^\d{10}$/.test(companyContact)) {
-    //   tempErrors.companyContact = 'Valid 10-digit contact is required';
-    // }
+    // Regex for US phone number validation
+    const phoneNumberRegex = /^(?:\+1[-.\s]?)?(\(\d{3}\)[-\s.]?|\d{3}[-.\s]?)\d{3}[-.\s]?\d{4}$/;
+    if (!phoneNumberRegex.test(companyContact)) {
+      tempErrors.companyContact = 'Valid contact number is required';
+    }
 
     setErrors(tempErrors);
 
@@ -86,8 +89,13 @@ const SignupScreen = () => {
         console.log('API Response:', data);
 
         if (data.status === 'success') {
-          console.log('User registered successfully.');
-          setModalVisible(true);
+          console.log('Customer has been successfully registered.');
+          setIsRegistered(true);
+          //setModalVisible(true);
+          // Toast.show({
+          //   type: 'success',
+          //   text1: 'Customer has been successfully registered.',
+          // });
         } else {
           console.error('Error in registration:', data.message || 'Unknown error');
         }
@@ -99,7 +107,12 @@ const SignupScreen = () => {
     }
 
     registerUser();
+
   };
+
+  useEffect(() => {
+    console.log('useeffect')
+    }, []);
 
   return (
     <PaperProvider>
@@ -294,7 +307,9 @@ const SignupScreen = () => {
             )}
           </Button>
 
-          <Modal
+          {isRegistered && <Text style={styles.success}>Your customer has been successfully registered.</Text>}
+
+          {/* <Modal
             visible={modalVisible}
             transparent={true}
             animationType="fade"
@@ -313,7 +328,7 @@ const SignupScreen = () => {
                 </Button>
               </View>
             </View>
-          </Modal>
+          </Modal> */}
         </View>
       </ScrollView>
     </PaperProvider>
@@ -379,6 +394,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'left', // Centers the label above the input
   },
+  success:{
+    color: 'red',  
+    justifyContent: 'center',  
+    alignItems: 'center'
+  }
   
 });
 

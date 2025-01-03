@@ -6,7 +6,8 @@ import { Dimensions } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Menu } from 'react-native-paper'; // Using Menu from react-native-paper instead of Dropdown
 import {Picker} from '@react-native-picker/picker';
-import {AddADForCustomer, GetADList} from '../database/Integration';
+import {AddADForCustomer, GetADList} from '../../database/Integration';
+//import Toast from 'react-native-toast-message';
 
 export type HomeStackNavigatorParamList = {
   LoginScreen: {};
@@ -17,11 +18,11 @@ export type HomeStackNavigatorParamList = {
 
 type NavigationProp = NativeStackNavigationProp<HomeStackNavigatorParamList, 'LoginScreen'>;
 
-const ADIntegration = ({ closeModal }) => {
+const ADIntegration = ({ onClose }) => {
   const deviceWidth = Dimensions.get('window').width;
   const navigation = useNavigation<NavigationProp>();
   const [modalVisible, setModalVisible] = useState(false);
-
+  const [integrationName, setIntegrationName] = useState('');
   const [ad, setAd] = useState([]);
   const [integrationId, setIntegrationId] = useState('');
   const [customerId, setCustomerId] = useState('');
@@ -34,40 +35,37 @@ const ADIntegration = ({ closeModal }) => {
     undefined,
   );
 
-  const OPTIONS = [
-    { label: 'Microsoft', value: 'Microsoft' },
-    { label: 'Okta', value: 'Okta' },
-    { label: 'Other', value: 'Other' },
-  ];
-
   const handleSave = async () => {
-    // let tempErrors: { [key: string]: string } = {};
-    console.log('hi');
-    // // Validation checks
-    // if (!ad) tempErrors.ad = 'AD is required';
-    // // if (!name) tempErrors.name = 'Integration Name is required';
-    // if (!clientId) tempErrors.clientId = 'Client ID is required';
-    // if (!clientSecret) tempErrors.clientSecret = 'Client Secret is required';
-    // if (!tenantId) tempErrors.tenantId = 'Tenant ID is required';
 
-    // setErrors(tempErrors);
+    let tempErrors: { [key: string]: string } = {};
 
-    // if (Object.keys(tempErrors).length > 0) return;
+    // Validation checks
+    if (!integrationName) tempErrors.integrationName = 'Integration Name is required';
+    if (!clientId) tempErrors.clientId = 'Client Id is required';
+    if (!clientSecret) tempErrors.clientSecret = 'Client Secret is required';
+    if (!tenantId) tempErrors.tenantId = 'Tenant Id is required';
+
+    setErrors(tempErrors);
+
+    if (Object.keys(tempErrors).length > 0) return;
 
     const payload = {
       integration_customer_id: '',
       integration_id:selectedAD,
-      customer_id: 1,
+      customer_id: '',
       client_id: clientId,
       client_secret: clientSecret,
       tenant_id: tenantId,
-      created_by: '8'
+      created_by: '',
+      description: integrationName
     };
     try {
     const response = await AddADForCustomer(payload);
       const parsedRes = JSON.parse(response);
-      if (parsedRes.status === 'success')
+      if (parsedRes.status === 'success'){
         console.log('AD Added succesfully');
+      onClose();
+      }
       else
         console.error(
           'Failed',
@@ -98,11 +96,16 @@ const ADIntegration = ({ closeModal }) => {
   };
   useEffect(() => {
     fetchADList();
+    // Toast.show({
+    //   type: 'success',
+    //   text1: 'Hello',
+    //   text2: 'This is some something 👋'
+    // });
   }, []);
   return (
     <PaperProvider>
       <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
-        <Text style={styles.heading}>Configure AD</Text>
+        {/* <Text style={styles.heading}>Configure AD</Text> */}
         <View style={{ margin: 16 }}>
           {/* Menu for AD selection */}
        {/*    <Menu
@@ -127,12 +130,34 @@ const ADIntegration = ({ closeModal }) => {
             <Menu.Item key={option.value} onPress={() => setAd(option.value)} title={option.label} />
           ))}
         </Menu> */}
-          {/* <TextInput
+          
+            <View style={styles.input1}>
+                    <Text style={styles.label}>*  AD Selection</Text>
+                    <Picker
+                      selectedValue={selectedAD}
+                      onValueChange={itemValue =>
+                        setSelectedAD(itemValue)
+                        
+                      }
+                      style={styles.input}>
+                      <Picker.Item label="Select Provider" value="" />
+                        {ad.map((item, index) => (
+                          <Picker.Item
+                            key={index}
+                            label={item.integration_name}
+                            value={item.integration_id}
+                          />
+                    ))}
+          </Picker>
+                  </View>
+         <View style={{ display: selectedAD==1 ? 'flex' : 'none' }}>
+
+          <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Integration Name <Text style={{ color: 'red' }}>*</Text></Text>}
-            value={name}
+            value={integrationName}
             onChangeText={(text) => {
-              setName(text);
+              setIntegrationName(text);
               setErrors({ ...errors, name: '' });
             }}
             placeholderTextColor="#044086"
@@ -144,25 +169,9 @@ const ADIntegration = ({ closeModal }) => {
                 placeholder: '#044086',
               },
             }}
-          /> */}
-            <View style={styles.inputWrapper}>
-                    <Text style={styles.label}>*  AD Selection</Text>
-                    <Picker
-                      selectedValue={selectedAD}
-                      onValueChange={itemValue =>
-                        setSelectedAD(itemValue)
-                        
-                      }
-                      style={styles.picker}>
-                        {ad.map((item, index) => (
-                          <Picker.Item
-                            key={index}
-                            label={item.integration_name}
-                            value={item.integration_id}
-                          />
-                    ))}
-          </Picker>
-                  </View>
+          /> 
+      
+          {errors.integrationName && <Text style={styles.errorText}>{errors.integrationName}</Text>}
           <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Client Id <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -179,6 +188,7 @@ const ADIntegration = ({ closeModal }) => {
               },
             }}
           />
+           {errors.clientId && <Text style={styles.errorText}>{errors.clientId}</Text>}
 
           <TextInput
             style={styles.input}
@@ -196,7 +206,7 @@ const ADIntegration = ({ closeModal }) => {
               },
             }}
           />
-
+ {errors.clientSecret && <Text style={styles.errorText}>{errors.clientSecret}</Text>}
           <TextInput
             style={styles.input}
             label={<Text style={{ color: '#044086' }}>Tenant Id <Text style={{ color: 'red' }}>*</Text></Text>}
@@ -213,20 +223,9 @@ const ADIntegration = ({ closeModal }) => {
               },
             }}
           />
+           {errors.tenantId && <Text style={styles.errorText}>{errors.tenantId}</Text>}
+</View>
 
-          {/* <TouchableOpacity
-          onPress={()=>handleSave()}>
-         <Text>Close</Text>
-          </TouchableOpacity> */}
-          {/* <View>
-                <Button
-                  onPress={() => {
-                    handleSave();
-                  }}
-                >
-                  Submit
-                </Button>
-              </View> */}
                   <View
                 style={{
                   flexDirection: 'row',
@@ -245,10 +244,11 @@ const ADIntegration = ({ closeModal }) => {
                 {/* Close Button */}
                 <TouchableOpacity
                   style={styles.submitButton}
-                  onPress={closeModal}>
+                  onPress={onClose}>
                   <Text style={styles.submitButtonText}>Close</Text>
                 </TouchableOpacity>
               </View>
+
         </View>
       </ScrollView>
     </PaperProvider>
@@ -289,7 +289,17 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 15,
     borderRadius: 5,
-    backgroundColor: 'transparent',
+  
+  
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '100%',
   },
   button: {
     width: '46%',
@@ -305,10 +315,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   picker: {
-    height: 50,
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#044086',
-    backgroundColor: 'transparent',
+    // height: 50,
+    // borderBottomWidth: 1.5,
+    // borderBottomColor: '#044086',
+    // backgroundColor: 'transparent',
   },
   submitButton: {
     backgroundColor: '#044086',
@@ -323,4 +333,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'flex-end',
+  
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+   
+  },
+  
+  modalContent: {
+    width: '18%', 
+    padding: 20,     
+    backgroundColor: '#f4f4f4',
+    margin:'70px',
+    borderRadius: 10,
+    alignItems: 'center',
+    maxHeight: 160,  
+    
+  },
+  modalContent1: {
+    width: '28%', 
+    padding: 20,     
+    backgroundColor: '#fff',
+    margin:'70px',
+    borderRadius: 10,
+    alignItems: 'center',
+    maxHeight: 250,  
+    
+  },
+  buttonContainer: {
+    flexDirection: 'row',  // Align buttons in a row
+    justifyContent: 'space-between',  // Space out the buttons evenly
+    width: '80%',  // Ensure it takes up full width
+  },
+  loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 1000,
+    },
+    inputRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 15,
+      gap: 20,
+    },
+    errorText: {
+      color: 'red',
+      fontSize: 12,
+      marginTop: 5,
+    },
 });

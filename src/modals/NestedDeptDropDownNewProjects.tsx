@@ -220,7 +220,7 @@ const NestedDeptDropdownNewProjects: React.FC<NestedDeptDropdownProps > = ({ onS
               editable={false}
               placeholder={buisnessPersonId ?  mapUserIdToDeptName(buisnessPersonId): 'Select a department'}  // Change placeholder based on editGoal
             />
-            <Icon name="chevron-down" size={20} />
+            <Icon name="chevron-down" size={14}  />
           </View>
         </TouchableOpacity>
 
@@ -237,7 +237,7 @@ const NestedDeptDropdownNewProjects: React.FC<NestedDeptDropdownProps > = ({ onS
 const styles = StyleSheet.create({
   inputWrapper: {
     flex: 1,
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   label: {
     fontSize: 14,
@@ -254,6 +254,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1.5,
     borderBottomColor: '#044086',
     minWidth: 'auto',
+  
   },
   dropdownItem: {
     borderRadius: 5,
@@ -263,6 +264,7 @@ const styles = StyleSheet.create({
     color: '#000',
     borderBottomColor: '#044086',
     width: '100%',
+
   },
   text: {
     fontSize: 16,

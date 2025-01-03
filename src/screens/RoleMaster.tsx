@@ -13,7 +13,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
-import {CheckBox} from 'react-native';
+import {CheckBox} from 'react-native-paper';
 import {
   IconButton,
   Menu,

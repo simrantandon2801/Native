@@ -8,6 +8,9 @@ import { Picker } from '@react-native-picker/picker';
 import BinaryTree from './Tree/BinaryTree';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BASE_URL} from '@env';
+import ConfirmationBox from './Utilities/ConfirmationBox';
+import AlertBox from './Utilities/AlertBox';
+
 
 const DepartmentList = () => {
   const [departments, setDepartments] = useState([]);
@@ -22,6 +25,7 @@ const DepartmentList = () => {
   const [isMenuVisible, setIsMenuVisible] = useState(null);
   const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [parentDepartmentName, setParentDepartmentName] = useState('');
   const [newDepartment, setNewDepartment] = useState({
     department_id: null,
     customer_id: 1,
@@ -32,6 +36,41 @@ const DepartmentList = () => {
     department_level: 1,
     is_active: true,
   });
+  const [dialogVisible, setDialogVisible] = useState<boolean>(false);
+  const [selectedDept, setSelectedDept] = useState(null);
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
+  const [alertMessage, setAlertMessage] = useState<string>('');
+
+ // Show confirmation dialog
+ const handleShowDialog = (deptId) => {
+  setSelectedDept(deptId);
+  setIsMenuVisible(false);
+  setDialogVisible(true);
+};
+  const handleCloseDialog = () => {
+    setDialogVisible(false);
+  };
+
+// Confirm delete
+const handleConfirmDelete = () => {
+  if (selectedDept) {
+    handleDelete(selectedDept);
+  }
+  handleCloseDialog();
+};
+
+  // Show the alert dialog
+  const showAlert = (message: string) => {
+    setAlertMessage(message); // Set the alert message dynamically
+    setAlertVisible(true); // Show the alert dialog
+    setIsMenuVisible(false);
+  };
+
+  // Close the alert dialog
+  const closeAlert = () => {
+    setAlertVisible(false);
+    setAlertMessage('');
+  };
   
   useEffect(() => {
     const fetchUsers = async () => {
@@ -187,6 +226,7 @@ const handleDelete = async (departmentId) => {
       fetchSubDepartments(null); 
       fetchDepartments();
       setShouldFetch(true);
+      //showAlert();
     } else {
       Alert.alert('Error', 'Failed to delete department');
     }
@@ -245,30 +285,24 @@ const handleDelete = async (departmentId) => {
   };
   const handleAddDepartment = async () => {
     console.log('Selected Department Head:', selectedUser);
+  
+    // Check for empty department name
     if (!newDepartment.department_name.trim()) {
       Alert.alert('Validation Error', 'Department name cannot be empty');
       return;
     }
-    if (selectedUser) {
-      console.log('Selected user for department head:', selectedUser);
-      // Directly set the department_head field with selected user ID
-      setNewDepartment((prev) => ({
-        ...prev,
-        department_head: selectedUser.user_id, // Make sure to directly set the ID
-      }));
-      
-      console.log('Selected Department Head to be sent:', selectedUser.user_id)
-    } else {
-      Alert.alert('Validation Error', 'Please select a department head');
-      return;
-    }
+  
+    // Prepare the department payload
     const departmentToSend = {
       ...newDepartment,
-      department_head: selectedUser.user_id, // Directly use the user_id from selectedUser
+      department_head: selectedUser ? selectedUser.user_id : null, // Allow null if no user is selected
     };
+  
     try {
       const token = await AsyncStorage.getItem('Token'); 
       console.log("Department to be sent: ", departmentToSend);
+  
+      // Make the API request to insert the department
       const response = await fetch(`${BASE_URL}/master/insert_department`, {
         method: 'POST',
         headers: {
@@ -277,10 +311,13 @@ const handleDelete = async (departmentId) => {
         },
         body: JSON.stringify(departmentToSend),
       });
-
+  
       if (response.ok) {
         Alert.alert('Success', 'New department added successfully');
         setIsModalVisible(false);
+        showAlert('New department added successfully');
+  
+        // Reset the new department details
         setNewDepartment({
           department_id: null,
           customer_id: 1,
@@ -291,19 +328,20 @@ const handleDelete = async (departmentId) => {
           department_level: 1,
           is_active: true,
         });
+  
+        // Refresh departments and sub-departments
         fetchSubDepartments(null);
         fetchDepartments();
-       
         setShouldFetch(true);
-        
-       
       } else {
         Alert.alert('Error', 'Failed to add department');
       }
     } catch (error) {
+      console.error('Error adding department:', error);
       Alert.alert('Error', 'Failed to add department');
     }
   };
+  
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const handleMenuLayout = (event) => {
     const { x, y, width } = event.nativeEvent.layout; 
@@ -316,9 +354,24 @@ const handleDelete = async (departmentId) => {
   const renderDropdown = (department) => {
     if (editingDepartment && editingDepartment.department_id === department.department_id) {
       return (
-        <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
-          <Ionicons name="save" size={20} color="#000" />
-        </TouchableOpacity>
+        <>
+          {/* Save Button */}
+          <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
+            <Ionicons name="save" size={20} color="#000" />
+          </TouchableOpacity>
+  
+          {/* Cancel Button */}
+          <TouchableOpacity
+            style={styles.actionContainer}
+            onPress={() => {
+              setEditingDepartment(null); 
+              setNewDepartmentDetails({});
+              fetchDepartments();
+            }}
+          >
+           <Ionicons name="close-circle" size={20} color="#B40A0A" />
+          </TouchableOpacity>
+        </>
       );
     }
     const { width: screenWidth } = Dimensions.get('window'); 
@@ -328,21 +381,30 @@ const handleDelete = async (departmentId) => {
         visible={isMenuVisible === department.department_id}
         onDismiss={() => setIsMenuVisible(null)}
         anchor={
-          <TouchableOpacity style={styles.actionContainer} onPress={() => toggleMenu(department.department_id)}>
+          <TouchableOpacity
+            style={styles.actionContainer}
+            onPress={(event) => {
+             
+              event.target.measure((x, y, width, height, pageX, pageY) => {
+                setMenuPosition({ top: pageY + height, left: pageX });
+                toggleMenu(department.department_id);
+              });
+            }}
+          >
             <Ionicons name="ellipsis-vertical" size={20} color="#000" />
           </TouchableOpacity>
         }
-        
       >
         <Menu.Item title="Edit" onPress={() => handleEdit(department)} />
-        <Menu.Item title="Delete" onPress={() => handleDelete(department.department_id)} />
-        <Menu.Item title="Add Sub-Department" onPress={() => handleAddSubDepartment(department.department_id)} />
+        <Menu.Item title="Delete" onPress={() => handleShowDialog(department.department_id)} />
+        <Menu.Item title="Add Sub-Department" onPress={() => handleAddSubDepartment(department.department_id,department.department_name)} />
       </Menu>
     );
   };
-  const handleAddSubDepartment = (parentId) => {
+  const handleAddSubDepartment = (parentId,departmentName) => {
     setNewDepartment({ ...newDepartment, parent_department_id: parentId,department_head: selectedUser ? selectedUser: null });
     setIsModalVisible(true);
+    setParentDepartmentName(departmentName);
   };
 
 /*   const renderSubDepartments = (department, level = 0) => (
@@ -447,7 +509,7 @@ const renderSubDepartments = (department, level = 0) => {
             onValueChange={(itemValue) => {
               setNewDepartmentDetails((prev) => ({ ...prev, department_head: itemValue }));
             }}
-            style={styles.picker}
+            style={styles.input}
           >
             <Picker.Item label="Select a user" value="" />
             {users.map((user) => (
@@ -460,6 +522,13 @@ const renderSubDepartments = (department, level = 0) => {
           </Picker>
             <TouchableOpacity style={styles.actionContainer} onPress={handleUpdate}>
               <Ionicons name="save" size={20} color="#000" />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.actionContainer}
+              onPress={() => setEditingDepartment(null)} // Reset editing state
+            >
+              <Ionicons name="close-circle" size={20} color="#B40A0A" />
             </TouchableOpacity>
           </>
         ) : (
@@ -569,7 +638,7 @@ const renderSubDepartments = (department, level = 0) => {
             onValueChange={(itemValue) => {
               setNewDepartmentDetails((prev) => ({ ...prev, department_head: itemValue }));
             }}
-            style={styles.picker}
+            style={styles.input}
           >
             <Picker.Item label="Select a user" value="" />
             {users.map((user) => (
@@ -597,7 +666,7 @@ const renderSubDepartments = (department, level = 0) => {
   />
   {/* Render Sub-Departments */}
   
-  <View style={styles.subDept}>
+<View style={styles.subDept}>
   {/* Render sub-department block only if headingDepartment is set */}
   {headingDepartment && (
     <>
@@ -606,7 +675,7 @@ const renderSubDepartments = (department, level = 0) => {
       <View style={[styles.row, styles.header]}>
         <Text style={[styles.cell, { }]}>Name</Text>
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', }}>
-          <Text style={[styles.cell, { textAlign: 'right' },{paddingLeft:30} ]}>Unit Head</Text>
+          <Text style={[styles.cell, { textAlign: 'right' },{paddingLeft:30} ]}>Department Head</Text>
           <Text style={[styles.cell, { textAlign: 'right' }]}>Action</Text>
         </View>
       </View>
@@ -697,22 +766,29 @@ const renderSubDepartments = (department, level = 0) => {
 
       {/* Add Department Modal */}
       <Modal visible={isModalVisible} animationType="slide" transparent>
+      <View style={styles.modalOverlay}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalHeader}>Add New </Text>
+         
+            <Text style={styles.modalHeader}>Add New Department</Text>
+            {parentDepartmentName && (
+        <Text style={styles.parentDepartmentText}>
+          Parent Department: {parentDepartmentName}
+        </Text>
+      )}
             <TextInput
               style={styles.modalInput}
               placeholder="Name"
               value={newDepartment.department_name}
               onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, department_name: text }))}
             />
+            <View style={styles.spacer} />
             <TextInput
               style={styles.modalInput}
               placeholder="Description"
               value={newDepartment.description}
               onChangeText={(text) => setNewDepartment((prev) => ({ ...prev, description: text }))}
             />
-       {users.length > 0 ? (
+     {/*   {users.length > 0 ? (
  <Picker
  selectedValue={selectedUser?.user_id ? String(selectedUser.user_id) : ""}
  onValueChange={(itemValue) => {
@@ -743,7 +819,12 @@ const renderSubDepartments = (department, level = 0) => {
   <Text style={styles.selectedUserText}>
     Selected Department Head: {selectedUser.first_name} {selectedUser.last_name}
   </Text>
-)}
+)} */}   <View
+style={{
+  flexDirection: 'row',
+  justifyContent: 'center',
+  gap: 14,
+}}>
             <TouchableOpacity style={styles.saveButton} onPress={handleAddDepartment}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
@@ -752,10 +833,23 @@ const renderSubDepartments = (department, level = 0) => {
             </TouchableOpacity>
           </View>
         </View>
+        </View>
       </Modal>
     </View>
-    </ScrollView>
-    </Provider>
+    <ConfirmationBox
+          visible={dialogVisible}
+          onClose={handleCloseDialog}
+          onConfirm={handleConfirmDelete}
+          message="The department you are deleting may have the users associated with it. Do you still want to proceed with this action?"
+        />
+
+<AlertBox
+          visible={alertVisible}
+          onClose={closeAlert}
+          message={alertMessage}
+        />
+  </ScrollView>
+</Provider>
     
   );
 };
@@ -851,12 +945,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#007bff',
     paddingVertical: 2,
+    marginRight: 10,
   },
-  modalContainer: {
+  modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContainer: {
+    width: '40%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 40,
   },
   modalContent: {
     width: '80%',
@@ -866,38 +967,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalHeader: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 10,
+    textAlign: 'center',
+    marginBottom: 60,
   },
   modalInput: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 5,
     padding: 10,
-    marginBottom: 10,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '100%', // Ensures input takes up the full width of the container
   },
   saveButton: {
-    backgroundColor: '#007bff',
-    padding: 10,
+    backgroundColor: '#044086',
+    paddingVertical: 10,
     borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
   },
   saveButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: 'white',
+    fontSize: 16,
+    textAlign: 'center',
   },
   cancelButton: {
-    padding: 10,
+    paddingVertical: 10,
     borderRadius: 5,
-    width: '100%',
-    alignItems: 'center',
+    marginTop: 15,
+    marginRight: 10,
+    paddingHorizontal: 16,
+    color: '#232323',
+    alignSelf: 'flex-end',
   },
   cancelButtonText: {
-    color: '#007bff',
+    color: '#333',
     fontWeight: 'bold',
   },
     scrollViewContent: {
@@ -944,7 +1054,29 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     paddingHorizontal: 16,
     paddingBottom:20,
-  }
+  },
+  spacer: {
+    height: 16, 
+  },
+  parentDepartmentText: {
+    fontWeight: 'bold', 
+    fontSize: 18,       
+    color: '#000',      
+    marginVertical: 10, 
+  },
+  input: {
+    marginBottom: 15,
+    borderRadius: 5,
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: 'white',
+    color: '#000',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#044086',
+    borderWidth: 0,
+    outlineStyle: 'none',
+    width: '50%',
+  },
 });
 
 export default DepartmentList;

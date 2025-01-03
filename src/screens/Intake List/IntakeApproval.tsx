@@ -26,6 +26,8 @@ import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
 import {GetDept, GetUsers} from '../../database/Departments';
 import {GetProjectApproval, UpdateProjectApproval} from '../../database/Intake';
 import {ScrollView} from 'react-native-gesture-handler';
+import { navigate } from '../../navigations/RootNavigation';
+import { useFocusEffect } from '@react-navigation/native';
 
 // import {useNavigation} from '@react-navigation/native';
 // import ProjectIntakeDetails from './ProjectIntakeDetails';
@@ -51,6 +53,8 @@ const CreateNewIntakeModal: React.FC<CreateNewIntakeModalProps> = ({
   const [description, setDescription] = useState('');
   const [goalId, setGoalId] = useState<string | undefined>(undefined);
 
+  
+  
   useEffect(() => {
     console.log('Edit Goal:', editGoal);
     if (editGoal) {
@@ -304,6 +308,7 @@ const IntakeApproval: React.FC = () => {
     setprojIntkAprvlId(projIntkAprvlId);
     setType('review'); // Assuming a default type, you can change it if needed
     setIsModalVisible(true); // Open the modal
+    fetchProjects();
   };
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [projectId, setProjectId] = useState<number | null>(null); // Store the project ID
@@ -343,11 +348,6 @@ const IntakeApproval: React.FC = () => {
 
       console.log('Payload:', payload);
 
-      // Call your function to handle the payload (e.g., UpdateProjectApproval)
-      //   UpdateProjectApproval(payload);
-
-      // Close the modal after submitting the comment
-
       try {
         const response = await UpdateProjectApproval(payload);
         const parsedResponse = JSON.parse(response);
@@ -373,6 +373,7 @@ const IntakeApproval: React.FC = () => {
 
   const [departments, setDepartments] = useState<any[]>([]); // State to hold departments
   const [users, setUsers] = useState<any[]>([]); // State to hold departments
+
 
   // Fetch goals
   const fetchProjects = async () => {
@@ -438,7 +439,12 @@ const IntakeApproval: React.FC = () => {
     fetchDepartments();
     fetchUsers();
   }, []);
-
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fetch data or refresh the screen every time it gains focus
+      fetchProjects();
+    }, [])
+  );
   const mapDepartmentIdToName = (id: number) => {
     const department = departments.find(dept => dept.department_id === id);
     return department ? department.department_name : ' ';
@@ -446,6 +452,18 @@ const IntakeApproval: React.FC = () => {
   const mapIdIdToUser = (id: number) => {
     const user = users.find(user => user.user_id === id);
     return user ? `${user.first_name}${user.last_name}` : ' ';
+  };
+
+  const handleViewPress = (id: number) => {
+    console.log('Navigating with Project ID:', id);
+    navigate('IntakeApprovalView', {project_id: id});
+  };
+
+
+  const handlestatus = (id: number,status:number,projectintk:any,sequenceid:any) => {
+    console.log('Navigating with Project ID:', id);
+    console.log('Navigating with Project status:', status);
+    navigate('IntakeApprovalView', {project_id: id,status:status,proj_intk_aprvl_id:projectintk,sequence_id:sequenceid});
   };
 
   const HandleDeleteGoal = async goal_id => {
@@ -508,7 +526,7 @@ const IntakeApproval: React.FC = () => {
     <PaperProvider>
       <View style={styles.container}>
         <View style={styles.contentWrapper}>
-          <Text style={styles.heading}>Intake Approval</Text>
+          <Text style={styles.heading}>Intake Review/Approval</Text>
           <View style={styles.topBar}>
             <View style={styles.leftButtons}>
               {/* <TouchableOpacity style={styles.button}>
@@ -566,21 +584,22 @@ const IntakeApproval: React.FC = () => {
             </View>
           </View>
           <View style={styles.tableContainer}>
-            <View style={styles.headerRow}>
+          <View style={styles.headerRow}>
               {[
-                '',
-                'S.No.',
-                'Project ID',
-                'Project Name',
-                'Department',
-                'Project Owner',
-                'Project Manager',
-                'Budget',
-                'Start date',
-                'End date',
-                'Requested By',
-                'Requested On',
-                'Actions',
+                '',  //0
+                'S.No.',  //1
+                'Project ID', //2
+                'Project Name', //3
+                'Status', //4
+                'Project Owner', //5
+                'Project Manager', //6
+                'Budget',//7
+                'Start date', //8
+                'End date',//9
+                'Go-Live date',//10
+                'Requested By', //11
+                'Requested On', //12
+                'Actions', //13
               ].map((header, index) => (
                 <View
                   key={index}
@@ -594,7 +613,7 @@ const IntakeApproval: React.FC = () => {
                       ? {flex: 1}
                       : index >= 3 && index <= 4
                       ? {flex: 1.3}
-                      : index >= 5 && index <= 6
+                      : index >= 5 && index <= 8
                       ? {flex: 1.5}
                       : index >= 9 && index <= 10
                       ? {flex: 1.5}
@@ -615,7 +634,7 @@ const IntakeApproval: React.FC = () => {
                           } else {
                             setCheckedItems(
                               new Set(
-                                approvalprojects.map(project =>
+                                projects.map(project =>
                                   project.project_id.toString(),
                                 ),
                               ),
@@ -665,143 +684,225 @@ const IntakeApproval: React.FC = () => {
                 </View>
               ))}
             </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {approvalprojects.map((project, index) => (
-                <View key={project.project_id} style={styles.row}>
-                  <View style={[styles.cell, {flex: 0.3}]}>
-                    <Checkbox
-                      status={
-                        checkedItems.has(project.project_id.toString())
-                          ? 'checked'
-                          : 'unchecked'
-                      }
-                      onPress={() => {
-                        setCheckedItems(prevChecked => {
-                          const newChecked = new Set(prevChecked);
-                          if (newChecked.has(project.project_id.toString())) {
-                            newChecked.delete(project.project_id.toString());
-                          } else {
-                            newChecked.add(project.project_id.toString());
-                          }
-                          return newChecked;
-                        });
-                      }}
-                    />
-                  </View>
-                  <View style={[styles.cell, {flex: 0.4}]}>
-                    <Text>{index + 1}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.project_id}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text>{project.project_name}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.3}]}>
-                    <Text numberOfLines={1} ellipsizeMode="tail">
-                      {mapDepartmentIdToName(project.project_owner_dept)}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1.5}]}>
-                    <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>{project.budget_size}</Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.start_date).toLocaleDateString()}
-                    </Text>
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Text>
-                      {new Date(project.end_date).toLocaleDateString()}
-                    </Text>
-                  </View>
 
-                  {/* <View style={[styles.cell, {flex: 1.5}]}>
+            {/*row items start */}
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {approvalprojects
+                .filter(project => project.project_id !== null)
+
+                .map((project, index) => (
+                  <View key={project.project_id} style={styles.row}>
+                    <View style={[styles.cell, {flex: 0.3}]}>
+                      <Checkbox
+                        status={
+                          checkedItems.has(
+                            project.project_id
+                              ? project.project_id.toString()
+                              : '',
+                          )
+                            ? 'checked'
+                            : 'unchecked'
+                        }
+                        onPress={() => {
+                          setCheckedItems(prevChecked => {
+                            const newChecked = new Set(prevChecked);
+                            const projectId = project.project_id
+                              ? project.project_id.toString()
+                              : '';
+
+                            if (newChecked.has(projectId)) {
+                              newChecked.delete(projectId);
+                            } else {
+                              newChecked.add(projectId);
+                            }
+                            return newChecked;
+                          });
+                        }}
+                      />
+                    </View>
+                    <View style={[styles.cell, {flex: 0.4}]}>
+                      <Text>{index + 1}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Text>{project.project_id}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.3}]}>
+                      <Text>{project.project_name}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.3}]}>
+                    {/* <Text numberOfLines={1} ellipsizeMode="tail">
+                      {mapDepartmentIdToName(project.project_owner_dept)}
+                    </Text> */}
+                    <Text>{project.status_name}</Text>
+                  </View>
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>{mapIdIdToUser(project.project_owner_user)}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>{mapIdIdToUser(project.project_manager_id)}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>{project.budget}</Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.2}]}>
+                      <Text>
+                        {new Date(project.start_date).toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1.2}]}>
+                      <Text>
+                        {new Date(project.end_date).toLocaleDateString()}
+                      </Text>
+                    </View>
+
+                    {/* <View style={[styles.cell, {flex: 1.5}]}>
                   <Text>
                     {new Date(project.requested_by_date).toLocaleDateString()}
                   </Text>
                 </View> */}
-                  <View style={[styles.cell, {flex: 1.5}]}>
+                <View style={[styles.cell, {flex: 1.5}]}>
                     <Text>
-                      {new Date(project.requested_by_date).toLocaleDateString()}
+                      {new Date(project.golive_date).toLocaleDateString()}
                     </Text>
                   </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    {new Date(project.requested_on_date).toLocaleDateString()}
-                  </View>
-                  <View style={[styles.cell, {flex: 1}]}>
-                    <Menu
-                      visible={project.menuVisible}
-                      onDismiss={() => {
-                        const updatedProjectsData = approvalprojects.map(item =>
-                          item.project_id === project.project_id
-                            ? {...item, menuVisible: false}
-                            : item,
-                        );
-                        setProjects(updatedProjectsData);
-                      }}
-                      anchor={
-                        <TouchableOpacity
-                          onPress={event => {
-                            const {pageX, pageY} = event.nativeEvent;
-                            const updatedProjectsData = approvalprojects.map(
-                              item =>
-                                item.project_id === project.project_id
-                                  ? {
-                                      ...item,
-                                      menuVisible: true,
-                                      menuX: pageX,
-                                      menuY: pageY,
-                                    }
-                                  : {...item, menuVisible: false},
-                            );
-                            setapprovalProjects(updatedProjectsData);
-                          }}>
-                          <IconButton
-                            icon="dots-vertical"
-                            size={20}
-                            style={{margin: 0, padding: 0}}
-                          />
-                        </TouchableOpacity>
-                      }
-                      style={{
-                        position: 'absolute',
-                        zIndex: 1000,
-                        left: project.menuX ? project.menuX - 150 : 0,
-                        top: project.menuY ? project.menuY - 80 : 0,
-                      }}>
-                      <Menu.Item title="View" />
-                      <Menu.Item
+                    <View style={[styles.cell, {flex: 1.5}]}>
+                      <Text>
+                        {project.created_by_name}
+                      </Text>
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                    {new Date(project.created_at).toLocaleDateString()}
+                    </View>
+                    <View style={[styles.cell, {flex: 1}]}>
+                      <Menu
+                        visible={project.menuVisible}
+                        onDismiss={() => {
+                          const updatedProjectsData = approvalprojects.map(
+                            item =>
+                              item.project_id === project.project_id
+                                ? {...item, menuVisible: false}
+                                : item,
+                          );
+                          setapprovalProjects(updatedProjectsData);
+                        }}
+                        anchor={
+                          <TouchableOpacity
+                            onPress={event => {
+                              const {pageX, pageY} = event.nativeEvent;
+                              const updatedProjectsData = approvalprojects.map(
+                                item =>
+                                  item.project_id === project.project_id
+                                    ? {
+                                        ...item,
+                                        menuVisible: true,
+                                        menuX: pageX,
+                                        menuY: pageY,
+                                      }
+                                    : {...item, menuVisible: false},
+                              );
+                              setapprovalProjects(updatedProjectsData);
+                            }}>
+                            <IconButton
+                              icon="dots-vertical"
+                              size={20}
+                              style={{margin: 0, padding: 0}}
+                            />
+                          </TouchableOpacity>
+                        }
+                        style={{
+                          position: 'absolute',
+                          zIndex: 1000,
+                          left: project.menuX ? project.menuX - 150 : 0,
+                          top: project.menuY ? project.menuY - 80 : 0,
+                        }}>
+                        {/* <Menu.Item
                         onPress={() => {
                           console.log(
-                            'Project Approval ID:',
-                            project.proj_intk_aprvl_id,
-                          );
-                          console.log('Sequence ID:', project.sequence_id);
-                          console.log('Project ID:', project.project_id);
-                          console.log('Type:', project.type);
-                          console.log('Project:', project);
-
-                          handleApprovePress(
-                            project.proj_intk_aprvl_id,
-                            project.sequence_id,
+                            'Project ID in onPress:',
                             project.project_id,
-                            project.type,
-                          );
+                          ); // Debugging log
+                          handleViewPress(project.project_id); // Call the function with the project ID
                         }}
-                        title="Approve"
-                      />
-                      <Menu.Item onPress={() => {}} title="Reject" />
-                    </Menu>
+                        title="View"
+                      /> */}
+
+{project.status === 3 && (
+  <Menu.Item
+    onPress={() => {
+      console.log('Project ID in onPress:', project.project_id); // Debugging log
+      handlestatus(project.project_id,project.status,project.proj_intk_aprvl_id,project.sequence_id); // Call the function with the project ID
+    }}
+    title="Review"
+  />
+)}
+{project.status === 1 && (
+  <Menu.Item
+  onPress={() => {
+    console.log(
+      'Project ID in onPress:',
+      project.project_id,
+    ); // Debugging log
+    handlestatus(project.project_id,project.status,project.proj_intk_aprvl_id,project.sequence_id); // Call the function with the project ID
+  }}
+  title="View"
+/>
+)}
+
+
+
+{project.status === 1 && (
+ <Menu.Item
+ onPress={() => {
+   console.log(
+     'Project Approval ID:',
+     project.proj_intk_aprvl_id,
+   );
+   console.log('Sequence ID:', project.sequence_id);
+   console.log('Project ID:', project.project_id);
+   console.log('Type:', project.type);
+   console.log('Project:', project);
+
+   handleApprovePress(
+     project.proj_intk_aprvl_id,
+     project.sequence_id,
+     project.project_id,
+     project.type,
+   );
+ }}
+ title="Approve"
+/>
+)}
+
+{project.status === 1 && (
+  <Menu.Item onPress={() => {}} title="Reject" />
+)}
+
+
+                      {/*   <Menu.Item
+                          onPress={() => {
+                            console.log(
+                              'Project Approval ID:',
+                              project.proj_intk_aprvl_id,
+                            );
+                            console.log('Sequence ID:', project.sequence_id);
+                            console.log('Project ID:', project.project_id);
+                            console.log('Type:', project.type);
+                            console.log('Project:', project);
+
+                            handleApprovePress(
+                              project.proj_intk_aprvl_id,
+                              project.sequence_id,
+                              project.project_id,
+                              project.type,
+                            );
+                          }}
+                          title="Approve"
+                        /> */}
+                       {/*  <Menu.Item onPress={() => {}} title="Reject" /> */}
+                      </Menu>
+                    </View>
                   </View>
-                </View>
-              ))}
+                ))}
             </ScrollView>
           </View>
           <Modal
@@ -825,7 +926,7 @@ const IntakeApproval: React.FC = () => {
                 <Text>Add a Comment</Text>
                 <TextInput
                   value={comment}
-                  onChangeText={setComment} // Update the comment state
+                  onChangeText={setComment} 
                   placeholder="Type your comment here"
                   style={{
                     height: 40,

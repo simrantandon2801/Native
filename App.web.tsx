@@ -11,6 +11,7 @@ import {navigationRef} from './src/navigations/RootNavigation';
 import {HomeStackNavigatorParamList} from './type';
 import { LogBox } from 'react-native';
 import SignupScreen from './src/screens/SignupScreen';
+// import Toast from 'react-native-toast-message';
 
 
 
@@ -24,6 +25,7 @@ const App: React.FC = () => {
   return (
     <PaperProvider
       theme={scheme === 'dark' ? darkThemeColors : lightThemeColors}>
+     
       <NavigationContainer ref={navigationRef}>
         <Stack.Navigator initialRouteName="LoginScreen">
           {/* Login Screen */}
@@ -37,7 +39,6 @@ const App: React.FC = () => {
             component={SignupScreen}
             options={{headerShown: false}}
           />
-
           {/* Drawer Content */}
           <Stack.Screen
             name="Main"
@@ -46,6 +47,7 @@ const App: React.FC = () => {
           />
         </Stack.Navigator>
       </NavigationContainer>
+      {/* <Toast /> */}
     </PaperProvider>
   );
 };
