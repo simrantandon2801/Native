@@ -1095,7 +1095,7 @@ const ApprovalHistory: React.FC = () => {
                     <TextInput
                       style={styles.outlinedInput}
                       placeholder="Enter Business Problem/Description"
-                      value={businessProblem}
+                      value={businessProblem || project.business_desc}
                       onChangeText={setBusinessProblem}
                     />
                   </View>
@@ -1106,7 +1106,7 @@ const ApprovalHistory: React.FC = () => {
                     <TextInput
                       style={styles.outlinedInput}
                       placeholder="Enter Scope Definition"
-                      value={scopeDefinition}
+                      value={scopeDefinition || project.scope_definition}
                       onChangeText={setScopeDefinition}
                     />
                   </View>
@@ -1121,7 +1121,7 @@ const ApprovalHistory: React.FC = () => {
                     <TextInput
                       style={styles.outlinedInput}
                       placeholder="Enter Key Assumption"
-                      value={keyAssumption}
+                      value={keyAssumption || project.key_assumption}
                       onChangeText={setKeyAssumption}
                     />
                   </View>
@@ -1132,7 +1132,7 @@ const ApprovalHistory: React.FC = () => {
                     <TextInput
                       style={styles.outlinedInput}
                       placeholder="Enter Benefits/ROI"
-                      value={benefitsROI}
+                      value={benefitsROI || project.benefit_roi}
                       onChangeText={setBenefitsROI}
                     />
                   </View>
@@ -1147,7 +1147,7 @@ const ApprovalHistory: React.FC = () => {
                     <TextInput
                       style={styles.outlinedInput}
                       placeholder="Enter Risk"
-                      value={risk}
+                      value={risk || project.risk}
                       onChangeText={setRisk}
                     />
                   </View>

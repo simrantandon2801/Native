@@ -37,6 +37,7 @@ import NestedDeptDropdownNewProjects from '../../modals/NestedDeptDropDownNewPro
 import { navigate } from '../../navigations/RootNavigation';
 import BudgetDetail from './BudgetDetails';
 import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
+import { GetClasssifcation } from '../../database/Classification';
 
 
 const NewIntake = () => {
@@ -76,6 +77,7 @@ const NewIntake = () => {
   const [approvalPathOther, setApprovalPathOther] = useState('');
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [goals, setGoals] = useState([]);
+  const [classifications, setClassifications] = useState([]);
   const [goalSelected, setGoalSelected] = useState('');
   const [programData, setProgramData] = useState([]);
   const [businessData, setBusinessData] = useState([]);
@@ -112,6 +114,11 @@ const NewIntake = () => {
   const [departments, setDepartments] = useState([]);
   const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
   const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
+  
+  const [impactedApp, setImpactedApp] = useState(''); // Selected value
+  const [applications, setApplications] = useState([]); // Store fetched applications
+  const [loading, setLoading] = useState(true); // For loading state
+  const [error, setError] = useState(null); // For error handling
   const addStep = () => {
     setSteps([
       ...steps,
@@ -341,6 +348,22 @@ const NewIntake = () => {
       );
     }
   };
+  const fetchClassification = async () => {
+    try {
+      const response = await GetClasssifcation('');
+      const result = JSON.parse(response);
+      if (result?.data?.classifications && Array.isArray(result.data.classifications)) {
+        setClassifications(result.data.classifications);
+      } else {
+        console.error('Invalid goals data');
+        Alert.alert('Error', 'Invalid goals data received');
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      //setGoals([]);
+    }
+  };
+
   useEffect(() => {
     // Call the function to fetch data
     fetchSequence();
@@ -351,6 +374,7 @@ const NewIntake = () => {
     fetchUsers();
     fetchBusinessOwner();
     fetchProjectOwner();
+    fetchClassification();
   }, []);
   //  const fetchSequence = async () => {
   //       try {
@@ -743,10 +767,6 @@ useEffect(() => {    // addition of review
     console.log('Updated Selected Items:', newSelectedStakeholders);
   };
 
-  const [impactedApp, setImpactedApp] = useState(''); // Selected value
-  const [applications, setApplications] = useState([]); // Store fetched applications
-  const [loading, setLoading] = useState(true); // For loading state
-  const [error, setError] = useState(null); // For error handling
 
   const fetchImpactedApplications = async () => {
     try {
@@ -856,25 +876,35 @@ useEffect(() => {    // addition of review
             </View>
 
             <View style={styles.smallInputContainer}>
-              <Text style={styles.inputLabel}>
-                Classification <Text style={styles.asterisk}>*</Text>
-              </Text>
-              <Picker
-  selectedValue={values.classification} // Bind to Formik's state
-  onValueChange={(value) => {
-    setFieldValue('classification', value); // Update Formik's state
-    setClassification(value); // Update custom state
-  }}
-  onBlur={handleBlur('classification')} // Trigger Formik's validation
-  style={styles.input}
->
-                <Picker.Item label="Select Classification" value="" />
-                <Picker.Item label="Business strategic" value="1" />
-                <Picker.Item label="Self funded" value="2" />
-                <Picker.Item label="Operations" value="3" />
-              </Picker>
-              {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
-            </View>
+      <Text style={styles.inputLabel}>
+        Classification <Text style={styles.asterisk}>*</Text>
+      </Text>
+
+      <Picker
+        selectedValue={classification} // Bind to Formik's state or custom state
+        onValueChange={(value) => {
+          setClassification(value); // Update custom state
+          console.log('selectedvalue',value)
+        }}
+        style={styles.input}
+      >
+        <Picker.Item label="Select Classification" value="" />
+
+        {/* Map over the fetched classifications and display them in the Picker */}
+        {classifications.map((item) => (
+          <Picker.Item
+            key={item.classification_id} // Ensure that each item has a unique key
+            label={item.classification_name} // Display the classification name
+            value={item.classification_id} // Set the value to the classification ID
+          />
+        ))}
+      </Picker>
+
+      {/* Validation error for Formik */}
+      {touched.classification && errors.classification && (
+        <Text style={{ color: 'red' }}>{errors.classification}</Text>
+      )}
+    </View>
               
             <View style={styles.verticalDivider} />
             <View style={styles.smallInputContainer}>

@@ -282,9 +282,13 @@ const loadBudgetData = async (project_id) => {
           style={[styles.picker, styles.tableCell]}
         >
           <Picker.Item label="Select Category" value="" />
-          {categories.map((cat, index) => (
-            <Picker.Item key={index} label={cat.category_name} value={cat.category_id} />
-          ))}
+          {categories && categories.length > 0 ? (
+  categories.map((cat, index) => (
+    <Picker.Item key={index} label={cat.category_name} value={cat.category_id} />
+  ))
+) : (
+  <Picker.Item label="No categories available" value="" />
+)}
         </Picker>
         {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
 
