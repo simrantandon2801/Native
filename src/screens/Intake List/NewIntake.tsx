@@ -41,6 +41,7 @@ import BudgetDetail from './BudgetDetails';
 import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
 
 
+
 const NewIntake = () => {
   // States
   const [nameTitle, setNameTitle] = useState('');
@@ -78,6 +79,7 @@ const NewIntake = () => {
   const [approvalPathOther, setApprovalPathOther] = useState('');
   const [isDraftSaved, setIsDraftSaved] = useState(false);
   const [goals, setGoals] = useState([]);
+  const [classifications, setClassifications] = useState([]);
   const [goalSelected, setGoalSelected] = useState('');
   const [programData, setProgramData] = useState([]);
   const [businessData, setBusinessData] = useState([]);
@@ -114,7 +116,7 @@ const NewIntake = () => {
   const [departments, setDepartments] = useState([]);
   const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
   const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
-  const [classifications, setClassifications] = useState<Classification[]>([]);
+  // const [classifications, setClassifications] = useState<Classification[]>([]);
   const addStep = () => {
     setSteps([
       ...steps,
@@ -342,6 +344,22 @@ const NewIntake = () => {
       );
     }
   };
+  const fetchClassification = async () => {
+    try {
+      const response = await GetClasssifcation('');
+      const result = JSON.parse(response);
+      if (result?.data?.classifications && Array.isArray(result.data.classifications)) {
+        setClassifications(result.data.classifications);
+      } else {
+        console.error('Invalid goals data');
+        Alert.alert('Error', 'Invalid goals data received');
+      }
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      //setGoals([]);
+    }
+  };
+
   useEffect(() => {
     // Call the function to fetch data
     fetchSequence();
@@ -352,6 +370,7 @@ const NewIntake = () => {
     fetchUsers();
     fetchBusinessOwner();
     fetchProjectOwner();
+    fetchClassification();
   }, []);
 
   const handleBusinessOwnerDept = (deptID: number) => {
@@ -728,10 +747,6 @@ useEffect(() => {    // addition of review
     console.log('Updated Selected Items:', newSelectedStakeholders);
   };
 
-  const [impactedApp, setImpactedApp] = useState(''); // Selected value
-  const [applications, setApplications] = useState([]); // Store fetched applications
-  const [loading, setLoading] = useState(true); // For loading state
-  const [error, setError] = useState(null); // For error handling
 
   const fetchImpactedApplications = async () => {
     try {

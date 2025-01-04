@@ -55,6 +55,7 @@ const approvalHistory: ApprovalItem[] = [
       'Approved as an exception due to its strategic importance. Additional resources to be monitored closely.',
   },
 ];
+
 const addStep = () => {
     setSteps([...steps, { id: steps.length + 1, forwardTo: '', designation: '', action: '',department_name: '' }]);
   };
@@ -142,9 +143,8 @@ const ApprovalHistory: React.FC = () => {
       const response = await GetHistory({project_id: projectId}); // Adjust according to your API's requirements
 
       const result = JSON.parse(response);
-      if (result?.status === 'success' && Array.isArray(result.data.project)) {
-        setHistoryData(result.data.project);
-        console.log('Fetched history data:', result.data.project);
+      if (result?.status === 'success' && Array.isArray(result.data)) {
+        setHistoryData(result.data);
       } else {
         console.error('Invalid history data');
         Alert.alert('Error', 'Invalid history data received');
@@ -175,45 +175,41 @@ const ApprovalHistory: React.FC = () => {
       {/* Header row for Approval History */}
       <View style={styles.historyHeader}>
         <Text style={[styles.columnHeader, {flex: 2}]}>Project Name</Text>
-        <Text style={[styles.columnHeader, {flex: 2}]}>Sent From</Text>
-        <Text style={[styles.columnHeader, {flex: 2}]}>Sent To</Text>
-        <Text style={[styles.columnHeader, {flex: 1}]}>Sent On</Text>
-        <Text style={[styles.columnHeader, {flex: 2}]}>Purpose</Text>
+        <Text style={[styles.columnHeader, {flex: 1}]}>Date</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Status</Text>
+        <Text style={[styles.columnHeader, {flex: 2}]}>Sent to</Text>
         <Text style={[styles.columnHeader, {flex: 4}]}>Comments</Text>
       </View>
 
       {historyData.map((project, index) => (
         <View key={index} style={styles.projectContainer}>
           {/* Render project-level details for each sequence */}
-          {/* {project.sequences.map((sequence: any, seqIndex: number) => ( */}
-            <View key={index} style={styles.sequenceContainer}>
+          {project.sequences.map((sequence: any, seqIndex: number) => (
+            <View key={seqIndex} style={styles.sequenceContainer}>
               {/* Render project-level details for each sequence */}
               <Text style={[styles.cellText, {flex: 2}]}>
                 {project.project_name}
               </Text>
-              <Text style={[styles.cellText, {flex: 2}]}>
-                {project.sent_from_name || 'No user assigned'}
-              </Text>
-              <Text style={[styles.cellText, {flex: 2}]}>
-                {project.sent_to_name || 'No user assigned'}
-              </Text>
               <Text style={[styles.cellText, {flex: 1}]}>
-                {new Date(project.created_at).toLocaleDateString()}
+                {new Date(project.project_intake_date).toLocaleDateString()}
               </Text>
 
               {/* Render sequence-specific data */}
               <Text style={[styles.cellText, {flex: 2}, {paddingRight: 10}]}>
-                {project.status_name || 'No Action Taken'}
+                {sequence.user_status_name || 'No Action Taken'}
+              </Text>
+              <Text style={[styles.cellText, {flex: 2}]}>
+                {sequence.user_name || 'No user assigned'}
               </Text>
               <Text style={[styles.commentCell, {flex: 4}]}>
-                {project.comment || 'No comments'}
+                {sequence.comment || 'No comments'}
               </Text>
 
               {/*  <TouchableOpacity style={styles.actionButton}>
                   <Icon name="dots-vertical" size={24} color="black" />
                 </TouchableOpacity> */}
             </View>
-          {/* ))} */}
+          ))}
         </View>
       ))}
     </ScrollView>
@@ -1034,7 +1030,7 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
               <View style={styles.row}>
                 <View style={styles.smallInputContainer}>
                   <Text style={styles.inputLabel}>
-                    Project Start Date<Text style={styles.asterisk}>*</Text>
+                    Proposed Start Date<Text style={styles.asterisk}>*</Text>
                   </Text>
                   <TextInput
                     style={styles.input}

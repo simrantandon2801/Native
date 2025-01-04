@@ -47,3 +47,21 @@ import { BASE_URL } from "@env";
     }
   };
 
+  export const GetRoles = async (query:string): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      //let customerId = await getCustomerId();
+      var uri = `${BASE_URL}/master/get_roles`;
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };

@@ -56,8 +56,10 @@ import Classification from '../screens/Master/Classification';
 import Designation from '../screens/Master/Designation';
 import BudgetDetails from '../screens/Intake List/BudgetDetails';
 import ProjectDetailedView from '../screens/Intake List/ProjectDetailedView';
-
-
+import ApprovedProjectList from '../screens/ApprovedProject/ApprovedProjectList';
+import Stakeholderform from '../screens/ApprovedProject/Stakeholderform';
+import ProjectDetails from '../screens/ApprovedProject/ProjectDetails';
+import ResetPass from '../screens/Password/ResetPass';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -325,7 +327,10 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="Designation" component={Designation} />
           <Drawer.Screen name="BudgetDetails" component={BudgetDetails} />
           <Drawer.Screen name="ProjectDetailedView" component={ProjectDetailedView} />
-        
+          <Drawer.Screen name="ApprovedProjectList" component={ApprovedProjectList} />
+          <Drawer.Screen name="Stakeholderform" component={Stakeholderform} />
+          <Drawer.Screen name="ProjectDetails" component={ProjectDetails} />
+          <Drawer.Screen name="ResetPass" component={ResetPass} />
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}
