@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { DataTable, Menu } from 'react-native-paper';
 import { TimesheetModal } from './TimeSheetModal';
 import { GetResources } from '../../database/Resource';
 import { ScrollView } from 'react-native-gesture-handler';
+import { GetRoles } from '../../database/RoleMaster';
+import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
 
 interface TeamMemberModalProps {
   visible: boolean;
@@ -22,7 +25,14 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [isTimesheetModalVisible, setIsTimesheetModalVisible] = useState(false);
   const [isTeamMemberSubmitModalVisible, setTeamMemberSubmitModalVisible] = useState(false);
-  const [members, setMembers] = useState<any[]>([]);  // Change the state to array of objects
+  const [members, setMembers] = useState<any[]>([]); 
+  const [roles, setRoles] = useState<any[]>([]); 
+  const [endDateDisplay, setEndDateDisplay] = useState('');
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [startDateDisplay, setStartDateDisplay] = useState('');
+  const [rawStartDate, setRawStartDate] = useState(null);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [rawEndDate, setRawEndDate] = useState(null);
   const [teamMembers, setTeamMembers] = useState([
     { id: 1, name: '13/04/2023', role: '05:30 AM', startDate: '05:30 AM', endDate: '6:30 AM', Description: 'Client Review Preparation, Wireframe Design', isActive: true },
     { id: 2, name: '13/04/2023', role: '05:30 AM', startDate: '05:30 AM', endDate: '6:30 AM', Description: 'Client Review Preparation, Wireframe Design', isActive: false },
@@ -44,11 +54,29 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
     }
   };
 
+
+  const GetRole = async () => {
+    try {
+      const response = await GetRoles('');
+      console.log(response);
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        setRoles(parsedRes.data.roles); // Set the fetched members
+      } else {
+        console.error('Failed to fetch users:', parsedRes.message || 'Unknown error');
+      }
+    } catch (err) {
+      console.log('Error Fetching Users', err);
+    }
+  };
+
   // Effect to trigger fetch when modal visibility changes
   useEffect(() => {
     if (visible) {
       fetchMembers();
+      GetRole();
     }
+    console.log("Selected Role in state:", role); 
   }, [visible]);
 
   const handleSubmit = () => {
@@ -76,18 +104,31 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
     if (selectedMember) {
       console.log("Selected Member:", selectedMember);  // Log the selected member
       setMemberName(`${selectedMember.first_name} ${selectedMember.last_name}`); // Update the member name
-      setMemberId(selectedMember.resource_id); // Update the member ID
+      setMemberId(selectedMember.resource_id);
+      setRole(selectedMember.role_id); 
+      console.log("selecteed role",selectedMember.role_id)
     } else {
       console.log("No member found with ID:", selectedMemberId); // Debugging line if no member is found
     }
   };
-  
+  const handleDateChange = date => {
+    setRawStartDate(date);
+    setStartDateDisplay(format(date, 'MM-dd-yyyy'));
+    setStartDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+    setShowStartDatePicker(false); // Close the picker
+  };
+  const handleEndDateChange = date => {
+    setRawEndDate(date);
+    setEndDateDisplay(format(date, 'MM-dd-yyyy'));
+    setEndDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+    setShowEndDatePicker(false); // Close the picker
+  };
   return (
     <ScrollView>
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
-          <Text style={styles.modalHeading}>Team Member - Murlidharan</Text>
+          <Text style={styles.modalHeading}>Team Member{/*  - Murlidharan */}</Text>
           <View style={styles.row}>
           <View style={styles.inputContainer}>
           <Text style={styles.inputLabel}>
@@ -118,25 +159,36 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
               )}
           </View>
           <View style={styles.inputContainer1}>
-            <Text style={styles.inputLabel}>
-              Role <Text style={styles.asterisk}>*</Text>
-            </Text>
-            <Picker
-              style={styles.input}
-              selectedValue={role}
-              onValueChange={(itemValue) => setRole(itemValue)}
-            >
-              <Picker.Item label="Select Role" value="" />
-              <Picker.Item label="Manager" value="Manager" />
-              <Picker.Item label="Developer" value="Developer" />
-              <Picker.Item label="Designer" value="Designer" />
-            </Picker>
+          <Text style={styles.inputLabel}>
+                Role <Text style={styles.asterisk}>*</Text>
+              </Text>
+              <Picker
+  style={styles.input}
+  selectedValue={role}  // Bind role_id to Picker
+  onValueChange={(itemValue) => {
+    console.log("Selected Role ID:", itemValue); // Log the selected role ID when changed
+    setRole(itemValue);  // Update role when user selects a new role
+  }}
+>
+  <Picker.Item label="Select Role" value="" />
+  {roles.length > 0 ? (
+    roles.map((roleItem) => (
+      <Picker.Item
+        key={roleItem.role_id}
+        label={roleItem.role_name}  // Role name to be displayed
+        value={roleItem.role_id}    // role_id as the value
+      />
+    ))
+  ) : (
+    <Picker.Item label="Loading roles..." value="" />
+  )}
+</Picker>
           </View>
           <View style={styles.inputContainer1}>
             <Text style={styles.inputLabel}>
               Priority <Text style={styles.asterisk}>*</Text>
             </Text>
-            <Picker
+            {/* <Picker
               style={styles.input}
               selectedValue={Priority}
               onValueChange={(itemValue) => setRole(itemValue)}
@@ -145,30 +197,63 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
               <Picker.Item label="Manager" value="Manager" />
               <Picker.Item label="Developer" value="Developer" />
               <Picker.Item label="Designer" value="Designer" />
-            </Picker>
+            </Picker> */}
           </View>
           </View>
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>
-               Proposed Start Date <Text style={styles.asterisk}>*</Text>
-            </Text>
-            <TextInput 
-              style={styles.input} 
-              value={startDate}
-              onChangeText={setStartDate}
-              placeholder="YYYY-MM-DD"
-            />
+          <Text style={styles.inputLabel}>Proposed Start Date<Text style={styles.asterisk}>*</Text></Text>
+              <TextInput
+  style={styles.input}
+  value={startDateDisplay} // Bind to Formik's state or use custom state
+  onFocus={() => setShowStartDatePicker(true)} // Open date picker on focus
+  /* onBlur={handleBlur('startDate')} */ // Trigger Formik validation on blur
+  placeholder="Select Start Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
+      {/* <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+                  {/* {touched?.startDate && errors?.startDate && (
+                    <Text style={{color: 'red'}}>{errors.startDate}</Text>
+                  )}
+ */}
+      {Platform.OS === 'web' && showStartDatePicker && (
+        <DatePicker
+          selected={rawStartDate}
+          onChange={(date) => {
+            handleDateChange(date); // Handle date change
+            setShowStartDatePicker(false); // Close picker
+          }}
+          dateFormat="MM-dd-yyyy"
+          inline // Inline style for better usability
+        />
+      )}
           </View>
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>
-               Proposed End Date <Text style={styles.asterisk}>*</Text>
-            </Text>
-            <TextInput 
-              style={styles.input} 
-              value={endDate}
-              onChangeText={setEndDate}
-              placeholder="YYYY-MM-DD"
-            />
+          <Text style={styles.inputLabel}>Proposed End Date<Text style={styles.asterisk}>*</Text></Text>
+              <TextInput
+  style={styles.input}
+  value={/* values.endDate || */ endDateDisplay} // Use Formik's value or custom state
+  onFocus={() => setShowEndDatePicker(true)} // Open date picker on focus
+ /*  onBlur={handleBlur('endDate')} */ // Trigger Formik validation on blur
+  placeholder="Select End Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
+      {/* <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+                  {/* {touched?.endDate && errors?.endDate && (
+                    <Text style={{color: 'red'}}>{errors.endDate}</Text>
+                  )} */}
+
+                  {Platform.OS === 'web' && showEndDatePicker && (
+                    <DatePicker
+                      selected={rawEndDate}
+                      onChange={handleEndDateChange}
+                      dateFormat="MM-dd-yyyy"
+                      inline // Inline style for better usability
+                    />
+                  )}
           </View>
             <TouchableOpacity style={styles.addTimeHeading}>
                         <Text style={styles.addTimeHeadingText}>TimeSheet</Text>

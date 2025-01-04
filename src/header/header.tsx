@@ -22,6 +22,7 @@ import {HomeStackNavigatorParamList} from '../../type';
 import LoginScreen from '../screens/LoginScreen';
 import {navigate} from '../navigations/RootNavigation';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import ResetPass from '../screens/Password/ResetPass';
 
 export type HeaderNavigationProp = NativeStackScreenProps<
   HomeStackNavigatorParamList,
@@ -72,6 +73,16 @@ const Header: React.FC<HeaderNavigationProp> = ({navigation}) => {
     await AsyncStorage.clear();
     setUserType(null);
     navigate(LoginScreen);
+    //navigation.navigate();
+
+    setModalVisible(false);
+  };
+
+  const handleReset = async () => {
+    // Logout logic
+    /* await AsyncStorage.clear();
+    setUserType(null); */
+    navigate(ResetPass);
     //navigation.navigate();
 
     setModalVisible(false);
@@ -176,6 +187,15 @@ const Header: React.FC<HeaderNavigationProp> = ({navigation}) => {
                   color="#007AFF"
                 />
                 <Text style={styles.linkText}>Logout</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleReset} style={styles.option}>
+                <MaterialCommunityIcons
+                  name="logout"
+                  size={20}
+                  color="#007AFF"
+                />
+                <Text style={styles.linkText}>ResetPassword</Text>
               </TouchableOpacity>
             </View>
           </Pressable>

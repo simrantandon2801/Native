@@ -1025,7 +1025,7 @@ const ProjectDetails: React.FC<ApprovalHistoryProps> = ({
               <View style={styles.row}>
                 <View style={styles.smallInputContainer}>
                   <Text style={styles.inputLabel}>
-                    Project Start Date<Text style={styles.asterisk}>*</Text>
+                    Proposed Start Date<Text style={styles.asterisk}>*</Text>
                   </Text>
                   <TextInput
                     style={styles.input}
