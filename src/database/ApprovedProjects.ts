@@ -63,3 +63,45 @@ export const GetApprovedProjects = async (query:string): Promise<string> => {
       throw Error('Failed to fetch projects: ' + error);
     }
   };
+
+
+  export const InsertMember  = async (values: Object): Promise<string> => {
+    try {
+      // 
+       //const UserID = await AsyncStorage.getItem('UserID');
+       var uri = `${BASE_URL}/approvedProjects/insert_project_team`;
+       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+       const token = await AsyncStorage.getItem('Token');  
+       console.log(uri);
+       var payload = JSON.stringify(values);
+       console.log(payload);
+       var jsonResult = await PostAsync_with_token(uri, payload,token);
+       //  
+       //
+       console.log(jsonResult);
+       return JSON.stringify(jsonResult ?? '');
+     } catch (error) {
+       console.error(error);
+       throw Error('Failed' + error);
+     }
+  };
+
+
+  export const GetTeamMembers = async (projectId:any): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      var uri = `${BASE_URL}/approvedProjects/get_project_team?project_id=${projectId}`;
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);``
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+    //  console.log("jsonResult from API:", jsonResult);
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };

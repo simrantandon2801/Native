@@ -1,14 +1,43 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert } from 'react-native';
 import { DataTable } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
  import { TeamMemberModal } from './TeamMembersModal';
+import { GetTeamMembers } from '../../database/ApprovedProjects';
+import { useFocusEffect } from '@react-navigation/native';
 // TeamMemberModal component (placeholder)
 
 
-const TeamMembers = () => {
+const TeamMembers= ({/*  items, */ projectId /* isEditable */ }) => {
     const [isTeamMembersModalVisible, setIsTeamMemberModalVisible] = useState(false);
+    const [teamMembers, setTeamMembers] = useState<any[]>([]);
+console.log(projectId)
+
+const fetchProjects = async (projectId) => {
+  try {
+    const response = await GetTeamMembers(projectId); // Pass projectId here
+    const parsedRes = JSON.parse(response);
+    console.log('Get Projects Response:', response);
+
+    if (parsedRes?.status === 'success' && Array.isArray(parsedRes.data)) {
+      setTeamMembers(parsedRes.data);  // Update the state with the fetched data
+    } else {
+      console.error('Invalid or empty data');
+      Alert.alert('Error', 'Invalid or empty data');
+    }
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    Alert.alert('Error', 'Failed to fetch projects');
+  }
+};
+    
+    useFocusEffect(
+      React.useCallback(() => {
+        // Fetch data or refresh the screen every time it gains focus
+        fetchProjects(projectId);
+      }, [])
+    );    
     return (
       <View style={styles.teamMembersContainer}>
         <Text style={styles.teamMembersHeading}>Team Members</Text>
@@ -30,6 +59,7 @@ const TeamMembers = () => {
                             <TeamMemberModal 
         visible={isTeamMembersModalVisible}
         onClose={() => setIsTeamMemberModalVisible(false)}
+        projectId={projectId}
       /> </TouchableOpacity>
                           </View>
                         </View>
@@ -44,23 +74,29 @@ const TeamMembers = () => {
               <DataTable.Title style={styles.dataTableCell}>Active/Inactive</DataTable.Title>
               <DataTable.Title style={styles.dataTableCell}>Actions</DataTable.Title>
             </DataTable.Header>
-
-            <DataTable.Row>
-              <DataTable.Cell style={styles.dataTableCell}>1</DataTable.Cell>
-              <DataTable.Cell style={styles.dataTableCell}>John Doe</DataTable.Cell>
-              <DataTable.Cell style={styles.dataTableCell}>Developer</DataTable.Cell>
-              <DataTable.Cell style={styles.dataTableCell}>$50</DataTable.Cell>
-              <DataTable.Cell style={styles.dataTableCell}>$55</DataTable.Cell>
-              <DataTable.Cell style={styles.dataTableCell}>2023-06-01</DataTable.Cell>
-              <DataTable.Cell style={styles.dataTableCell}>2023-12-31</DataTable.Cell>
-              <DataTable.Title style={styles.dataTableCell}>Active</DataTable.Title>
-              <DataTable.Cell style={styles.dataTableCell}>
-                <TouchableOpacity>
-                  <Icon name="dots-vertical" size={20} color="#667085" />
-                </TouchableOpacity>
-              </DataTable.Cell>
-            </DataTable.Row>
-         
+            {teamMembers.map((member, index) => (
+  <DataTable.Row key={member.project_resources_id}>
+    <DataTable.Cell style={styles.dataTableCell}>{index + 1}</DataTable.Cell>  {/* Serial number */}
+    <DataTable.Cell style={styles.dataTableCell}>{member.resource_name}</DataTable.Cell>  {/* Member name */}
+    <DataTable.Cell style={styles.dataTableCell}>{member.role_name}</DataTable.Cell>  {/* Role */}
+    <DataTable.Cell style={styles.dataTableCell}>${member.average_cost}</DataTable.Cell>  {/* Avg. Cost */}
+    <DataTable.Cell style={styles.dataTableCell}>${member.actual_cost}</DataTable.Cell>  {/* Actual Cost */}
+    <DataTable.Cell style={styles.dataTableCell}>
+      {new Date(member.start_date).toLocaleDateString()}
+    </DataTable.Cell>  {/* Start date */}
+    <DataTable.Cell style={styles.dataTableCell}>
+      {new Date(member.end_date).toLocaleDateString()}
+    </DataTable.Cell>  {/* End date */}
+    <DataTable.Cell style={styles.dataTableCell}>
+      {member.is_active ? 'Active' : 'Inactive'}
+    </DataTable.Cell>  {/* Active/Inactive */}
+    <DataTable.Cell style={styles.dataTableCell}>
+      <TouchableOpacity>
+        <Icon name="dots-vertical" size={20} color="#667085" />
+      </TouchableOpacity>
+    </DataTable.Cell>  {/* Actions */}
+  </DataTable.Row>
+))}
           </DataTable>
         {/* </ScrollView> */}
       </View>

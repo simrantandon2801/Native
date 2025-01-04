@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { DataTable, Menu } from 'react-native-paper';
@@ -9,19 +9,23 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { GetRoles } from '../../database/RoleMaster';
 import DatePicker from 'react-datepicker';
 import { format } from 'date-fns';
+import { InsertMember } from '../../database/ApprovedProjects';
+import { useRoute } from '@react-navigation/native';
 
 interface TeamMemberModalProps {
   visible: boolean;
   onClose: () => void;
+  projectId:any;
 }
 
-export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClose }) => {
+export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClose , projectId}) => {
   const [Membername, setMemberName] = useState('');
   const [role, setRole] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [memberId, setMemberId] = useState('');
   const [Priority, setPriority] = useState('');
+  const [actualCost, setActualCost] = useState('');
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [isTimesheetModalVisible, setIsTimesheetModalVisible] = useState(false);
   const [isTeamMemberSubmitModalVisible, setTeamMemberSubmitModalVisible] = useState(false);
@@ -79,13 +83,14 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
     console.log("Selected Role in state:", role); 
   }, [visible]);
 
-  const handleSubmit = () => {
-    console.log('New team member:', { Membername, role, Priority });
-    setTeamMemberSubmitModalVisible(true);
-  };
+  
+  
+  
+  
 
   const handleCloseSuccessModal = () => {
     setTeamMemberSubmitModalVisible(false);
+  
   };
 
   const handleMemberChange = (selectedMemberId: string) => {
@@ -122,6 +127,43 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
     setEndDateDisplay(format(date, 'MM-dd-yyyy'));
     setEndDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
     setShowEndDatePicker(false); // Close the picker
+  };
+  const route = useRoute();
+  const {project_id} = route.params as {project_id: number};
+  const handleSubmit = async () => {
+    const payload = {
+      project_resources_id: 0,
+      project_id: projectId,
+      resource_id: Number(memberId),
+      role_id: Number(role),
+      actual_cost: actualCost,
+      start_date: startDate,
+      end_date: endDate,
+      availability_percentage: 0,
+      is_active: true,
+    };
+  
+    console.log('Payload:', payload);
+  
+    try {
+      // Await the result from InsertMember
+      const response = await InsertMember(payload);
+      const parsedResponse = JSON.parse(response);
+      // Handle the response (assuming it's a JSON object)
+      if (parsedResponse && parsedResponse.status === 'success') {
+        Alert.alert('Member added successfully');
+       
+        setTeamMemberSubmitModalVisible(true); 
+      } else {
+        Alert.alert('Failed to add member. Please try again.');
+        setTeamMemberSubmitModalVisible(false); // Close modal on failure
+      }
+    } catch (error) {
+      // Handle any errors that occur during the API call
+      console.error('Error submitting member:', error);
+      Alert.alert('An error occurred. Please try again.');
+      setTeamMemberSubmitModalVisible(false); // Close the modal on error
+    }
   };
   return (
     <ScrollView>
@@ -186,8 +228,15 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
           </View>
           <View style={styles.inputContainer1}>
             <Text style={styles.inputLabel}>
-              Priority <Text style={styles.asterisk}>*</Text>
+             Actual cost Budget <Text style={styles.asterisk}>*</Text>
             </Text>
+            <TextInput
+        style={styles.input}
+        value={actualCost}
+        onChangeText={setActualCost} // Update the state with the input value
+        keyboardType="numeric" // Optional: restrict to numeric input
+        placeholder="Enter actual cost"
+      />
             {/* <Picker
               style={styles.input}
               selectedValue={Priority}
@@ -331,7 +380,10 @@ export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClo
                   <View style={styles.modalOverlay}>
                     <View style={styles.successModalContent}>
                       <Text style={styles.successModalText}>TeamMember submitted successfully</Text>
-                      <TouchableOpacity style={styles.okButton} onPress={handleCloseSuccessModal}>
+                      <TouchableOpacity style={styles.okButton} onPress={() => {
+    handleCloseSuccessModal();
+    onClose(); 
+  }}>
                         <Text style={styles.okButtonText}>OK</Text>
                       </TouchableOpacity>
                     </View>

@@ -1,6 +1,8 @@
+import { format } from 'date-fns';
 import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-
+import DatePicker from 'react-datepicker';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import TimePicker from 'react-time-picker';
 interface TimesheetModalProps {
   visible: boolean;
   onClose: () => void;
@@ -13,7 +15,10 @@ export const TimesheetModal: React.FC<TimesheetModalProps> = ({ visible, onClose
   const [endTime, setEndTime] = useState('');
   const [description, setDescription] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
+  const [rawStartDate, setRawStartDate] = useState(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [startDateDisplay, setStartDateDisplay] = useState('');
+  const [startDate, setStartDate] = useState('');
   const handleSubmit = () => {
     console.log("handleSubmit triggered with data:", {
       name: date,
@@ -36,7 +41,12 @@ export const TimesheetModal: React.FC<TimesheetModalProps> = ({ visible, onClose
     setDescription('');
     onClose();
   };
-
+  const handleDateChange = date => {
+    setRawStartDate(date);
+    setStartDateDisplay(format(date, 'MM-dd-yyyy'));
+    setStartDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+    setShowStartDatePicker(false); // Close the picker
+  };
   return (
     <>
       <Modal visible={visible} transparent animationType="fade">
@@ -46,22 +56,53 @@ export const TimesheetModal: React.FC<TimesheetModalProps> = ({ visible, onClose
             <View style={styles.row}>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Date</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={date}
-                  onChangeText={setDate}
-                  placeholder="YYYY-MM-DD"
-                />
+                <TextInput
+  style={styles.input}
+  value={startDateDisplay} // Bind to Formik's state or use custom state
+  onFocus={() => setShowStartDatePicker(true)} // Open date picker on focus
+  /* onBlur={handleBlur('startDate')} */ // Trigger Formik validation on blur
+  placeholder="Select Start Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
+      {/* <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+                  {/* {touched?.startDate && errors?.startDate && (
+                    <Text style={{color: 'red'}}>{errors.startDate}</Text>
+                  )}
+ */}
+      {Platform.OS === 'web' && showStartDatePicker && (
+        <DatePicker
+          selected={rawStartDate}
+          onChange={(date) => {
+            handleDateChange(date); // Handle date change
+            setShowStartDatePicker(false); // Close picker
+          }}
+          dateFormat="MM-dd-yyyy"
+          inline // Inline style for better usability
+        />
+      )}
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Start Time</Text>
-                <TextInput 
-                  style={styles.input} 
-                  value={startTime}
-                  onChangeText={setStartTime}
-                  placeholder="HH:MM AM/PM"
-                />
-              </View>
+      <Text style={styles.inputLabel}>Start Time</Text>
+
+      {Platform.OS === 'web' ? (
+        <input
+          type="time"
+          value={startTime}
+          onChange={(e) => setStartTime(e.target.value)}
+          style={styles.webInput} // Added specific style for the web input
+        />
+      ) : (
+        // For mobile, use TextInput
+        <TextInput
+          style={styles.input}
+          value={startTime}
+          onChangeText={setStartTime}
+          placeholder="HH:MM AM/PM"
+        />
+      )}
+    </View>
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>End Time</Text>
                 <TextInput 
@@ -217,6 +258,19 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 14,
     fontWeight: '600',
+  },
+  webInput: {
+    height: 40,  // Ensures the height of the native time input on web matches the mobile input
+    borderRadius: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#044086',
+    backgroundColor: '#FFF',
+    padding: 10,
+    color: '#232323',
+    fontFamily: 'Source Sans Pro',
+    fontSize: 14,
+    fontWeight: '400',
+    lineHeight: 22,
   },
 });
 

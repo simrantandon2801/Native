@@ -71,10 +71,10 @@ const ProjectDetails: React.FC = () => {
         {activeTab === 0 && <ProjectDetailedView 
   
     projectId={project_id} 
-    isEditable={true} 
+    isEditable={false} 
   />}
         {activeTab === 1 && <StakeholdersForm/>}
-        {activeTab === 2 && <TeamMembers/>}
+        {activeTab === 2 && <TeamMembers projectId={project_id} />}
       {/*   {activeTab === 3 && <Milestone/>}
         {activeTab === 4 && <Raid/> }
         {activeTab === 5 && <Financial/> }

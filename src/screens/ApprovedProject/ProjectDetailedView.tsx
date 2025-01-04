@@ -429,7 +429,14 @@ const ProjectDetailedView = ({/*  items, */ projectId, isEditable }) => {
       fetchDepartments();
       fetchClassification();
     }, []);
-  
+    useEffect(() => {
+
+        if (project?.classification) {
+            console.log('in classification')
+          setClassification(project.classification); // Sync classification with project when the component mounts
+        }
+      }, [project?.classification]);
+    
     const handleBusinessOwnerDept = (deptID: number) => {
       setBusinessOwnerDept(deptID);
       console.log(`Selected Stakeholder: ${deptID}`);
@@ -821,8 +828,8 @@ const ProjectDetailedView = ({/*  items, */ projectId, isEditable }) => {
 
       {/* Multiselect dropdown for selecting impacted functions */}
       <NestedMultiselectDropdownView
-        ref={nestedDropdownRef}
-        selectedValues={project}  // Pass the selected function IDs here
+       /*  ref={nestedDropdownRef} */
+        editGoal={project}  // Pass the selected function IDs here
         onSelectionChange={handleSelectionChange}
       />
     </>
@@ -1272,22 +1279,27 @@ const ProjectDetailedView = ({/*  items, */ projectId, isEditable }) => {
 
  
 <View style={styles.smallInputContainer}>
-  <Text style={styles.inputLabel}>
-    Actual Budget<Text style={styles.asterisk}>*</Text>
-  </Text>
+<Text style={styles.inputLabel}>
+        Actual Budget<Text style={styles.asterisk}>*</Text>
+      </Text>
 
-  {/* Actual Budget Input */}
-  <TextInput
-    style={[styles.input]} // Read-only style
-    value={actualBudget} // Use Formik's value or custom state
-    onChangeText={(text) => {
-      // Allow numeric input only
-      const numericValue = text.replace(/[^0-9]/g, ''); // Remove non-numeric characters
-      setActualBudget(numericValue); // Update custom state
-    }}
-    placeholder="Actual Budget"
-    keyboardType="numeric" // Ensure the keyboard is for numeric input
-  />
+      {formIsEditable ? (
+        // If the form is editable, show a TextInput field
+        <TextInput
+          style={styles.input}
+          value={actualBudget}
+          onChangeText={(text) => {
+            // Allow numeric input only
+            const numericValue = text.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+            setActualBudget(numericValue); // Update custom state
+          }}
+          placeholder="Actual Budget"
+          keyboardType="numeric" // Ensure the keyboard is for numeric input
+        />
+      ) : (
+        // If the form is not editable, show the text as plain text
+        <Text >{project.actualBudget || 'Not Provided'}</Text>
+      )}
 
   {/* Add Budget Details Button */}
   <TouchableOpacity /* onPress={() => setBudgetModalVisible(true)} */>
@@ -1949,6 +1961,7 @@ const ProjectDetailedView = ({/*  items, */ projectId, isEditable }) => {
     container: {
       flex: 1,
       backgroundColor: '#fff',
+       width: '100%',
     },
     header: {
       flexDirection: 'row',
