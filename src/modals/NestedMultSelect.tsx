@@ -1,13 +1,17 @@
-import React, {useEffect, useState,forwardRef, useImperativeHandle } from 'react';
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   TouchableWithoutFeedback,
+  ScrollView,
 } from 'react-native';
-
-import { ScrollView } from 'react-native-gesture-handler';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {GetNestedDepartments} from '../database/NestedDept';
 
@@ -32,7 +36,6 @@ const RecursiveDropdown = ({
           onTouchStart={() => setHoveredItem(item.department_id)}
           onTouchEnd={() => setHoveredItem(null)}>
           <View style={styles.itemHeader}>
-            {/* Checkbox for selection */}
             <TouchableOpacity
               onPress={() => toggleSelect(item)}
               style={styles.expandableIcon}>
@@ -44,15 +47,11 @@ const RecursiveDropdown = ({
                 ]}
               />
             </TouchableOpacity>
-
-            {/* Text acts as an expand/collapse trigger */}
             <TouchableOpacity
               onPress={() => toggleExpanded(item.department_id)}
               style={styles.textContainer}>
               <Text style={styles.itemText}>{item.department_name}</Text>
             </TouchableOpacity>
-
-            {/* Expandable icon for expand/collapse */}
             {Array.isArray(item.sub_departments) &&
               item.sub_departments.length > 0 && (
                 <TouchableOpacity
@@ -64,8 +63,6 @@ const RecursiveDropdown = ({
                 </TouchableOpacity>
               )}
           </View>
-
-          {/* Recursive rendering for nested items */}
           {Array.isArray(item.sub_departments) &&
             item.sub_departments.length > 0 &&
             expandedParents.includes(item.department_id) && (
@@ -87,151 +84,149 @@ const RecursiveDropdown = ({
   );
 };
 
-const NestedMultiselectDropdown = forwardRef(({ onSelectionChange, editGoal }, ref) => {
-  const [dept, setDept] = useState<[]>([]);
+const NestedMultiselectDropdown = forwardRef(
+  ({onSelectionChange, editGoal}, ref) => {
+    const [dept, setDept] = useState<[]>([]);
+    const [selectedItems, setSelectedItems] = useState<number[]>([]);
+    const [expandedParents, setExpandedParents] = useState<number[]>([]);
+    const [hoveredItem, setHoveredItem] = useState<number | null>(null);
+    const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  const FetchDept = async () => {
-    try {
-      console.log('Fetching departments...'); // Log start of fetch
-
-      // Fetch data from the API
-      const response = await GetNestedDepartments('');
-      console.log('Raw response:', response); // Log raw response for inspection
-
-      // Check and parse response
-      const parsedRes =
-        typeof response === 'string' ? JSON.parse(response) : response;
-      console.log('Parsed response:', parsedRes); // Log parsed response to check structure
-
-      // Since response directly contains the department array
-      if (Array.isArray(parsedRes)) {
-        setDept(parsedRes); // Directly set the response array to dept
-        console.log('Departments successfully set:', parsedRes); // Log success
-      } else {
-        console.error(
-          'Failed to fetch departments: Unexpected response structure',
-          parsedRes,
-        );
-      }
-    } catch (err) {
-      console.error('Error Fetching Departments:', err); // Log error if fetch fails
-    }
-  };
-
-  useEffect(() => {
-    FetchDept();
-  }, []);
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [expandedParents, setExpandedParents] = useState<number[]>([]);
-  const [hoveredItem, setHoveredItem] = useState<number | null>(null);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-
-  const toggleSelect = item => {
-    setSelectedItems(prevSelected => {
-      const updatedSelected = prevSelected.includes(item.department_id)
-        ? prevSelected.filter(id => id !== item.department_id)
-        : [...prevSelected, item.department_id];
-
-      // Notify the parent about the updated selection
-      onSelectionChange(updatedSelected);
-
-      return updatedSelected;
-    });
-  };
-
-  const toggleExpanded = parentId => {
-    setExpandedParents(prev =>
-      prev.includes(parentId)
-        ? prev.filter(id => id !== parentId)
-        : [...prev, parentId],
-    );
-  };
-  const flattenDepartments = departments => {
-    const flatList = [];
-
-    const traverse = nodes => {
-      nodes.forEach(node => {
-        flatList.push(node);
-        if (node.sub_departments && node.sub_departments.length) {
-          traverse(node.sub_departments);
+    const FetchDept = async () => {
+      try {
+        const response = await GetNestedDepartments('');
+        const parsedRes =
+          typeof response === 'string' ? JSON.parse(response) : response;
+        if (Array.isArray(parsedRes)) {
+          setDept(parsedRes);
+        } else {
+          console.error(
+            'Failed to fetch departments: Unexpected response structure',
+            parsedRes,
+          );
         }
+      } catch (err) {
+        console.error('Error Fetching Departments:', err);
+      }
+    };
+
+    useEffect(() => {
+      FetchDept();
+    }, []);
+
+    useEffect(() => {
+      if (editGoal && editGoal.stakeholders) {
+        const parsedStakeholders = editGoal.stakeholders
+          .split(',')
+          .map(id => parseInt(id.trim(), 10));
+        setSelectedItems(parsedStakeholders);
+      }
+    }, [editGoal]);
+
+    const toggleSelect = item => {
+      setSelectedItems(prevSelected => {
+        const updatedSelected = prevSelected.includes(item.department_id)
+          ? prevSelected.filter(id => id !== item.department_id)
+          : [...prevSelected, item.department_id];
+
+        onSelectionChange(updatedSelected);
+        return updatedSelected;
       });
     };
 
-    traverse(departments);
-    return flatList;
-  };
+    const toggleExpanded = parentId => {
+      setExpandedParents(prev =>
+        prev.includes(parentId)
+          ? prev.filter(id => id !== parentId)
+          : [...prev, parentId],
+      );
+    };
 
-  const getSelectedNames = () => {
-    // Flatten the department hierarchy
-    const flatDepartments = flattenDepartments(dept);
+    const flattenDepartments = departments => {
+      const flatList = [];
+      const traverse = nodes => {
+        nodes.forEach(node => {
+          flatList.push(node);
+          if (node.sub_departments && node.sub_departments.length) {
+            traverse(node.sub_departments);
+          }
+        });
+      };
+      traverse(departments);
+      return flatList;
+    };
 
-    return selectedItems
-      .map(id => {
-        const department = flatDepartments.find(d => d.department_id === id);
-        return department ? department.department_name : null;
-      })
-      .filter(name => name !== null) // Remove null values
-      .join(', '); // Join names with a comma
-  };
+    const getSelectedNames = () => {
+      const flatDepartments = flattenDepartments(dept);
+      return selectedItems
+        .map(id => {
+          const department = flatDepartments.find(d => d.department_id === id);
+          return department ? department.department_name : null;
+        })
+        .filter(name => name !== null)
+        .join(', ');
+    };
 
-  const getAlreadySelectedNames = () => {
-    if (editGoal && editGoal.stakeholder_names) {
-      // Use editGoal names if in edit mode
-      return editGoal.stakeholder_names;
-    }
-  };
+    const getAlreadySelectedNames = () => {
+      if (editGoal && editGoal.stakeholders) {
+        const selectedIDs = editGoal.stakeholders
+          .split(',')
+          .map(id => parseInt(id, 10));
+        const flatDepartments = flattenDepartments(dept);
 
-  const handleDismiss = () => {
-    console.log('Dismiss triggered');
-    if (dropdownVisible) {
-      setDropdownVisible(false);
-    }
-  };
+        return selectedIDs
+          .map(id => {
+            const department = flatDepartments.find(
+              d => d.department_id === id,
+            );
+            return department ? department.department_name : null;
+          })
+          .filter(name => name !== null)
+          .join(', ');
+      }
+    };
 
-  useImperativeHandle(ref, () => ({
-    dismissDropdown: () => {
-      setDropdownVisible(false);
-    },
-  }));
+    useImperativeHandle(ref, () => ({
+      dismissDropdown: () => {
+        setDropdownVisible(false);
+      },
+    }));
 
-  return (
-    <TouchableWithoutFeedback onPress={handleDismiss} accessible={false}>
-      <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.selectItemField}
-          onPress={() => setDropdownVisible(!dropdownVisible)}>
-          <Text style={styles.input}>
-            {editGoal
-              ? getAlreadySelectedNames() // Call this if editGoal is not null
-              : selectedItems.length
-              ? getSelectedNames() // Otherwise, display dynamically selected names
-              : 'Select Department'}
-          </Text>
-          <Icon
-            name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
-            size={20}
-            color="#333"
-          />
-        </TouchableOpacity>
-
-        {dropdownVisible && (
-          <ScrollView style={styles.scrollContainer}>
-            <RecursiveDropdown
-              items={dept} // Ensure data is an array
-              selectedItems={selectedItems}
-              toggleSelect={toggleSelect}
-              expandedParents={expandedParents}
-              toggleExpanded={toggleExpanded}
-              hoveredItem={hoveredItem}
-              setHoveredItem={setHoveredItem}
+    return (
+      <TouchableWithoutFeedback
+        onPress={() => setDropdownVisible(false)}
+        accessible={false}>
+        <View style={styles.container}>
+          <TouchableOpacity
+            style={styles.selectItemField}
+            onPress={() => setDropdownVisible(!dropdownVisible)}>
+            <Text style={styles.input}>
+              {selectedItems.length ? getSelectedNames() : 'Select Department'}
+            </Text>
+            <Icon
+              name={dropdownVisible ? 'chevron-up' : 'chevron-down'}
+              size={20}
+              color="#333"
             />
-          </ScrollView>
-        )}
-      </View>
-    </TouchableWithoutFeedback>
-  );
-});
+          </TouchableOpacity>
+          {dropdownVisible && (
+            <ScrollView style={styles.scrollContainer}>
+              <RecursiveDropdown
+                items={dept}
+                selectedItems={selectedItems}
+                toggleSelect={toggleSelect}
+                expandedParents={expandedParents}
+                toggleExpanded={toggleExpanded}
+                hoveredItem={hoveredItem}
+                setHoveredItem={setHoveredItem}
+              />
+            </ScrollView>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -276,7 +271,7 @@ const styles = StyleSheet.create({
     zIndex: 1, // Ensure it is on top of other components
     maxHeight: 100, // Optional: Limit the height of the dropdown
     overflow: 'auto', // Optional: Allow scrolling if content exceeds maxHeight
-    flexgrow:1,
+    flexgrow: 1,
   },
   levelContainer: {
     paddingLeft: 16,

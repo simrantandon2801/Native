@@ -27,6 +27,7 @@ import NestedDeptDropdownProjects from '../../modals/NestedDropdownProjects';
 import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
 import { GetClasssifcation } from '../../database/Classification';
 import DatePicker from 'react-datepicker';
+import NestedMultiselectDropdownView from '../../modals/NestedMultSelectView';
 
 const ProjectDetailedView = ({/*  items, */ projectId, isEditable }) => {
     const navigation = useNavigation();
@@ -819,9 +820,9 @@ const ProjectDetailedView = ({/*  items, */ projectId, isEditable }) => {
       </Text> */}
 
       {/* Multiselect dropdown for selecting impacted functions */}
-      <NestedMultiselectDropdown
+      <NestedMultiselectDropdownView
         ref={nestedDropdownRef}
-        selectedValues={selectedImpactedFunction}  // Pass the selected function IDs here
+        selectedValues={project}  // Pass the selected function IDs here
         onSelectionChange={handleSelectionChange}
       />
     </>

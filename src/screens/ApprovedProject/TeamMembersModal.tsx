@@ -1,55 +1,121 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { DataTable, Menu } from 'react-native-paper';
 import { TimesheetModal } from './TimeSheetModal';
+import { GetResources } from '../../database/Resource';
+import { ScrollView } from 'react-native-gesture-handler';
 
 interface TeamMemberModalProps {
   visible: boolean;
   onClose: () => void;
 }
 
- export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClose }) => {
+export const TeamMemberModal: React.FC<TeamMemberModalProps> = ({ visible, onClose }) => {
   const [Membername, setMemberName] = useState('');
   const [role, setRole] = useState('');
   const [startDate, setStartDate] = useState('');
-  const[endDate,setendDate]=useState('')
-
+  const [endDate, setEndDate] = useState('');
+  const [memberId, setMemberId] = useState('');
   const [Priority, setPriority] = useState('');
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [isTimesheetModalVisible, setIsTimesheetModalVisible] = useState(false);
   const [isTeamMemberSubmitModalVisible, setTeamMemberSubmitModalVisible] = useState(false);
-
+  const [members, setMembers] = useState<any[]>([]);  // Change the state to array of objects
   const [teamMembers, setTeamMembers] = useState([
-    { id: 1, name: '13/04/2023', role: '05:30 AM', startDate: '05:30 AM',endDate: '6:30Am' ,Description:'Client Review Preparation, Wireframe Design',isActive:true},
-    { id: 2, name: '13/04/2023', role: '05:30 AM', startDate: '05:30 AM', endDate:'6:30am' ,Description:'Client Review Preparation, Wireframe Design',isActive:false},
+    { id: 1, name: '13/04/2023', role: '05:30 AM', startDate: '05:30 AM', endDate: '6:30 AM', Description: 'Client Review Preparation, Wireframe Design', isActive: true },
+    { id: 2, name: '13/04/2023', role: '05:30 AM', startDate: '05:30 AM', endDate: '6:30 AM', Description: 'Client Review Preparation, Wireframe Design', isActive: false },
   ]);
-  const handleSubmit = () => {
-  
-    console.log('New team member:', { Membername, role, Priority  });
-    setTeamMemberSubmitModalVisible(true);
-   
-    
+
+  // Fetch the members when the modal is opened
+  const fetchMembers = async () => {
+    try {
+      const response = await GetResources('');
+      console.log(response);
+      const parsedRes = JSON.parse(response);
+      if (parsedRes.status === 'success') {
+        setMembers(parsedRes.data.resources); // Set the fetched members
+      } else {
+        console.error('Failed to fetch users:', parsedRes.message || 'Unknown error');
+      }
+    } catch (err) {
+      console.log('Error Fetching Users', err);
+    }
   };
+
+  // Effect to trigger fetch when modal visibility changes
+  useEffect(() => {
+    if (visible) {
+      fetchMembers();
+    }
+  }, [visible]);
+
+  const handleSubmit = () => {
+    console.log('New team member:', { Membername, role, Priority });
+    setTeamMemberSubmitModalVisible(true);
+  };
+
   const handleCloseSuccessModal = () => {
     setTeamMemberSubmitModalVisible(false);
   };
+
+  const handleMemberChange = (selectedMemberId: string) => {
+    console.log("Selected Member ID:", selectedMemberId); // Debugging line
+    
+    // Ensure the selectedMemberId is a string or number (depends on your data)
+    const memberIdNumber = Number(selectedMemberId); // Convert to number if needed
+    
+    if (!memberIdNumber) {
+      console.log("No member selected");
+      return;
+    }
+  
+    const selectedMember = members.find(member => member.resource_id === memberIdNumber);
+  
+    if (selectedMember) {
+      console.log("Selected Member:", selectedMember);  // Log the selected member
+      setMemberName(`${selectedMember.first_name} ${selectedMember.last_name}`); // Update the member name
+      setMemberId(selectedMember.resource_id); // Update the member ID
+    } else {
+      console.log("No member found with ID:", selectedMemberId); // Debugging line if no member is found
+    }
+  };
+  
   return (
+    <ScrollView>
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <Text style={styles.modalHeading}>Team Member - Murlidharan</Text>
           <View style={styles.row}>
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>
-               Member Name <Text style={styles.asterisk}>*</Text>
-            </Text>
-            <TextInput 
-              style={styles.input} 
-              value={Membername}
-              onChangeText={setMemberName}
-            />
+          <Text style={styles.inputLabel}>
+                Member Name <Text style={styles.asterisk}>*</Text>
+              </Text>
+
+              {members.length > 0 ? (
+               <Picker
+               selectedValue={memberId}  // Bind Picker value to memberId
+               onValueChange={handleMemberChange}  // Update memberId when a member is selected
+               style={styles.input}
+             >
+               {/* Show default 'Select Member' only when no member is selected */}
+               {memberId === "" ? (
+                 <Picker.Item label="Select Member" value="" />
+               ) : null}
+             
+               {members.map(member => (
+                 <Picker.Item
+                   key={member.resource_id}
+                   label={`${member.first_name} ${member.last_name}`} // Display full name in Picker
+                   value={member.resource_id}  // Set the resource_id as the value
+                 />
+               ))}
+             </Picker>
+              ) : (
+                <Text>Loading members...</Text>
+              )}
           </View>
           <View style={styles.inputContainer1}>
             <Text style={styles.inputLabel}>
@@ -100,7 +166,7 @@ interface TeamMemberModalProps {
             <TextInput 
               style={styles.input} 
               value={endDate}
-              onChangeText={setendDate}
+              onChangeText={setEndDate}
               placeholder="YYYY-MM-DD"
             />
           </View>
@@ -191,6 +257,7 @@ interface TeamMemberModalProps {
         </View>
       </View>
     </Modal>
+    </ScrollView>
   );
 };
 
