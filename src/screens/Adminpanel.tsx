@@ -26,6 +26,8 @@ const gridData: GridItem[] = [
   { id: '11', image: AppImages.Imtegration, text: 'Manage PPM Integration', component: 'PPMIntegrationList'  },
   { id: '12', image: AppImages.Applications, text: 'Impacted Applications', component: 'ImpactedApps'  },
   { id: '13', image: AppImages.Applications, text: 'Budget Category', component: 'BudgetCategory'  },
+  { id: '14', image: AppImages.Applications, text: 'Priority', component: 'Priority'  },
+  
 ];
 
 const Adminpanel: React.FC = () => {
