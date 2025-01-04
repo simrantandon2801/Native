@@ -55,6 +55,7 @@ import IntakeApprovalView from '../screens/Intake List/IntakeApprovalView';
 import Classification from '../screens/Master/Classification';
 import Designation from '../screens/Master/Designation';
 import BudgetDetails from '../screens/Intake List/BudgetDetails';
+import ProjectDetailedView from '../screens/Intake List/ProjectDetailedView';
 
 
 const Drawer = createDrawerNavigator();
@@ -322,8 +323,8 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="IntakeApprovalView" component={IntakeApprovalView} />
           <Drawer.Screen name="Classification" component={Classification} />
           <Drawer.Screen name="Designation" component={Designation} />
-          
           <Drawer.Screen name="BudgetDetails" component={BudgetDetails} />
+          <Drawer.Screen name="ProjectDetailedView" component={ProjectDetailedView} />
         
           {dynamicModules.map((module) => (
             <Drawer.Screen

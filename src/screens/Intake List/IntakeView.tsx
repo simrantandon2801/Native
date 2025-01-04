@@ -16,6 +16,7 @@ import {format} from 'date-fns';
 import {RadioButton} from 'react-native-paper';
 import {navigate} from '../../navigations/RootNavigation';
 
+
 type TabType = 'details' | 'history';
 
 interface ApprovalItem {
@@ -30,6 +31,7 @@ import {GetPrograms} from '../../database/ManageProgram';
 import {GetGoals} from '../../database/Goals';
 import {Picker} from '@react-native-picker/picker';
 import NestedDeptDropdownProjects from '../../modals/NestedDropdownProjects';
+import ProjectDetailedView from './ProjectDetailedView';
 const approvalHistory: ApprovalItem[] = [
   {
     date: '13/04/2023',
@@ -72,7 +74,12 @@ const IntakeView: React.FC = () => {
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'history' && <ApprovalHistory items={approvalHistory} />}
       {activeTab === 'details' && (
-        <ProjectDetails
+        // <ProjectDetails
+        //   items={approvalHistory}
+        //   projectId={project_id}
+        //   isEditable={isEditable}
+        // />
+        <ProjectDetailedView
           items={approvalHistory}
           projectId={project_id}
           isEditable={isEditable}
@@ -1585,6 +1592,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    width:'100%'
   },
   header: {
     flexDirection: 'row',

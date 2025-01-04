@@ -19,6 +19,7 @@ import {GetGoals} from '../../database/Goals';
 import {GetPrograms, GetProgramsByGoalId} from '../../database/ManageProgram';
 import {GetDept, GetUsers} from '../../database/Departments';
 import NestedDeptDropdownGoals from '../../modals/NestedDropdownGoals';
+import styles from '../../assets/styles/Styles';
 import {
   GetImpactedApplication,
   GetSequence,
@@ -27,6 +28,7 @@ import {
   InsertReview,
   InsertSequence,
 } from '../../database/Intake';
+import { GetClasssifcation } from '../../database/Masters';
 import * as Yup from 'yup';
 import {Formik} from 'formik';
 import DatePicker from 'react-datepicker';
@@ -112,6 +114,7 @@ const NewIntake = () => {
   const [departments, setDepartments] = useState([]);
   const [SubmitpopupMessage, setSubmitPopupMessage] = useState('');
   const [isSubmitPopupVisible, setIsSubmitPopupVisible] = useState(false);
+  const [classifications, setClassifications] = useState<Classification[]>([]);
   const addStep = () => {
     setSteps([
       ...steps,
@@ -237,7 +240,6 @@ const NewIntake = () => {
       );
     }
   };
-
   const fetchProjectOwner = async () => {
     try {
       const response = await GetUsers('');
@@ -280,7 +282,6 @@ const NewIntake = () => {
       );
     }
   };
-
   const fetchSequence = async () => {
     try {
       const response = await GetSequence('');
@@ -352,23 +353,7 @@ const NewIntake = () => {
     fetchBusinessOwner();
     fetchProjectOwner();
   }, []);
-  //  const fetchSequence = async () => {
-  //       try {
-  //         const response = await GetSequence('');
-  //         const result = JSON.parse(response);
 
-  //         // Ensure the response format is correct and contains data
-  //         if (result?.status === 'success' && result?.data && Array.isArray(result.data)) {
-  //           setSequence(result.data);
-  //         } else {
-  //           console.error("Invalid goals data");
-  //           Alert.alert("Error", "Invalid goals data received");
-  //         }
-  //       } catch (error) {
-  //         console.error('Error fetching sequences:', error);
-  //         Alert.alert("Error", "Error fetching sequences");
-  //       }
-  //     };
   const handleBusinessOwnerDept = (deptID: number) => {
     setBusinessOwnerDept(deptID);
     console.log(`Selected Stakeholder: ${deptID}`);
@@ -774,9 +759,32 @@ useEffect(() => {    // addition of review
       setLoading(false);
     }
   };
+ const fetchClassification = async () => {
+      try {
+        const response = await GetClasssifcation('');
+        //console.log('Raw Response:', response);
+    
+        // Ensure response is parsed correctly
+        const result = typeof response === 'string' ? JSON.parse(response) : response;
+    
+        console.log('Parsed API Response classification:', result);
+    
+        // Validate the classification data
+        if (result?.data?.classifications && Array.isArray(result.data.classifications)) {
+          setClassifications(result.data.classifications);
+        } else {
+          console.error('Invalid classification data:', result);
+          Alert.alert('Error', 'Invalid classification data received');
+        }
+      } catch (error) {
+        console.error('Error fetching classification:', error);
+        Alert.alert('Error', 'Failed to fetch classification');
+      }
+    };
 
   useEffect(() => {
     fetchImpactedApplications(); // Fetch data on component load
+    fetchClassification();
   }, []);
   return (<Formik
     initialValues={{
@@ -869,9 +877,16 @@ useEffect(() => {    // addition of review
   style={styles.input}
 >
                 <Picker.Item label="Select Classification" value="" />
-                <Picker.Item label="Business strategic" value="1" />
+                {classifications.map((item) => (
+                <Picker.Item 
+                  key={item.classification_id} // Use goal_id as key
+                  label={item.classification_name} // Use goal_name as the label
+                  value={item.classification_id} // Use goal_id as the value
+                />
+              ))}
+                {/* <Picker.Item label="Business strategic" value="1" />
                 <Picker.Item label="Self funded" value="2" />
-                <Picker.Item label="Operations" value="3" />
+                <Picker.Item label="Operations" value="3" /> */}
               </Picker>
               {touched.classification && errors.classification && (<Text style={{color:'red'}} >{errors.classification}</Text>)}
             </View>
@@ -901,7 +916,6 @@ useEffect(() => {    // addition of review
               <Icon name="time-outline" size={18} color="#044086" style={styles.approvalIcon} />
               <Text style={styles.approvalButtonText}>Approval History</Text>
             </TouchableOpacity> */}
-         
           </View>
 
 
@@ -1349,12 +1363,16 @@ useEffect(() => {    // addition of review
               <TextInput
   style={styles.outlinedInput}
   placeholder="Enter Scope Definition"
+  placeholderTextColor="#757575"
   value={values.scopeDefinition || scopeDefinition} // Use Formik's value or custom state
   onChangeText={(text) => {
     setFieldValue('scopeDefinition', text); // Update Formik state
     setScopeDefinition(text); // Update custom state
   }}
   onBlur={handleBlur('scopeDefinition')} // Mark field as touched for validation
+  multiline={true} // Enable multi-line input
+  numberOfLines={4} // Set height of the text box
+  textAlignVertical="top" // Align text to the top for multi-line input
 />
 {touched.scopeDefinition && errors.scopeDefinition && (
   <Text style={{ color: 'red', marginTop: 4 }}>{errors.scopeDefinition}</Text>
@@ -1369,6 +1387,7 @@ useEffect(() => {    // addition of review
               <TextInput
   style={styles.outlinedInput}
   placeholder="Enter Key Assumption"
+  placeholderTextColor="#757575"
   value={values.keyAssumption || keyAssumption} // Use Formik's state or custom state
   onChangeText={(text) => {
     setFieldValue('keyAssumption', text); // Update Formik state
@@ -1388,6 +1407,7 @@ useEffect(() => {    // addition of review
             <TextInput
   style={styles.outlinedInput}
   placeholder="Enter Benefits/ROI"
+  placeholderTextColor="#757575"
   value={values.benefitsROI || benefitsROI} // Use Formik's state or custom state
   onChangeText={(text) => {
     setFieldValue('benefitsROI', text); // Update Formik's state
@@ -1411,6 +1431,7 @@ useEffect(() => {    // addition of review
               <TextInput
   style={styles.outlinedInput}
   placeholder="Enter Risk"
+  placeholderTextColor="#757575"
   value={values.risk || risk} // Use Formik's state or fallback to custom state
   onChangeText={(text) => {
     setFieldValue('risk', text); // Update Formik's state
@@ -1858,689 +1879,689 @@ useEffect(() => {    // addition of review
  );
 };
 
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: '#FFF',
-    },
-    scrollView: {
-      flex: 1,
-    },
-    content: {
-      flex: 1,
-      alignItems: 'center',
-      paddingVertical: 30,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: '#E5E5E5',
-      backgroundColor:'#F5F5F5'
-    },
-    headerTitle: {
-      color: '#000',
-      fontFamily: 'Outfit',
-      fontSize: 20,
-      fontWeight: '500',
-      lineHeight: 22,
-      textTransform: 'capitalize',
-    },
-    backButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    backText: {
-      color: '#232323',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontWeight: '400',
-      lineHeight: 22,
-      marginLeft: 4,
-    },
-    row: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      width: '100%',
-      maxWidth: 1200,
+// const styles = StyleSheet.create({
+//     container: {
+//       flex: 1,
+//       backgroundColor: '#FFF',
+//     },
+//     scrollView: {
+//       flex: 1,
+//     },
+//     content: {
+//       flex: 1,
+//       alignItems: 'center',
+//       paddingVertical: 30,
+//     },
+//     header: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       justifyContent: 'space-between',
+//       paddingHorizontal: 16,
+//       paddingVertical: 12,
+//       borderBottomWidth: 1,
+//       borderBottomColor: '#E5E5E5',
+//       backgroundColor:'#F5F5F5'
+//     },
+//     headerTitle: {
+//       color: '#000',
+//       fontFamily: 'Outfit',
+//       fontSize: 20,
+//       fontWeight: '500',
+//       lineHeight: 22,
+//       textTransform: 'capitalize',
+//     },
+//     backButton: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//     },
+//     backText: {
+//       color: '#232323',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontWeight: '400',
+//       lineHeight: 22,
+//       marginLeft: 4,
+//     },
+//     row: {
+//       flexDirection: 'row',
+//       flexWrap: 'wrap',
+//       width: '100%',
+//       maxWidth: 1200,
       
       
-    },
-    row5: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      width: '100%',
-      maxWidth: 1200,
-      marginBottom: 6,
-      justifyContent:'center'
-    },
-    smallInputContainer: {
-      width: '40%',
-      minWidth: 250,
-      maxWidth: 220,
-      padding: 8,
-    },
-    largeInputContainer: {
-      width: '60%',
-      maxWidth: 500,
-      padding: 8,
-    },
-    largeInputContainer1: {
-      width: '60%',
-      maxWidth: 350,
-      padding: 8,
-    },
-    customTemplateText: {
-      color: '#757575',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 22,
-      marginRight: 10,
-    },
-    halfInputContainer: {
-      width: '45%',
-      maxWidth: 300,
-      marginRight: 20,
-    },
-    fullWidthInputContainer: {
-      width: '100%',
-      maxWidth: 606,
-    },
-    inputLabel: {
-      color: '#044086',
-      fontSize: 12,
-      fontWeight: '400',
-      marginBottom: 4,
-      alignSelf: 'flex-start',
-    },
-    asterisk: {
-      color: 'red',
-    },
-    icon: {
-      marginRight: 5,
-    },
-    input: {
-      borderRadius: 5,
-      padding: 10,
-      fontSize: 14,
-      backgroundColor: 'white',
-      color: '#000',
-      borderBottomWidth: 1.5,
-      borderBottomColor: '#044086',
-      borderWidth: 0,
-      width: '100%',
-      height: 40,
-    },
-    largeInput: {
-      width: '100%',
-      borderRadius: 5,
-      padding: 10,
-      fontSize: 16,
-      backgroundColor: 'white',
-      color: '#000',
-      borderBottomWidth: 1.5,
-      borderBottomColor: '#044086',
-      borderWidth: 0,
-      height: 40,
-    },
-    outlinedInput: {
-      width: '100%',
-      height: 80,
-      padding: 10,
-      alignItems: 'flex-start',
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#C4C4C4',
-      backgroundColor: '#FFF',
-    },
-    approvalButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#044086',
-      backgroundColor: '#FFF',
-      padding: 8,
-      height: 40,
-      justifyContent: 'center',
-      marginTop:33,
-      shadowColor: '#101828',
-      marginLeft:120,
-      shadowOffset: {
-        width: 0,
-        height: 0.962,
-      },
-      shadowOpacity: 0.05,
-      shadowRadius: 1.923,
-      elevation: 2,
-    },
-    approvalIcon: {
-      marginRight: 5,
-    },
-    approvalButtonText: {
-      color: '#044086',
-      fontSize: 14,
-      fontWeight: '500',
-    },
-    roiHeading: {
-      color: '#044086',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontStyle: 'normal',
-      fontWeight: '600',
-      lineHeight: 22,
-      marginBottom: 16,
-    },
-    templateContainer: {
-      flexDirection: 'row',
-      alignItems: 'center', 
-      justifyContent: 'space-between', 
-      padding: 10,
-    },
-    customTemplateGroup: {
-      flexDirection: 'row', 
-      alignItems: 'center',
-      justifyContent: 'space-between', 
-    },
+//     },
+//     row5: {
+//       flexDirection: 'row',
+//       flexWrap: 'wrap',
+//       width: '100%',
+//       maxWidth: 1200,
+//       marginBottom: 6,
+//       justifyContent:'center'
+//     },
+//     smallInputContainer: {
+//       width: '40%',
+//       minWidth: 250,
+//       maxWidth: 220,
+//       padding: 8,
+//     },
+//     largeInputContainer: {
+//       width: '60%',
+//       maxWidth: 500,
+//       padding: 8,
+//     },
+//     largeInputContainer1: {
+//       width: '60%',
+//       maxWidth: 350,
+//       padding: 8,
+//     },
+//     customTemplateText: {
+//       color: '#757575',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontStyle: 'normal',
+//       fontWeight: '400',
+//       lineHeight: 22,
+//       marginRight: 10,
+//     },
+//     halfInputContainer: {
+//       width: '45%',
+//       maxWidth: 300,
+//       marginRight: 20,
+//     },
+//     fullWidthInputContainer: {
+//       width: '100%',
+//       maxWidth: 606,
+//     },
+//     inputLabel: {
+//       color: '#044086',
+//       fontSize: 12,
+//       fontWeight: '400',
+//       marginBottom: 4,
+//       alignSelf: 'flex-start',
+//     },
+//     asterisk: {
+//       color: 'red',
+//     },
+//     icon: {
+//       marginRight: 5,
+//     },
+//     input: {
+//       borderRadius: 5,
+//       padding: 10,
+//       fontSize: 14,
+//       backgroundColor: 'white',
+//       color: '#000',
+//       borderBottomWidth: 1.5,
+//       borderBottomColor: '#044086',
+//       borderWidth: 0,
+//       width: '100%',
+//       height: 40,
+//     },
+//     largeInput: {
+//       width: '100%',
+//       borderRadius: 5,
+//       padding: 10,
+//       fontSize: 16,
+//       backgroundColor: 'white',
+//       color: '#000',
+//       borderBottomWidth: 1.5,
+//       borderBottomColor: '#044086',
+//       borderWidth: 0,
+//       height: 40,
+//     },
+//     outlinedInput: {
+//       width: '100%',
+//       height: 80,
+//       padding: 10,
+//       alignItems: 'flex-start',
+//       borderRadius: 5,
+//       borderWidth: 1,
+//       borderColor: '#C4C4C4',
+//       backgroundColor: '#FFF',
+//     },
+//     approvalButton: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       borderRadius: 5,
+//       borderWidth: 1,
+//       borderColor: '#044086',
+//       backgroundColor: '#FFF',
+//       padding: 8,
+//       height: 40,
+//       justifyContent: 'center',
+//       marginTop:33,
+//       shadowColor: '#101828',
+//       marginLeft:120,
+//       shadowOffset: {
+//         width: 0,
+//         height: 0.962,
+//       },
+//       shadowOpacity: 0.05,
+//       shadowRadius: 1.923,
+//       elevation: 2,
+//     },
+//     approvalIcon: {
+//       marginRight: 5,
+//     },
+//     approvalButtonText: {
+//       color: '#044086',
+//       fontSize: 14,
+//       fontWeight: '500',
+//     },
+//     roiHeading: {
+//       color: '#044086',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontStyle: 'normal',
+//       fontWeight: '600',
+//       lineHeight: 22,
+//       marginBottom: 16,
+//     },
+//     templateContainer: {
+//       flexDirection: 'row',
+//       alignItems: 'center', 
+//       justifyContent: 'space-between', 
+//       padding: 10,
+//     },
+//     customTemplateGroup: {
+//       flexDirection: 'row', 
+//       alignItems: 'center',
+//       justifyContent: 'space-between', 
+//     },
     
-    templateButton: {
-      flexDirection: 'row', 
-      alignItems: 'center', 
-      paddingHorizontal: 10,
-      paddingVertical: 8,
-      backgroundColor: '#f0f0f0', 
-      borderRadius: 5,
-      marginHorizontal: 5, 
-    },
-    templateButtonText: {
-      marginLeft: 5, 
-      fontSize: 14,
-      fontWeight: '500',
-      color: '#000',
-    },
-    divider: {
-      width: 876,
-      height: 1,
-      backgroundColor: '#E5E5E5',
-      marginVertical: 20,
-    },
-    saveIcon: {
-      marginRight: 5,
-    },
-    projectDriversHeading: {
-      color: '#000',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 16,
-      fontWeight: '500',
-      lineHeight: 22,
-      marginBottom: 16,
-      marginTop: 24,
-      textAlign: 'center',
-    },
-    customFieldsContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 10,
-    },
-    customFieldsButton: {
-      padding: 10,
-      borderRadius: 5,
-      marginRight: 10,
-    },
-    customFieldsButtonText: {
-      color: '#000',
-      fontSize: 14,
-      fontWeight: '500',
-    },
-    checkboxContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    checkbox: {
-      width: 20,
-      height: 20,
-      borderWidth: 1,
-      borderColor: '#C4C4C4',
-      borderRadius: 4,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    checked: {
-      backgroundColor: '#044086',
-    },
-    bottomButtonsContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 50,
-      marginBottom:50,
-      width: '100%',
-      maxWidth: 1200,
-      paddingHorizontal: 8,
-    },
-    saveAsDraftButton: {
-      backgroundColor: '#FFF',
-      borderWidth: 1,
-      borderColor: '#044086',
-      padding: 10,
-      borderRadius: 5,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    saveAsDraftButtonText: {
-      color: '#044086',
-      fontSize: 14,
-      fontWeight: '500',
-    },
-    sendForReviewButton: {
-      backgroundColor: '#044086',
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: 10,
-      borderRadius: 5,
-    },
-    sendForReviewButtonText: {
-      color: '#FFF',
-      fontSize: 14,
-      fontWeight: '500',
-    },
-    sendIcon: {
-      marginRight: 5,
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    modalContent: {
-      backgroundColor: '#FFF',
-      borderRadius: 10,
-      padding: 20,
-      width: '80%',
-      maxWidth: 450,
-      alignItems: 'center',
-    },
-    popupHeading: {
-      color: '#044086',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '600',
-      lineHeight: 22,
-      marginBottom: 20,
-      textAlign: 'center',
-    },
-    radioOptionsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-      marginBottom: 20,
-    },
+//     templateButton: {
+//       flexDirection: 'row', 
+//       alignItems: 'center', 
+//       paddingHorizontal: 10,
+//       paddingVertical: 8,
+//       backgroundColor: '#f0f0f0', 
+//       borderRadius: 5,
+//       marginHorizontal: 5, 
+//     },
+//     templateButtonText: {
+//       marginLeft: 5, 
+//       fontSize: 14,
+//       fontWeight: '500',
+//       color: '#000',
+//     },
+//     divider: {
+//       width: 876,
+//       height: 1,
+//       backgroundColor: '#E5E5E5',
+//       marginVertical: 20,
+//     },
+//     saveIcon: {
+//       marginRight: 5,
+//     },
+//     projectDriversHeading: {
+//       color: '#000',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 16,
+//       fontWeight: '500',
+//       lineHeight: 22,
+//       marginBottom: 16,
+//       marginTop: 24,
+//       textAlign: 'center',
+//     },
+//     customFieldsContainer: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       marginTop: 10,
+//     },
+//     customFieldsButton: {
+//       padding: 10,
+//       borderRadius: 5,
+//       marginRight: 10,
+//     },
+//     customFieldsButtonText: {
+//       color: '#000',
+//       fontSize: 14,
+//       fontWeight: '500',
+//     },
+//     checkboxContainer: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//     },
+//     checkbox: {
+//       width: 20,
+//       height: 20,
+//       borderWidth: 1,
+//       borderColor: '#C4C4C4',
+//       borderRadius: 4,
+//       justifyContent: 'center',
+//       alignItems: 'center',
+//     },
+//     checked: {
+//       backgroundColor: '#044086',
+//     },
+//     bottomButtonsContainer: {
+//       flexDirection: 'row',
+//       justifyContent: 'space-between',
+//       marginTop: 50,
+//       marginBottom:50,
+//       width: '100%',
+//       maxWidth: 1200,
+//       paddingHorizontal: 8,
+//     },
+//     saveAsDraftButton: {
+//       backgroundColor: '#FFF',
+//       borderWidth: 1,
+//       borderColor: '#044086',
+//       padding: 10,
+//       borderRadius: 5,
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//     },
+//     saveAsDraftButtonText: {
+//       color: '#044086',
+//       fontSize: 14,
+//       fontWeight: '500',
+//     },
+//     sendForReviewButton: {
+//       backgroundColor: '#044086',
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       padding: 10,
+//       borderRadius: 5,
+//     },
+//     sendForReviewButtonText: {
+//       color: '#FFF',
+//       fontSize: 14,
+//       fontWeight: '500',
+//     },
+//     sendIcon: {
+//       marginRight: 5,
+//     },
+//     modalOverlay: {
+//       flex: 1,
+//       backgroundColor: 'rgba(0, 0, 0, 0.5)',
+//       justifyContent: 'center',
+//       alignItems: 'center',
+//     },
+//     modalContent: {
+//       backgroundColor: '#FFF',
+//       borderRadius: 10,
+//       padding: 20,
+//       width: '80%',
+//       maxWidth: 450,
+//       alignItems: 'center',
+//     },
+//     popupHeading: {
+//       color: '#044086',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 16,
+//       fontStyle: 'normal',
+//       fontWeight: '600',
+//       lineHeight: 22,
+//       marginBottom: 20,
+//       textAlign: 'center',
+//     },
+//     radioOptionsRow: {
+//       flexDirection: 'row',
+//       justifyContent: 'space-between',
+//       width: '100%',
+//       marginBottom: 20,
+//     },
 
 
-    radioOption: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    radioOption1: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginLeft:20
-    },
-    radioText: {
-      marginLeft: 8,
-      fontSize: 14,
-    },
-    popupButtonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      marginTop: 20,
-    },
-    popupSubmitButton: {
-      borderRadius: 5,
-      backgroundColor: '#044086',
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      marginRight: 10,
-    },
-    popupSubmitButtonText: {
-      color: '#FFF',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontStyle: 'normal',
-      fontWeight: '600',
-      lineHeight: 22,
-    },
-    popupCancelButton: {
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#C4C4C4',
-      backgroundColor: '#FFF',
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-    },
-    popupCancelButtonText: {
-      color: '#232323',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontStyle: 'normal',
-      fontWeight: '400',
-      lineHeight: 22,
-    },
-    closeIcon: {
-      position: 'absolute',
-      top: 10,
-      right: 10,
-    },
-    approvalPathContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginTop: 10,
-      width: '100%',
-    },
-    approvalPathInputContainer: {
-      flex: 1,
-      marginRight: 10,
-    },
-    approvalPathLabel: {
-      color: '#044086',
-      fontSize: 12,
-      fontWeight: '400',
-      marginBottom: 4,
-    },
-    approvalPathPicker: {
-      height: 40,
-    },
-    createNewApprovalButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: '#044086',
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#FFF',
-      padding: 8,
-      marginTop:20
-    },
-    createNewApprovalButtonText: {
-      color: '#FFF',
-      marginLeft: 5,
-      fontSize: 14,
-      fontWeight: '500',
-    },
-    newApprovalTitle: {
-      color: '#000',
-      fontFamily: 'Outfit',
-      fontSize: 16,
-      fontStyle: 'normal',
-      fontWeight: '500',
-      lineHeight: 22,
-      textTransform: 'capitalize',
-     textAlign:'center'
-    },
-    newApprovalInput: {
-      borderRadius: 5,
-      borderBottomWidth: 1,
-      borderBottomColor: '#044086',
-      backgroundColor: '#FFF',
-      padding: 10,
-      marginBottom: 20,
-      width: '100%',
-    },
-    columnsContainer: {
-      width: '100%',
-      padding: 10,
-      borderRadius: 10,
-      backgroundColor: '#F7F7F7',
-    },
-    columnsHeader: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-      paddingHorizontal: 10,
-      marginBottom: 10,
-    },
-    columnContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      width: '100%',
-      marginBottom: 10,
-    },
-    columnTitle: {
-      color: '#000',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontWeight: '600',
-      width: '45%',
-      //paddingLeft:20
-    },
-    stepText: {
-      width: '25%',
-      color: '#000',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 11,
-      fontWeight: '400',
-      alignItems:'center',
-      display:'flex'
-    },
-    columnInput: {
-      width: '24%',
-      height: 40,
-      borderWidth: 1,
-      borderColor: '#C4C4C4',
-      borderRadius: 5,
-      paddingHorizontal: 10,
-    },
-    rightButtonsContainer: {
-        // flex: 1,
-        gap: 8,
-      },
-      leftButtonContainer:{
-        alignSelf:'flex-start'
-      },  newButton: {
-        backgroundColor: '#fff',
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-        border:'1px solid #044086'
-      },
-      newButtonText: {
-        color: '#044086',
-        fontSize: 14,
-        fontWeight: '500',
-      },
-      newButtonIcon: {
-        marginRight: 5,
-      },
-    pickerContainer: {
-      width: '25%',
-      height: 40,
-      backgroundColor: '#F0F0F0',
-      borderRadius: 5,
-      justifyContent: 'center',
-    },
-    designationPicker: {
-      width: '100%',
-      height: 40,
-    },
-     verticalLine: {
-      width: 1,
-      height: 20,
-      backgroundColor: '#fff',
-      marginHorizontal: 8,
-    },
-    actionPicker: {
-      width: '80%',
-      height: 40,
-    },
-    addButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#044086',
-      backgroundColor: '#FFF',
-      padding: 7,
-      marginTop: 10,
-      alignSelf: 'center',
-    },
-    addButtonText: {
-      color: '#044086',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontWeight: '400',
-      marginLeft: 6,
-    },
-    modalScrollView: {
-      maxHeight: 400,
-      width: '100%',
-    },
-    searchableDropdown: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: '#F0F0F0',
-      height: 40,
-      padding: 7,
-      borderRadius: 5,
-      marginLeft:20
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: 12,
-      color: '#000',
-    },
-    autoPopulatedText: {
-      width: '67%',
-      color: '#000',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontWeight: '400',
-      alignItems:'center',
-      display:'flex',
-      textAlign: 'center',
-      marginLeft: 50 
-    },
-    addStepButton: {
-      flexDirection: 'row',
-      //alignItems: 'center',
-      justifyContent: 'center',
-      borderRadius: 5,
-      borderWidth: 1,
-      borderColor: '#044086',
-      backgroundColor: '#FFF',
-      padding: 7,
-      marginTop: 10,
-      alignSelf: 'center',
-    },
-    sequence: {
-        flexDirection: 'row',
-        //alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: '#044086',
-        backgroundColor: '#044086',
-        padding: 7,
-        marginTop: 10,
-        alignSelf: 'center',
+//     radioOption: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//     },
+//     radioOption1: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       marginLeft:20
+//     },
+//     radioText: {
+//       marginLeft: 8,
+//       fontSize: 14,
+//     },
+//     popupButtonContainer: {
+//       flexDirection: 'row',
+//       justifyContent: 'center',
+//       marginTop: 20,
+//     },
+//     popupSubmitButton: {
+//       borderRadius: 5,
+//       backgroundColor: '#044086',
+//       paddingVertical: 10,
+//       paddingHorizontal: 20,
+//       marginRight: 10,
+//     },
+//     popupSubmitButtonText: {
+//       color: '#FFF',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontStyle: 'normal',
+//       fontWeight: '600',
+//       lineHeight: 22,
+//     },
+//     popupCancelButton: {
+//       borderRadius: 5,
+//       borderWidth: 1,
+//       borderColor: '#C4C4C4',
+//       backgroundColor: '#FFF',
+//       paddingVertical: 10,
+//       paddingHorizontal: 20,
+//     },
+//     popupCancelButtonText: {
+//       color: '#232323',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontStyle: 'normal',
+//       fontWeight: '400',
+//       lineHeight: 22,
+//     },
+//     closeIcon: {
+//       position: 'absolute',
+//       top: 10,
+//       right: 10,
+//     },
+//     approvalPathContainer: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       marginTop: 10,
+//       width: '100%',
+//     },
+//     approvalPathInputContainer: {
+//       flex: 1,
+//       marginRight: 10,
+//     },
+//     approvalPathLabel: {
+//       color: '#044086',
+//       fontSize: 12,
+//       fontWeight: '400',
+//       marginBottom: 4,
+//     },
+//     approvalPathPicker: {
+//       height: 40,
+//     },
+//     createNewApprovalButton: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       backgroundColor: '#044086',
+//       borderRadius: 5,
+//       borderWidth: 1,
+//       borderColor: '#FFF',
+//       padding: 8,
+//       marginTop:20
+//     },
+//     createNewApprovalButtonText: {
+//       color: '#FFF',
+//       marginLeft: 5,
+//       fontSize: 14,
+//       fontWeight: '500',
+//     },
+//     newApprovalTitle: {
+//       color: '#000',
+//       fontFamily: 'Outfit',
+//       fontSize: 16,
+//       fontStyle: 'normal',
+//       fontWeight: '500',
+//       lineHeight: 22,
+//       textTransform: 'capitalize',
+//      textAlign:'center'
+//     },
+//     newApprovalInput: {
+//       borderRadius: 5,
+//       borderBottomWidth: 1,
+//       borderBottomColor: '#044086',
+//       backgroundColor: '#FFF',
+//       padding: 10,
+//       marginBottom: 20,
+//       width: '100%',
+//     },
+//     columnsContainer: {
+//       width: '100%',
+//       padding: 10,
+//       borderRadius: 10,
+//       backgroundColor: '#F7F7F7',
+//     },
+//     columnsHeader: {
+//       flexDirection: 'row',
+//       justifyContent: 'space-between',
+//       width: '100%',
+//       paddingHorizontal: 10,
+//       marginBottom: 10,
+//     },
+//     columnContent: {
+//       flexDirection: 'row',
+//       justifyContent: 'space-between',
+//       width: '100%',
+//       marginBottom: 10,
+//     },
+//     columnTitle: {
+//       color: '#000',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontWeight: '600',
+//       width: '45%',
+//       //paddingLeft:20
+//     },
+//     stepText: {
+//       width: '25%',
+//       color: '#000',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 11,
+//       fontWeight: '400',
+//       alignItems:'center',
+//       display:'flex'
+//     },
+//     columnInput: {
+//       width: '24%',
+//       height: 40,
+//       borderWidth: 1,
+//       borderColor: '#C4C4C4',
+//       borderRadius: 5,
+//       paddingHorizontal: 10,
+//     },
+//     rightButtonsContainer: {
+//         // flex: 1,
+//         gap: 8,
+//       },
+//       leftButtonContainer:{
+//         alignSelf:'flex-start'
+//       },  newButton: {
+//         backgroundColor: '#fff',
+//         padding: 10,
+//         borderRadius: 5,
+//         marginBottom: 10,
+//         flexDirection: 'row',
+//         alignItems: 'center',
+//         border:'1px solid #044086'
+//       },
+//       newButtonText: {
+//         color: '#044086',
+//         fontSize: 14,
+//         fontWeight: '500',
+//       },
+//       newButtonIcon: {
+//         marginRight: 5,
+//       },
+//     pickerContainer: {
+//       width: '25%',
+//       height: 40,
+//       backgroundColor: '#F0F0F0',
+//       borderRadius: 5,
+//       justifyContent: 'center',
+//     },
+//     designationPicker: {
+//       width: '100%',
+//       height: 40,
+//     },
+//      verticalLine: {
+//       width: 1,
+//       height: 20,
+//       backgroundColor: '#fff',
+//       marginHorizontal: 8,
+//     },
+//     actionPicker: {
+//       width: '80%',
+//       height: 40,
+//     },
+//     addButton: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       justifyContent: 'center',
+//       borderRadius: 5,
+//       borderWidth: 1,
+//       borderColor: '#044086',
+//       backgroundColor: '#FFF',
+//       padding: 7,
+//       marginTop: 10,
+//       alignSelf: 'center',
+//     },
+//     addButtonText: {
+//       color: '#044086',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontWeight: '400',
+//       marginLeft: 6,
+//     },
+//     modalScrollView: {
+//       maxHeight: 400,
+//       width: '100%',
+//     },
+//     searchableDropdown: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       justifyContent: 'space-between',
+//       backgroundColor: '#F0F0F0',
+//       height: 40,
+//       padding: 7,
+//       borderRadius: 5,
+//       marginLeft:20
+//     },
+//     searchInput: {
+//       flex: 1,
+//       fontSize: 12,
+//       color: '#000',
+//     },
+//     autoPopulatedText: {
+//       width: '67%',
+//       color: '#000',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontWeight: '400',
+//       alignItems:'center',
+//       display:'flex',
+//       textAlign: 'center',
+//       marginLeft: 50 
+//     },
+//     addStepButton: {
+//       flexDirection: 'row',
+//       //alignItems: 'center',
+//       justifyContent: 'center',
+//       borderRadius: 5,
+//       borderWidth: 1,
+//       borderColor: '#044086',
+//       backgroundColor: '#FFF',
+//       padding: 7,
+//       marginTop: 10,
+//       alignSelf: 'center',
+//     },
+//     sequence: {
+//         flexDirection: 'row',
+//         //alignItems: 'center',
+//         justifyContent: 'center',
+//         borderRadius: 5,
+//         borderWidth: 1,
+//         borderColor: '#044086',
+//         backgroundColor: '#044086',
+//         padding: 7,
+//         marginTop: 10,
+//         alignSelf: 'center',
         
-      },
-    addStepButtonText: {
-      color: '#044086',
-      fontFamily: 'Source Sans Pro',
-      fontSize: 14,
-      fontWeight: '400',
-      marginLeft: 6,
-    },
-    actionContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      width: '25%',
-    },
-    cancelIcon: {
-      padding: 5,
-    },
-    centeredViewd: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      },
-      modalViewd: {
-        margin: 20,
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 35,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-      },
-      modalTextd: {
-        marginBottom: 15,
-        textAlign: 'center',
-        fontSize: 16,
-        fontWeight: '600',
-        fontFamily:'Inter',
-      },
-      centeredViews: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      },
-      modalViews: {
-        backgroundColor: 'white',
-        borderRadius: 10,
-        padding: 20,
-        alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-        elevation: 5,
-      },
-      modalTexts: {
-        fontSize: 18,
-        marginBottom: 15,
-        textAlign: 'center',
-      },
-      closeButtons: {
-        // backgroundColor: '#2196F3',
-        borderRadius: 5,
-        padding: 10,
-        elevation: 2,
-      },
-      closeButtonTexts: {
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
-      },
-      verticalDivider: {
-        width: 1, 
-        backgroundColor: '#ccc', 
-        alignSelf: 'stretch', 
-        marginHorizontal: 10, 
+//       },
+//     addStepButtonText: {
+//       color: '#044086',
+//       fontFamily: 'Source Sans Pro',
+//       fontSize: 14,
+//       fontWeight: '400',
+//       marginLeft: 6,
+//     },
+//     actionContainer: {
+//       flexDirection: 'row',
+//       alignItems: 'center',
+//       justifyContent: 'space-between',
+//       width: '25%',
+//     },
+//     cancelIcon: {
+//       padding: 5,
+//     },
+//     centeredViewd: {
+//         flex: 1,
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+//       },
+//       modalViewd: {
+//         margin: 20,
+//         backgroundColor: 'white',
+//         borderRadius: 10,
+//         padding: 35,
+//         alignItems: 'center',
+//         shadowColor: '#000',
+//         shadowOffset: {
+//           width: 0,
+//           height: 2,
+//         },
+//         shadowOpacity: 0.25,
+//         shadowRadius: 4,
+//         elevation: 5,
+//       },
+//       modalTextd: {
+//         marginBottom: 15,
+//         textAlign: 'center',
+//         fontSize: 16,
+//         fontWeight: '600',
+//         fontFamily:'Inter',
+//       },
+//       centeredViews: {
+//         flex: 1,
+//         justifyContent: 'center',
+//         alignItems: 'center',
+//         backgroundColor: 'rgba(0, 0, 0, 0.5)',
+//       },
+//       modalViews: {
+//         backgroundColor: 'white',
+//         borderRadius: 10,
+//         padding: 20,
+//         alignItems: 'center',
+//         shadowColor: '#000',
+//         shadowOffset: {
+//           width: 0,
+//           height: 2,
+//         },
+//         shadowOpacity: 0.25,
+//         shadowRadius: 4,
+//         elevation: 5,
+//       },
+//       modalTexts: {
+//         fontSize: 18,
+//         marginBottom: 15,
+//         textAlign: 'center',
+//       },
+//       closeButtons: {
+//         // backgroundColor: '#2196F3',
+//         borderRadius: 5,
+//         padding: 10,
+//         elevation: 2,
+//       },
+//       closeButtonTexts: {
+//         color: 'white',
+//         fontWeight: 'bold',
+//         textAlign: 'center',
+//       },
+//       verticalDivider: {
+//         width: 1, 
+//         backgroundColor: '#ccc', 
+//         alignSelf: 'stretch', 
+//         marginHorizontal: 10, 
         
-      },
-  });
+//       },
+//   });
   
   
   

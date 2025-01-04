@@ -21,6 +21,7 @@ import { Picker } from '@react-native-picker/picker';
 import NestedDeptDropdownProjects from '../../modals/NestedDropdownProjects';
 import { RadioButton } from 'react-native-paper';
 import { navigate } from '../../navigations/RootNavigation';
+import ProjectDetailedView from './ProjectDetailedView';
 const approvalHistory: ApprovalItem[] = [
   {
     date: '13/04/2023',
@@ -59,7 +60,7 @@ const IntakeView: React.FC = () => {
       <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === 'history' && <ApprovalHistory items={approvalHistory} />}
       {activeTab === 'details' && (
-        <ProjectDetails items={approvalHistory} projectId={project_id} />
+        <ProjectDetailedView items={approvalHistory} projectId={project_id} isEditable={false} />
       )}
     </View>
   );

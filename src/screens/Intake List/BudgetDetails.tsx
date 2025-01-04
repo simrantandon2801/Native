@@ -15,6 +15,7 @@ import { Picker } from '@react-native-picker/picker';
 import { GetBudgetCategories, GetBudgetSubCategories, GetBudgetDetails, InsertBudgetDetails, DeleteBudgetDetail} from '../../database/Intake';
 import { navigate } from '../../navigations/RootNavigation';
 import Icon from 'react-native-vector-icons/Ionicons';
+import NestedDeptDropdown from '../../modals/NestedDeptDropdown';
 
 interface BudgetRow {
   budget_detail_id: number;
@@ -25,18 +26,23 @@ interface BudgetRow {
   sub_category_name: string;
   qty: number;
   value: number;
+  unit: string;
   total: number;
+  department_id: number;
+  department_name: string;
+  description:string;
 }
 
 interface BudgetAppProps {
-  projectId: string;
+  projectId: number;
   visible: boolean;
   onClose: (total:string) => void;
 }
 
 
 const BudgetDetails: React.FC<BudgetAppProps> = ({ 
-  projectId,  
+  projectId, 
+  projectName, 
   visible,
   onClose, 
 }) => {
@@ -50,13 +56,18 @@ const BudgetDetails: React.FC<BudgetAppProps> = ({
     sub_category_name: '',
     qty: 0,
     value: 0,
-    total: 0
+    total: 0,
+    unit:'',
+    department_id:0,
+    department_name: '',
+    description:''
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [categories, setCategories] = useState([]);
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [categorySelected, setCategorySelected] = useState('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedDeptID, setSelectedDeptID] = useState<number>(-1);
 
   // Simulated API call to fetch categories and category details
   const fetchCategoriesAndDetails = async () => {
@@ -85,7 +96,6 @@ const BudgetDetails: React.FC<BudgetAppProps> = ({
     //   );
 
       setCategories(result.data?.category);
-     
       setLoading(false);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -183,6 +193,10 @@ const loadBudgetData = async (project_id) => {
         sub_category_name: '',
         qty: 0,
         value: 0,
+        unit:'',
+        department_id:0,
+        department_name: '',
+        description:'',
         total: 0});
     setErrors({});
           }
@@ -233,6 +247,11 @@ const loadBudgetData = async (project_id) => {
     //setCategoryDetails(result.data?.subcategory);
     setNewRow({ ...newRow, sub_category_id: categoryId});
   }
+  const handleDeptSelect = (deptID: number) => {
+    setSelectedDeptID(deptID); // Update the parent state with the selected department ID
+    console.log(`Selected Department ID: ${deptID}`);
+    // setFieldValue("selectedDeptID", deptID);
+  };
   const availableDetails = newRow.category_id
   ? categoryDetails
       .filter((item) => item.category_id === newRow.category_id)
@@ -246,7 +265,7 @@ const loadBudgetData = async (project_id) => {
          onRequestClose={()=>onClose(totals.totalBudget.toString())}>
          <View style={styles.centeredView}>
            <View style={styles.modalView}>
-             <Text style={styles.modalTitle}>Budget Details</Text>
+             <Text style={styles.modalTitle}>Budget Calculations</Text>
              <View style={styles.modalContent}>
     {/* <View style={styles.header}>
     <TouchableOpacity
@@ -257,7 +276,7 @@ const loadBudgetData = async (project_id) => {
     <Text style={styles.projectName}></Text>
   </View> */}
     <View style={styles.container}>
-      <Text style={styles.heading}>Project Budget</Text>
+      <Text style={styles.heading}>Project Name: {projectName}</Text>
 
       {loading && <Text>Loading categories and details...</Text>}
 
@@ -265,8 +284,11 @@ const loadBudgetData = async (project_id) => {
       <View style={styles.tableRow}>
         <Text style={[styles.tableCell, styles.headerCell]}>Category</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Sub-Category</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Function</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Description</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Quantity</Text>
-        <Text style={[styles.tableCell, styles.headerCell]}>Value</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>UoM</Text>
+        <Text style={[styles.tableCell, styles.headerCell]}>Rate($)</Text>
         <Text style={[styles.tableCell, styles.headerCell]}>Total</Text>
       </View>
 
@@ -282,11 +304,16 @@ const loadBudgetData = async (project_id) => {
           style={[styles.picker, styles.tableCell]}
         >
           <Picker.Item label="Select Category" value="" />
-          {categories.map((cat, index) => (
-            <Picker.Item key={index} label={cat.category_name} value={cat.category_id} />
-          ))}
+          {categories && categories.length > 0 ? (
+  categories.map((cat, index) => (
+    <Picker.Item key={index} label={cat.category_name} value={cat.category_id} />
+  ))
+) : (
+  <Picker.Item label="No categories available" value="" />
+)}
         </Picker>
         {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
+
 
         <Picker
           selectedValue={newRow.sub_category_id}
@@ -305,7 +332,24 @@ const loadBudgetData = async (project_id) => {
           ))}
         </Picker>
         {errors.categoryDetail && <Text style={styles.errorText}>{errors.categoryDetail}</Text>}
-
+        <NestedDeptDropdown
+                        onSelect={handleDeptSelect}
+                        selectedValue={selectedDeptID.toString()} // Pass current value from Formik
+                        placeholder={'Select a department'}
+                      />
+                       {errors.selectedDeptID && (
+                                              <Text style={styles.errorText}>
+                                                {errors.selectedDeptID}
+                                              </Text> // Show error if touched and invalid
+                                            )}
+           <TextInput
+          style={[styles.input, styles.tableCell]}
+          placeholder="Desription"
+          value={newRow.description.toString()}
+          onChangeText={(text) =>
+            setNewRow({ ...newRow, description: parseFloat(text) || 0 })
+          }
+        />
         <TextInput
           style={[styles.input, styles.tableCell]}
           keyboardType="numeric"
@@ -315,7 +359,7 @@ const loadBudgetData = async (project_id) => {
             setNewRow({ ...newRow, qty: parseFloat(text) || 0 })
           }
         />
-        {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
+        {/* {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>} */}
 
         <TextInput
           style={[styles.input, styles.tableCell]}
@@ -326,11 +370,17 @@ const loadBudgetData = async (project_id) => {
             setNewRow({ ...newRow, value: parseFloat(text) || 0 })
           }
         />
-        {errors.value && <Text style={styles.errorText}>{errors.value}</Text>}
-
-        <Text style={styles.tableCell}>
-          {newRow.qty && newRow.value ? newRow.qty * newRow.value : 0}
-        </Text>
+        {/* {errors.value && <Text style={styles.errorText}>{errors.value}</Text>} */}
+        <TextInput
+        // <Text style={styles.tableCell}>
+        style={[styles.input, styles.tableCell]}
+          keyboardType="numeric"
+          placeholder="Total"
+          value={newRow.total.toString()}
+          onChangeText={(text) =>
+            setNewRow({ ...newRow, total: parseFloat(text) || 0 })
+          }
+         />
       </View>
 
       <Button title="Add Row" onPress={handleAddRow} />
@@ -343,7 +393,10 @@ const loadBudgetData = async (project_id) => {
           <View style={styles.tableRow}>
             <Text style={styles.tableCell}>{item.category_name}</Text>
             <Text style={styles.tableCell}>{item.sub_category_name}</Text>
+            <Text style={styles.tableCell}>{item.department_name}</Text>
+            <Text style={styles.tableCell}>{item.description}</Text>
             <Text style={styles.tableCell}>{item.qty}</Text>
+            <Text style={styles.tableCell}>{item.unit}</Text>
             <Text style={styles.tableCell}>{item.value}</Text>
             <Text style={styles.tableCell}>{item.qty * item.value}</Text>
             {/* <Button mode="contained" onPress={()=>handleDelete(item.budget_detail_id)}>
