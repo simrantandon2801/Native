@@ -33,21 +33,37 @@ export default function PriorityScreen() {
     value: string;
     is_active: boolean;
   }
-  const fetchPrioritiesData = async () => {
+ const fetchPrioritiesData = async () => {
     try {
-      setLoading(true);
-      const data = await fetchPriorities(); 
-      setPriorities(data);
+      setLoading(true)
+      const response = await fetchPriorities()
+      console.log('Raw Response:', response)
+
+      // Ensure response is parsed correctly
+      const result = typeof response === 'string' ? JSON.parse(response) : response
+
+      console.log('Parsed API Response:', result)
+
+      // Validate the priority data
+      if (result?.data.length>0) {
+        // Ensure each priority item has the correct structure
+       
+        setPriorities(result?.data)
+      } else {
+        console.error('Invalid priority data:', result)
+       
+      }
     } catch (error) {
-      console.error('Error fetching priorities:', error);
+      console.error('Error fetching priorities:', error)
+    
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
-  
+  }
+
   useEffect(() => {
-    fetchPrioritiesData();
-  }, []);
+    fetchPrioritiesData()
+  }, [])
 
   const handleAddPriority = async () => {
     try {
@@ -94,7 +110,7 @@ export default function PriorityScreen() {
     }
   }
 
-  const sortedAndFilteredData = useMemo(() => {
+  const priority = useMemo(() => {
     let result = [...priorities]
     
     if (searchQuery) {
@@ -150,7 +166,7 @@ export default function PriorityScreen() {
             <DataTable.Title style={styles.column}>Action</DataTable.Title>
           </DataTable.Header>
 
-          {sortedAndFilteredData.map((item, index) => (
+          {priorities.map((item, index) => (
             <DataTable.Row key={item.id} style={styles.row}>
               <DataTable.Cell style={styles.column}>{index + 1}</DataTable.Cell>
               <DataTable.Cell style={styles.column}>{item.value}</DataTable.Cell>
@@ -459,4 +475,8 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
 })
+
+function Alert(arg0: { title: string; description: string }) {
+  throw new Error('Function not implemented.')
+}
 

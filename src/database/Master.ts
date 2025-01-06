@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
+import { BASE_URL } from "@env";
 
 export interface Priority {
     id: number;
@@ -15,19 +16,19 @@ export interface Priority {
   
   export type SortOrder = 'asc' | 'desc';
   
-  const API_BASE_URL = 'https://underbuiltapi.aadhidigital.com/utils';
+
   
 
 
   export const fetchPriorities = async (query: string = ''): Promise<Priority[]> => {
     try {
-      const uri = `${API_BASE_URL}/get_priorities`;
+      const uri = `${BASE_URL}/utils/get_priorities`;
       const token = await AsyncStorage.getItem('Token');
       const jsonResult = await GetAsync_with_token(uri, token);
   
       const priorities = JSON.parse(jsonResult).map((item: any) => ({
-        id: item.priority_id,
-        value: item.priority_name,
+        id: item.priority,
+        value: item.priority_value,
         is_active: item.is_active
       }));
       return priorities;
@@ -44,7 +45,7 @@ export interface Priority {
     console.log(values, "Adding/Editing priority");
    
     try {
-      const uri = `${API_BASE_URL}/insert_priority`;
+      const uri = `${BASE_URL}/utils/insert_priority`;
       const token = await AsyncStorage.getItem('Token');  
       console.log(uri);
   
@@ -72,15 +73,15 @@ export interface Priority {
     console.log(values, "Updating priority")
      
     try {
-      var uri = `${API_BASE_URL}/insert_priority`;
+      var uri = `${BASE_URL}/utils/insert_priority`;
       const token = await AsyncStorage.getItem('Token');  
       console.log(uri);
   
       // Transform to match API field names
       const apiPayload = {
-        priority_id: values.id,
-        priority_name: values.value,
-        is_active: values.is_active
+        id: values.id,
+        value: values.value,
+        is_active: values.is_active 
       };
   
       var payload = JSON.stringify(apiPayload);

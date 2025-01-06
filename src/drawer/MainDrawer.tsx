@@ -54,7 +54,12 @@ import ImpactedApps from '../screens/ImpactedApps';
 import IntakeApprovalView from '../screens/Intake List/IntakeApprovalView';
 import Classification from '../screens/Master/Classification';
 import Designation from '../screens/Master/Designation';
-import BudgetDetail from '../screens/Intake List/BudgetDetail';
+import BudgetDetails from '../screens/Intake List/BudgetDetails';
+import ApprovedProjectList from '../screens/ApprovedProject/ApprovedProjectList';
+import Stakeholderform from '../screens/ApprovedProject/Stakeholderform';
+import ProjectDetails from '../screens/ApprovedProject/ProjectDetails';
+import ResetPass from '../screens/Password/ResetPass';
+import PriorityScreen from '../screens/Master/Priority';
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -321,8 +326,12 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="Classification" component={Classification} />
           <Drawer.Screen name="Designation" component={Designation} />
           
-          <Drawer.Screen name="BudgetDetail" component={BudgetDetail} />
-        
+          <Drawer.Screen name="BudgetDetail" component={BudgetDetails} />
+          <Drawer.Screen name="ApprovedProjectList" component={ApprovedProjectList} />
+          <Drawer.Screen name="Stakeholderform" component={Stakeholderform} />
+          <Drawer.Screen name="ProjectDetails" component={ProjectDetails} />
+          <Drawer.Screen name="ResetPass" component={ResetPass} />
+          <Drawer.Screen name="Priority" component={PriorityScreen} />
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}

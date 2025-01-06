@@ -8,6 +8,8 @@ import StakeholdersForm from './Stakeholderform';
 import ProjectDetailedView from './ProjectDetailedView';
 import TeamMembers from './TeamMembers';
 import { useRoute } from '@react-navigation/native';
+import Raid from './Raid';
+import Milestone from './Milestone';
 /* import { TeamMemberModal } from './TeamMembersModal';
 import Raid from './Raid';
 import Financial from './Financial';
@@ -75,9 +77,9 @@ const ProjectDetails: React.FC = () => {
   />}
         {activeTab === 1 && <StakeholdersForm/>}
         {activeTab === 2 && <TeamMembers projectId={project_id} />}
-      {/*   {activeTab === 3 && <Milestone/>}
-        {activeTab === 4 && <Raid/> }
-        {activeTab === 5 && <Financial/> }
+        {activeTab === 3 && <Milestone/>}
+        {activeTab === 4 && <Raid projectId={project_id}/> }
+        {/* {activeTab === 5 && <Financial/> }
         {activeTab === 6 && <Planning/> } */}
       </View>
       <View style={styles.buttonContainer}>

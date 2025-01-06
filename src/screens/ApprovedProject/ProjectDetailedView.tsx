@@ -25,7 +25,7 @@ import { GetApprovedProjects } from '../../database/ApprovedProjects';
 import { Picker } from '@react-native-picker/picker';
 import NestedDeptDropdownProjects from '../../modals/NestedDropdownProjects';
 import NestedMultiselectDropdown from '../../modals/NestedMultSelect';
-import { GetClasssifcation } from '../../database/Classification';
+import { GetClasssifcation } from '../../database/Masters';
 import DatePicker from 'react-datepicker';
 import NestedMultiselectDropdownView from '../../modals/NestedMultSelectView';
 
