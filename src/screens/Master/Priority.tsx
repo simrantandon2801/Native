@@ -14,7 +14,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { fetchPriorities, updatePriority, addPriority, deletePriority, Priority, NewPriority, SortOrder } from '../../database/Master'
 
 export default function PriorityScreen() {
-  const [priorities, setPriorities] = useState<Priority[]>([])
+  const [priorities, setPriorities] = useState<Priority[]>([]);
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
   const [menuVisible, setMenuVisible] = useState<number | null>(null)
@@ -35,33 +35,33 @@ export default function PriorityScreen() {
   }
   const fetchPrioritiesData = async () => {
     try {
-      setLoading(true)
-      const data = await fetchPrioritiesData()
-      setPriorities(data)
+      setLoading(true);
+      const data = await fetchPriorities(); 
+      setPriorities(data);
     } catch (error) {
-      console.error('Error fetching priorities:', error)
+      console.error('Error fetching priorities:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
+  };
+  
   useEffect(() => {
-    fetchPrioritiesData()
-  }, [])
+    fetchPrioritiesData();
+  }, []);
 
   const handleAddPriority = async () => {
     try {
-      setLoading(true)
-      await addPriority(NewPriority)
-      await fetchPrioritiesData()
-      setIsAddModalOpen(false)
-      setNewPriority({ id: 0, value: '', is_active: true })
+      setLoading(true);
+      await addPriority(NewPriority);
+      await fetchPrioritiesData();
+      setIsAddModalOpen(false);
+      setNewPriority({ id: 0, value: '', is_active: true });
     } catch (error) {
-      console.error('Error adding priority:', error)
+      console.error('Error adding priority:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleEditPriority = async () => {
     if (!selectedPriority) return
@@ -214,15 +214,15 @@ export default function PriorityScreen() {
                 <Text style={styles.label}>Priority Name</Text>
                 <TextInput
                   style={styles.input}
-                  value={newPriority.value}
-                  onChangeText={(text) => setNewPriority({ ...newPriority, value: text })}
+                  value={NewPriority.value}
+                  onChangeText={(text) => setNewPriority({ ...NewPriority, value: text })}
                   placeholder="Enter priority name"
                 />
                 <View style={styles.switchContainer}>
                   <Text style={styles.label}>Status</Text>
                   <Switch
-                    value={newPriority.is_active}
-                    onValueChange={(value) => setNewPriority({ ...newPriority, is_active: value })}
+                    value={NewPriority.is_active}
+                    onValueChange={(value) => setNewPriority({ ...NewPriority, is_active: value })}
                   />
                 </View>
               </View>

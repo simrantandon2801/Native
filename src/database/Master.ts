@@ -19,70 +19,78 @@ export interface Priority {
   
 
 
-
-  export const fetchPriorities = async (query:string): Promise<string> => {
+  export const fetchPriorities = async (query: string = ''): Promise<Priority[]> => {
     try {
-      //debugger;
-      //const UserID = await AsyncStorage.getItem('UserID');
-    //   let customerId = await getCustomerId();
-      var uri = `${API_BASE_URL}/get_priorities`;
-      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const uri = `${API_BASE_URL}/get_priorities`;
       const token = await AsyncStorage.getItem('Token');
+      const jsonResult = await GetAsync_with_token(uri, token);
+  
+      const priorities = JSON.parse(jsonResult).map((item: any) => ({
+        id: item.priority_id,
+        value: item.priority_name,
+        is_active: item.is_active
+      }));
+      return priorities;
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed to fetch priorities: ' + error);
+    }
+  };
+  
+  
+  
+
+  export const addPriority = async (values: Priority): Promise<string> => {
+    console.log(values, "Adding/Editing priority");
+   
+    try {
+      const uri = `${API_BASE_URL}/insert_priority`;
+      const token = await AsyncStorage.getItem('Token');  
       console.log(uri);
-      var jsonResult = await GetAsync_with_token(uri, token);
-      console.log(jsonResult);
-      //debugger;
+  
+      const apiPayload = {
+        id: values.id,
+        value: values.value,
+        is_active: values.is_active   
+      };
+  
+      const payload = JSON.stringify(apiPayload);
+      console.log(payload);
+      
+      const jsonResult = await PostAsync_with_token(uri, payload, token);
+      console.log(jsonResult, "API response");
       return JSON.stringify(jsonResult ?? '');
     } catch (error) {
       console.error(error);
-      throw Error('Failed' + error);
+      throw Error('Failed to add/edit priority: ' + error);
     }
   };
   
 
-  export const addPriority = async (values: {
-    classification_id: number;
-    classification_name: string;
-    is_active: boolean;
-  }): Promise<string> => {
-    console.log(values, "Adding/Editing classification")
-   
+  
+  export const updatePriority = async (values: Priority): Promise<string> => {
+    console.log(values, "Updating priority")
+     
     try {
       var uri = `${API_BASE_URL}/insert_priority`;
       const token = await AsyncStorage.getItem('Token');  
       console.log(uri);
-      var payload = JSON.stringify(values);
+  
+      // Transform to match API field names
+      const apiPayload = {
+        priority_id: values.id,
+        priority_name: values.value,
+        is_active: values.is_active
+      };
+  
+      var payload = JSON.stringify(apiPayload);
       console.log(payload);
       var jsonResult = await PostAsync_with_token(uri, payload, token);
       console.log(jsonResult, "API response");
       return JSON.stringify(jsonResult ?? '');
     } catch (error) {
       console.error(error);
-      throw Error('Failed to add/edit classification: ' + error);
-    }
-  };
-  
-
-  
-  export const updatePriority = async (values: {
-    classification_id: number;
-    classification_name: string;
-    is_active: boolean;
-  }): Promise<string> => {
-    console.log(values, "Adding/Editing classification")
-   
-    try {
-      var uri = `${API_BASE_URL}/insert_priority`;
-      const token = await AsyncStorage.getItem('Token');  
-      console.log(uri);
-      var payload = JSON.stringify(values);
-      console.log(payload);
-      var jsonResult = await PostAsync_with_token(uri, payload, token);
-      console.log(jsonResult, "API response");
-      return JSON.stringify(jsonResult ?? '');
-    } catch (error) {
-      console.error(error);
-      throw Error('Failed to add/edit classification: ' + error);
+      throw Error('Failed to update priority: ' + error);
     }
   };
   
