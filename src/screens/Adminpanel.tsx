@@ -13,7 +13,7 @@ interface GridItem {
 }
 
 const gridData: GridItem[] = [
-  { id: '1', image: AppImages.Frame, text: 'Manage Company', component: 'BudgetDetail' },
+  { id: '1', image: AppImages.Frame, text: 'Manage Company', component: 'intakeform' },
   { id: '2', image: AppImages.ManageP, text: 'Manage Departments', component: 'DepartmentList'  },
   { id: '3', image: AppImages.Imtegration, text: 'Manage AD Integration', component: 'ADIntegrationList'  },
   { id: '4', image: AppImages.Module, text: 'Manage Resources', component: 'Resources'  },
@@ -25,9 +25,6 @@ const gridData: GridItem[] = [
   { id: '9', image: AppImages.license, text: 'License details', component: 'BinaryTree'  }, 
   { id: '11', image: AppImages.Imtegration, text: 'Manage PPM Integration', component: 'PPMIntegrationList'  },
   { id: '12', image: AppImages.Applications, text: 'Impacted Applications', component: 'ImpactedApps'  },
-  { id: '13', image: AppImages.Applications, text: 'Budget Category', component: 'BudgetCategory'  },
-  { id: '14', image: AppImages.Applications, text: 'Priority', component: 'Priority'  },
-  
 ];
 
 const Adminpanel: React.FC = () => {
@@ -55,7 +52,6 @@ const Adminpanel: React.FC = () => {
         {renderGridRow(0, 4)}
         {renderGridRow(4, 8)}
         {renderGridRow(8, 12)}
-        {renderGridRow(12, 16)}
       </View>
     </ScrollView>
   );

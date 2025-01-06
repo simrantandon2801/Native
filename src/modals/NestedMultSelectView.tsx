@@ -84,7 +84,7 @@ const RecursiveDropdown = ({
   );
 };
 
-const NestedMultiselectDropdown = forwardRef(
+const NestedMultiselectDropdownView = forwardRef(
   ({onSelectionChange, editGoal}, ref) => {
     const [dept, setDept] = useState<[]>([]);
     const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -115,11 +115,13 @@ const NestedMultiselectDropdown = forwardRef(
     }, []);
 
     useEffect(() => {
-      if (editGoal && editGoal.stakeholders) {
-        const parsedStakeholders = editGoal.stakeholders
+      console.log('editGoal:', editGoal); // Log the entire editGoal object
+      if (editGoal && editGoal.impacted_function) {
+        const parsedimpacted_function = editGoal.impacted_function
           .split(',')
           .map(id => parseInt(id.trim(), 10));
-        setSelectedItems(parsedStakeholders);
+        console.log('Parsed impacted_function:', parsedimpacted_function); // Log parsed IDs
+        setSelectedItems(parsedimpacted_function);
       }
     }, [editGoal]);
 
@@ -167,24 +169,24 @@ const NestedMultiselectDropdown = forwardRef(
         .join(', ');
     };
 
-    const getAlreadySelectedNames = () => {
-      if (editGoal && editGoal.stakeholders) {
-        const selectedIDs = editGoal.stakeholders
-          .split(',')
-          .map(id => parseInt(id, 10));
-        const flatDepartments = flattenDepartments(dept);
+    // const getAlreadySelectedNames = () => {
+    //   if (editGoal && editGoal.stakeholders) {
+    //     const selectedIDs = editGoal.stakeholders
+    //       .split(',')
+    //       .map(id => parseInt(id, 10));
+    //     const flatDepartments = flattenDepartments(dept);
 
-        return selectedIDs
-          .map(id => {
-            const department = flatDepartments.find(
-              d => d.department_id === id,
-            );
-            return department ? department.department_name : null;
-          })
-          .filter(name => name !== null)
-          .join(', ');
-      }
-    };
+    //     return selectedIDs
+    //       .map(id => {
+    //         const department = flatDepartments.find(
+    //           d => d.department_id === id,
+    //         );
+    //         return department ? department.department_name : null;
+    //       })
+    //       .filter(name => name !== null)
+    //       .join(', ');
+    //   }
+    // };
 
     useImperativeHandle(ref, () => ({
       dismissDropdown: () => {
@@ -319,4 +321,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default NestedMultiselectDropdown;
+export default NestedMultiselectDropdownView;
