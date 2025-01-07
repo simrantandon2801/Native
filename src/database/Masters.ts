@@ -123,6 +123,8 @@ export const AddAndEditDesignation = async (values: {
     throw Error('Failed' + error);
   }
 };
+
+//Priority Api
 export interface Priority {
   id: number;
   value: string;
@@ -200,8 +202,54 @@ export const updatePriority = async (values: Priority): Promise<string> => {
   }
 };
 
-
-export async function deletePriority(priority: Priority): Promise<void> {
-  await updatePriority({ ...priority, is_active: false });
+//Budget Api
+export interface BudgetSize {
+  id: number;
+  value: string;
+  is_active: boolean;
 }
+
+export const fetchBudgetSizes = async (): Promise<BudgetSize[]> => {
+  try {
+    const uri = `${BASE_URL}/utils/get_budget_size`;
+    const token = await AsyncStorage.getItem('Token');
+    const jsonResult = await GetAsync_with_token(uri, token);
+
+    return jsonResult.data.map((item: any) => ({
+      id: item.id,
+      value: item.value,
+      is_active: item.is_active,
+    }));
+  } catch (error) {
+    console.error('Error fetching budget sizes:', error);
+    throw new Error('Failed to fetch budget sizes');
+  }
+};
+
+export const addBudgetSize = async (values: BudgetSize): Promise<string> => {
+  try {
+    const uri = `${BASE_URL}/utils/insert_budget_size`;
+    const token = await AsyncStorage.getItem('Token');
+
+    const apiPayload = {
+      id: values.id,
+      value: values.value,
+      is_active: values.is_active,
+    };
+
+    const payload = JSON.stringify(apiPayload);
+    const jsonResult = await PostAsync_with_token(uri, payload, token);
+    return JSON.stringify(jsonResult ?? '');
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to add/edit budget size: ' + error);
+  }
+};
+
+export const updateBudgetSize = async (values: BudgetSize): Promise<string> => {
+  return addBudgetSize(values); 
+};
+
+
+
 

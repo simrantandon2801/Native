@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 import { DataTable, Text, Menu, Provider } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { fetchPriorities, updatePriority, addPriority, deletePriority } from '../../database/Masters'
+import { fetchPriorities, updatePriority, addPriority,  } from '../../database/Masters'
 import { ScrollView } from 'react-native-gesture-handler'
 
 interface Priority {
