@@ -250,6 +250,55 @@ export const updateBudgetSize = async (values: BudgetSize): Promise<string> => {
   return addBudgetSize(values); 
 };
 
+//ProjectSize Api
+
+export interface ProjectSize {
+  id: number;
+  value: string;
+  is_active: boolean;
+}
+
+export const fetchProjectSizes = async (): Promise<ProjectSize[]> => {
+  try {
+    const uri = `${BASE_URL}/utils/get_project_size`;
+    const token = await AsyncStorage.getItem('Token');
+    const jsonResult = await GetAsync_with_token(uri, token);
+
+    return jsonResult.data.map((item: any) => ({
+      id: item.id,
+      value: item.value,
+      is_active: item.is_active,
+    }));
+  } catch (error) {
+    console.error('Error fetching project sizes:', error);
+    throw new Error('Failed to fetch project sizes');
+  }
+};
+
+export const addProjectSize = async (values: ProjectSize): Promise<string> => {
+  try {
+    const uri = `${BASE_URL}/utils/insert_project_size`;
+    const token = await AsyncStorage.getItem('Token');
+
+    const apiPayload = {
+      id: values.id,
+      value: values.value,
+      is_active: values.is_active,
+    };
+
+    const payload = JSON.stringify(apiPayload);
+    const jsonResult = await PostAsync_with_token(uri, payload, token);
+    return JSON.stringify(jsonResult ?? '');
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to add/edit project size: ' + error);
+  }
+};
+
+export const updateProjectSize = async (values: ProjectSize): Promise<string> => {
+  return addProjectSize(values); 
+};
+
 
 
 

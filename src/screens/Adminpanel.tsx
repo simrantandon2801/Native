@@ -27,6 +27,7 @@ const gridData: GridItem[] = [
   { id: '12', image: AppImages.Applications, text: 'Impacted Applications', component: 'ImpactedApps'  },
   { id: '13', image: AppImages.Applications, text: 'Priority', component: 'Priority'  },
   { id: '14', image: AppImages.Applications, text: 'BudgetSize', component: 'BudgetSize'  },
+  { id: '15', image: AppImages.Applications, text: 'Projectsize', component: 'Projectsize'  },
 ];
 
 const Adminpanel: React.FC = () => {
