@@ -5,7 +5,8 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { DataTable, Menu } from 'react-native-paper';
 import { AddMemberModal } from './AddMemberModal';
 import { RaidData,InsertRaid ,GetRaids, fetchPriorities} from '../../database/Raid';
-import { Priority } from '../../database/Master';
+import { Priority } from '../../database/Masters';
+
 
 interface AddRaidModalProps {
   visible: boolean;
@@ -64,6 +65,35 @@ export const AddRaidModal: React.FC<AddRaidModalProps> = ({ visible, onClose, pr
       Alert.alert('Error', 'Failed to submit RAID. Please try again.');
     }
   };
+    const fetchPrioritiesData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetchPriorities();
+        console.log('Raw Response:', response);
+    
+        // If response is already an object, no need to parse it
+        const result = response;  // No need for JSON.parse() here
+    
+        console.log('Parsed API Response:', result);
+    
+        if (result.length > 0) {
+          setPriorities(result);  // result is already an array of priorities
+        } else {
+          console.error('Invalid priority data:', result);
+        }
+        
+      } catch (error) {
+        console.error('Error fetching priorities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+  
+    // Fetch priorities on component mount
+    useEffect(() => {
+      fetchPrioritiesData()
+    }, [])
   
   const handleCloseSuccessModal = () => {
     setRaidSubmitModalVisible(false);
@@ -78,37 +108,7 @@ export const AddRaidModal: React.FC<AddRaidModalProps> = ({ visible, onClose, pr
   const handleAddMember = (memberData: Omit<TeamMember, 'id'>) => {
     setTeamMembers(prev => [...prev, { id: prev.length + 1, ...memberData }]);
   };
- const fetchPrioritiesData = async () => {
-    try {
-      setLoading(true)
-      const response = await fetchPriorities()
-      console.log('Raw Response:', response)
 
-      // Ensure response is parsed correctly
-      const result = typeof response === 'string' ? JSON.parse(response) : response
-
-      console.log('Parsed API Response:', result)
-
-      // Validate the priority data
-      if (result?.data.length>0) {
-        // Ensure each priority item has the correct structure
-       
-        setPriorities(result?.data)
-      } else {
-        console.error('Invalid priority data:', result)
-       
-      }
-    } catch (error) {
-      console.error('Error fetching priorities:', error)
-    
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchPrioritiesData()
-  }, [])
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.modalOverlay}>

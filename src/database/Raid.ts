@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GetAsync_with_token, PostAsync, PostAsync_with_token } from "../services/rest_api_service";
-import { Priority } from './Master';
+import { Priority } from './Masters';
 
 import { BASE_URL } from "@env";
 
@@ -65,21 +65,21 @@ export const DeleteRaid = async (raidId: number): Promise<string> => {
     throw Error('Failed to delete RAID: ' + error);
   }
 };
-export const fetchPriorities = async (query: string = ''): Promise<Priority[]> => {
-    try {
-      const uri = `${BASE_URL}/utils/get_priorities`;
-      const token = await AsyncStorage.getItem('Token');
-      const jsonResult = await GetAsync_with_token(uri, token);
-  
-      const priorities = JSON.parse(jsonResult).map((item: any) => ({
-        id: item.priority.id,
-        value: item.priority_name,
-        is_active: item.is_active
-      }));
-      return priorities;
-    } catch (error) {
-      console.error(error);
-      throw Error('Failed to fetch priorities: ' + error);
-    }
-  };
+export const fetchPriorities = async (): Promise<Priority[]> => {
+  try {
+    const uri = `${BASE_URL}/utils/get_priorities`;
+    const token = await AsyncStorage.getItem('Token');
+    const jsonResult = await GetAsync_with_token(uri, token);
+
+    // Remove JSON.parse() because jsonResult is already an object
+    return jsonResult.data.map((item: any) => ({
+      id: item.id,
+      value: item.value,
+      is_active: item.is_active,
+    }));
+  } catch (error) {
+    console.error('Error fetching priorities:', error);
+    throw new Error('Failed to fetch priorities: ');
+  }
+};
 
