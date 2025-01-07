@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   View,
   StyleSheet,
@@ -7,80 +7,99 @@ import {
   TouchableOpacity,
   Button,
   Switch,
-  Modal 
+  Modal,
+  ActivityIndicator,
+  Alert
 } from 'react-native'
 import { DataTable, Text, Menu, Provider } from 'react-native-paper'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
-import { fetchPriorities, updatePriority, addPriority, deletePriority, Priority, NewPriority, SortOrder } from '../../database/Master'
+import { fetchPriorities, updatePriority, addPriority, deletePriority } from '../../database/Masters'
+import { ScrollView } from 'react-native-gesture-handler'
+
+interface Priority {
+  id: number;
+  value: string;
+  is_active: boolean;
+}
+
+interface NewPriority {
+  id: number;
+  value: string;
+  is_active: boolean;
+}
 
 export default function PriorityScreen() {
-  const [priorities, setPriorities] = useState<Priority[]>([]);
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc')
+  const [priorities, setPriorities] = useState<Priority[]>([])
   const [menuVisible, setMenuVisible] = useState<number | null>(null)
   const [loading, setLoading] = useState(false)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedPriority, setSelectedPriority] = useState<Priority | null>(null)
-  const [NewPriority, setNewPriority] = useState<NewPriority>({
+  const [newPriority, setNewPriority] = useState<NewPriority>({
     id: 0,
     value: '',
     is_active: true
   })
-  interface NewPriority {
-    id: number;
-    value: string;
-    is_active: boolean;
-  }
- const fetchPrioritiesData = async () => {
+  const fetchPrioritiesData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetchPriorities();
+      console.log('Raw Response:', response);
+  
+      // If response is already an object, no need to parse it
+      const result = response;  // No need for JSON.parse() here
+  
+      console.log('Parsed API Response:', result);
+  
+      if (result.length > 0) {
+        setPriorities(result);  // result is already an array of priorities
+      } else {
+        console.error('Invalid priority data:', result);
+      }
+      
+    } catch (error) {
+      console.error('Error fetching priorities:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  // Fetch priorities on component mount
+  useEffect(() => {
+    fetchPrioritiesData()
+  }, [])
+
+
+
+  const handleAddPriority = async () => {
+    if (!newPriority.value.trim()) {
+      Alert.alert('Error', 'Priority name cannot be empty')
+      return
+    }
+
     try {
       setLoading(true)
-      const response = await fetchPriorities()
-      console.log('Raw Response:', response)
-
-      // Ensure response is parsed correctly
-      const result = typeof response === 'string' ? JSON.parse(response) : response
-
-      console.log('Parsed API Response:', result)
-
-      // Validate the priority data
-      if (result?.data.length>0) {
-        // Ensure each priority item has the correct structure
-       
-        setPriorities(result?.data)
-      } else {
-        console.error('Invalid priority data:', result)
-       
-      }
+      await addPriority(newPriority)
+      await fetchPrioritiesData()
+      setIsAddModalOpen(false)
+      setNewPriority({ id: 0, value: '', is_active: true })
+      Alert.alert('Success', 'Priority added successfully')
     } catch (error) {
-      console.error('Error fetching priorities:', error)
-    
+      console.error('Error adding priority:', error)
+      Alert.alert('Error', 'Failed to add priority. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchPrioritiesData()
-  }, [])
-
-  const handleAddPriority = async () => {
-    try {
-      setLoading(true);
-      await addPriority(NewPriority);
-      await fetchPrioritiesData();
-      setIsAddModalOpen(false);
-      setNewPriority({ id: 0, value: '', is_active: true });
-    } catch (error) {
-      console.error('Error adding priority:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleEditPriority = async () => {
     if (!selectedPriority) return
+    if (!selectedPriority.value.trim()) {
+      Alert.alert('Error', 'Priority name cannot be empty')
+      return
+    }
 
     try {
       setLoading(true)
@@ -88,8 +107,10 @@ export default function PriorityScreen() {
       await fetchPrioritiesData()
       setIsEditModalOpen(false)
       setSelectedPriority(null)
+      Alert.alert('Success', 'Priority updated successfully')
     } catch (error) {
       console.error('Error editing priority:', error)
+      Alert.alert('Error', 'Failed to update priority. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -105,29 +126,13 @@ export default function PriorityScreen() {
       await fetchPrioritiesData()
     } catch (error) {
       console.error('Error toggling status:', error)
+      Alert.alert('Error', 'Failed to update status. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  const priority = useMemo(() => {
-    let result = [...priorities]
-    
-    if (searchQuery) {
-      result = result.filter(item => 
-        item.value.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-    
-    result.sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.value.localeCompare(b.value)
-      }
-      return b.value.localeCompare(a.value)
-    })
-    
-    return result
-  }, [priorities, searchQuery, sortOrder])
+ 
 
   const openMenu = (id: number) => setMenuVisible(id)
   const closeMenu = () => setMenuVisible(null)
@@ -135,29 +140,23 @@ export default function PriorityScreen() {
   return (
     <Provider>
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Priority Management</Text>
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => setIsAddModalOpen(true)}
-          >
-            <View style={styles.buttonContent}>
-              <Icon name="plus" size={16} color="#fff" />
-              <Text style={styles.buttonText}>Add Priority</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search priorities..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#666"
-          />
-        </View>
-
+      <View style={styles.header}>
+  <View style={styles.headerContainer}> 
+    <Text style={styles.title}>Priority Management</Text>
+  </View>
+  <View style={styles.buttonContainer}> 
+    <TouchableOpacity 
+      style={styles.addButton}
+      onPress={() => setIsAddModalOpen(true)}
+    >
+      <View style={styles.buttonContent}>
+        <Icon name="plus" size={16} color="#044086" />
+        <Text style={styles.buttonText}>Add Priority</Text>
+      </View>
+    </TouchableOpacity>
+  </View>
+</View>
+        <ScrollView showsVerticalScrollIndicator={false}>
         <DataTable>
           <DataTable.Header style={styles.tableHeader}>
             <DataTable.Title style={styles.column}>S.No</DataTable.Title>
@@ -166,62 +165,68 @@ export default function PriorityScreen() {
             <DataTable.Title style={styles.column}>Action</DataTable.Title>
           </DataTable.Header>
 
-          {priorities.map((item, index) => (
-            <DataTable.Row key={item.id} style={styles.row}>
-              <DataTable.Cell style={styles.column}>{index + 1}</DataTable.Cell>
-              <DataTable.Cell style={styles.column}>{item.value}</DataTable.Cell>
-              <DataTable.Cell style={styles.column}>
-                <TouchableOpacity 
-                  style={[
-                    styles.statusBadge,
-                    item.is_active ? styles.activeBadge : styles.inactiveBadge
-                  ]}
-                  onPress={() => handleStatusToggle(item)}
-                >
-                  <Text style={[
-                    styles.statusText,
-                    item.is_active ? styles.activeText : styles.inactiveText
-                  ]}>
-                    {item.is_active ? 'Active' : 'Inactive'}
-                  </Text>
-                </TouchableOpacity>
-              </DataTable.Cell>
-              <DataTable.Cell style={styles.column}>
-                <Menu
-                  visible={menuVisible === item.id}
-                  onDismiss={closeMenu}
-                  anchor={
-                    <TouchableOpacity onPress={() => openMenu(item.id)}>
-                      <Icon name="dots-vertical" size={16} color="#666" />
-                    </TouchableOpacity>
-                  }
-                >
-                  <Menu.Item 
-                    onPress={() => {
-                      setSelectedPriority(item)
-                      setIsEditModalOpen(true)
-                      closeMenu()
-                    }} 
-                    title="Edit" 
-                  />
-                  <Menu.Item 
-                    onPress={() => {
-                      setSelectedPriority(item)
-                      setIsDeleteModalOpen(true)
-                      closeMenu()
-                    }} 
-                    title="Delete" 
-                  />
-                </Menu>
-              </DataTable.Cell>
-            </DataTable.Row>
-          ))}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#007AFF" />
+            </View>
+          ) : priorities.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No priorities found</Text>
+            </View>
+          ) : (
+            priorities.map((item, index) => (
+              <DataTable.Row key={item.id} style={styles.row}>
+                <DataTable.Cell style={styles.column}>{index + 1}</DataTable.Cell>
+                <DataTable.Cell style={styles.column}>{item.value}</DataTable.Cell>
+                <DataTable.Cell style={styles.column}>
+                  <TouchableOpacity 
+                    style={[
+                      styles.statusBadge,
+                      item.is_active ? styles.activeBadge : styles.inactiveBadge
+                    ]}
+                    onPress={() => handleStatusToggle(item)}
+                    disabled={loading}
+                  >
+                    <Text style={[
+                      styles.statusText,
+                      item.is_active ? styles.activeText : styles.inactiveText
+                    ]}>
+                      {item.is_active ? 'Active' : 'Inactive'}
+                    </Text>
+                  </TouchableOpacity>
+                </DataTable.Cell>
+                <DataTable.Cell style={styles.column}>
+                  <Menu
+                    visible={menuVisible === item.id}
+                    onDismiss={closeMenu}
+                    anchor={
+                      <TouchableOpacity onPress={() => openMenu(item.id)}>
+                        <Icon name="dots-vertical" size={16} color="#666" />
+                      </TouchableOpacity>
+                    }
+                  >
+                    <Menu.Item 
+                      onPress={() => {
+                        setSelectedPriority(item)
+                        setIsEditModalOpen(true)
+                        closeMenu()
+                      }} 
+                      title="Edit" 
+                    />
+                  
+                  </Menu>
+                </DataTable.Cell>
+              </DataTable.Row>
+            ))
+          )}
         </DataTable>
+       </ScrollView>
 
         {/* Add Priority Modal */}
         <Modal
           visible={isAddModalOpen}
           transparent={true}
+          animationType="fade"
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -230,30 +235,57 @@ export default function PriorityScreen() {
                 <Text style={styles.label}>Priority Name</Text>
                 <TextInput
                   style={styles.input}
-                  value={NewPriority.value}
-                  onChangeText={(text) => setNewPriority({ ...NewPriority, value: text })}
+                  value={newPriority.value}
+                  onChangeText={(text) => setNewPriority({ ...newPriority, value: text })}
                   placeholder="Enter priority name"
+                  editable={!loading}
                 />
                 <View style={styles.switchContainer}>
                   <Text style={styles.label}>Status</Text>
                   <Switch
-                    value={NewPriority.is_active}
-                    onValueChange={(value) => setNewPriority({ ...NewPriority, is_active: value })}
+                    value={newPriority.is_active}
+                    onValueChange={(value) => setNewPriority({ ...newPriority, is_active: value })}
+                    disabled={loading}
                   />
                 </View>
               </View>
               <View style={styles.modalFooter}>
-                <Button
-                  title="Cancel"
-                  onPress={() => setIsAddModalOpen(false)}
-                  color="#666"
-                />
-                <Button
-                  title={loading ? 'Adding...' : 'Add Priority'}
-                  onPress={handleAddPriority}
-                  disabled={loading}
-                />
-              </View>
+  <TouchableOpacity
+    onPress={() => setIsAddModalOpen(false)}
+    disabled={loading}
+    style={[
+      { 
+        marginRight: 12, 
+        backgroundColor: '#ddd', 
+        paddingVertical: 8, 
+        paddingHorizontal: 16, 
+        borderRadius: 5 
+      },
+      loading && { backgroundColor: '#ccc' }  // For when loading is true
+    ]}
+  >
+    <Text style={{ color: '#000', textAlign: 'center' }}>Cancel</Text>
+  </TouchableOpacity>
+
+  <TouchableOpacity
+    onPress={handleAddPriority}
+    disabled={loading || !newPriority.value.trim()}
+    style={[
+      { 
+        backgroundColor: '#044086', 
+        paddingVertical: 8, 
+        paddingHorizontal: 16, 
+        borderRadius: 5 
+      },
+      (loading || !newPriority.value.trim()) && { backgroundColor: '#044086' }  // For when button is disabled
+    ]}
+  >
+    <Text style={{ color: 'white', textAlign: 'center' }}>
+      {loading ? 'Adding...' : 'Add Priority'}
+    </Text>
+  </TouchableOpacity>
+</View>
+
             </View>
           </View>
         </Modal>
@@ -262,6 +294,7 @@ export default function PriorityScreen() {
         <Modal
           visible={isEditModalOpen}
           transparent={true}
+          animationType="fade"
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
@@ -273,72 +306,44 @@ export default function PriorityScreen() {
                   value={selectedPriority?.value || ''}
                   onChangeText={(text) => setSelectedPriority(prev => prev ? { ...prev, value: text } : null)}
                   placeholder="Enter priority name"
+                  editable={!loading}
                 />
                 <View style={styles.switchContainer}>
                   <Text style={styles.label}>Status</Text>
                   <Switch
                     value={selectedPriority?.is_active || false}
                     onValueChange={(value) => setSelectedPriority(prev => prev ? { ...prev, is_active: value } : null)}
+                    disabled={loading}
                   />
                 </View>
               </View>
               <View style={styles.modalFooter}>
-                <Button
-                  title="Cancel"
-                  onPress={() => setIsEditModalOpen(false)}
-                  color="#666"
-                />
-                <Button
-                  title={loading ? 'Saving...' : 'Save Changes'}
-                  onPress={handleEditPriority}
-                  disabled={loading}
-                />
-              </View>
+  {/* Cancel Button */}
+  <TouchableOpacity 
+    style={[styles.button, { backgroundColor: '#ddd',marginRight: 20 }]} 
+    onPress={() => setIsEditModalOpen(false)} 
+    disabled={loading}
+  >
+    <Text style={[styles.buttonText, { color: '#000' , }]}>Cancel</Text>
+  </TouchableOpacity>
+
+  {/* Save Changes Button */}
+  <TouchableOpacity 
+    style={[styles.button, { backgroundColor: loading ? '#bbb' : '#044086' }]} 
+    onPress={handleEditPriority}
+    disabled={loading || !selectedPriority?.value.trim()}
+  >
+    <Text style={[styles.buttonText, { color: '#fff' }]}>
+      {loading ? 'Saving...' : 'Save Changes'}
+    </Text>
+  </TouchableOpacity>
+</View>
             </View>
           </View>
         </Modal>
 
         {/* Delete Priority Modal */}
-        <Modal
-          visible={isDeleteModalOpen}
-          transparent={true}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Delete Priority</Text>
-              <View style={styles.modalBody}>
-                <Text style={styles.modalText}>Are you sure you want to delete this priority?</Text>
-              </View>
-              <View style={styles.modalFooter}>
-                <Button
-                  title="Cancel"
-                  onPress={() => setIsDeleteModalOpen(false)}
-                  color="#666"
-                />
-                <Button
-                  title={loading ? 'Deleting...' : 'Delete'}
-                  onPress={async () => {
-                    if (selectedPriority) {
-                      try {
-                        setLoading(true)
-                        await deletePriority(selectedPriority)
-                        await fetchPrioritiesData()
-                        setIsDeleteModalOpen(false)
-                        setSelectedPriority(null)
-                      } catch (error) {
-                        console.error('Error deleting priority:', error)
-                      } finally {
-                        setLoading(false)
-                      }
-                    }
-                  }}
-                  disabled={loading}
-                  color="red"
-                />
-              </View>
-            </View>
-          </View>
-        </Modal>
+    
       </SafeAreaView>
     </Provider>
   )
@@ -354,8 +359,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e1e1e1',
     backgroundColor: '#f5f5f5',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
+    justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
@@ -363,7 +368,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   addButton: {
-    backgroundColor: '#007AFF',
+
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -373,22 +378,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff',
+    color: '#044086',
     fontSize: 16,
     marginLeft: 8,
-  },
-  searchContainer: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e1e1e1',
-    backgroundColor: '#fff',
-  },
-  searchInput: {
-    padding: 8,
-    fontSize: 16,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-    paddingHorizontal: 12,
   },
   tableHeader: {
     backgroundColor: '#f5f5f5',
@@ -409,20 +401,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeBadge: {
-    backgroundColor: '#e6f4ea',
+    
   },
   inactiveBadge: {
-    backgroundColor: '#f1f3f4',
+   
   },
   statusText: {
     fontSize: 12,
     textTransform: 'capitalize',
   },
   activeText: {
-    color: '#137333',
+    color: '#000',
+    fontSize:14
   },
   inactiveText: {
-    color: '#5f6368',
+    color: '#000',
+    fontSize:14
+  },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#666',
+    fontSize: 16,
+  },
+  button: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   modalContainer: {
     flex: 1,
@@ -448,11 +461,19 @@ const styles = StyleSheet.create({
   modalText: {
     fontSize: 16,
     color: '#666',
+    marginBottom: 8,
+    marginRight:12
+  },
+  modalSubText: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
   },
   label: {
     fontSize: 16,
     fontWeight: '500',
-    marginBottom: 8,
+
+    marginRight:12
   },
   input: {
     borderWidth: 1,
@@ -464,19 +485,28 @@ const styles = StyleSheet.create({
   switchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
     marginBottom: 16,
   },
   modalFooter: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    borderTopWidth: 1,
-    borderTopColor: '#e1e1e1',
-    paddingTop: 16,
+    justifyContent: 'center',
+ 
+
+    padding: 16,
+  },
+  headerContainer: {
+    alignItems: 'center', 
+  },
+ 
+  buttonContainer: {
+    marginTop: 10, 
+    alignItems: 'center', 
+  },
+  cancelButton: {
+    backgroundColor: '#ddd', // Or your desired cancel button color
+  },
+  saveButton: {
+    backgroundColor: '#044086', // Or your desired save button color
   },
 })
-
-function Alert(arg0: { title: string; description: string }) {
-  throw new Error('Function not implemented.')
-}
-

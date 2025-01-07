@@ -123,4 +123,85 @@ export const AddAndEditDesignation = async (values: {
     throw Error('Failed' + error);
   }
 };
+export interface Priority {
+  id: number;
+  value: string;
+  is_active: boolean;
+}
+export const fetchPriorities = async (): Promise<Priority[]> => {
+  try {
+    const uri = `${BASE_URL}/utils/get_priorities`;
+    const token = await AsyncStorage.getItem('Token');
+    const jsonResult = await GetAsync_with_token(uri, token);
+
+    // Remove JSON.parse() because jsonResult is already an object
+    return jsonResult.data.map((item: any) => ({
+      id: item.id,
+      value: item.value,
+      is_active: item.is_active,
+    }));
+  } catch (error) {
+    console.error('Error fetching priorities:', error);
+    throw new Error('Failed to fetch priorities: ');
+  }
+};
+
+
+
+
+
+export const addPriority = async (values: Priority): Promise<string> => {
+  console.log(values, 'Adding/Editing priority');
+  try {
+    const uri = `${BASE_URL}/utils/insert_priority`;
+    const token = await AsyncStorage.getItem('Token');
+    console.log(uri);
+
+    const apiPayload = {
+      id: values.id,
+      value: values.value,
+      is_active: values.is_active,
+    };
+
+    const payload = JSON.stringify(apiPayload);
+    console.log(payload);
+
+    const jsonResult = await PostAsync_with_token(uri, payload, token);
+    console.log(jsonResult, 'API response');
+    return JSON.stringify(jsonResult ?? '');
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to add/edit priority: ' + error);
+  }
+};
+
+export const updatePriority = async (values: Priority): Promise<string> => {
+  console.log(values, 'Updating priority');
+  try {
+    const uri = `${BASE_URL}/utils/insert_priority`;
+    const token = await AsyncStorage.getItem('Token');
+    console.log(uri);
+
+    const apiPayload = {
+      id: values.id,
+      value: values.value,
+      is_active: values.is_active,
+    };
+
+    const payload = JSON.stringify(apiPayload);
+    console.log(payload);
+
+    const jsonResult = await PostAsync_with_token(uri, payload, token);
+    console.log(jsonResult, 'API response');
+    return JSON.stringify(jsonResult ?? '');
+  } catch (error) {
+    console.error(error);
+    throw new Error('Failed to update priority: ' + error);
+  }
+};
+
+
+export async function deletePriority(priority: Priority): Promise<void> {
+  await updatePriority({ ...priority, is_active: false });
+}
 

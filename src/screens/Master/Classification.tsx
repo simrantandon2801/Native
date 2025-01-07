@@ -99,12 +99,12 @@ const Classification: React.FC = () => {
       const response = await GetClasssifcation('');
       console.log('Raw Response:', response);
   
-      // Ensure response is parsed correctly
+
       const result = typeof response === 'string' ? JSON.parse(response) : response;
   
       console.log('Parsed API Response:', result);
   
-      // Validate the classification data
+  
       if (result?.data?.classifications && Array.isArray(result.data.classifications)) {
         setClassifications(result.data.classifications); 
       } else {
