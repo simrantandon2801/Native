@@ -105,3 +105,107 @@ export const GetApprovedProjects = async (query:string): Promise<string> => {
       throw Error('Failed' + error);
     }
   };
+
+
+  export const InsertMilestone  = async (values: Object): Promise<string> => {
+    try {
+      // 
+       //const UserID = await AsyncStorage.getItem('UserID');
+       var uri = `${BASE_URL}/approvedProjects/insert_milestone`;
+       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+       const token = await AsyncStorage.getItem('Token');  
+       console.log(uri);
+       var payload = JSON.stringify(values);
+       console.log(payload);
+       var jsonResult = await PostAsync_with_token(uri, payload,token);
+       //  
+       //
+       console.log(jsonResult);
+       return JSON.stringify(jsonResult ?? '');
+     } catch (error) {
+       console.error(error);
+       throw Error('Failed' + error);
+     }
+  };
+
+  export const GetMilestones = async (projectId:any): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      var uri = `${BASE_URL}/approvedProjects/get_milestones?project_id=${projectId}`;
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);``
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+    //  console.log("jsonResult from API:", jsonResult);
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };
+
+
+  export const DeleteMilestone = async (values: Object): Promise<string> => {
+    try {
+      // 
+       //const UserID = await AsyncStorage.getItem('UserID');
+       var uri = `${BASE_URL}/approvedProjects/delete_milestone`;
+       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+       const token = await AsyncStorage.getItem('Token');  
+       console.log(uri);
+       var payload = JSON.stringify(values);
+       console.log(payload);
+       var jsonResult = await PostAsync_with_token(uri, payload,token);
+       //  
+       //
+       console.log(jsonResult);
+       return JSON.stringify(jsonResult ?? '');
+     } catch (error) {
+       console.error(error);
+       throw Error('Failed' + error);
+     }
+  };
+
+  export const InsertMilestoneMember  = async (values: Object): Promise<string> => {
+    try {
+      // 
+       //const UserID = await AsyncStorage.getItem('UserID');
+       var uri = `${BASE_URL}/approvedProjects/insert_milestone_resource`;
+       //var uri = 'https://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+       const token = await AsyncStorage.getItem('Token');  
+       console.log(uri);
+       var payload = JSON.stringify(values);
+       console.log(payload);
+       var jsonResult = await PostAsync_with_token(uri, payload,token);
+       //  
+       //
+       console.log(jsonResult);
+       return JSON.stringify(jsonResult ?? '');
+     } catch (error) {
+       console.error(error);
+       throw Error('Failed' + error);
+     }
+  };
+
+
+  export const GetMilestonesResource = async (payload: any): Promise<string> => {
+    try {
+      //debugger;
+      //const UserID = await AsyncStorage.getItem('UserID');
+      var uri = `${BASE_URL}/approvedProjects/get_milestones_resource?milestone_resource_id=${payload}`;
+      //var uri = 'http://qms.digital.logicsoft.online:8081/gateway/dilip/upload-samplecollectionimages';
+      const token = await AsyncStorage.getItem('Token');
+      console.log(uri);``
+      var jsonResult = await GetAsync_with_token(uri, token);
+      console.log(jsonResult);
+      //debugger;
+    //  console.log("jsonResult from API:", jsonResult);
+      return JSON.stringify(jsonResult ?? '');
+    } catch (error) {
+      console.error(error);
+      throw Error('Failed' + error);
+    }
+  };

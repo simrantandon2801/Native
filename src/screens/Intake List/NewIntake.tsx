@@ -1320,14 +1320,14 @@ useEffect(() => {    // addition of review
               </Text>
               <TextInput
   style={styles.input}
-  value={values.roi || roi} // Use Formik's value or custom state
+  value={values.roi || roi} 
   onChangeText={(text) => {
-    const numericValue = text.replace(/[^0-9.]/g, ''); // Allow only numbers and one decimal
-    setFieldValue('roi', numericValue); // Update Formik state
-    setRoi(numericValue); // Update custom state
+    const numericValue = text.replace(/[^0-9.]/g, '');
+    setFieldValue('roi', numericValue); 
+    setRoi(numericValue); 
   }}
   placeholder="Enter ROI"
-  keyboardType="numeric" // Display numeric keyboard
+  keyboardType="numeric" 
 />
               {touched.roi && errors.roi && (<Text style={{color:'red'}} >{errors.roi}</Text>)}
 

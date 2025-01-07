@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Alert } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { DataTable, Menu } from 'react-native-paper';
 import { AddMemberModal } from './AddMemberModal';
+import DatePicker from 'react-datepicker';
+import { format } from 'date-fns';
+import { GetMilestones, GetMilestonesResource, InsertMilestone } from '../../database/ApprovedProjects';
+import { useFocusEffect } from '@react-navigation/native';
 
 interface AddMilestoneModalProps {
   visible: boolean;
   onClose: () => void;
+  projectId:any;
+  milestone:any;
+  isEditable:any;
 }
 
 interface TeamMember {
@@ -25,11 +32,22 @@ interface MilestoneData {
   description: string;
   proposedStartDate: string;
   proposedEndDate: string;
+  projectId:any,
+  milestone_id: string;
 }
 
-export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, onClose }) => {
+export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, onClose, projectId,milestone,isEditable }) => {
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [isMilestoneSubmitModalVisible, setMilestoneSubmitModalVisible] = useState(false);
+  const [startDateDisplay, setStartDateDisplay] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [rawStartDate, setRawStartDate] = useState(null);
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [rawEndDate, setRawEndDate] = useState(null);
+  const [endDateDisplay, setEndDateDisplay] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [milestoneData, setMilestoneData] = useState<MilestoneData>({
     name: '',
     shortName: '',
@@ -37,7 +55,29 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
     description: '',
     proposedStartDate: '',
     proposedEndDate: '',
+    projectId:'',
+    milestone_id :'',
   });
+  const [selectedMilestone, setSelectedMilestone] = useState<string | null>(null);
+  useEffect(() => {
+    console.log("isEditing:", isEditing);  // Logs the value of isEditing
+    console.log("isMilestoneModalVisible:", visible); // Logs the modal visibility
+  }, [isEditing, visible]);
+  const [milestones, setMilestones] = useState<any[]>([]);
+  const [milestoneRes, setmilestoneRes] = useState<any[]>([]);
+  const handleDateChange = date => {
+    setRawStartDate(date);
+    setStartDateDisplay(format(date, 'MM-dd-yyyy'));
+    setStartDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+    setShowStartDatePicker(false); // Close the picker
+  };
+
+  const handleEndDateChange = date => {
+    setRawEndDate(date);
+    setEndDateDisplay(format(date, 'MM-dd-yyyy'));
+    setEndDate(format(date, 'yyyy-MM-dd')); // Format date for the input field
+    setShowEndDatePicker(false); // Close the picker
+  };
   const [isAddMemberModalVisible, setAddMemberModalVisible] = useState(false);
   
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
@@ -48,12 +88,66 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
   const handleInputChange = (field: keyof MilestoneData, value: string) => {
     setMilestoneData(prev => ({ ...prev, [field]: value }));
   };
+  useEffect(() => {
+    if (milestone) {
+      console.log('Prefilling milestone data:', milestone);  
+      setMilestoneData({
+        milestone_id: milestone.milestone_id,  
+        projectId: milestone.project_id || '',  
+        name: milestone.milestone_name,
+        shortName: milestone.short_name, 
+        priority: milestone.priority,
+        description: milestone.description,
+        proposedStartDate: milestone.start_date,
+        proposedEndDate: milestone.end_date,
+      });
+  
+      setStartDateDisplay(milestone.start_date);
+      setEndDateDisplay(milestone.end_date);
+      setStartDate(milestone.start_date);
+      setEndDate(milestone.end_date);
+      setIsEditing(isEditable)
+    }
+  },  [milestone, isEditable]);
+  const handleSubmit = async () => {
+    // Construct payload for milestone data
+    const payload = {
+        project_id:projectId,
+        short_name:milestoneData.shortName,
+        milestone_name: milestoneData.name,
+        /* shortName: milestoneData.shortName, */
+        priority: milestoneData.priority,
+        description: milestoneData.description,
+        start_date: startDate,
+        end_date: endDate,
+        milestone_id: milestoneData.milestone_id || '',
+     
+    };
+    
+    console.log('Payload to be sent:', payload);
+    try {
+        // Await the result from InsertMember
+        const response = await InsertMilestone(payload);
+        const parsedResponse = JSON.parse(response);
+        // Handle the response (assuming it's a JSON object)
+        if (parsedResponse && parsedResponse.status === 'success') {
+          Alert.alert('Member added successfully');
+         
+          setMilestoneSubmitModalVisible(true); 
+        } else {
+          Alert.alert('Failed to add member. Please try again.');
+          setMilestoneSubmitModalVisible(false); 
+        }
+      } catch (error) {
+        // Handle any errors that occur during the API call
+        console.error('Error submitting member:', error);
+        Alert.alert('An error occurred. Please try again.');
+        setMilestoneSubmitModalVisible(false); 
+      }
 
-  const handleSubmit = () => {
-    console.log('New milestone:', milestoneData);
-    console.log('Team members:', teamMembers);
-    setMilestoneSubmitModalVisible(true);
+   
   };
+
   
   const handleCloseSuccessModal = () => {
     setMilestoneSubmitModalVisible(false);
@@ -68,6 +162,73 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
   const handleAddMember = (memberData: Omit<TeamMember, 'id'>) => {
     setTeamMembers(prev => [...prev, { id: prev.length + 1, ...memberData }]);
   };
+
+
+  const FetchMilestones = async (projectId) => {
+    try {
+      const response = await GetMilestones(projectId); // Pass projectId here
+      const parsedRes = JSON.parse(response);
+      console.log('Get Projects Response:', response);
+  
+      if (parsedRes?.status === 'success' && Array.isArray(parsedRes.data)) {
+        setMilestones(parsedRes.data);  // Update the state with the fetched data
+      } else {
+        console.error('Invalid or empty data');
+        Alert.alert('Error', 'Invalid or empty data');
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      Alert.alert('Error', 'Failed to fetch projects');
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // Fetch data or refresh the screen every time it gains focus
+      FetchMilestones(projectId);
+      FetchMilestonesRes();
+    }, [])
+  );   
+  const handleAddMemberClick = () => {
+    const milestoneId = milestoneData.milestone_id ;
+  
+    // Save milestone_id before opening the modal
+    setSelectedMilestone(milestoneId);
+    
+    console.log('Selected Milestone ID for Add Member:', milestoneId);  
+    
+    // Now show the modal
+    setAddMemberModalVisible(true);
+  };
+
+  const FetchMilestonesRes = async () => {
+    // Create the payload before the try block
+    const payload = {
+      milestone_id: milestoneData.milestone_id,  
+      project_id: projectId,     
+    };
+  
+    try {
+     
+      const response = await GetMilestonesResource(payload); 
+      const parsedRes = JSON.parse(response);
+  
+      console.log('Get Projects Response:', parsedRes);
+  
+      if (parsedRes?.status === 'success' && Array.isArray(parsedRes.data)) {
+        // Set the fetched data in the state
+        setMilestones(parsedRes.data);
+      } else {
+        console.error('Invalid or empty data');
+        Alert.alert('Error', 'Invalid or empty data');
+      }
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      Alert.alert('Error', 'Failed to fetch projects');
+    }
+  };
+  
+  
   return (
     <Modal visible={visible} transparent animationType="fade">
     <View style={styles.modalOverlay}>
@@ -108,9 +269,9 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
                 onValueChange={(value) => handleInputChange('priority', value)}
               >
                 <Picker.Item label="Select Priority" value="" />
-                <Picker.Item label="High" value="high" />
-                <Picker.Item label="Medium" value="medium" />
-                <Picker.Item label="Low" value="low" />
+                <Picker.Item label="High" value="3" />
+                <Picker.Item label="Medium" value="2" />
+                <Picker.Item label="Low" value="1" />
               </Picker>
             </View>
           </View>
@@ -134,22 +295,61 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
               <Text style={styles.inputLabel}>
                 Proposed Start Date <Text style={styles.asterisk}>*</Text>
               </Text>
-              <TextInput 
-                style={styles.input} 
-                value={milestoneData.proposedStartDate}
-                onChangeText={(value) => handleInputChange('proposedStartDate', value)}
-              />
+              <TextInput
+  style={styles.input}
+  value={startDateDisplay} // Bind to Formik's state or use custom state
+  onFocus={() => setShowStartDatePicker(true)} // Open date picker on focus
+  
+  placeholder="Select Start Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
+      {/* <TouchableOpacity onPress={() => setShowStartDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+                 {/*  {touched?.startDate && errors?.startDate && (
+                    <Text style={{color: 'red'}}>{errors.startDate}</Text>
+                  )} */}
+
+      {Platform.OS === 'web' && showStartDatePicker && (
+        <DatePicker
+          selected={rawStartDate}
+          onChange={(date) => {
+            handleDateChange(date); // Handle date change
+            setShowStartDatePicker(false); // Close picker
+          }}
+          dateFormat="MM-dd-yyyy"
+          inline // Inline style for better usability
+        />
+      )}
             </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>
                 Proposed End Date <Text style={styles.asterisk}>*</Text>
               </Text>
-              <TextInput 
-                style={styles.input} 
-                value={milestoneData.proposedEndDate}
-                onChangeText={(value) => handleInputChange('proposedEndDate', value)}
-              />
+              <TextInput
+  style={styles.input}
+  value={ endDateDisplay} // Use Formik's value or custom state
+  onFocus={() => setShowEndDatePicker(true)} // Open date picker on focus
+  
+  placeholder="Select End Date"
+  editable={Platform.OS !== 'web'} // Disable manual input on web
+/>
+      {/* <TouchableOpacity onPress={() => setShowEndDatePicker(true)}>
+        <Icon name="calendar-today" size={20} color="#044086" style={styles.icon} />
+      </TouchableOpacity> */}
+                 {/*  {touched?.endDate && errors?.endDate && (
+                    <Text style={{color: 'red'}}>{errors.endDate}</Text>
+                  )} */}
+
+                  {Platform.OS === 'web' && showEndDatePicker && (
+                    <DatePicker
+                      selected={rawEndDate}
+                      onChange={handleEndDateChange}
+                      dateFormat="MM-dd-yyyy"
+                      inline // Inline style for better usability
+                    />
+                  )}
             </View>
           </View>
 
@@ -164,10 +364,19 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
                 <Text style={styles.deleteButtonText}>Delete</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.addMemberButton} onPress={() => setAddMemberModalVisible(true)}>
-                <Icon name="plus" size={16} color="#044086" />
-                <Text style={styles.addMemberButtonText}>Add Member</Text>
-              </TouchableOpacity>
+              <TouchableOpacity
+  style={styles.addMemberButton}
+  onPress={() => {
+    handleAddMemberClick ();
+   
+    console.log('Selected Milestone for Add Member now :', selectedMilestone);
+    /* setAddMemberModalVisible(true)  */
+   
+  }}
+>
+<Icon name="plus" size={16} color="#044086" />
+  <Text style={styles.addMemberButtonText}>Add Member</Text>
+</TouchableOpacity>
             </View>
           </View>
 
@@ -175,6 +384,8 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
             visible={isAddMemberModalVisible}
             onClose={() => setAddMemberModalVisible(false)}
             onSubmit={handleAddMember}
+            milestone={selectedMilestone}  
+            projectId={projectId}
           />
 
           <View style={styles.container}>
@@ -237,9 +448,14 @@ export const AddMilestoneModal: React.FC<AddMilestoneModalProps> = ({ visible, o
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitButtonText}>Submit</Text>
-            </TouchableOpacity>
+            
+
+            {isEditable && (
+  <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+    <Text style={styles.submitButtonText}>Save</Text>
+  </TouchableOpacity>
+)}
+
           </View>
 
           <Modal visible={isMilestoneSubmitModalVisible} transparent animationType="fade">

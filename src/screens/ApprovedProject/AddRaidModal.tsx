@@ -1,12 +1,13 @@
 import React, { useState,useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView ,Platform} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { DataTable, Menu } from 'react-native-paper';
 import { AddMemberModal } from './AddMemberModal';
 import { RaidData,InsertRaid ,GetRaids, fetchPriorities} from '../../database/Raid';
 import { Priority } from '../../database/Masters';
-
+import { format } from 'date-fns';
+import DatePicker from 'react-datepicker';
 
 interface AddRaidModalProps {
   visible: boolean;
@@ -27,6 +28,17 @@ export const AddRaidModal: React.FC<AddRaidModalProps> = ({ visible, onClose, pr
   const [isRaidSubmitModalVisible, setRaidSubmitModalVisible] = useState(false);
     const [selectedPriority, setSelectedPriority] = useState<Priority | null>(null)
     const [loading, setLoading] = useState(false)
+    const [showDueDatePicker, setShowDueDatePicker] = useState(false);
+    const [dueDate, setDueDate] = useState(new Date());
+ 
+   const handleDateChange = (date: Date) => {
+    setDueDate(date);
+    setRaidData(prev => ({
+      ...prev,
+      due_date: format(date, 'yyyy-MM-dd')
+    }));
+    setShowDueDatePicker(false);
+  };
   const [priorities, setPriorities] = useState<Priority[]>([]);
   const [raidData, setRaidData] = useState<RaidData>({
     raid_id: 0,
@@ -53,7 +65,12 @@ export const AddRaidModal: React.FC<AddRaidModalProps> = ({ visible, onClose, pr
   const handleInputChange = (field: keyof RaidData, value: string | number | boolean) => {
     setRaidData(prev => ({ ...prev, [field]: value }));
   };
-
+  const handleDueDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || dueDate;
+    setShowDueDatePicker(false);
+    setDueDate(currentDate);
+    setRaidData({ ...raidData, due_date: currentDate.toISOString().split('T')[0] });
+  };
   const handleSubmit = async () => {
     try {
         console.log(raidData)
@@ -184,15 +201,28 @@ export const AddRaidModal: React.FC<AddRaidModalProps> = ({ visible, onClose, pr
                 </View>
 
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>
-                    Due Date <Text style={styles.asterisk}>*</Text>
-                  </Text>
-                  <TextInput 
-                    style={styles.input} 
-                    value={raidData.due_date}
-                    onChangeText={(value) => handleInputChange('due_date', value)}
-                  />
-                </View>
+        <Text style={styles.inputLabel}>
+          Due Date <Text style={styles.asterisk}>*</Text>
+        </Text>
+   
+        <TextInput
+        style={styles.input}
+        value={raidData.due_date}
+        onFocus={() => setShowDueDatePicker(true)}
+        placeholder="Select Due Date"
+        editable={false}
+      />
+      {Platform.OS === 'web' && showDueDatePicker && (
+        <DatePicker
+          selected={dueDate}
+          onChange={handleDateChange}
+          dateFormat="MM-dd-yyyy"
+          inline
+        />
+      )}
+    
+       
+      </View>
                 <View style={styles.inputContainer}>
                   <Text style={styles.inputLabel}>
                     Owner <Text style={styles.asterisk}>*</Text>
