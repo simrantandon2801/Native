@@ -117,11 +117,14 @@ export default function PriorityScreen() {
   }
 
   const handleStatusToggle = async (priority: Priority) => {
+    // New: Check if priority is already active
+    if (priority.is_active) return;
+  
     try {
       setLoading(true)
       await updatePriority({
         ...priority,
-        is_active: !priority.is_active
+        is_active: true // Changed: Always set to true instead of toggling
       })
       await fetchPrioritiesData()
     } catch (error) {
@@ -131,6 +134,7 @@ export default function PriorityScreen() {
       setLoading(false)
     }
   }
+  
 
  
 

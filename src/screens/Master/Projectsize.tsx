@@ -95,6 +95,9 @@ export default function ProjectSizeComponent() {
   };
 
   const handleStatusToggle = async (projectSize: ProjectSize) => {
+    // If the status is already active, do nothing
+    if (projectSize.is_active) return;
+  
     try {
       setLoading(true);
       await updateProjectSize({

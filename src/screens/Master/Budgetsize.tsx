@@ -95,6 +95,7 @@ export default function BudgetSizeComponent() {
   }
 
   const handleStatusToggle = async (budgetSize: BudgetSize) => {
+    if (budgetSize.is_active) return;
     try {
       setLoading(true)
       await updateBudgetSize({
