@@ -16,15 +16,15 @@ console.log(projectId)
 
 const FetchMilestones = async (projectId) => {
     try {
-      const response = await GetMilestones(projectId); // Pass projectId here
+      const response = await GetMilestones(projectId); 
       const parsedRes = JSON.parse(response);
       console.log('Get Projects Response:', response);
   
       if (parsedRes?.status === 'success' && Array.isArray(parsedRes.data)) {
-        // Filter out milestones where is_active is true
+     
         const activeMilestones = parsedRes.data.filter(milestone => milestone.is_active === true);
   
-        // Update the state with only active milestones
+     
         setMilestones(activeMilestones);  
       } else {
         console.error('Invalid or empty data');
@@ -37,22 +37,22 @@ const FetchMilestones = async (projectId) => {
   };
   
   const handleMenuPress = (milestone) => {
-    console.log('Setting selected milestone:', milestone);  // Debugging console log
-    setSelectedMilestone(milestone);  // Set the selected milestone
-    setActiveMenu(activeMenu === milestone.id ? null : milestone.id);  // Toggle the menu
+    console.log('Setting selected milestone:', milestone); 
+    setSelectedMilestone(milestone);  
+    setActiveMenu(activeMenu === milestone.id ? null : milestone.id); 
   };
   const handleView = () => {
-    setIsEditing(false); // Disable editing
-    setIsMilestoneModalVisible(true);  // Show modal
-    setActiveMenu(null); // Close the menu
-    console.log("Selected Milestone for View:", selectedMilestone);  // Log to check if data is correct
+    setIsEditing(false); 
+    setIsMilestoneModalVisible(true);  
+    setActiveMenu(null); 
+    console.log("Selected Milestone for View:", selectedMilestone);  
   };
 
   const handleEdit = () => {
     setIsEditing(true); 
     
     setIsMilestoneModalVisible(true);
-    setActiveMenu(null); // Close the menu
+    setActiveMenu(null);
   };
   useEffect(() => {
     console.log('isEditing updated:', isEditing);
@@ -78,21 +78,21 @@ const FetchMilestones = async (projectId) => {
     }
   
     try {
-      // Create the payload
+    
       const payload = {
-        milestone_id: milestoneId, // send the milestone_id as part of the payload
+        milestone_id: milestoneId,
       };
   
       console.log('Deleting Milestone with Payload:', payload);
   
-      // Call the API function to delete the milestone
-      const res = await DeleteMilestone(payload);  // Pass the payload to the API
+    
+      const res = await DeleteMilestone(payload);  
   
       console.log('Delete API Response:', res);
       const parsedRes = JSON.parse(res);
   
       if (parsedRes.status === 'success') {
-        // Refresh the milestone list after deletion
+      
         FetchMilestones(projectId);
         Alert.alert('Success', 'Milestone deleted successfully');
       } else {
@@ -102,13 +102,13 @@ const FetchMilestones = async (projectId) => {
       console.error('Error in handleDelete:', error);
       Alert.alert('Error', 'Failed to delete milestone. Please try again.');
     } finally {
-      setActiveMenu(null);  // Close the menu after the operation
+      setActiveMenu(null);  
     }
   };
   
   useFocusEffect(
     React.useCallback(() => {
-      // Fetch data or refresh the screen every time it gains focus
+     
       FetchMilestones(projectId);
     }, [])
   );    
@@ -118,7 +118,7 @@ const FetchMilestones = async (projectId) => {
             <TouchableOpacity 
               style={styles.addMilestoneButton} 
               onPress={() => {
-                console.log("Selected Milestone before opening modal:", selectedMilestone); // Log selected milestone
+                console.log("Selected Milestone before opening modal:", selectedMilestone); 
                 setIsMilestoneModalVisible(true);
                 setIsEditing(true); 
               }}

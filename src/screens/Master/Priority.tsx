@@ -47,13 +47,12 @@ export default function PriorityScreen() {
       const response = await fetchPriorities();
       console.log('Raw Response:', response);
   
-      // If response is already an object, no need to parse it
-      const result = response;  // No need for JSON.parse() here
-  
+     
+      const result = response;
       console.log('Parsed API Response:', result);
   
       if (result.length > 0) {
-        setPriorities(result);  // result is already an array of priorities
+        setPriorities(result);  
       } else {
         console.error('Invalid priority data:', result);
       }
@@ -66,7 +65,7 @@ export default function PriorityScreen() {
   };
   
 
-  // Fetch priorities on component mount
+  
   useEffect(() => {
     fetchPrioritiesData()
   }, [])
@@ -117,14 +116,14 @@ export default function PriorityScreen() {
   }
 
   const handleStatusToggle = async (priority: Priority) => {
-    // New: Check if priority is already active
+ 
     if (priority.is_active) return;
   
     try {
       setLoading(true)
       await updatePriority({
         ...priority,
-        is_active: true // Changed: Always set to true instead of toggling
+        is_active: true 
       })
       await fetchPrioritiesData()
     } catch (error) {
@@ -281,7 +280,7 @@ export default function PriorityScreen() {
         paddingHorizontal: 16, 
         borderRadius: 5 
       },
-      (loading || !newPriority.value.trim()) && { backgroundColor: '#044086' }  // For when button is disabled
+      (loading || !newPriority.value.trim()) && { backgroundColor: '#044086' }  
     ]}
   >
     <Text style={{ color: 'white', textAlign: 'center' }}>

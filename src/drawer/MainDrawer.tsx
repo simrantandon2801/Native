@@ -62,6 +62,8 @@ import ResetPass from '../screens/Password/ResetPass';
 import PriorityScreen from '../screens/Master/Priority';
 import Budgetsize from '../screens/Master/Budgetsize';
 import Projectsize from '../screens/Master/Projectsize';
+import BudgetCategory from '../screens/Master/BudgetCategory';
+
 const Drawer = createDrawerNavigator();
 LogBox.ignoreLogs([
   "export 'FooterComponent' (imported as 'FooterComponent') was not found in './ScreenFooter'",
@@ -336,6 +338,9 @@ const MainDrawer: React.FC = () => {
           <Drawer.Screen name="Priority" component={PriorityScreen} />
           <Drawer.Screen name="BudgetSize" component={Budgetsize} />
           <Drawer.Screen name="Projectsize" component={Projectsize} />
+          <Drawer.Screen name="BudgetCategory" component={BudgetCategory} />
+         
+         
           {dynamicModules.map((module) => (
             <Drawer.Screen
               key={module.module_id}
