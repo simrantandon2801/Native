@@ -1,467 +1,128 @@
-/* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   View,
-  StyleSheet,
-  SafeAreaView,
-  Platform,
-  Alert,
-  Image,
+  TextInput,
   TouchableOpacity,
-  ScrollView,
+  Image,
+  Text,
+  ImageBackground,
+  SafeAreaView,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import {TextInput, Button, Text} from 'react-native-paper';
-//import NativeHeader from '../shared/NativeHeader';
-//import Footer from '../home/Footer';
-//import AsyncStorage from '@react-native-async-storage/async-storage';
-import {PostAsync} from '../services/rest_api_service';
-import {decodeBase64, encodeBase64} from '../core/securedata';
-import {useNavigation} from '@react-navigation/native';
-import {AppImages} from '../assets';
-import FooterForge from './FooterForge';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import WelcomeScreen from './WelcomeScreen';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import ReCaptchaV3 from 'react-native-recaptcha-v3';
-import {navigate} from '../navigations/RootNavigation';
-import SignupScreen from './SignupScreen';
-import {BASE_URL} from '@env';
+import { Eye, EyeOff, Navigation } from 'lucide-react-native';
+import { loginStyles } from '../assets/styles/loginstyle';
+import { colors } from '../assets/styles/colors';
+import { loginUser } from '../database/Loginapi';
+import { useNavigation } from '@react-navigation/native';
+// import { StackNavigationProp } from '@react-navigation/stack';
 
-export type HomeStackNavigatorParamList = {
-  LoginScreen: {};
-  WelcomeScreen: {};
-  Main: undefined;
-  SignupScreen: undefined;
-};
 
-type NavigationProp = NativeStackNavigationProp<
-  HomeStackNavigatorParamList,
-  'LoginScreen'
->;
 
-const LoginScreen: React.FC = () => {
-  const [email, setEmail] = useState<string>('customeradmin@gmail.com');
-  const [password, setPassword] = useState<string>('lsipl');
-  const navigation = useNavigation<NavigationProp>();
-  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false); //captcha
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
-  let tempErrors: {[key: string]: string} = {};
+export default function LoginScreen() {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  // const navigation = useNavigation<StackNavigationProp<any>>();
 
-  const recaptchaSiteKey = '6LdZ3ZQqAAAAAO4wf3jkq1Q_PXV49IwSwYb4ziq4';
+
   const handleLogin = async () => {
-    /*     if (!isCaptchaVerified) {
-        Alert.alert('Please complete the CAPTCHA');
-        return;
-      }else{ */
-    //console.log('Email:', email);
-    //console.log('Password:', password);
-    if (!email) tempErrors.email = 'Email/User name is required';
-    if (!password) tempErrors.password = 'Password is required';
-    setErrors(tempErrors);
-
-    if (Object.keys(tempErrors).length > 0) return;
-
-    const uri = `${BASE_URL}/auth/login`;
-    const payload = JSON.stringify({
-      email: email,
-      password: password,
-    });
-
-    try {
-      const jsonResult = await PostAsync(uri, payload);
-      console.log('login resposne', jsonResult.data);
-
-      if (jsonResult.status === 'success') {
-        const {accessToken, user} = jsonResult.data;
-        const {userId, userrole, customer_id, company_name, firstName} = user;
-
-        //setIsLoggedIn(true);
-        await AsyncStorage.setItem(
-          'UserEmail',
-          encodeBase64(email?.toLowerCase() || ''),
-        );
-        await AsyncStorage.setItem(
-          'ID',
-          encodeBase64(userId?.toString() || ''),
-        );
-        await AsyncStorage.setItem('Token', 'Bearer ' + accessToken);
-        //await AsyncStorage.setItem('ID', encodeBase64(userId));
-        await AsyncStorage.setItem(
-          'Customer_ID',
-          encodeBase64(customer_id?.toString() || ''),
-        );
-        await AsyncStorage.setItem(
-          'company_name',
-          company_name?.toString() || '',
-        );
-        await AsyncStorage.setItem('firstName', firstName?.toString() || '');
-
-        await AsyncStorage.setItem(
-          'UserType',
-          encodeBase64(userrole.toString()),
-        );
-
-        const UserType = decodeBase64(
-          (await AsyncStorage.getItem('UserType')) ?? '',
-        );
-
-        console.log('Decoded UserType:', UserType);
-
-        if (UserType === '3' || userrole === 3) {
-          console.log('Decoded UserType:', UserType);
-          console.log('Navigating to Main screen');
-          /* navigation.replace('Main'); */
-          navigate('Main', {screen: 'Adminpanel'});
-        }
-        else if (UserType === '1' || userrole === 1) {
-          console.log('Decoded UserType:', UserType);
-          console.log('Navigating to Main screen');
-          navigate('Main', {screen: 'SignupScreen'});
-        }
-        else{
-          console.log('Decoded UserType:', UserType);
-          console.log('Navigating to Main screen');
-          navigate('Main', {screen: 'AdminDboard'});
-        } 
-        // else {
-        //   Alert.alert(
-        //     'Access denied',
-        //     'You do not have the required permissions.',
-        //   );
-        // }
-      } else {
-        Alert.alert('Incorrect, User Name/ Password');
-      }
-    } catch (error) {
-      console.error('Error logging in:', error);
-      Alert.alert('An error occurred. Please try again later.');
-    } /* } */
-  };
-  /*  const handleLogin = () => {
-    if (username === 'forgeppm' && password === 'lsipl') {
-      //navigation.navigate('WelcomeScreen', {}); 
-      navigation.replace('Main');
-    } else {
-      Alert.alert('Invalid Credentials', 'Please check your username and password.');
+    setError('');
+    
+    if (!username || !password) {
+      setError('Please enter both username and password');
+      return;
     }
-  }; */
-
-  const [secureText, setSecureText] = useState(true); // State for showing/hiding password
-
-  const handleTogglePassword = () => {
-    setSecureText(prevState => !prevState); // Toggle the password visibility
+  
+    setIsLoading(true);
+    try {
+      await loginUser(username, password);
+      console.log('Login successful');
+      // navigation.navigate('Dashboard')
+   
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Invalid username or password');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <View style={styles.screenContainer}>
-      {/* Centered Container for Logo and Form */}
-      <View style={styles.centeredContainer}>
-        {/* Left Side: Logo Section */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={AppImages.forge}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-
-        {/* Right Side: Login Form */}
-        <View style={styles.formContainer}>
-          <ScrollView
-            contentContainerStyle={styles.formContent}
-            showsVerticalScrollIndicator={false}>
-            <Text style={styles.heading}>Log in to ForgePortfolioXpert</Text>
-
-            {/* Email Input */}
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="Email Address or Username"
-                placeholderTextColor="#666"
-                value={email}
-                onChangeText={setEmail}
-              />
-
-              {errors.email && (
-                <Text style={styles.errorText}>{errors.email}</Text>
-              )}
-            </View>
-
-            {/* Password Input */}
-            <View style={styles.passwordContainer}>
-              <TextInput
-                style={[styles.input, styles.passwordInput]}
-                placeholder="Password"
-                placeholderTextColor="#666"
-                secureTextEntry={secureText} // Use the secureText state to control visibility
-                value={password}
-                onChangeText={setPassword}
-              />
-              <TouchableOpacity
-                style={styles.showPasswordButton}
-                onPress={handleTogglePassword}>
-                <Text style={styles.showPasswordText}>
-                  {secureText ? '👁' : '👁'}
-                </Text>{' '}
-                {/* Show eye or eye-off */}
-              </TouchableOpacity>
-              {/* Display error message if any */}
-              {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
-              )}
-            </View>
-            {/*    <ReCaptchaV3 style={styles.captchaContainer}
-        siteKey={recaptchaSiteKey}
-        baseUrl="https://yourwebsite.com"
-        onVerify={(token:string) => {
-          console.log('reCAPTCHA Verified, Token:', token);
-          setIsCaptchaVerified(true); 
-        }}
-        onError={(error:string) => {
-          console.log('reCAPTCHA Error:', error);
-        }}
-      /> */}
-
-            {/* CAPTCHA Placeholder */}
-            {/* <View style={styles.captchaContainer}>
-              <Text>☑️ I'm not a robot</Text>
+    <SafeAreaView style={loginStyles.container}>
+      <ImageBackground
+        source={require('../assets/img/bg.png')}
+        style={loginStyles.backgroundImage}
+      >
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={loginStyles.keyboardAvoidingView}
+        >
+          <View style={loginStyles.overlay}>
+            <View style={loginStyles.content}>
               <Image
-                source={{ uri: 'https://via.placeholder.com/150x50.png?text=CAPTCHA' }} 
-                style={styles.captchaImage}
+                source={require('../assets/img/splash.png')}
+                style={loginStyles.logo}
               />
-            </View> */}
+              
+              <View style={loginStyles.inputContainer}>
+                <Text style={loginStyles.inputLabel}>Username</Text>
+                <TextInput
+                  style={loginStyles.input}
+                  placeholder="Enter Username"
+                  placeholderTextColor={colors.gray[400]}
+                  value={username}
+                  onChangeText={setUsername}
+                  editable={!isLoading}
+                />
+              </View>
 
-            {/* Login Button */}
-            <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-              <Text style={styles.loginButtonText}>Log in</Text>
-            </TouchableOpacity>
+              <View style={loginStyles.inputContainer}>
+                <Text style={loginStyles.inputLabel}>Password</Text>
+                <TextInput
+                  style={loginStyles.input}
+                  placeholder="Enter Password"
+                  placeholderTextColor={colors.gray[400]}
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry={!showPassword}
+                  editable={!isLoading}
+                />
+                <TouchableOpacity
+                  style={loginStyles.eyeIcon}
+                  onPress={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <Eye size={24} color={colors.gray[400]} />
+                  ) : (
+                    <EyeOff size={24} color={colors.gray[400]} />
+                  )}
+                </TouchableOpacity>
+              </View>
 
-            {/* Forgot Password */}
-            <TouchableOpacity>
-              <Text style={styles.forgotPasswordText}>
-                Forgot your password?
-              </Text>
-            </TouchableOpacity>
+              {error ? <Text style={loginStyles.errorText}>{error}</Text> : null}
 
-            {/* Social Login Buttons */}
-            <TouchableOpacity style={styles.socialButton}>
-              <Image source={AppImages.google} style={styles.socialIcon} />
-              <Text style={styles.socialButtonText}>Continue with Google</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Image source={AppImages.micro} style={styles.socialIcon} />
-              <Text style={styles.socialButtonText}>
-                Continue with Microsoft
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Image source={AppImages.apple} style={styles.socialIcon} />
-              <Text style={styles.socialButtonText}>Continue with Apple</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <Image source={AppImages.okta} style={styles.socialIcon} />
-              <Text style={styles.socialButtonText}>Continue with Okta</Text>
-            </TouchableOpacity>
-
-            {/* Register Link */}
-            <Text style={styles.registerText}>
-              Don’t have an account?{' '}
               <TouchableOpacity
-                onPress={() => console.log('Navigate to registration')}>
-                <Text style={styles.registerLink}>Register with us</Text>
+                style={loginStyles.loginButton}
+                onPress={handleLogin}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <View style={loginStyles.loadingContainer}>
+                    <ActivityIndicator color={colors.white} />
+                  </View>
+                ) : (
+                  <Text style={loginStyles.loginButtonText}>Login</Text>
+                )}
               </TouchableOpacity>
-            </Text>
-
-            {/* Footer */}
-            {/* <Text style={styles.footerText}>
-              © 2024. All Rights Reserved |{' '}
-              <Text style={styles.link}>Terms and Conditions</Text> |{' '}
-              <Text style={styles.link}>Contact Us</Text>
-            </Text> */}
-          </ScrollView>
-        </View>
-      </View>
-      <FooterForge />
-    </View>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </ImageBackground>
+    </SafeAreaView>
   );
-};
+}
 
-const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-  },
-  centeredContainer: {
-    flexDirection: 'row',
-    width: '90%',
-    height: '80%',
-    backgroundColor: '#fff',
-    //shadowColor: '#000',
-    //shadowOffset: { width: 0, height: 5 },
-    //shadowOpacity: 0.2,
-    //shadowRadius: 10,
-    elevation: 5,
-    borderRadius: 0,
-  },
-  logoContainer: {
-    flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
-    padding: 20,
-  },
-  logo: {
-    width: '100%',
-    height: '80%',
-  },
-  formContainer: {
-    flex: 1,
-    padding: 30,
-  },
-  formContent: {
-    alignItems: 'center',
-  },
-  heading: {
-    fontFamily: 'Outfit',
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0330A6',
-    marginBottom: 20,
-  },
-  input: {
-    fontFamily: '"Source Sans Pro"',
-    width: '100%',
-    height: 40,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    marginBottom: 6,
-    backgroundColor: '#fff',
-    paddingHorizontal: 10,
-  },
-  passwordContainer: {
-    fontFamily: '"Source Sans Pro"',
-    position: 'relative',
-    width: '100%',
-    marginBottom: 10,
-  },
-  inputContainer: {
-    position: 'relative',
-    width: '100%',
-    marginBottom:15,
-  },
-  passwordInput: {
-    fontFamily: '"Source Sans Pro"',
-    paddingRight: 50,
-  },
-  showPasswordButton: {
-    position: 'absolute',
-    right: 10,
-    top: 5,
-    height: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  showPasswordText: {
-    fontSize: 16,
-    fontFamily: '"Source Sans Pro"',
-    color: '#007BFF',
-  },
-  captchaContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  captchaImage: {
-    width: 150,
-    height: 50,
-  },
-  loginButton: {
-    width: '100%',
-    height: 40,
-    backgroundColor: '#044086',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-    borderRadius: 25,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: '"Source Sans Pro"',
-
-    fontWeight: 'bold',
-  },
-  forgotPasswordText: {
-    color: '#0056b3',
-    fontFamily: '"Source Sans Pro"',
-    marginBottom: 120,
-    textDecorationLine: 'underline',
-  },
-  socialButton: {
-    width: '100%',
-    height: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-    justifyContent: 'center',
-    borderRadius: 25,
-  },
-  socialIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 10,
-  },
-  socialButtonText: {
-    fontFamily: '"Source Sans Pro"',
-
-    fontSize: 14,
-    alignItems: 'center',
-    borderRadius: 25,
-    justifyContent: 'center',
-  },
-  registerText: {
-    marginTop: 20,
-    textAlign: 'center',
-    fontFamily: '"Source Sans Pro"',
-  },
-  registerLink: {
-    fontFamily: '"Source Sans Pro"',
-
-    color: '#0056b3',
-    fontWeight: 'bold',
-  },
-  footerText: {
-    marginTop: 30,
-    fontSize: 12,
-    textAlign: 'center',
-    color: '#666',
-  },
-  link: {
-    fontFamily: '"Source Sans Pro"',
-
-    color: '#0056b3',
-    textDecorationLine: 'underline',
-  },
-  inputRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
-    gap: 20,
-  },
-  inputWrapper: {
-    flex: 1,
-    alignItems: 'left', // Centers the label above the input
-  },
-  errorText: {
-    color: 'red',
-    fontSize: 12,
-  },
-});
-export default LoginScreen;

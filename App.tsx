@@ -1,12 +1,5 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
 import React from 'react';
-import type {PropsWithChildren} from 'react';
+import type { PropsWithChildren } from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -26,13 +19,28 @@ import {
 } from 'react-native/Libraries/NewAppScreen';
 
 
+import { createStackNavigator } from '@react-navigation/stack';
 
+
+// import LoginScreen from './src/screens/Loginscreen';
+import DashboardScreen from './src/screens/Dashboardscreen';
+
+
+
+ // Example: add other screens here if needed
+
+type RootStackParamList = {
+  Login: undefined;
+  Dashboard: undefined;
+};
+
+const Stack = createStackNavigator<RootStackParamList>();
 
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
 
-function Section({children, title}: SectionProps): React.JSX.Element {
+function Section({ children, title }: SectionProps): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   return (
     <View style={styles.sectionContainer}>
@@ -42,7 +50,8 @@ function Section({children, title}: SectionProps): React.JSX.Element {
           {
             color: isDarkMode ? Colors.white : Colors.black,
           },
-        ]}>
+        ]}
+      >
         {title}
       </Text>
       <Text
@@ -51,7 +60,8 @@ function Section({children, title}: SectionProps): React.JSX.Element {
           {
             color: isDarkMode ? Colors.light : Colors.dark,
           },
-        ]}>
+        ]}
+      >
         {children}
       </Text>
     </View>
@@ -73,33 +83,39 @@ function App(): React.JSX.Element {
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
+        style={backgroundStyle}
+      >
         <Header />
+        {/* <LoginScreen/> */}
+        <DashboardScreen/>
+      
         <View
           style={{
             backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-            
-          <Section title="Step One">
+          }}
+        >
+          {/* <Section title="Step One">
             Edit <Text style={styles.highlight}>App.tsx</Text> to change this
             screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
+          </Section> */}
+
+          {/* Add the Navigation Container and Stack Navigator */}
+      
+
+          {/* <Section title="See Your Changes">
             <ReloadInstructions />
           </Section>
           <Section title="Debug">
             <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
+          </Section> */}
+          {/* <Section title="Learn More">
             Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+          </Section> */}
+          {/* <LearnMoreLinks /> */}
         </View>
       </ScrollView>
     </SafeAreaView>
-
   );
-  
 }
 
 const styles = StyleSheet.create({
