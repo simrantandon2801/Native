@@ -1,72 +1,24 @@
 import React from 'react';
-import type { PropsWithChildren } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-
+import { SafeAreaView, StatusBar, useColorScheme, StyleSheet, View, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
 
+import LoginScreen from './src/screens/Loginscreen';  // Import your LoginScreen
+import DashboardScreen from './src/screens/Dashboardscreen';  // Import your DashboardScreen
 
-// import LoginScreen from './src/screens/Loginscreen';
-import DashboardScreen from './src/screens/Dashboardscreen';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
 
+// Import the RootStackParamList type
+import { RootStackParamList } from '../WEBReact-APP/src/navigations/types';
 
+// Define the stack navigator type
+// type RootStackParamList = {
+//   Login: undefined;
+//   Dashboard: { username: string };
+// };
 
- // Example: add other screens here if needed
-
-type RootStackParamList = {
-  Login: undefined;
-  Dashboard: undefined;
-};
-
+// Create the stack navigator
 const Stack = createStackNavigator<RootStackParamList>();
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({ children, title }: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}
-      >
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}
-      >
-        {children}
-      </Text>
-    </View>
-  );
-}
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -76,49 +28,30 @@ function App(): React.JSX.Element {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}
-      >
-        <Header />
-        {/* <LoginScreen/> */}
-        <DashboardScreen/>
-      
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}
-        >
-          {/* <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section> */}
+    // Wrap your app with NavigationContainer
+    <NavigationContainer>
+      <SafeAreaView style={[styles.safeArea, backgroundStyle]}>
+        {/* StatusBar for proper status bar styling */}
+        <StatusBar
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          backgroundColor={backgroundStyle.backgroundColor}
+        />
 
-          {/* Add the Navigation Container and Stack Navigator */}
-      
-
-          {/* <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section> */}
-          {/* <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section> */}
-          {/* <LearnMoreLinks /> */}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        {/* Set up the Stack Navigator with screens */}
+        <Stack.Navigator initialRouteName="Login">
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Dashboard" component={DashboardScreen} />
+        </Stack.Navigator>
+      </SafeAreaView>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  // Add any custom styles you want
   sectionContainer: {
     marginTop: 32,
     paddingHorizontal: 24,

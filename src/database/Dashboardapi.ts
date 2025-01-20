@@ -1,6 +1,5 @@
 import { BASE_URL } from '@env';
 import CryptoJS from 'crypto-js';
-import { Platform } from 'react-native';
 
 export interface InspectionPayload {
   token: string;
@@ -23,65 +22,43 @@ export interface InspectionPayload {
 
 const SECRET_KEY = "LsiplyG3M1bX7Rg";
 
+// Function to encrypt the user ID
 const encryptUserId = (userId: number): string => {
-  const userIdString = userId.toString();
-  const encryptedUserId = CryptoJS.AES.encrypt(userIdString, SECRET_KEY).toString();
+  const encryptedUserId = CryptoJS.AES.encrypt(userId.toString(), SECRET_KEY).toString();
   return encodeURIComponent(encryptedUserId);
 };
 
 export const getAcknowledgedInspectionCount = async (payload: InspectionPayload) => {
   try {
-    console.log("------------------------------------------");
-    console.log("Request Payload: ", payload);
-    console.log("------------------------------------------");
+    const { token, currentPageNo = 1, pageLimit = 10, userID } = payload;
 
-    const {
-      token,
-      currentPageNo = 1,
-      pageLimit = 10,
-      userID,
-    } = payload;
+    // Check if the token is available
+    if (!token) throw new Error("Missing token in payload!");
 
-    if (!token) {
-      throw new Error("Missing token in payload!");
-    }
+    // Encrypt the user ID
+    const encryptedUserId = encryptUserId(userID);
 
+    // Construct the API URL with query parameters
     const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg1/${currentPageNo}`;
+    const urlWithParams = `${apiUrl}?userId=${encryptedUserId}&currentPageNo=${currentPageNo}&pageLimit=${pageLimit}`;
 
-    //const encryptedUserId = encryptUserId(userID);
-    const SECRET_KEY = "LsiplyG3M1bX7Rg";
-  const userIdString = userID.toString();
-  //console.log('-> '+userIdString);
-  const encryptedUserId = CryptoJS.AES.encrypt(userIdString, SECRET_KEY).toString();
-  //console.log('-> '+encryptedUserId);
-  var user_id= encodeURIComponent(encryptedUserId);
- // console.log('-> '+user_id);
-
-
-
-
-    const response = await fetch(apiUrl, {
-      method: 'GET',
+    // Make the GET request to the API
+    const response = await fetch(urlWithParams, {
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
-        'x-auth-user-id': encryptedUserId,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        ...payload,
-        currentPageNo,
-        pageLimit,
-      }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
+    
     const data = await response.json();
-    console.log("API Response Data: ", data);
-    console.log("------------------------------------------");
 
+    console.log('API response data:', data);
+
+    // Check the structure of the response and return the required fields
     return {
       currentPageNo: data.currentPageNo || currentPageNo,
       totalPages: data.totalPages || 0,
@@ -89,17 +66,16 @@ export const getAcknowledgedInspectionCount = async (payload: InspectionPayload)
       totalRecords: data.totalRecords || 0,
       paginationListRecords: data.paginationListRecords || [],
     };
+  } catch (error) {
+    // console.error("Error in getAcknowledgedInspectionCount:", error);
 
-  } catch (err) {
-    console.error("Error in getAcknowledgedInspectionCount: ", err);
-
+    // Return default/fallback data if an error occurs
     return {
       currentPageNo: payload.currentPageNo || 1,
       totalPages: 0,
       pageLimit: payload.pageLimit || 10,
       totalRecords: 0,
       paginationListRecords: [],
-      //done
     };
   }
 };

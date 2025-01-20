@@ -1,5 +1,4 @@
-const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
-const rnCrypto = require('react-native-crypto');
+const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 
 /**
  * Metro configuration
@@ -7,16 +6,6 @@ const rnCrypto = require('react-native-crypto');
  *
  * @type {import('metro-config').MetroConfig}
  */
-const defaultConfig = getDefaultConfig(__dirname);
+const config = {};
 
-const customConfig = {
-  resolver: {
-    extraNodeModules: {
-      crypto: require.resolve('react-native-crypto'),
-      stream: require.resolve('stream-browserify'),
-      buffer: require.resolve('buffer'),
-    },
-  },
-};
-
-module.exports = mergeConfig(defaultConfig, customConfig);
+module.exports = mergeConfig(getDefaultConfig(__dirname), config);

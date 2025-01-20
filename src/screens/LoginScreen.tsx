@@ -11,14 +11,17 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { Eye, EyeOff, Navigation } from 'lucide-react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { loginStyles } from '../assets/styles/loginstyle';
 import { colors } from '../assets/styles/colors';
 import { loginUser } from '../database/Loginapi';
 import { useNavigation } from '@react-navigation/native';
-// import { StackNavigationProp } from '@react-navigation/stack';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigations/types';
 
-
+// Define the type for navigation (useStack Navigation)
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
+type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('');
@@ -26,8 +29,9 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  // const navigation = useNavigation<StackNavigationProp<any>>();
-
+  
+  // Use typed navigation
+  const navigation = useNavigation<DashboardScreenNavigationProp>();
 
   const handleLogin = async () => {
     setError('');
@@ -39,10 +43,11 @@ export default function LoginScreen() {
   
     setIsLoading(true);
     try {
-      await loginUser(username, password);
-      console.log('Login successful');
-      // navigation.navigate('Dashboard')
-   
+      const response = await loginUser(username, password);
+      console.log('Login successful:- ', JSON.stringify(response, null, 2));
+      
+      // Navigate to Dashboard and pass the username
+      navigation.navigate('Dashboard', { username: username });
     } catch (error) {
       console.error('Login error:', error);
       setError('Invalid username or password');
@@ -125,4 +130,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
