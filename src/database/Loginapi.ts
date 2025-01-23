@@ -12,6 +12,17 @@ export interface LoginResponse {
     roleName: string;
   }>;
 }
+const getStringAfterLastSlash = (input: string)=> {
+  // Ensure the input is a string and find the last forward slash, then get the substring after it
+  try{if (typeof input === 'string') {
+    const lastSlashIndex = input.lastIndexOf('/');
+    return lastSlashIndex !== -1 ? input.substring(lastSlashIndex + 1) : input;
+  }
+  return ''; }catch(err){
+    console.log("err : ", err);
+  }
+};
+
 
 const encryptPassword = (password: string, key: string): string => {
   const hmac = CryptoJS.HmacSHA256(password, key);
@@ -42,13 +53,16 @@ export const loginUser = async (username: string, password: string): Promise<Log
       }),
     });
 
-    console.log('Response status11:', response.status);
+    console.log('-------------------Response :', response);
+    
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Error response:', errorText);
       throw new Error(`Network response was not ok: ${response.status} ${errorText}`);
     }
+    // const anserkey = getStringAfterLastSlash(response)
+    // console.log("???????????????? : ", anserkey);
 
     const data: LoginResponse = await response.json();
     console.log('Login response:', data);

@@ -1,17 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react"
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  RefreshControl,
-  Alert,
-  ActivityIndicator,
-  Dimensions,
-  ScrollView,
-} from "react-native"
+import type React from "react"
+import "react-native-get-random-values"
+
+import { useState, useEffect, useCallback } from "react"
+import { View, Text, Image, StyleSheet, RefreshControl, ActivityIndicator, Dimensions, ScrollView ,Alert} from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getAcknowledgedInspectionCount, type InspectionPayload } from "../database/Dashboardapi"
+import { getAcknowledgedInspectionCount, type InspectionResponse, encryptData } from "../database/Dashboardapi"
+import {encryptionPassword } from '../database/Dashboardapi'
 
 interface InspectionItem {
   title: string
@@ -31,13 +25,14 @@ interface AcknowledgedData {
 const { width } = Dimensions.get("window")
 const cardWidth = (width - 48) / 2
 
-export default function DashboardScreen() {
+const DashboardScreen: React.FC = () => {
   const [acknowledgedData, setAcknowledgedData] = useState<AcknowledgedData>({
     currentPageNo: 1,
     totalPages: 0,
     pageLimit: 10,
     totalRecords: 0,
     paginationListRecords: [],
+    
   })
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -45,7 +40,7 @@ export default function DashboardScreen() {
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
-
+  
   const inspectionItems: InspectionItem[] = [
     {
       title: "Acknowledged",
@@ -55,75 +50,59 @@ export default function DashboardScreen() {
     },
   ]
 
-  const fetchloadData = useCallback(async () => {
+  const fetchAcknowledgement = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const userId = await AsyncStorage.getItem("userId")
-      const accessToken = await AsyncStorage.getItem("accessToken")
+      const storedUserId = await AsyncStorage.getItem("userId")
+      const storedAccessToken = await AsyncStorage.getItem("accessToken")
 
-      if (!userId || !accessToken) {
-        throw new Error("User ID or access token not found")
+      if (!storedUserId || !storedAccessToken) {
+        throw new Error("User ID or Access Token not found")
       }
 
-      const payload: InspectionPayload = {
-        token: accessToken,
-        userID: Number.parseInt(userId, 10),
-        authuserID: "",
-        statusID: "17",
-        displayRefId: "",
-        companyName: "",
-        fromDate: `${new Date().getFullYear()}-01-01`,
-        toDate: `${new Date().getFullYear()}-12-31`,
+      // const encryptedUserId = encryptData(storedUserId)
+      const encryptedUserId = encryptionPassword(storedUserId);
+      console.log("____________________________", storedAccessToken,"------", storedUserId,"------", )
+
+      setUserId(encryptedUserId)
+      setAccessToken(storedAccessToken)
+
+      // Create the x-auth-user-id value (replace this with your actual encryption method if different)
+      // const xAuthUserId = encryptData(storedUserId)
+      const xAuthUserId = 'xDjjD+dlhNj/5khvdJ1VIhWQLOZXLKvBB/aWhJoD3Z8=';
+      console.log(xAuthUserId)
+      
+
+      const payload: InspectionResponse = {
+        accessToken: storedAccessToken,
+        userId: encryptedUserId,
+        statusId: "17",
         processFlag: true,
-        inspectionType: null,
-        fsoName: null,
+        xAuthUserId: xAuthUserId, // Add this new field
       }
 
-      const data = await getAcknowledgedInspectionCount(payload)
-      setAcknowledgedData(data)
-      if (data.paginationListRecords.length === 0) {
-        setError("No inspection data found for the given period.")
-      }
+      const result = await getAcknowledgedInspectionCount(payload)
+      // setAcknowledgedData('hi')
     } catch (error) {
       console.error("Error loading data:", error)
-      setError(error instanceof Error ? error.message : "An unknown error occurred")
-      Alert.alert(
-        "Error",
-        `Failed to load inspection data: ${error instanceof Error ? error.message : "Unknown error"}`,
-      )
+      setError("Failed to load data. Please try again.")
+      Alert.alert("Error", "Failed to load data. Please check your internet connection and try again.")
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const token = await AsyncStorage.getItem("accessToken")
-        const id = await AsyncStorage.getItem("userId")
+    fetchAcknowledgement()
+  }, [])
 
-        if (token && id) {
-          setAccessToken(token)
-          setUserId(id)
-          fetchloadData()
-        } else {
-          console.log("No user data found in AsyncStorage")
-        }
-      } catch (error) {
-        console.error("Error fetching data from AsyncStorage:", error)
-      }
-    }
+  // const onRefresh = useCallback(() => {
+  //   setRefreshing(true)
+  //   fetchAcknowledgement().then(() => setRefreshing(false))
+  // }, [])
 
-    fetchData()
-  }, [fetchloadData, userId, accessToken])
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true)
-    fetchloadData().then(() => setRefreshing(false))
-  }, [fetchloadData])
-
-  const renderInspectionItem = ({ title, count, iconName, isOnline }: InspectionItem) => (
+  const renderInspectionItem = ({ title, count, isOnline }: InspectionItem) => (
     <View style={styles.item} key={title}>
       <View style={styles.itemContent}>
         <Image source={require("../assets/img/bg.png")} style={styles.icon} />
@@ -149,7 +128,7 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.contentContainer}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {error && <Text style={styles.errorText}>{error}</Text>}
         <View style={styles.header}>
@@ -158,6 +137,7 @@ export default function DashboardScreen() {
         </View>
         <View style={styles.grid}>{inspectionItems.map((item) => renderInspectionItem(item))}</View>
         <Text style={styles.listTitle}>Acknowledged Inspections</Text>
+        
         {acknowledgedData.paginationListRecords.length > 0 ? (
           acknowledgedData.paginationListRecords.map((item) => (
             <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
@@ -168,23 +148,22 @@ export default function DashboardScreen() {
         ) : (
           <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
         )}
-        {__DEV__ && (
-          <>
-            <Text style={styles.debugTitle}>Debug Information:</Text>
-            <Text style={styles.debugText}>
-              Current Page: {acknowledgedData.currentPageNo}
-              {"\n"}
-              Total Pages: {acknowledgedData.totalPages}
-              {"\n"}
-              Page Limit: {acknowledgedData.pageLimit}
-              {"\n"}
-              Total Records: {acknowledgedData.totalRecords}
-              {"\n"}
-              Pagination List Records: {JSON.stringify(acknowledgedData.paginationListRecords, null, 2)}
-              {"\n"}
-            </Text>
-          </>
-        )}
+
+        <>
+          <Text style={styles.debugTitle}>Debug Information:</Text>
+          <Text style={styles.debugText}>
+            Current Page: {acknowledgedData.currentPageNo}
+            {"\n"}
+            Total Pages: {acknowledgedData.totalPages}
+            {"\n"}
+            Page Limit: {acknowledgedData.pageLimit}
+            {"\n"}
+            Total Records: {acknowledgedData.totalRecords}
+            {"\n"}
+            Pagination List Records: {JSON.stringify(acknowledgedData.paginationListRecords, null, 2)}
+            {"\n"}
+          </Text>
+        </>
       </ScrollView>
     </View>
   )
@@ -324,4 +303,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
 })
+
+export default DashboardScreen
 

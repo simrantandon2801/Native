@@ -22,8 +22,7 @@ import { RootStackParamList } from '../navigations/types';
 // Define the type for navigation (useStack Navigation)
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
 type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
-
-export default function LoginScreen() {
+const LoginScreen: React.FC = () =>  {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -123,6 +122,7 @@ export default function LoginScreen() {
                   <Text style={loginStyles.loginButtonText}>Login</Text>
                 )}
               </TouchableOpacity>
+            
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -130,3 +130,4 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+export default LoginScreen

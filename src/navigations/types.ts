@@ -1,4 +1,10 @@
 export type RootStackParamList = {
-    Login: undefined;  // The Login screen doesn't require any parameters
-    Dashboard: { username: string };  // The Dashboard screen expects a 'username' parameter
+    Login: undefined;  
+    Dashboard: { username: string }; 
+    MainDrawer: undefined 
   };
+  export type DrawerParamList = {
+    InspectionAccepted: undefined
+    InspectionRejected: undefined
+    InspectionAcknowledgment: undefined
+  }

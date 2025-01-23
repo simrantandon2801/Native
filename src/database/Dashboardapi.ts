@@ -1,81 +1,86 @@
-import { BASE_URL } from '@env';
-import CryptoJS from 'crypto-js';
+import CryptoJS from "crypto-js"
+import { BASE_URL } from "@env"
+import "react-native-get-random-values"
+import encodeUtf8 from 'encode-utf8'; 
 
-export interface InspectionPayload {
-  token: string;
-  currentPageNo?: number;
-  totalPages?: number;
-  pageLimit?: number;
-  totalRecords?: number;
-  paginationListRecords?: any[];
-  userID: number;
-  authuserID: string;
-  statusID: string;
-  displayRefId: string;
-  companyName: string;
-  fromDate: string;
-  toDate: string;
-  processFlag: boolean;
-  inspectionType: string | null;
-  fsoName: string | null;
+const SECRET_KEY = "LsiplyG3M1bX7Rg"
+
+export interface InspectionResponse {
+  statusId: string
+  userId: string
+  processFlag: boolean
+  accessToken: string
+  xAuthUserId: string 
 }
 
-const SECRET_KEY = "LsiplyG3M1bX7Rg";
+export const encryptData = (data: string): string => {
+  const encryptedData = CryptoJS.AES.encrypt(data, SECRET_KEY).toString()
+  return encodeURIComponent(encryptedData)
+}
 
-// Function to encrypt the user ID
-const encryptUserId = (userId: number): string => {
-  const encryptedUserId = CryptoJS.AES.encrypt(userId.toString(), SECRET_KEY).toString();
-  return encodeURIComponent(encryptedUserId);
-};
+// List<int> messageBytes = utf8.encode(password);
+//     List<int> key = base64.decode(secretKey);
+//     crypto.Hmac hmac = new crypto.Hmac(crypto.sha256, key);
+//     crypto.Digest digest = hmac.convert(messageBytes);
 
-export const getAcknowledgedInspectionCount = async (payload: InspectionPayload) => {
+//     String base64Mac = base64.encode(digest.bytes);
+//     return base64Mac;
+
+
+// const encryptPassword = (password: string, key: string): string => {
+//   const hmac = CryptoJS.HmacSHA256(password, key);
+//   return CryptoJS.enc.Base64.stringify(hmac);
+// };
+
+// const encryptPasswordMD5 = (password: string, key: string): string => {
+//   const hmac = CryptoJS.HmacMD5(password, key);
+//   return CryptoJS.enc.Base64.stringify(hmac);
+// };
+
+// export const loginUser = async (username: string, password: string): Promise<LoginResponse> => {
+//   const encryptedPassword = encryptPassword(password, secretKey);
+//   const encryptedPasswordMD5 = encryptPasswordMD5(password, secretKey);
+export const encryptionPassword = ( data:string) => {
+  const hmac = CryptoJS.HmacSHA256(data, SECRET_KEY);
+  return CryptoJS.enc.Base64.stringify(hmac);
+}
+// function getStringAfterLastSlash(input) {
+ 
+//   return input.substring(input.lastIndexOf('/') + 1);
+// }
+export const getAcknowledgedInspectionCount = async (payload: InspectionResponse) => {
   try {
-    const { token, currentPageNo = 1, pageLimit = 10, userID } = payload;
+    const { userId, accessToken, statusId, xAuthUserId } = payload
+    const encryptedUserId = encryptData(userId)
 
-    // Check if the token is available
-    if (!token) throw new Error("Missing token in payload!");
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg1/${statusId}`
+    console.log('------------------',xAuthUserId)
+    console.log('*******************',encryptedUserId)
 
-    // Encrypt the user ID
-    const encryptedUserId = encryptUserId(userID);
 
-    // Construct the API URL with query parameters
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg1/${currentPageNo}`;
-    const urlWithParams = `${apiUrl}?userId=${encryptedUserId}&currentPageNo=${currentPageNo}&pageLimit=${pageLimit}`;
-
-    // Make the GET request to the API
-    const response = await fetch(urlWithParams, {
-      method: 'POST',
+    const response = await fetch(apiUrl, {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        "X-Auth-UserId": xAuthUserId,
+         // Add this new header
       },
-    });
+    })
+    // const anserkey = getStringAfterLastSlash(response)
+    // console.log("???????????????? : ", anserkey);
+    // if (!response.ok) {
+    //   const errorText = await response.text()
+    //   console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+    //   throw new Error(`HTTP error! Status: ${response.status}`)
+    // }
 
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-
-    
-    const data = await response.json();
-
-    console.log('API response data:', data);
-
-    // Check the structure of the response and return the required fields
-    return {
-      currentPageNo: data.currentPageNo || currentPageNo,
-      totalPages: data.totalPages || 0,
-      pageLimit: data.pageLimit || pageLimit,
-      totalRecords: data.totalRecords || 0,
-      paginationListRecords: data.paginationListRecords || [],
-    };
+    // const data = await response.json()
+    console.log("+++++++++++++++++++++++++++++++++++++ : ",response)
+    return response
   } catch (error) {
-    // console.error("Error in getAcknowledgedInspectionCount:", error);
-
-    // Return default/fallback data if an error occurs
-    return {
-      currentPageNo: payload.currentPageNo || 1,
-      totalPages: 0,
-      pageLimit: payload.pageLimit || 10,
-      totalRecords: 0,
-      paginationListRecords: [],
-    };
+    console.error("Error in getAcknowledgedInspectionCount:", error)
+    throw error
   }
-};
+}
+

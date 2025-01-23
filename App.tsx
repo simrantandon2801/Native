@@ -2,6 +2,7 @@ import React from 'react';
 import { SafeAreaView, StatusBar, useColorScheme, StyleSheet, View, Text } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
+import 'react-native-get-random-values';
 
 import LoginScreen from './src/screens/Loginscreen';  // Import your LoginScreen
 import DashboardScreen from './src/screens/Dashboardscreen';  // Import your DashboardScreen
@@ -10,6 +11,7 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 // Import the RootStackParamList type
 import { RootStackParamList } from '../WEBReact-APP/src/navigations/types';
+import MainDrawer from './src/drawer/Maindrawer';
 
 // Define the stack navigator type
 // type RootStackParamList = {
@@ -39,8 +41,13 @@ function App(): React.JSX.Element {
 
         {/* Set up the Stack Navigator with screens */}
         <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
+          <Stack.Screen
+            name="MainDrawer"
+        component={MainDrawer}
+            options={{ headerShown: false }} // Hide header for drawer
+          />
         </Stack.Navigator>
       </SafeAreaView>
     </NavigationContainer>
