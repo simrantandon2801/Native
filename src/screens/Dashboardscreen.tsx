@@ -1,11 +1,10 @@
-import type React from "react"
+import React, { useState, useEffect } from "react"
 import "react-native-get-random-values"
-
-import { useState, useEffect, useCallback } from "react"
-import { View, Text, Image, StyleSheet, RefreshControl, ActivityIndicator, Dimensions, ScrollView ,Alert} from "react-native"
-import AsyncStorage from "@react-native-async-storage/async-storage"
-import { getAcknowledgedInspectionCount, type InspectionResponse, encryptData } from "../database/Dashboardapi"
-import {encryptionPassword } from '../database/Dashboardapi'
+import { View, Text, Image, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert } from "react-native"
+import { getAcknowledgedInspectionCount, type InspectionResponse, encryptionPassword } from "../database/Dashboardapi"
+// import { encryptionPassword } from '../database/Dashboardapi'
+import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
+import Accepted from "./Accepted"
 
 interface InspectionItem {
   title: string
@@ -32,15 +31,13 @@ const DashboardScreen: React.FC = () => {
     pageLimit: 10,
     totalRecords: 0,
     paginationListRecords: [],
-    
   })
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [refreshing, setRefreshing] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
-  
+
   const inspectionItems: InspectionItem[] = [
     {
       title: "Acknowledged",
@@ -54,36 +51,35 @@ const DashboardScreen: React.FC = () => {
     setIsLoading(true)
     setError(null)
     try {
-      const storedUserId = await AsyncStorage.getItem("userId")
+ /*      const storedUserId = await AsyncStorage.getItem("userId")
       const storedAccessToken = await AsyncStorage.getItem("accessToken")
 
       if (!storedUserId || !storedAccessToken) {
         throw new Error("User ID or Access Token not found")
       }
 
-      // const encryptedUserId = encryptData(storedUserId)
-      const encryptedUserId = encryptionPassword(storedUserId);
-      console.log("____________________________", storedAccessToken,"------", storedUserId,"------", )
+      const xAuthUserId = 'xDjjD+dlhNj/5khvdJ1VIhWQLOZXLKvBB/aWhJoD3Z8=';
+      const encryptedUserId = (storedUserId);
 
       setUserId(encryptedUserId)
-      setAccessToken(storedAccessToken)
+      setAccessToken(storedAccessToken) */
 
-      // Create the x-auth-user-id value (replace this with your actual encryption method if different)
-      // const xAuthUserId = encryptData(storedUserId)
-      const xAuthUserId = 'xDjjD+dlhNj/5khvdJ1VIhWQLOZXLKvBB/aWhJoD3Z8=';
-      console.log(xAuthUserId)
-      
-
-      const payload: InspectionResponse = {
-        accessToken: storedAccessToken,
-        userId: encryptedUserId,
-        statusId: "17",
-        processFlag: true,
-        xAuthUserId: xAuthUserId, // Add this new field
+      const payload: any = {
+         "statusId":"17",
+        "userId":"3816881804355836",
+        "displayRefId":"",
+        "companyName":"",
+        "fromDate":"",
+        "toDate":"",
+        "processFlag":true,
+        "inspectionType":null,
+        "fsoName":null,
+        "kobId":null
+       
       }
 
       const result = await getAcknowledgedInspectionCount(payload)
-      // setAcknowledgedData('hi')
+      setAcknowledgedData(result)
     } catch (error) {
       console.error("Error loading data:", error)
       setError("Failed to load data. Please try again.")
@@ -97,26 +93,18 @@ const DashboardScreen: React.FC = () => {
     fetchAcknowledgement()
   }, [])
 
-  // const onRefresh = useCallback(() => {
-  //   setRefreshing(true)
-  //   fetchAcknowledgement().then(() => setRefreshing(false))
-  // }, [])
-
-  const renderInspectionItem = ({ title, count, isOnline }: InspectionItem) => (
+  const renderInspectionItem = ({ title,  isOnline }: InspectionItem) => (
     <View style={styles.item} key={title}>
       <View style={styles.itemContent}>
-        <Image source={require("../assets/img/bg.png")} style={styles.icon} />
-        <Text style={styles.count}>{count}</Text>
-        <Text style={styles.subtitle}>{title}</Text>
+     
+        <Text style={styles.title}>Inspection Acknowledgment</Text>
+ 
       </View>
-      <View style={styles.onlineStatus}>
-        <View style={[styles.statusDot, { backgroundColor: isOnline ? "#01DB31" : "#DE9300" }]} />
-        <Text style={styles.statusText}>{isOnline ? "Online" : "Offline"}</Text>
-      </View>
+  
     </View>
   )
 
-  if (isLoading && !refreshing) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -126,18 +114,16 @@ const DashboardScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.contentContainer}
-        // refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
+      <ScrollView contentContainerStyle={styles.contentContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
         <View style={styles.header}>
-          <Image source={require("../assets/img/splash.png")} style={styles.logo} />
+          {/* <Image source={require("../assets/img/Board.png")} style={styles.logo} /> */}
           <Text style={styles.headerTitle}>Inspection Dashboard</Text>
-        </View>
+        </View> 
+       
         <View style={styles.grid}>{inspectionItems.map((item) => renderInspectionItem(item))}</View>
         <Text style={styles.listTitle}>Acknowledged Inspections</Text>
-        
+
         {acknowledgedData.paginationListRecords.length > 0 ? (
           acknowledgedData.paginationListRecords.map((item) => (
             <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
@@ -149,22 +135,10 @@ const DashboardScreen: React.FC = () => {
           <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
         )}
 
-        <>
-          <Text style={styles.debugTitle}>Debug Information:</Text>
-          <Text style={styles.debugText}>
-            Current Page: {acknowledgedData.currentPageNo}
-            {"\n"}
-            Total Pages: {acknowledgedData.totalPages}
-            {"\n"}
-            Page Limit: {acknowledgedData.pageLimit}
-            {"\n"}
-            Total Records: {acknowledgedData.totalRecords}
-            {"\n"}
-            Pagination List Records: {JSON.stringify(acknowledgedData.paginationListRecords, null, 2)}
-            {"\n"}
-          </Text>
-        </>
+{/* <Accepted/> */}
+      
       </ScrollView>
+    
     </View>
   )
 }
@@ -183,21 +157,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   header: {
-    flexDirection: "row",
+    // flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    marginBottom: 20,
+    // marginBottom: 20,
   },
   logo: {
-    height: 40,
-    width: 40,
+    height: 30,
+    width: 30,
     resizeMode: "contain",
     marginRight: 12,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 18,
+    textAlign:'center',
+   
+    color: "#000",
+    fontFamily:'Outfit',
+    marginBottom:20
   },
   grid: {
     flexDirection: "row",
@@ -209,7 +186,7 @@ const styles = StyleSheet.create({
     width: cardWidth,
     height: cardWidth,
     borderRadius: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#8cbed6",
     marginBottom: 16,
     padding: 16,
     justifyContent: "space-between",
@@ -221,6 +198,7 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     alignItems: "center",
+    
   },
   icon: {
     width: 48,
@@ -260,10 +238,11 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+  
     marginTop: 20,
     marginBottom: 10,
     paddingHorizontal: 16,
+    fontFamily:'Outfit'
   },
   listItem: {
     backgroundColor: "#fff",
@@ -302,7 +281,14 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingHorizontal: 16,
   },
+  title: {
+    fontSize: 16, 
+    textAlign: 'center', 
+    marginTop: 50, 
+    color: '#fff', 
+    fontFamily: 'Outfit', 
+  },
+  
 })
 
 export default DashboardScreen
-
