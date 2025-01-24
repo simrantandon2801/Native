@@ -1,15 +1,15 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert } from "react-native"
-import { getAcceptedInspectionAttachmentCount, getRejectedInspectionAttachmentCount } from "../database/Dashboardapi"
+import { getOngoingInspectionCount } from "../database/Dashboardapi"
 
-interface InspectionAttachmentItem {
+interface InspectionItem {
   title: string
   count: number
   isOnline: boolean
 }
 
-interface AcceptedAttachmentData {
+interface OngoingInspectionData {
   currentPageNo: number
   totalPages: number
   pageLimit: number
@@ -20,8 +20,8 @@ interface AcceptedAttachmentData {
 const { width } = Dimensions.get("window")
 const cardWidth = (width - 48) / 2
 
-const Rejected: React.FC = () => {
-  const [rejectedAttachmentData, setRejectedAttachmentData] = useState<AcceptedAttachmentData>({
+const OngoingInspection: React.FC = () => {
+  const [ongoingInspectionData, setOngoingInspectionData] = useState<OngoingInspectionData>({
     currentPageNo: 1,
     totalPages: 0,
     pageLimit: 10,
@@ -32,20 +32,20 @@ const Rejected: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
 
-  const inspectionAttachmentItems: InspectionAttachmentItem[] = [
+  const inspectionItems: InspectionItem[] = [
     {
-      title: "Rejected",
-      count: rejectedAttachmentData.totalRecords,
+      title: "Ongoing",
+      count: ongoingInspectionData.totalRecords,
       isOnline: true,
     },
   ]
 
-  const fetchRejectedAttachments = async () => {
+  const fetchOngoingInspections = async () => {
     setIsLoading(true)
     setError(null)
     try {
       const payload: any = {
-        statusId: "19", // Assuming 19 is the status ID for Rejected
+        statusId: "18", // Assuming 18 is the status ID for Ongoing
         userId: "3816881804355836",
         displayRefId: "",
         companyName: "",
@@ -57,8 +57,8 @@ const Rejected: React.FC = () => {
         kobId: null,
       }
 
-      const result = await getRejectedInspectionAttachmentCount(payload)
-      setRejectedAttachmentData(result)
+      const result = await getOngoingInspectionCount(payload)
+      setOngoingInspectionData(result)
     } catch (error) {
       console.error("Error loading data:", error)
       setError("Failed to load data. Please try again.")
@@ -69,13 +69,13 @@ const Rejected: React.FC = () => {
   }
 
   useEffect(() => {
-    fetchRejectedAttachments()
+    fetchOngoingInspections()
   }, [])
 
-  const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
+  const renderInspectionItem = ({ title, isOnline }: InspectionItem) => (
     <View style={styles.item} key={title}>
       <View style={styles.itemContent}>
-        <Text style={styles.title}>Inspection Rejected</Text>
+        <Text style={styles.title}>Ongoing Inspections</Text>
       </View>
     </View>
   )
@@ -93,20 +93,20 @@ const Rejected: React.FC = () => {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
         <View>
-          <Text style={styles.headerTitle}>Inspection Attachment Dashboard</Text>
+          <Text style={styles.headerTitle}>Ongoing Inspection Dashboard</Text>
         </View>
-        <View style={styles.grid}>{inspectionAttachmentItems.map((item) => renderInspectionAttachmentItem(item))}</View>
-        <Text style={styles.listTitle}>Rejected Inspection Attachments</Text>
+        <View style={styles.grid}>{inspectionItems.map((item) => renderInspectionItem(item))}</View>
+        <Text style={styles.listTitle}>Ongoing Inspections</Text>
 
-        {rejectedAttachmentData.paginationListRecords.length > 0 ? (
-          rejectedAttachmentData.paginationListRecords.map((item) => (
+        {ongoingInspectionData.paginationListRecords.length > 0 ? (
+          ongoingInspectionData.paginationListRecords.map((item) => (
             <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
               <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
               <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
             </View>
           ))
         ) : (
-          <Text style={styles.emptyListText}>No rejected inspection attachments found.</Text>
+          <Text style={styles.emptyListText}>No ongoing inspections found.</Text>
         )}
       </ScrollView>
     </View>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     width: cardWidth,
     height: cardWidth,
     borderRadius: 12,
-    backgroundColor: "#d9534f",
+    backgroundColor: "#ff9933", // Changed color to represent ongoing status
     marginBottom: 16,
     padding: 16,
     justifyContent: "space-between",
@@ -196,5 +196,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export default Rejected
+export default OngoingInspection
 

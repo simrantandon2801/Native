@@ -6,6 +6,7 @@ import { getAcknowledgedInspectionCount, type InspectionResponse, encryptionPass
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import Accepted from "./Accepted"
 import Rejected from "./Rejected"
+import OngoingInspection from "./OngoingInspection"
 
 interface InspectionItem {
   title: string
@@ -138,6 +139,7 @@ const DashboardScreen: React.FC = () => {
 
 <Accepted/>
 <Rejected/>
+<OngoingInspection/>
       
       </ScrollView>
     
