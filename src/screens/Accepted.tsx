@@ -76,7 +76,7 @@ const Accepted: React.FC = () => {
   const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
     <View style={styles.item} key={title}>
       <View style={styles.itemContent}>
-        <Text style={styles.title}>Inspection Attachment</Text>
+        <Text style={styles.title}>Inspection Accepted</Text>
       </View>
     </View>
   )
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     width: cardWidth,
     height: cardWidth,
     borderRadius: 12,
-    backgroundColor: "#8cbed6",
+    backgroundColor: "#6cb76c",
     marginBottom: 16,
     padding: 16,
     justifyContent: "space-between",

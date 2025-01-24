@@ -1,7 +1,12 @@
 interface PostPayload {
     [key: string]: any
   }
-  
+    const SECRET_KEY = "LsiplyG3M1bX7Rg"
+  export const encryptData1 = (data: string): string => {
+    const encryptedData = CryptoJS.HmacSHA256(data, SECRET_KEY);
+    return CryptoJS.enc.Base64.stringify(encryptedData).toString();
+  }
+
   export const POST = async (
     apiUrl: string,
     payload: PostPayload,

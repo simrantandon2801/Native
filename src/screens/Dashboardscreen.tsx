@@ -5,6 +5,7 @@ import { getAcknowledgedInspectionCount, type InspectionResponse, encryptionPass
 // import { encryptionPassword } from '../database/Dashboardapi'
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import Accepted from "./Accepted"
+import Rejected from "./Rejected"
 
 interface InspectionItem {
   title: string
@@ -135,7 +136,8 @@ const DashboardScreen: React.FC = () => {
           <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
         )}
 
-{/* <Accepted/> */}
+<Accepted/>
+<Rejected/>
       
       </ScrollView>
     

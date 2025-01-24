@@ -4,7 +4,8 @@ import "react-native-get-random-values"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 // import api_services from './'
 // import api_services from './../services/api_services.js';
-import { POST } from "./../services/api_services.js";
+import { POST,encryptData1 } from "./../services/api_services.js";
+
 
 const SECRET_KEY = "LsiplyG3M1bX7Rg"
 
@@ -68,26 +69,79 @@ const xAuthUserId = encryptData(storedUserId|| '');
 
 
 
-export const getAcceptedInspectionAttachmentCount = async (payload: PostPayload): Promise<any> => {
+export const getAcceptedInspectionAttachmentCount = async (payload: any): Promise<any> => {
   try {
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
-    const accessToken = await AsyncStorage.getItem("Token")
-    const xAuthUserId = await AsyncStorage.getItem("UserId")
+    const storedUserId = await AsyncStorage.getItem("userId")
+    const accessToken = await AsyncStorage.getItem("accessToken")
+    const xAuthUserId = encryptData(storedUserId || "")
 
-    if (!accessToken || !xAuthUserId) {
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+
+    if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")
     }
 
-    console.log("access token:",accessToken )
-    console.log("access token:",xAuthUserId )
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+      body: JSON.stringify(payload),
+    })
 
-    const jsonResult = await POST(apiUrl, payload, accessToken, xAuthUserId)
-    console.log("Accepted inspection result:", jsonResult)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+    }
 
-    return jsonResult
+    const data = await response.json()
+    console.log("Accepted inspection result:", data)
+    return data
   } catch (error) {
     console.error("Error in getAcceptedInspectionAttachmentCount:", error)
     throw error
   }
 }
+
+export const getRejectedInspectionAttachmentCount = async (payload: any): Promise<any> => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId")
+    const accessToken = await AsyncStorage.getItem("accessToken")
+    const xAuthUserId = encryptData(storedUserId || "")
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found")
+    }
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log("Rejected inspection result:", data)
+    return data
+  } catch (error) {
+    console.error("Error in getRejectedInspectionAttachmentCount:", error)
+    throw error
+  }
+}
+
+
 
