@@ -1,8 +1,8 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert } from "react-native"
+import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert,TouchableOpacity } from "react-native"
 import { getOngoingInspectionCount } from "../database/Dashboardapi"
-
+import { useNavigation } from "@react-navigation/native"
 interface InspectionItem {
   title: string
   count: number
@@ -18,9 +18,10 @@ interface OngoingInspectionData {
 }
 
 const { width } = Dimensions.get("window")
-const cardWidth = (width - 48) / 2
+const cardWidth = (width - 80) / 2
 
 const OngoingInspection: React.FC = () => {
+  const navigation=useNavigation();
   const [ongoingInspectionData, setOngoingInspectionData] = useState<OngoingInspectionData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -31,7 +32,7 @@ const OngoingInspection: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-
+ const [showOngoing, setShowOngoing] = useState(false)
   const inspectionItems: InspectionItem[] = [
     {
       title: "Ongoing",
@@ -45,7 +46,7 @@ const OngoingInspection: React.FC = () => {
     setError(null)
     try {
       const payload: any = {
-        statusId: "18", // Assuming 18 is the status ID for Ongoing
+        statusId: "20", // Assuming 18 is the status ID for Ongoing
         userId: "3816881804355836",
         displayRefId: "",
         companyName: "",
@@ -73,11 +74,11 @@ const OngoingInspection: React.FC = () => {
   }, [])
 
   const renderInspectionItem = ({ title, isOnline }: InspectionItem) => (
-    <View style={styles.item} key={title}>
-      <View style={styles.itemContent}>
-        <Text style={styles.title}>Ongoing Inspections</Text>
-      </View>
-    </View>
+     <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Ongoinglist" as never)}>
+         <View style={styles.itemContent}>
+           <Text style={styles.title}>Inspection Ongoing</Text>
+         </View>
+       </TouchableOpacity>
   )
 
   if (isLoading) {
@@ -90,25 +91,29 @@ const OngoingInspection: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {error && <Text style={styles.errorText}>{error}</Text>}
-        <View>
-          <Text style={styles.headerTitle}>Ongoing Inspection Dashboard</Text>
-        </View>
-        <View style={styles.grid}>{inspectionItems.map((item) => renderInspectionItem(item))}</View>
-        <Text style={styles.listTitle}>Ongoing Inspections</Text>
+   <ScrollView contentContainerStyle={styles.contentContainer}>
+  {error && <Text style={styles.errorText}>{error}</Text>}
+  <View>
+    {/* <Text style={styles.headerTitle}>Ongoing Inspection Dashboard</Text> */}
+  </View>
+  <View style={styles.grid}>{inspectionItems.map((item) => renderInspectionItem(item))}</View>
+  {/* {showOngoing && (
+    <>
+      <Text style={styles.listTitle}>Ongoing Inspections</Text>
+      {ongoingInspectionData.paginationListRecords.length > 0 ? (
+        ongoingInspectionData.paginationListRecords.map((item) => (
+          <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
+            <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
+            <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.emptyListText}>No ongoing inspections found.</Text>
+      )}
+    </>
+  )} */}
+</ScrollView>
 
-        {ongoingInspectionData.paginationListRecords.length > 0 ? (
-          ongoingInspectionData.paginationListRecords.map((item) => (
-            <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
-              <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
-              <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.emptyListText}>No ongoing inspections found.</Text>
-        )}
-      </ScrollView>
     </View>
   )
 }

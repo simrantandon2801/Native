@@ -61,7 +61,7 @@ export const loginStyles = StyleSheet.create({
   loginButton: {
     width: '100%',
     height: 50,
-    backgroundColor: colors.blue[600],
+  backgroundColor:'#28303F',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',

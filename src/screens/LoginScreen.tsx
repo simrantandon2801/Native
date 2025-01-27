@@ -57,10 +57,10 @@ const LoginScreen: React.FC = () =>  {
 
   return (
     <SafeAreaView style={loginStyles.container}>
-      <ImageBackground
-        source={require('../assets/img/bg.png')}
+      {/* <ImageBackground
+        source={require('../assets/img/bg.jpg')}
         style={loginStyles.backgroundImage}
-      >
+      > */}
         <KeyboardAvoidingView 
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={loginStyles.keyboardAvoidingView}
@@ -68,7 +68,7 @@ const LoginScreen: React.FC = () =>  {
           <View style={loginStyles.overlay}>
             <View style={loginStyles.content}>
               <Image
-                source={require('../assets/img/splash.png')}
+                source={require('../assets/img/logo.png')}
                 style={loginStyles.logo}
               />
               
@@ -126,7 +126,7 @@ const LoginScreen: React.FC = () =>  {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </ImageBackground>
+      {/* </ImageBackground> */}
     </SafeAreaView>
   );
 }

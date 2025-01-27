@@ -1,9 +1,8 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert } from "react-native"
-import { getAcceptedInspectionAttachmentCount,  } from "../database/Dashboardapi"
-
-
+import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert, TouchableOpacity } from "react-native"
+import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
+import { useNavigation } from "@react-navigation/native"
 interface InspectionAttachmentItem {
   title: string
   count: number
@@ -19,9 +18,10 @@ interface AcceptedAttachmentData {
 }
 
 const { width } = Dimensions.get("window")
-const cardWidth = (width - 48) / 2
+const cardWidth = (width - 80) / 2
 
 const Accepted: React.FC = () => {
+  const navigation=useNavigation();
   const [acceptedAttachmentData, setAcceptedAttachmentData] = useState<AcceptedAttachmentData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -32,7 +32,8 @@ const Accepted: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-
+  const [showAccepted, setShowAccepted] = useState(false)
+  
   const inspectionAttachmentItems: InspectionAttachmentItem[] = [
     {
       title: "Accepted",
@@ -46,7 +47,7 @@ const Accepted: React.FC = () => {
     setError(null)
     try {
       const payload: any = {
-        statusId: "18", // Assuming 18 is the status ID for Accepted
+        statusId: "19", // Assuming 18 is the status ID for Accepted
         userId: "3816881804355836",
         displayRefId: "",
         companyName: "",
@@ -74,11 +75,11 @@ const Accepted: React.FC = () => {
   }, [])
 
   const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
-    <View style={styles.item} key={title}>
+    <TouchableOpacity style={styles.item} key={title}  onPress={() => navigation.navigate("Acceptedlist" as never)}>
       <View style={styles.itemContent}>
         <Text style={styles.title}>Inspection Accepted</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   )
 
   if (isLoading) {
@@ -94,20 +95,26 @@ const Accepted: React.FC = () => {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
         <View>
-          <Text style={styles.headerTitle}>Inspection Attachment Dashboard</Text>
+          {/* <Text style={styles.headerTitle}>Inspection Attachment Dashboard</Text> */}
         </View>
-        <View style={styles.grid}>{inspectionAttachmentItems.map((item) => renderInspectionAttachmentItem(item))}</View>
-        <Text style={styles.listTitle}>Accepted Inspection Attachments</Text>
-
-        {acceptedAttachmentData.paginationListRecords.length > 0 ? (
-          acceptedAttachmentData.paginationListRecords.map((item) => (
-            <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
-              <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
-              <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.emptyListText}>No accepted inspection attachments found.</Text>
+        <View style={styles.grid}>
+          {inspectionAttachmentItems.map((item) => renderInspectionAttachmentItem(item))}
+        </View>
+        
+        {showAccepted && (
+          <>
+            <Text style={styles.listTitle}>Accepted Inspection Attachments</Text>
+            {acceptedAttachmentData.paginationListRecords.length > 0 ? (
+              acceptedAttachmentData.paginationListRecords.map((item) => (
+                <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
+                  <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
+                  <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
+                </View>
+              ))
+            ) : (
+              <Text style={styles.emptyListText}>No accepted inspection attachments found.</Text>
+            )}
+          </>
         )}
       </ScrollView>
     </View>
@@ -198,4 +205,3 @@ const styles = StyleSheet.create({
 })
 
 export default Accepted
-

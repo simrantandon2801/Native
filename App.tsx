@@ -13,6 +13,11 @@ import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { RootStackParamList } from '../WEBReact-APP/src/navigations/types';
 import MainDrawer from './src/drawer/Maindrawer';
 
+import Acknowledgelist from './src/screens/Acknowledgelist';
+import AcceptedList from './src/screens/Acceptedlist';
+import Ongoinglist from './src/screens/Ongoinglist';
+import Rejectedlist from './src/screens/Rejectedlist';
+
 // Define the stack navigator type
 // type RootStackParamList = {
 //   Login: undefined;
@@ -39,15 +44,18 @@ function App(): React.JSX.Element {
           backgroundColor={backgroundStyle.backgroundColor}
         />
 
-        {/* Set up the Stack Navigator with screens */}
+      
         <Stack.Navigator initialRouteName="Login">
         <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          
+          <Stack.Screen name="Acknowledgelist" component={Acknowledgelist} />
+          <Stack.Screen name="Acceptedlist" component={AcceptedList} />
+          <Stack.Screen name="Ongoinglist" component={Ongoinglist} />
+          <Stack.Screen name="Rejectedlist" component={Rejectedlist} />
           <Stack.Screen
             name="MainDrawer"
         component={MainDrawer}
-            options={{ headerShown: false }} // Hide header for drawer
+            options={{ headerShown: false }}
           />
         </Stack.Navigator>
       </SafeAreaView>

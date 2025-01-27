@@ -1,7 +1,8 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert } from "react-native"
-import { getAcceptedInspectionAttachmentCount, getRejectedInspectionAttachmentCount } from "../database/Dashboardapi"
+import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert ,TouchableOpacity} from "react-native"
+import {  getRejectedInspectionAttachmentCount } from "../database/Dashboardapi"
+import { useNavigation } from "@react-navigation/native"
 
 interface InspectionAttachmentItem {
   title: string
@@ -18,9 +19,10 @@ interface AcceptedAttachmentData {
 }
 
 const { width } = Dimensions.get("window")
-const cardWidth = (width - 48) / 2
+const cardWidth = (width - 80) / 2
 
 const Rejected: React.FC = () => {
+  const navigation=useNavigation()
   const [rejectedAttachmentData, setRejectedAttachmentData] = useState<AcceptedAttachmentData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -31,7 +33,7 @@ const Rejected: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-
+  const[showRejeted,setShowRejected]=useState(false)
   const inspectionAttachmentItems: InspectionAttachmentItem[] = [
     {
       title: "Rejected",
@@ -45,7 +47,7 @@ const Rejected: React.FC = () => {
     setError(null)
     try {
       const payload: any = {
-        statusId: "19", // Assuming 19 is the status ID for Rejected
+        statusId: "18", 
         userId: "3816881804355836",
         displayRefId: "",
         companyName: "",
@@ -73,11 +75,11 @@ const Rejected: React.FC = () => {
   }, [])
 
   const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
-    <View style={styles.item} key={title}>
-      <View style={styles.itemContent}>
-        <Text style={styles.title}>Inspection Rejected</Text>
-      </View>
-    </View>
+   <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Rejectedlist" as never)}>
+            <View style={styles.itemContent}>
+              <Text style={styles.title}>Inspection Rejected</Text>
+            </View>
+          </TouchableOpacity>
   )
 
   if (isLoading) {
@@ -90,25 +92,36 @@ const Rejected: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
-        {error && <Text style={styles.errorText}>{error}</Text>}
-        <View>
-          <Text style={styles.headerTitle}>Inspection Attachment Dashboard</Text>
-        </View>
-        <View style={styles.grid}>{inspectionAttachmentItems.map((item) => renderInspectionAttachmentItem(item))}</View>
-        <Text style={styles.listTitle}>Rejected Inspection Attachments</Text>
+<ScrollView contentContainerStyle={styles.contentContainer}>
+  {error && <Text style={styles.errorText}>{error}</Text>}
+  <View>
+    {/* <Text style={styles.headerTitle}>Inspection Attachment Dashboard</Text> */}
+  </View>
+  <View style={styles.grid}>
+    {inspectionAttachmentItems.map((item) => renderInspectionAttachmentItem(item))}
+  </View>
+  {/* {showRejeted && (
+    <>
+      <Text style={styles.listTitle}>Rejected Inspection Attachments</Text>
+      {rejectedAttachmentData.paginationListRecords.length > 0 ? (
+        rejectedAttachmentData.paginationListRecords.map((item) => (
+          <View
+            key={`${item.displayRefId || ""}-${item.companyName}`}
+            style={styles.listItem}
+          >
+            <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
+            <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.emptyListText}>
+          No rejected inspection attachments found.
+        </Text>
+      )}
+    </>
+  )} */}
+</ScrollView>
 
-        {rejectedAttachmentData.paginationListRecords.length > 0 ? (
-          rejectedAttachmentData.paginationListRecords.map((item) => (
-            <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
-              <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
-              <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
-            </View>
-          ))
-        ) : (
-          <Text style={styles.emptyListText}>No rejected inspection attachments found.</Text>
-        )}
-      </ScrollView>
     </View>
   )
 }
