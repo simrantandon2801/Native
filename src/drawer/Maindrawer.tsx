@@ -1,75 +1,38 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
-import { NavigationContainer } from '@react-navigation/native';
+import type React from "react"
+import { View, Text, StyleSheet } from "react-native"
+import { createDrawerNavigator } from "@react-navigation/drawer"
 
-// Placeholder components for each screen
-const InspectionAccepted = () => (
-  <View style={styles.screenContainer}>
-    <Text>Inspection Accepted</Text>
-  </View>
-);
+// Import your screens
+import DashboardScreen from "../screens/Dashboardscreen"
+import Acknowledgelist from "../screens/Acknowledgelist"
+import AcceptedList from "../screens/Acceptedlist"
+import Ongoinglist from "../screens/Ongoinglist"
+import Rejectedlist from "../screens/Rejectedlist"
 
-const InspectionRejected = () => (
-  <View style={styles.screenContainer}>
-    <Text>Inspection Rejected </Text>
-  </View>
-);
+// Define the types for the drawer navigation
+type DrawerParamList = {
+  Dashboard: undefined
+  Acknowledgelist: undefined
+  Acceptedlist: undefined
+  Ongoinglist: undefined
+  Rejectedlist: undefined
+}
 
-const InspectionAcknowledgment = () => (
-  <View style={styles.screenContainer}>
-    <Text>Inspection Acknowledgment </Text>
-  </View>
-);
+// Create the Drawer Navigator
+const Drawer = createDrawerNavigator<DrawerParamList>()
 
-const Drawer = createDrawerNavigator();
-
+// Main Drawer Component
 const MainDrawer: React.FC = () => {
   return (
-    <NavigationContainer>
-      <Drawer.Navigator
-        initialRouteName="InspectionAccepted"
-        screenOptions={{
-          drawerStyle: {
-            backgroundColor: '#f0f0f0',
-            width: 240,
-          },
-          drawerLabelStyle: {
-            color: '#333',
-          },
-          headerStyle: {
-            backgroundColor: '#4a90e2',
-          },
-          headerTintColor: '#fff',
-        }}
-      >
-        <Drawer.Screen 
-          name="InspectionAccepted" 
-          component={InspectionAccepted} 
-          options={{ title: 'Inspection Accepted' }}
-        />
-        <Drawer.Screen 
-          name="InspectionRejected" 
-          component={InspectionRejected}
-          options={{ title: 'Inspection Rejected' }}
-        />
-        <Drawer.Screen 
-          name="InspectionAcknowledgment" 
-          component={InspectionAcknowledgment}
-          options={{ title: 'Inspection Acknowledgment' }}
-        />
-      </Drawer.Navigator>
-    </NavigationContainer>
-  );
-};
+    <Drawer.Navigator initialRouteName="Dashboard">
+      <Drawer.Screen name="Dashboard" component={DashboardScreen} />
+      <Drawer.Screen name="Acknowledgelist" component={Acknowledgelist} />
+      <Drawer.Screen name="Acceptedlist" component={AcceptedList} />
+      <Drawer.Screen name="Ongoinglist" component={Ongoinglist} />
+      <Drawer.Screen name="Rejectedlist" component={Rejectedlist} />
+    </Drawer.Navigator>
+  )
+}
 
-const styles = StyleSheet.create({
-  screenContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-export default MainDrawer;
+export default MainDrawer
 

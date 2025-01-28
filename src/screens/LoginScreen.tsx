@@ -20,8 +20,13 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigations/types';
 
 // Define the type for navigation (useStack Navigation)
-type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Login'>;
-type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
+type RootStackParamList = {
+  Login: undefined
+  MainDrawer: { screen: string; params: { username: string } }
+}
+
+type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, "Login">
+// type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
 const LoginScreen: React.FC = () =>  {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +35,7 @@ const LoginScreen: React.FC = () =>  {
   const [error, setError] = useState('');
   
   // Use typed navigation
-  const navigation = useNavigation<DashboardScreenNavigationProp>();
+  const navigation = useNavigation<LoginScreenNavigationProp>();
 
   const handleLogin = async () => {
     setError('');
@@ -46,7 +51,10 @@ const LoginScreen: React.FC = () =>  {
       console.log('Login successful:- ', JSON.stringify(response, null, 2));
       
       // Navigate to Dashboard and pass the username
-      navigation.navigate('Dashboard', { username: username });
+      navigation.navigate("MainDrawer", {
+        screen: "Dashboard",
+        params: { username: username },
+      })
     } catch (error) {
       console.error('Login error:', error);
       setError('Invalid username or password');

@@ -1,89 +1,47 @@
-import React from 'react';
-import { SafeAreaView, StatusBar, useColorScheme, StyleSheet, View, Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { NavigationContainer } from '@react-navigation/native';
-import 'react-native-get-random-values';
+import type React from "react"
+import { SafeAreaView, StatusBar, useColorScheme, StyleSheet } from "react-native"
+import { createStackNavigator } from "@react-navigation/stack"
+import { NavigationContainer } from "@react-navigation/native"
+import { Colors } from "react-native/Libraries/NewAppScreen"
 
-import LoginScreen from './src/screens/Loginscreen';  // Import your LoginScreen
-import DashboardScreen from './src/screens/Dashboardscreen';  // Import your DashboardScreen
+// Import screens and navigators
+import LoginScreen from "./src/screens/Loginscreen"
+import MainDrawer from "./src/drawer/Maindrawer"
 
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-
-// Import the RootStackParamList type
-import { RootStackParamList } from '../WEBReact-APP/src/navigations/types';
-import MainDrawer from './src/drawer/Maindrawer';
-
-import Acknowledgelist from './src/screens/Acknowledgelist';
-import AcceptedList from './src/screens/Acceptedlist';
-import Ongoinglist from './src/screens/Ongoinglist';
-import Rejectedlist from './src/screens/Rejectedlist';
-
-// Define the stack navigator type
-// type RootStackParamList = {
-//   Login: undefined;
-//   Dashboard: { username: string };
-// };
-
-// Create the stack navigator
-const Stack = createStackNavigator<RootStackParamList>();
+// Define the stack navigator
+const Stack = createStackNavigator()
 
 function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const isDarkMode = useColorScheme() === "dark"
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
+  }
 
   return (
-    // Wrap your app with NavigationContainer
     <NavigationContainer>
       <SafeAreaView style={[styles.safeArea, backgroundStyle]}>
-        {/* StatusBar for proper status bar styling */}
         <StatusBar
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+          barStyle={isDarkMode ? "light-content" : "dark-content"}
           backgroundColor={backgroundStyle.backgroundColor}
         />
-
-      
         <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Dashboard" component={DashboardScreen} />
-          <Stack.Screen name="Acknowledgelist" component={Acknowledgelist} />
-          <Stack.Screen name="Acceptedlist" component={AcceptedList} />
-          <Stack.Screen name="Ongoinglist" component={Ongoinglist} />
-          <Stack.Screen name="Rejectedlist" component={Rejectedlist} />
-          <Stack.Screen
-            name="MainDrawer"
-        component={MainDrawer}
-            options={{ headerShown: false }}
-          />
+          {/* Login Screen */}
+          <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+
+          {/* Main Drawer Navigator */}
+          <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
         </Stack.Navigator>
       </SafeAreaView>
     </NavigationContainer>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  // Add any custom styles you want
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+})
 
-export default App;
+export default App
+
