@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, ActivityIndicator, Dimensions, ScrollView, Alert, TouchableOpacity } from "react-native"
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import { useNavigation } from "@react-navigation/native"
+import type { StackNavigationProp } from "@react-navigation/stack"
 interface InspectionAttachmentItem {
   title: string
   count: number
@@ -16,12 +17,15 @@ interface AcceptedAttachmentData {
   totalRecords: number
   paginationListRecords: any[]
 }
-
+type RootStackParamList = {
+  Accepted: undefined
+  Acceptedlist: undefined
+}
 const { width } = Dimensions.get("window")
 const cardWidth = (width - 80) / 2
 
 const Accepted: React.FC = () => {
-  const navigation=useNavigation();
+   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [acceptedAttachmentData, setAcceptedAttachmentData] = useState<AcceptedAttachmentData>({
     currentPageNo: 1,
     totalPages: 0,

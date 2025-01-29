@@ -7,6 +7,14 @@ import { Colors } from "react-native/Libraries/NewAppScreen"
 // Import screens and navigators
 import LoginScreen from "./src/screens/Loginscreen"
 import MainDrawer from "./src/drawer/Maindrawer"
+import Acknowledge from "./src/screens/Acknowledge"
+import Acknowledgelist from "./src/screens/Acknowledgelist"
+import Accepted from "./src/screens/Accepted"
+
+import Rejected from "./src/screens/Rejected"
+import RejectedList from "./src/screens/Rejectedlist"
+import Ongoinglist from "./src/screens/Ongoinglist"
+import Acceptedlist from "./src/screens/Acceptedlist"
 
 // Define the stack navigator
 const Stack = createStackNavigator()
@@ -26,11 +34,19 @@ function App(): React.JSX.Element {
           backgroundColor={backgroundStyle.backgroundColor}
         />
         <Stack.Navigator initialRouteName="Login">
-          {/* Login Screen */}
+       
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
 
-          {/* Main Drawer Navigator */}
+       
           <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
+          <Stack.Screen name="Acknowledge" component={Acknowledge} />
+          <Stack.Screen name="Acknowledgelist" component={Acknowledgelist} />
+          <Stack.Screen name="Accepted" component={Accepted} />
+          <Stack.Screen name="Acceptedlist" component={Acceptedlist} />
+          <Stack.Screen name="Rejected" component={Rejected} />
+          <Stack.Screen name="Rejectedlist" component={RejectedList} />
+          <Stack.Screen name="Ongoing" component={Ongoinglist} />
+          <Stack.Screen name="Ongoinglist" component={Ongoinglist} />
         </Stack.Navigator>
       </SafeAreaView>
     </NavigationContainer>

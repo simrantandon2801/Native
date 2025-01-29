@@ -34,7 +34,7 @@ interface AcknowledgedData {
 
 type RootStackParamList = {
   Acknowledge: undefined
-  AcknowledgedList: undefined
+  Acknowledgelist: undefined
 }
 
 // type AcknowledgedListNavigationProp = StackNavigationProp<RootStackParamList, "Acknowledgelist">
@@ -46,7 +46,7 @@ const cardWidth = (width - 80) / 2
 
 const Acknowledge: React.FC = () => {
 //   const navigation = useNavigation<AcknowledgedListNavigationProp>()
-const navigation=useNavigation();
+ const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const [acknowledgedData, setAcknowledgedData] = useState<AcknowledgedData>({
     currentPageNo: 1,
@@ -118,12 +118,16 @@ const navigation=useNavigation();
   }, [])
 
   const renderInspectionItem = ({ title, isOnline }: InspectionItem) => (
-    <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Acknowledgelist" as never)}>
+    <TouchableOpacity
+      style={styles.item}
+      key={title}
+      onPress={() => navigation.navigate("Acknowledgelist" as never)}
+    >
       <View style={styles.itemContent}>
         <Text style={styles.title}>Inspection Acknowledgment</Text>
       </View>
     </TouchableOpacity>
-  )
+  );
 
   if (isLoading) {
     return (

@@ -19,6 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigations/types';
 
+
 // Define the type for navigation (useStack Navigation)
 type RootStackParamList = {
   Login: undefined

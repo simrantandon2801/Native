@@ -11,7 +11,7 @@ interface AcceptedData {
   paginationListRecords: any[]
 }
 
-const AcceptedList: React.FC = () => {
+const Acceptedlist: React.FC = () => {
   const [acceptedData, setAcceptedData] = useState<AcceptedData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -116,5 +116,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export default AcceptedList
+export default Acceptedlist
 

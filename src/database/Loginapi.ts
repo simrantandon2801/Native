@@ -10,18 +10,27 @@ export interface LoginResponse {
   roles: Array<{
     roleId: number;
     roleName: string;
+    Menus: Array<{
+      Name:string;
+      SubMenus: Array<{
+        subModuleUrl: string;
+        subModuleName: string;
+        orderVal: number;
+      }>;
+    }>;
   }>;
 }
-const getStringAfterLastSlash = (input: string)=> {
-  // Ensure the input is a string and find the last forward slash, then get the substring after it
-  try{if (typeof input === 'string') {
-    const lastSlashIndex = input.lastIndexOf('/');
-    return lastSlashIndex !== -1 ? input.substring(lastSlashIndex + 1) : input;
-  }
-  return ''; }catch(err){
-    console.log("err : ", err);
-  }
-};
+
+// const getStringAfterLastSlash = (input: string)=> {
+//   // Ensure the input is a string and find the last forward slash, then get the substring after it
+//   try{if (typeof input === 'string') {
+//     const lastSlashIndex = input.lastIndexOf('/');
+//     return lastSlashIndex !== -1 ? input.substring(lastSlashIndex + 1) : input;
+//   }
+//   return ''; }catch(err){
+//     console.log("err : ", err);
+//   }
+// };
 
 
 const encryptPassword = (password: string, key: string): string => {
@@ -65,13 +74,25 @@ export const loginUser = async (username: string, password: string): Promise<Log
     // console.log("???????????????? : ", anserkey);
 
     const data: LoginResponse = await response.json();
-    console.log('Login response:', data);
+    console.log('Login xxxxxxxxxxxxxxxxxxxxxresponse:', data.Menus.Menus[0].Name);
+    console.log('Login response:', data.Menus.Menus[0].SubMenus);
 
     // Store the token and userId in AsyncStorage
     const token = data.accessToken;
+    const orac=data.Menus.Menus[0].Name
+    await AsyncStorage.setItem('Nameresponse####', JSON.stringify(orac));
+    const sedr = data.Menus.Menus[0].SubMenus;
+    await AsyncStorage.setItem('menufromresponse', JSON.stringify(sedr));
+
+
+
     await AsyncStorage.setItem('accessToken', token);
-    await AsyncStorage.setItem('userId', String(data.userId));  // Convert userId to string
+    await AsyncStorage.setItem('userId', String(data.userId));  
     console.log('Login data stored in AsyncStorage');
+    const sim= await AsyncStorage.getItem('menufromresponse')
+    console.log('Menurespppppppponse',JSON.parse(sim))
+    const nomi=await AsyncStorage.getItem('Nameresponse####')
+    console.log('Nameresponse####',JSON.parse(nomi))
 
     return data;
   } catch (error) {
