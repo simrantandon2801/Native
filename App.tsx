@@ -15,10 +15,41 @@ import Rejected from "./src/screens/Rejected"
 import RejectedList from "./src/screens/Rejectedlist"
 import Ongoinglist from "./src/screens/Ongoinglist"
 import Acceptedlist from "./src/screens/Acceptedlist"
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 
+import HomeScreen from "./src/BottomTabs/HomeScreen"
+import ProfileScreen from "./src/BottomTabs/ProfileScreen"
+import { Home, User, type LucideIcon } from "lucide-react-native"
+import BottomTabNavigator from "./src/BottomTabs/BottomTabnavi"
 // Define the stack navigator
 const Stack = createStackNavigator()
+const Tab = createBottomTabNavigator()
 
+
+function TabNavigator() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        tabBarIcon: ({ color, size }) => {
+          let IconComponent: LucideIcon | null = null
+
+          if (route.name === "Home") {
+            IconComponent = Home
+          } else if (route.name === "Profile") {
+            IconComponent = User
+          }
+
+          return IconComponent ? <IconComponent size={size} color={color} /> : null
+        },
+        tabBarActiveTintColor: "orange",
+        tabBarInactiveTintColor: "gray",
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Profile" component={ProfileScreen} />
+    </Tab.Navigator>
+  )
+}
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === "dark"
 
@@ -36,7 +67,9 @@ function App(): React.JSX.Element {
         <Stack.Navigator initialRouteName="Login">
        
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-
+          <Stack.Screen name="MainTabs" component={BottomTabNavigator} options={{ headerShown: false }} />
+       
+       
        
           <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
           <Stack.Screen name="Acknowledge" component={Acknowledge} />
@@ -47,6 +80,8 @@ function App(): React.JSX.Element {
           <Stack.Screen name="Rejectedlist" component={RejectedList} />
           <Stack.Screen name="Ongoing" component={Ongoinglist} />
           <Stack.Screen name="Ongoinglist" component={Ongoinglist} />
+          
+          
         </Stack.Navigator>
       </SafeAreaView>
     </NavigationContainer>

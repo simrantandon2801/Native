@@ -4,6 +4,7 @@ import Accepted from "./Accepted"
 import Rejected from "./Rejected"
 import OngoingInspection from "./OngoingInspection"
 import Acknowledge from "./Acknowledge"
+import BottomTabNavigator from "../BottomTabs/BottomTabnavi"
 
 const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   return (
@@ -16,6 +17,7 @@ const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Rejected />
         <OngoingInspection />
       </View>
+    {/* <BottomTabNavigator/> */}
     </ScrollView>
   )
 }
