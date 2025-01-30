@@ -21,6 +21,7 @@ import HomeScreen from "./src/BottomTabs/HomeScreen"
 import ProfileScreen from "./src/BottomTabs/ProfileScreen"
 import { Home, User, type LucideIcon } from "lucide-react-native"
 import BottomTabNavigator from "./src/BottomTabs/BottomTabnavi"
+
 // Define the stack navigator
 const Stack = createStackNavigator()
 const Tab = createBottomTabNavigator()

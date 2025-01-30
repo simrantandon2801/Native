@@ -19,6 +19,7 @@ import AcceptedList from "../screens/Acceptedlist"
 import Ongoinglist from "../screens/Ongoinglist"
 import Rejectedlist from "../screens/Rejectedlist"
 import Clarificationn from "../screens/Clarificationn"
+import SearchInspection from "../screens/SearchInspection"
 
 // Define the types for the drawer navigation
 type DrawerParamList = {
@@ -159,7 +160,7 @@ const MainDrawer: React.FC = () => {
             } else if (element.subModuleName == "Clarifications sought from Applicant") {
               componentName = Clarificationn
             } else if (element.subModuleName == "Search Inspection Report") {
-              componentName = Rejectedlist
+              componentName = SearchInspection
             } else if (element.subModuleName == "Completed Inspection Reports") {
               componentName = Rejectedlist
             }

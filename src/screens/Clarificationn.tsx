@@ -1,21 +1,60 @@
-import type React from "react"
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from "react-native"
+import { getClarificationFromOngoingInspection, getClarificationFromScrutinizeInspection } from "../database/Clarificationapi" // Import API functions
 
-const Clarification: React.FC = () => {
-  const [activeButton, setActiveButton] = useState<number>(1) // Default to first button active
+interface ClarificationData {
+  currentPageNo: number
+  totalPages: number
+  pageLimit: number
+  totalRecords: number
+  paginationListRecords: any[] // Adjust the data structure as needed
+}
+
+const Clarificationn: React.FC = () => {
+  const [activeButton, setActiveButton] = useState<number>(1)
+  const [clarificationData, setClarificationData] = useState<ClarificationData | null>(null)
+
+  const fetchClarificationData = async (buttonIndex: number) => {
+    const payload = {
+      userId: "3816881804355836",  // Replace with actual userId if needed
+      statusId: buttonIndex === 1 ? 41 : 50,
+      inspectionType: "",
+      fromDate: "",
+      toDate: "",
+      companyName: "",
+      licenseNo: "",
+      kobId: "",
+    }
+
+    try {
+      let data;
+    
+      if (buttonIndex === 1) {
+        data = await getClarificationFromOngoingInspection(payload)
+        data = await getClarificationFromScrutinizeInspection(payload)
+      }
+      setClarificationData(data) 
+    } catch (error) {
+      console.error("Error fetching clarification data:", error)
+      setClarificationData(null) // Reset the state if error occurs
+    }
+  }
 
   const handlePress = (buttonIndex: number) => {
-    setActiveButton(buttonIndex)
-    console.log(`Button ${buttonIndex}`)
+    setActiveButton(buttonIndex) 
+    fetchClarificationData(buttonIndex) 
   }
+
+  useEffect(() => {
+    fetchClarificationData(activeButton) 
+  }, [activeButton])
 
   return (
     <View style={styles.container}>
       <View style={styles.buttonRow}>
         <TouchableOpacity
           style={[styles.button, activeButton === 1 ? styles.activeButton : styles.inactiveButton]}
-          onPress={() => handlePress(1)}
+          onPress={() => handlePress(1)} 
         >
           <Text style={[styles.buttonText, activeButton === 1 ? styles.activeButtonText : styles.inactiveButtonText]}>
             Clarification from ongoing inspection bin 1
@@ -30,6 +69,23 @@ const Clarification: React.FC = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+  
+      {clarificationData && clarificationData.paginationListRecords.length > 0 ? (
+        <View>
+          <Text>Data available</Text>
+          {/* Render the fetched data */}
+          {clarificationData.paginationListRecords.map((record, index) => (
+            <View key={index} style={styles.recordContainer}>
+              <Text>{JSON.stringify(record)}</Text> {/* Render records here */}
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.noDataContainer}>
+          <Text style={styles.noDataText}>No record found</Text>
+        </View>
+      )}
     </View>
   )
 }
@@ -40,7 +96,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     backgroundColor: "#f5f5f5",
-    marginTop: 50,
+    marginTop: 20,
+    flex: 1,
   },
   buttonRow: {
     flexDirection: "row",
@@ -78,6 +135,18 @@ const styles = StyleSheet.create({
   inactiveButtonText: {
     color: "#0056b3",
   },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noDataText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  recordContainer: {
+    marginBottom: 10,
+  }
 })
 
-export default Clarification
+export default Clarificationn
