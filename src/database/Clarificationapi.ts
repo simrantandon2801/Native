@@ -96,7 +96,8 @@ export const getClarificationFromScrutinizeInspection = async (payload: PostPayl
     }
 
     const data = await response.json()
-    console.log("Clarification from scrutinize inspection result:", data)
+    console.log("Clarification from scrutinize inspection result:", data) 
+    
     return data
   } catch (error) {
     console.error("Error in getClarificationFromScrutinizeInspection:", error)

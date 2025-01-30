@@ -1,29 +1,36 @@
-import type React from "react"
-import { useState } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, FlatList } from "react-native"
-import { getInspectionSearchReport } from "../database/Searchapi"
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import { getInspectionSearchReport } from "../database/Searchapi";
+
 
 interface InspectionItem {
-  displayRefId: string
-  apptype: string
-  inspectionType: string
-  startInspectionDate: string
-  endInspectionDate: string
-  assignmentId: number
-  certificateNo: string | null
-  fsoId: number
-  inspectionId: number
-  statusId: number
+  displayRefId: string;
+  apptype: string;
+  inspectionType: string;
+  startInspectionDate: string;
+  endInspectionDate: string;
+  assignmentId: number;
+  certificateNo: string | null;
+  fsoName: string;
+  fsoId: number;
+  inspectionId: number;
+  statusId: number;
+}
+
+
+interface ApiResponse {
+  paginationListRecords: InspectionItem[];
 }
 
 const SearchInspection: React.FC = () => {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [inspectionData, setInspectionData] = useState<InspectionItem[]>([])
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [inspectionData, setInspectionData] = useState<ApiResponse>({ paginationListRecords: [] });
 
+  
   const fetchInspectionData = async () => {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
     try {
       const payload = {
         refId: "",
@@ -41,72 +48,89 @@ const SearchInspection: React.FC = () => {
         riskType: "",
         categoryId: "",
         fsoName: "",
+      };
+      const result = await getInspectionSearchReport(payload);
+      console.log("Inspection search report:", result);
+      if (result && typeof result === "object" && "paginationListRecords" in result) {
+        setInspectionData(result);
+      } else {
+        setError("Invalid data received from the server.");
       }
-
-      const result = await getInspectionSearchReport(payload)
-      console.log("Inspection search report:", result)
-
-      // Assuming the API returns an array of inspection items directly
-      setInspectionData(result || [])
     } catch (error) {
-      console.error("Error fetching inspection data:", error)
-      setError("Failed to fetch inspection data. Please try again.")
+      console.error("Error fetching inspection data:", error);
+      setError("Failed to fetch inspection data. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-
-  const renderInspectionItem = ({ item }: { item: InspectionItem }) => (
-    <View style={styles.itemContainer}>
-      <Text style={styles.itemTitle}>Ref ID: {item.displayRefId}</Text>
-      <Text>
-        Type: {item.apptype} - {item.inspectionType}
-      </Text>
-      <Text>Start: {item.startInspectionDate}</Text>
-      <Text>End: {item.endInspectionDate}</Text>
-      <Text>Assignment ID: {item.assignmentId}</Text>
-      <Text>Certificate: {item.certificateNo || "N/A"}</Text>
-      <Text>Inspection ID: {item.inspectionId}</Text>
-      <Text>Status ID: {item.statusId}</Text>
-    </View>
-  )
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Inspection Search Results</Text>
-      <TouchableOpacity style={styles.button} onPress={fetchInspectionData} disabled={loading}>
-        <Text style={styles.buttonText}>{loading ? "Loading..." : "Fetch Inspection Data"}</Text>
-      </TouchableOpacity>
-      {loading && <ActivityIndicator size="large" color="#0000ff" />}
-      {error && <Text style={styles.errorText}>{error}</Text>}
-      {inspectionData.length > 0 ? (
-        <FlatList
-          data={inspectionData}
-          renderItem={renderInspectionItem}
-          keyExtractor={(item) => item.inspectionId.toString()}
-          style={styles.list}
-        />
-      ) : (
-        <Text style={styles.noDataText}>No inspection data available</Text>
-      )}
-    </View>
-  )
-}
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Inspection Search Results</Text>
 
+        <TouchableOpacity
+          style={styles.button}
+          onPress={fetchInspectionData}
+          disabled={loading}
+          accessible={true}
+          accessibilityLabel="Fetch Inspection Data Button"
+        >
+          <Text style={styles.buttonText}>
+            {loading ? "Loading..." : "Fetch Inspection Data"}
+          </Text>
+        </TouchableOpacity>
+
+      
+        {loading && <ActivityIndicator size="large" color="#0000ff" />}
+
+        {/* Error Message */}
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        {/* Render Inspection Data */}
+        {inspectionData.paginationListRecords?.length ? (
+          <View>
+            {inspectionData.paginationListRecords.map((item, index) => (
+              <View key={index} style={styles.itemContainer}>
+                <Text>Ref ID: {item.displayRefId}</Text>
+                <Text>Assignment ID: {item.assignmentId}</Text>
+                <Text>Fso Name: {item.fsoName}</Text>
+                <Text>Fso Id: {item.fsoId}</Text>
+                <Text>Inspection ID: {item.inspectionId}</Text>
+                <Text>Status ID: {item.statusId}</Text>
+                <Text>Inspection Start Date: {item.startInspectionDate}</Text>
+                <Text>Inspection Type: {item.inspectionType}</Text>
+              </View>
+            ))}
+          </View>
+        ) : (
+          !loading && <Text style={styles.noDataText}>No inspection data available</Text>
+        )}
+      </ScrollView>
+    </View>
+  );
+};
+
+// Styles
 const styles = StyleSheet.create({
+  scrollView: {
+    flex: 1, 
+    backgroundColor: '#fff', // Optional: Set a background color
+  },
   container: {
-    flex: 1,
+    // flexGrow: 1, 
     padding: 20,
   },
   title: {
-    fontSize: 16,
-    fontFamily:'Outfit',
-    fontWeight:700,
+    fontSize: 18,
+    fontWeight: "700",
     marginBottom: 20,
+    // textAlign:'center'
   },
   button: {
     backgroundColor: "#007AFF",
-    padding: 15,
+    padding: 10,
+    // width:200,
     borderRadius: 5,
     marginBottom: 20,
     alignItems: "center",
@@ -120,26 +144,17 @@ const styles = StyleSheet.create({
     color: "red",
     marginBottom: 10,
   },
-  list: {
-    flex: 1,
-  },
   itemContainer: {
     backgroundColor: "#f9f9f9",
     padding: 15,
     borderRadius: 5,
     marginBottom: 10,
   },
-  itemTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
   noDataText: {
     textAlign: "center",
     marginTop: 20,
     fontSize: 16,
   },
-})
+});
 
-export default SearchInspection
-
+export default SearchInspection;

@@ -3,8 +3,6 @@ import { SafeAreaView, StatusBar, useColorScheme, StyleSheet } from "react-nativ
 import { createStackNavigator } from "@react-navigation/stack"
 import { NavigationContainer } from "@react-navigation/native"
 import { Colors } from "react-native/Libraries/NewAppScreen"
-
-// Import screens and navigators
 import LoginScreen from "./src/screens/Loginscreen"
 import MainDrawer from "./src/drawer/Maindrawer"
 import Acknowledge from "./src/screens/Acknowledge"
@@ -22,7 +20,7 @@ import ProfileScreen from "./src/BottomTabs/ProfileScreen"
 import { Home, User, type LucideIcon } from "lucide-react-native"
 import BottomTabNavigator from "./src/BottomTabs/BottomTabnavi"
 
-// Define the stack navigator
+
 const Stack = createStackNavigator()
 const Tab = createBottomTabNavigator()
 
@@ -69,9 +67,6 @@ function App(): React.JSX.Element {
        
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} options={{ headerShown: false }} />
-       
-       
-       
           <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
           <Stack.Screen name="Acknowledge" component={Acknowledge} />
           <Stack.Screen name="Acknowledgelist" component={Acknowledgelist} />

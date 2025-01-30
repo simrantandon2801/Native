@@ -13,7 +13,7 @@ const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <Acknowledge/>
         <Accepted />
       </View>
-      <View style={styles.row}>
+      <View style={styles.row1}>
         <Rejected />
         <OngoingInspection />
       </View>
@@ -26,10 +26,20 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: "#f5f5f5",
   },
+  row1: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop:-30,
+    paddingLeft:10,paddingRight:20
+  
+  },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 16,
+    paddingLeft:10,
+    paddingRight:20
+    // marginTop:-30,
+ 
   },
 })
 

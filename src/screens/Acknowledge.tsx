@@ -147,7 +147,7 @@ const Acknowledge: React.FC = () => {
         </View>
 
         <View style={styles.grid}>{inspectionItems.map((item) => renderInspectionItem(item))}</View>
-        {/* Removed acknowledged list section */}
+       
       </ScrollView>
     </View>
   )
@@ -208,6 +208,8 @@ const styles = StyleSheet.create({
   },
   itemContent: {
     alignItems: "center",
+    // alignItems:'center',
+    justifyContent:'center',
   },
   icon: {
     width: 48,
@@ -293,7 +295,9 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     textAlign: "center",
-    marginTop: 50,
+    // alignItems:'center',
+    // justifyContent:'center',
+    marginTop: 40,
     color: "#fff",
     fontFamily: "Outfit",
   },

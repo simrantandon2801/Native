@@ -20,6 +20,7 @@ import Ongoinglist from "../screens/Ongoinglist"
 import Rejectedlist from "../screens/Rejectedlist"
 import Clarificationn from "../screens/Clarificationn"
 import SearchInspection from "../screens/SearchInspection"
+import CompletedInspection from "../screens/CompletedInspection"
 
 // Define the types for the drawer navigation
 type DrawerParamList = {
@@ -162,8 +163,31 @@ const MainDrawer: React.FC = () => {
             } else if (element.subModuleName == "Search Inspection Report") {
               componentName = SearchInspection
             } else if (element.subModuleName == "Completed Inspection Reports") {
-              componentName = Rejectedlist
+              componentName = CompletedInspection
             }
+            else if (element.subModuleName == "Document Scrutinization") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "Scrutiny Completed") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "Generate Registration Certificate") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "View Issued Certificates") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "List of Application(s) Sent for Editing") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "Rejected Application(s)") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "Recall Application(s)") {
+              componentName = CompletedInspection
+            }
+            
+
 
             mainMenu.push(Object.assign(element, { component: componentName }))
           })
