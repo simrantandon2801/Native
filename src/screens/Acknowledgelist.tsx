@@ -57,7 +57,7 @@ const AcknowledgeList: React.FC = () => {
 
   useEffect(() => {
     fetchAcknowledgement()
-  }, []) //Fixed: Added empty dependency array to run only once on mount
+  }, []) 
 
   const onRefresh = () => {
     setRefreshing(true)
@@ -111,14 +111,16 @@ const AcknowledgeList: React.FC = () => {
             <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
               <View style={styles.listItemContent}>
                 <View style={styles.leftContent}>
-                  <Text style={styles.companyName}>Company: {item.companyName || "N/A"}</Text>
-                  <Text style={styles.statusDesc}>{item.statusDesc || "N/A"}</Text>
-                  <Text style={styles.listItemText}>ID: {item.assignmentId || "N/A"}</Text>
+                <Text style={styles.listItemText}> Assignment ID: {item.assignmentId || "N/A"}</Text>
+                  <Text style={styles.listItemText} >Company Name: {item.companyName || "N/A"}</Text>
+                  <Text style={styles.statusDesc}>Stage:{item.statusDesc || "N/A"}</Text>
+                
                 </View>
                 <View style={styles.rightContent}>
                   <Text style={styles.listItemText}>Type: {item.inspectionType || "N/A"}</Text>
                   <Text style={styles.listItemText}>Ref: {item.displayRefId || "N/A"}</Text>
                   <Text style={styles.listItemText}>RA: {item.raRemarks || "N/A"}</Text>
+                   <Text style={styles.listItemText}>Assigned By:{item.assignedBy || "N/A"}</Text>
                 </View>
               </View>
               <View style={styles.buttonContainer}>
@@ -169,11 +171,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   listTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
     marginTop: 20,
     marginBottom: 15,
     paddingHorizontal: 16,
+    fontFamily:'Outfit',
     color: "#333",
   },
   listItem: {
@@ -225,8 +228,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginTop: 12,
+    width:180,
+    alignItems:'center'
+  
   },
   button: {
     flex: 1,
@@ -235,16 +241,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   acceptButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#007AFF",
     marginRight: 6,
+    padding:10
   },
   rejectButton: {
-    backgroundColor: "#F44336",
+    backgroundColor: "#007AFF",
+    padding:10,
     marginLeft: 6,
   },
   buttonText: {
     color: "#fff",
-    fontWeight: "bold",
+    fontFamily:'Source Sans Pro'
   },
 })
 

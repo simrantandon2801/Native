@@ -202,6 +202,7 @@ const MainDrawer: React.FC = () => {
   }, [])
 
   return (
+    
     <Drawer.Navigator
       initialRouteName="Dashboard"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
