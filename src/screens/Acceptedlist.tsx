@@ -1,9 +1,11 @@
 import type React from "react"
+// import Toast from "react-native-toast-message"
 import { useEffect, useState } from "react"
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Modal } from "react-native"
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
-import { getSecondaryOfficerEsignDetails } from "../database/Officerviewapi"
+import { getSecondaryOfficerEsignDetails, startInspection } from "../database/Officerviewapi"
 import { DataTable } from "react-native-paper"
+import ToastManager, { Toast } from "toastify-react-native"
 
 interface AcceptedData {
   currentPageNo: number
@@ -16,7 +18,7 @@ interface AcceptedData {
 interface OfficerData {
   fsoName: string
   officerType: string
-  id?: any 
+  id?: any
 }
 
 const Acceptedlist: React.FC = () => {
@@ -31,6 +33,7 @@ const Acceptedlist: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
   const [officerData, setOfficerData] = useState<OfficerData[]>([])
+  const [isStartingInspection, setIsStartingInspection] = useState(false)
 
   useEffect(() => {
     const fetchAccepted = async () => {
@@ -68,7 +71,7 @@ const Acceptedlist: React.FC = () => {
       const response = await getSecondaryOfficerEsignDetails(item.assignmentId)
       console.log("Inspection Officer List------------huhluhuh-:", response)
       if (Array.isArray(response)) {
-        setOfficerData(response )
+        setOfficerData(response)
       } else {
         console.error("Unexpected response format for officer data")
         setOfficerData([])
@@ -80,11 +83,44 @@ const Acceptedlist: React.FC = () => {
     }
   }
   useEffect(() => {
-    console.log("Updated officerData state:", officerData);
-  }, [officerData]);
+    console.log("Updated officerData state:", officerData)
+  }, [officerData])
 
-  const handleStartInspection = (item: any) => {
-    console.log("Starting inspection for:", item.displayRefId)
+  const handleStartInspection = async (item: any) => {
+    setIsStartingInspection(true)
+    try {
+      const currentDate = new Date().toISOString()
+      const payload = {
+        assignmentId: item.assignmentId,
+        endDateTime: currentDate,
+        finalScore: "0",
+        refId: item.refId || "",
+        startDateTime: currentDate,
+        dateOfJoining: currentDate,
+        updatedOn: currentDate,
+        displayRefId: item.displayRefId,
+      }
+
+      const response = await startInspection(payload)
+      console.log("Inspection started successfully:", response)
+      if (response.statusCode === "200") {
+        Toast.success("Inspection has been started")
+        // Update the local state to reflect the change
+        setAcceptedData((prevData) => ({
+          ...prevData,
+          paginationListRecords: prevData.paginationListRecords.map((record) =>
+            record.assignmentId === item.assignmentId ? { ...record, statusDesc: "Inspection Started" } : record,
+          ),
+        }))
+      } else {
+        Toast.error("Failed to start inspection. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error starting inspection:", error)
+      Toast.error("Failed to start inspection. Please try again.")
+    } finally {
+      setIsStartingInspection(false)
+    }
   }
 
   if (isLoading) {
@@ -121,12 +157,25 @@ const Acceptedlist: React.FC = () => {
                 <Text style={styles.listItemText}>RA: {item.raRemarks || "N/A"}</Text>
                 <Text style={styles.listItemText}>Assigned By: {item.assignedBy || "N/A"}</Text>
                 <Text style={styles.listItemText}>Stage: {item.statusDesc || "N/A"}</Text>
-               
               </View>
             </View>
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.startInspectionButton} onPress={() => handleStartInspection(item)}>
-                <Text style={styles.startInspectionButtonText}>Start Inspection</Text>
+              <ToastManager />
+              <TouchableOpacity
+                style={[
+                  styles.startInspectionButton,
+                  (isStartingInspection || item.statusDesc === "Inspection Started") && { opacity: 0.7 },
+                ]}
+                onPress={() => handleStartInspection(item)}
+                disabled={isStartingInspection || item.statusDesc === "Inspection Started"}
+              >
+                <Text style={styles.startInspectionButtonText}>
+                  {item.statusDesc === "Inspection Started"
+                    ? "Inspection Started"
+                    : isStartingInspection
+                      ? "Starting..."
+                      : "Start Inspection"}
+                </Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.viewOfficerListButton} onPress={() => handleViewInspectionOfficers(item)}>

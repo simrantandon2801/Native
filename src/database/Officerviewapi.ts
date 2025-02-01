@@ -62,5 +62,65 @@ export const getSecondaryOfficerEsignDetails = async (assignmentId: string): Pro
     throw error
   }
 }
+interface StartInspectionPayload {
+  assignmentId: string | number
+  endDateTime: string
+  finalScore: string
+  refId: string | number
+  startDateTime: string
+  dateOfJoining: string
+  updatedOn: string
+  displayRefId: string
+}
+
+interface StartInspectionResponse {
+  refId: null | string
+  inspectionType: null | string
+  otp: null | string
+  assignmentId: null | string
+  secAssignmentId: null | string
+  fsoId: null | string
+  generatedCode: string
+  statusCode: string
+}
+
+// ... existing encryption functions remain the same
+
+export const startInspection = async (payload: StartInspectionPayload): Promise<StartInspectionResponse> => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId")
+    const accessToken = await AsyncStorage.getItem("accessToken")
+    const xAuthUserId = encryptData(storedUserId || "")
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/inspectiondetailreg/${storedUserId}`
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found")
+    }
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+      throw new Error(`HTTP error! Status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    console.log("Start Inspection Response:", data)
+    return data
+  } catch (error) {
+    console.error("Error in startInspection:", error)
+    throw error
+  }
+}
 
 
