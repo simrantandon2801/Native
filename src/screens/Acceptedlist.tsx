@@ -1,8 +1,9 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Modal } from "react-native"
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
-import { getSecondaryOfficerEsignDetails } from "../database/Officerviewapi" 
+import { getSecondaryOfficerEsignDetails } from "../database/Officerviewapi"
+import { DataTable } from "react-native-paper"
 
 interface AcceptedData {
   currentPageNo: number
@@ -10,6 +11,12 @@ interface AcceptedData {
   pageLimit: number
   totalRecords: number
   paginationListRecords: any[]
+}
+
+interface OfficerData {
+  fsoName: string
+  officerType: string
+  id?: any 
 }
 
 const Acceptedlist: React.FC = () => {
@@ -22,6 +29,8 @@ const Acceptedlist: React.FC = () => {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [modalVisible, setModalVisible] = useState(false)
+  const [officerData, setOfficerData] = useState<OfficerData[]>([])
 
   useEffect(() => {
     const fetchAccepted = async () => {
@@ -57,13 +66,22 @@ const Acceptedlist: React.FC = () => {
   const handleViewInspectionOfficers = async (item: any) => {
     try {
       const response = await getSecondaryOfficerEsignDetails(item.assignmentId)
-      console.log("Inspection Officer List-------------:", response)
-   //navigate krega next screen 
+      console.log("Inspection Officer List------------huhluhuh-:", response)
+      if (Array.isArray(response)) {
+        setOfficerData(response )
+      } else {
+        console.error("Unexpected response format for officer data")
+        setOfficerData([])
+      }
+      setModalVisible(true)
     } catch (error) {
       console.error("Error fetching inspection officers$$$$$$$$$$$$$$$$$:", error)
-   
+      setOfficerData([])
     }
   }
+  useEffect(() => {
+    console.log("Updated officerData state:", officerData);
+  }, [officerData]);
 
   const handleStartInspection = (item: any) => {
     console.log("Starting inspection for:", item.displayRefId)
@@ -103,7 +121,7 @@ const Acceptedlist: React.FC = () => {
                 <Text style={styles.listItemText}>RA: {item.raRemarks || "N/A"}</Text>
                 <Text style={styles.listItemText}>Assigned By: {item.assignedBy || "N/A"}</Text>
                 <Text style={styles.listItemText}>Stage: {item.statusDesc || "N/A"}</Text>
-                {/* <Text style={styles.statusBadge}>Stage:{item.statusDesc || "N/A"}</Text> */}
+               
               </View>
             </View>
             <View style={styles.buttonContainer}>
@@ -123,6 +141,38 @@ const Acceptedlist: React.FC = () => {
       ) : (
         <Text style={styles.emptyListText}>No accepted inspections found.</Text>
       )}
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Inspection Officer List</Text>
+            <ScrollView style={styles.tableContainer}>
+              <DataTable>
+                <DataTable.Header style={styles.tableHeader}>
+                  <DataTable.Title style={styles.tableHeaderCell}>S.No</DataTable.Title>
+                  <DataTable.Title style={styles.tableHeaderCell}>FSO Name</DataTable.Title>
+                  <DataTable.Title style={styles.tableHeaderCell}>Officer Type</DataTable.Title>
+                </DataTable.Header>
+
+                {officerData.map((officer, index) => (
+                  <DataTable.Row key={officer.id || index} style={styles.tableRow}>
+                    <DataTable.Cell style={styles.tableCell}>{index + 1}</DataTable.Cell>
+                    <DataTable.Cell style={styles.tableCell}>{officer.fsoName}</DataTable.Cell>
+                    <DataTable.Cell style={styles.tableCell}>{officer.officerType}</DataTable.Cell>
+                  </DataTable.Row>
+                ))}
+              </DataTable>
+            </ScrollView>
+            <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   )
 }
@@ -249,6 +299,55 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "flex-start",
     marginTop: 12,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 20,
+    width: "90%",
+    maxHeight: "80%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+    color: "#333",
+  },
+  tableContainer: {
+    maxHeight: 300,
+  },
+  tableHeader: {
+    backgroundColor: "#f0f0f0",
+  },
+  tableHeaderCell: {
+    justifyContent: "center",
+  },
+  tableRow: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  tableCell: {
+    justifyContent: "center",
+  },
+  closeButton: {
+    backgroundColor: "#1a73e8",
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 5,
+    marginTop: 20,
+    alignSelf: "center",
+  },
+  closeButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 })
 
