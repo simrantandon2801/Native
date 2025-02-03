@@ -21,6 +21,9 @@ import Rejectedlist from "../screens/Rejectedlist"
 import Clarificationn from "../screens/Clarificationn"
 import SearchInspection from "../screens/SearchInspection"
 import CompletedInspection from "../screens/CompletedInspection"
+import AllocatedInspection from "../screens/AllocateInspection"
+import AllocateInspection from "../screens/AllocateInspection"
+import AllocatedInspetion from "../screens/Allocated"
 
 // Define the types for the drawer navigation
 type DrawerParamList = {
@@ -186,7 +189,18 @@ const MainDrawer: React.FC = () => {
             else if (element.subModuleName == "Recall Application(s)") {
               componentName = CompletedInspection
             }
-            
+            else if (element.subModuleName == "Allocate Inspection") {
+              componentName = AllocateInspection
+            }
+            else if (element.subModuleName == "Allocated Inspection") {
+              componentName = AllocatedInspetion
+            }
+            else if (element.subModuleName == "Allocate Inspection For Expired Certificate") {
+              componentName = CompletedInspection
+            }
+            else if (element.subModuleName == "Scrutinize Inspection Report") {
+              componentName = CompletedInspection
+            }
 
 
             mainMenu.push(Object.assign(element, { component: componentName }))

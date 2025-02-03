@@ -149,7 +149,8 @@ export const getOngoingInspectionCount = async (payload: any): Promise<any> => {
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/1`
+   
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")

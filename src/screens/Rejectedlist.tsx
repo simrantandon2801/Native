@@ -54,7 +54,7 @@ const RejectedList: React.FC = () => {
   }, [])
 
   if (isLoading) {
-    return <Text>Loading...</Text>
+    return <Text style={styles.loadingText}>Loading...</Text>
   }
 
   if (error) {
@@ -67,8 +67,32 @@ const RejectedList: React.FC = () => {
       {rejectedData.paginationListRecords.length > 0 ? (
         rejectedData.paginationListRecords.map((item) => (
           <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
-            <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
-            <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
+            <View style={styles.column}>
+              <Text style={styles.listItemLabel}>Assignment ID:</Text>
+              <Text style={styles.listItemText}>{item.assignmentId || "N/A"}</Text>
+
+              <Text style={styles.listItemLabel}>Inspection Type:</Text>
+              <Text style={styles.listItemText}>{item.inspectionType || "N/A"}</Text>
+
+              <Text style={styles.listItemLabel}>Ref:</Text>
+              <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
+
+              <Text style={styles.listItemLabel}>Company Name:</Text>
+              <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
+            </View>
+            <View style={styles.column}>
+              <Text style={styles.listItemLabel}>Status:</Text>
+              <Text style={styles.listItemText}>{item.statusDesc || "N/A"}</Text>
+
+              <Text style={styles.listItemLabel}>Rejection Remarks:</Text>
+              <Text style={styles.listItemText}>{item.raRemarks || "N/A"}</Text>
+
+              <Text style={styles.listItemLabel}>Allocate Date:</Text>
+              <Text style={styles.listItemText}>{item.fsoAckDate || "N/A"}</Text>
+
+              <Text style={styles.listItemLabel}>Assigned By:</Text>
+              <Text style={styles.listItemText}>{item.assignedBy || "N/A"}</Text>
+            </View>
           </View>
         ))
       ) : (
@@ -84,36 +108,63 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   listTitle: {
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: "bold",
     marginTop: 20,
     marginBottom: 10,
     paddingHorizontal: 16,
     fontFamily: "Outfit",
+    color: "#333",
   },
   listItem: {
     backgroundColor: "#fff",
     padding: 16,
-    marginBottom: 8,
+    marginBottom: 12,
     marginHorizontal: 16,
     borderRadius: 8,
     flexDirection: "row",
     justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  column: {
+    flex: 1,
+  },
+  listItemLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 2,
+    fontFamily: "Outfit",
   },
   listItemText: {
     fontSize: 14,
     color: "#333",
+    marginBottom: 8,
+    fontFamily: "Outfit",
   },
   emptyListText: {
     textAlign: "center",
     marginTop: 20,
     color: "#666",
+    fontFamily: "Outfit",
   },
   errorText: {
     color: "red",
     textAlign: "center",
     marginTop: 20,
     paddingHorizontal: 16,
+    fontFamily: "Outfit",
+  },
+  loadingText: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#333",
+    fontFamily: "Outfit",
   },
 })
 
 export default RejectedList
+

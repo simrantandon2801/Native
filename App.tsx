@@ -19,6 +19,9 @@ import HomeScreen from "./src/BottomTabs/HomeScreen"
 import ProfileScreen from "./src/BottomTabs/ProfileScreen"
 import { Home, User, type LucideIcon } from "lucide-react-native"
 import BottomTabNavigator from "./src/BottomTabs/BottomTabnavi"
+import AllocateInspection from "./src/screens/AllocateInspection"
+import AllocatedInspection from "./src/screens/AllocateInspection"
+import AllocatedInspetion from "./src/screens/Allocated"
 
 
 const Stack = createStackNavigator()
@@ -76,6 +79,8 @@ function App(): React.JSX.Element {
           <Stack.Screen name="Rejectedlist" component={RejectedList} />
           <Stack.Screen name="Ongoing" component={Ongoinglist} />
           <Stack.Screen name="Ongoinglist" component={Ongoinglist} />
+          <Stack.Screen name="Allocate Inspection" component={AllocateInspection} />
+          <Stack.Screen name="Allocated Inspection" component={AllocatedInspetion} />
           
           
         </Stack.Navigator>
