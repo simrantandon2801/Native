@@ -1,8 +1,10 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native"
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from "react-native"
 import { getOngoingInspectionCount } from "../database/Dashboardapi"
 import { SafeAreaView } from "react-native-safe-area-context"
+import { getMasterInspectionSection } from "../database/Resumeapi"
+import { useNavigation } from "@react-navigation/native"
 
 interface OngoingData {
   currentPageNo: number
@@ -18,11 +20,12 @@ interface InspectionItem {
   displayRefId: string
   companyName: string
   certificateNo: string
-  fullAddress?: string // Added fullAddress to InspectionItem
-  inspectionDate?: string // Added inspectionDate to InspectionItem
+  fullAddress?: string
+  inspectionDate?: string
 }
 
 const OngoingList: React.FC = () => {
+  const navigation = useNavigation();
   const [ongoingData, setOngoingData] = useState<OngoingData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -63,6 +66,26 @@ const OngoingList: React.FC = () => {
       setIsLoading(false)
     }
   }
+
+  const handleResumePress = async (inspectionId: string) => {
+    try {
+      const payload = {
+        inspectionId: inspectionId,
+        statusId: "20",
+        userId: "3816881804355836",
+        processFlag: true,
+      };
+      const result = await getMasterInspectionSection(payload);
+      console.log("Resume API result:", result);
+  
+  
+      navigation.navigate('Resumelist' as never, {data : result});
+    } catch (error) {
+      console.error("Error in resume API call:", error);
+      Alert.alert("Error", "Failed to load inspection details. Please try again.");
+    }
+  };
+  
 
   if (isLoading) {
     return (
@@ -105,7 +128,7 @@ const OngoingList: React.FC = () => {
                   <Text style={styles.listItemText}>Inspection Type:{item.inspectionType || "N/A"}</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.resumeButton}>
+              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId)}>
                 <Text style={styles.resumeButtonText}>Resume</Text>
               </TouchableOpacity>
             </TouchableOpacity>
