@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
@@ -18,11 +18,15 @@ interface Section {
 const Resumelist: React.FC = () => {
   const route = useRoute();
   const { data } = route.params;
-  
+
+  // Initialize the state with 'forward' to select "Forward to NHB" by default
+  const [selectedOption, setSelectedOption] = useState<string>('forward');
+
   console.log("=======================================================", data);
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Scrollable List */}
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {data.map((section) => (
           <TouchableOpacity
@@ -37,6 +41,28 @@ const Resumelist: React.FC = () => {
             </View>
           </TouchableOpacity>
         ))}
+
+
+        <View style={styles.radioContainer}>
+          <TouchableOpacity
+            style={styles.radioButton}
+            onPress={() => setSelectedOption('forward')}
+          >
+            <View style={styles.radioButtonCircle}>
+              {selectedOption === 'forward' && <View style={styles.radioButtonInnerCircle} />}
+            </View>
+            <Text style={styles.radioButtonLabel}>Forward to NHB</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.radioButton}
+            onPress={() => setSelectedOption('sendBack')}
+          >
+            <View style={styles.radioButtonCircle}>
+              {selectedOption === 'sendBack' && <View style={styles.radioButtonInnerCircle} />}
+            </View>
+            <Text style={styles.radioButtonLabel}>Send Back to Applicant for Clarification</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -69,7 +95,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 4,
-  }
+  },
+  radioContainer: {
+    marginTop: 16,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#ddd',
+    // backgroundColor: '#fff',
+  },
+  radioButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  radioButtonCircle: {
+    height: 20,
+    width: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#333',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioButtonInnerCircle: {
+    height: 12,
+    width: 12,
+    borderRadius: 6,
+    backgroundColor: '#333',
+  },
+  radioButtonLabel: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#333',
+  },
 });
 
 export default Resumelist;
