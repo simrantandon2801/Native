@@ -35,6 +35,8 @@ const OngoingList: React.FC = () => {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [inspecVar, setInspecVar] = useState();
+  const [refIdVar, setRefIdVar] = useState();
 
   useEffect(() => {
     fetchOngoing()
@@ -59,6 +61,7 @@ const OngoingList: React.FC = () => {
 
       const result = await getOngoingInspectionCount(payload)
       setOngoingData(result)
+      setRefIdVar(result);
     } catch (error) {
       console.error("Error loading data:", error)
       setError("Failed to load data. Please try again.")
@@ -67,8 +70,10 @@ const OngoingList: React.FC = () => {
     }
   }
 
-  const handleResumePress = async (inspectionId: string) => {
+  const handleResumePress = async (inspectionId: number, refId: number) => {
     try {
+      console.log("dddddddddddddddddddddddddddddddddddddddd: ", inspectionId)
+      console.log("ddddddddddddddddddddddddddddddddddddddddddddddddd: ref : ", refIdVar)
       const payload = {
         inspectionId: inspectionId,
         statusId: "20",
@@ -79,7 +84,7 @@ const OngoingList: React.FC = () => {
       console.log("Resume API result:", result);
   
   
-      navigation.navigate('Resumelist' as never, {data : result});
+      navigation.navigate('Resumelist' as never, {data : result, inspectionId: inspectionId, refId: refId });
     } catch (error) {
       console.error("Error in resume API call:", error);
       Alert.alert("Error", "Failed to load inspection details. Please try again.");
@@ -128,7 +133,7 @@ const OngoingList: React.FC = () => {
                   <Text style={styles.listItemText}>Inspection Type:{item.inspectionType || "N/A"}</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId)}>
+              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId, item.refId)}>
                 <Text style={styles.resumeButtonText}>Resume</Text>
               </TouchableOpacity>
             </TouchableOpacity>
@@ -238,4 +243,3 @@ const styles = StyleSheet.create({
 })
 
 export default OngoingList
-
