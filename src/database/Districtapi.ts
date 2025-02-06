@@ -2,13 +2,15 @@ import CryptoJS from "crypto-js"
 import { BASE_URL } from "@env"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
+
+const SECRET_KEY = "LsiplyG3M1bX7Rg"
 interface DistrictPayload {
   stateCode: string
   districtCode: null
   viewFlag: string
 }
 interface SearchPayload {
-    fssaiUserId: string
+    fssaiUserId: number
     statusId: number
     licenseCategoryId: number
     displayRefId: string
@@ -21,7 +23,7 @@ interface SearchPayload {
     kobId: string
   }
 const encryptData = (data: string): string => {
-    const encryptedData = CryptoJS.HmacSHA256(data, "LsiplyG3M1bX7Rg")
+    const encryptedData = CryptoJS.HmacSHA256(data, SECRET_KEY)
     return CryptoJS.enc.Base64.stringify(encryptedData).toString()
   }
 
@@ -76,9 +78,11 @@ export const searchApplications = async (payload: SearchPayload): Promise<any> =
   
       const apiUrl = `${BASE_URL}/gateway/officer/inspection/getsubmitedapplicationsregall/1`
   
+      console.log("zindaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       if (!accessToken || !storedUserId) {
         throw new Error("No authentication token or user ID found")
       }
+      console.log("mar gayaaaaaaaaaaaaaaaaaaaaaaaaaa")
   
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -88,7 +92,10 @@ export const searchApplications = async (payload: SearchPayload): Promise<any> =
           "X-Auth-User-Id": xAuthUserId,
         },
         body: JSON.stringify(payload),
-      })
+      }
+  
+    )
+    console.log("response api : ", response)
   
       if (!response.ok) {
         const errorText = await response.text()

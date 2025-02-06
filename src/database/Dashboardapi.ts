@@ -36,7 +36,7 @@ export const getAcknowledgedInspectionCount = async (payload: any) => {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
 
-const xAuthUserId = encryptData(storedUserId|| '');
+    const xAuthUserId = encryptData(storedUserId|| '');
 
     const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
        const response = await fetch(apiUrl, {
@@ -74,10 +74,12 @@ export const getAcceptedInspectionAttachmentCount = async (payload: any): Promis
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
+
 console.log('suhhsd')
 console.log('storeduserid-----------',storedUserId)
 console.log('---access',accessToken)
 console.log('==========xauth',xAuthUserId)
+
     const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
     console.log("chaljaja",apiUrl)
 

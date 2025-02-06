@@ -180,7 +180,7 @@ const AllocateInspection: React.FC = () => {
                       displayRefId: referenceNo,
                       companyName: companyName,
                       district: selectedDistrict,
-                      subDivision: "109",
+                      subDivision: districts,
                       fromDate: null,
                       toDate: null,
                       categoryId: "",
