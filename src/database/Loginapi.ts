@@ -76,27 +76,30 @@ export const loginUser = async (username: string, password: string): Promise<Log
 
     if (targetRole) {
       let menuList:any[]= data.Menus;
-      const registrationInspectionMenu = menuList.Menus.find((menu) => menu.Name === "Registration Inspection")
+      const registrationInspectionMenu = menuList.Menus.find((menu) => menu.Name === "Inspection")
       console.log("reached H")
+
+      await AsyncStorage.setItem("accessToken", data.accessToken)
+      await AsyncStorage.setItem("userId", String(data.userId))
+      console.log("reached J")
+
+      // Store the Registration Inspection menu data
+      await AsyncStorage.setItem("Nameresponse####", JSON.stringify(registrationInspectionMenu.Name))
+      await AsyncStorage.setItem("menufromresponse", JSON.stringify(registrationInspectionMenu.SubMenus))
 
       if (registrationInspectionMenu) {
         console.log("Login response - Registration Inspection:", registrationInspectionMenu.Name)
         console.log("Login response - SubMenus:", registrationInspectionMenu.SubMenus)
         console.log("reached I")
 
-        // Store the token and userId in AsyncStorage
-        await AsyncStorage.setItem("accessToken", data.accessToken)
-        await AsyncStorage.setItem("userId", String(data.userId))
-        console.log("reached J")
-
-        // Store the Registration Inspection menu data
-        await AsyncStorage.setItem("Nameresponse####", JSON.stringify(registrationInspectionMenu.Name))
-        await AsyncStorage.setItem("menufromresponse", JSON.stringify(registrationInspectionMenu.SubMenus))
+        
+        console.log('suhhsd-------------',)
+       
         console.log("reached K")
 
         console.log("Login data stored in AsyncStorage")
 
-        // Log the stored data for verification
+     
         const storedSubMenus = await AsyncStorage.getItem("menufromresponse")
         console.log("Stored SubMenus:", JSON.parse(storedSubMenus || "[]"))
         const storedName = await AsyncStorage.getItem("Nameresponse####")

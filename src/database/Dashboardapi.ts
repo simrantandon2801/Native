@@ -74,8 +74,12 @@ export const getAcceptedInspectionAttachmentCount = async (payload: any): Promis
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
-
+console.log('suhhsd')
+console.log('storeduserid-----------',storedUserId)
+console.log('---access',accessToken)
+console.log('==========xauth',xAuthUserId)
     const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+    console.log("chaljaja",apiUrl)
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")
@@ -90,7 +94,7 @@ export const getAcceptedInspectionAttachmentCount = async (payload: any): Promis
       },
       body: JSON.stringify(payload),
     })
-
+console.log("rachded ")
     if (!response.ok) {
       const errorText = await response.text()
       console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)

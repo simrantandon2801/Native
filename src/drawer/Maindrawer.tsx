@@ -12,7 +12,7 @@ import { useNavigation } from "@react-navigation/native"
 import { LogOut, ChevronDown, ChevronUp, User } from "lucide-react-native"
 import Collapsible from "react-native-collapsible"
 
-// Import your screens
+
 import DashboardScreen from "../screens/Dashboardscreen"
 import Acknowledgelist from "../screens/Acknowledgelist"
 import AcceptedList from "../screens/Acceptedlist"
