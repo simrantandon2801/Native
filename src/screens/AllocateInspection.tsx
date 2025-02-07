@@ -1,3 +1,5 @@
+'use client';
+
 import type React from "react"
 import { useState, useEffect } from "react"
 import {
@@ -9,12 +11,14 @@ import {
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
+  ScrollView,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { Filter } from "lucide-react-native"
-import { getDistrictList,searchApplications } from "../database/Districtapi"
+import { getDistrictList, searchApplications } from "../database/Districtapi"
 import { getStateList, getBusinessTypes } from "../database/Statebusinessapi"
-
+import { getAllocateInspectionDetails } from "../database/ProceedAllocateapi"
+import AllocateInspectionDetailsModal from "./AllocateInspectionDetailsModal"
 
 const AllocateInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -30,6 +34,8 @@ const AllocateInspection: React.FC = () => {
   const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<any>(null)
+  const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
+  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -174,12 +180,12 @@ const AllocateInspection: React.FC = () => {
                   setIsSearching(true)
                   try {
                     const payload = {
-                      fssaiUserId: "10000000016", 
+                      fssaiUserId: "10000000016",
                       statusId: 5,
                       licenseCategoryId: 1,
-                      displayRefId: referenceNo,
-                      companyName: companyName,
-                      district: selectedDistrict,
+                      displayRefId: "",
+                      companyName: "",
+                      district: "",
                       subDivision: "257",
                       fromDate: null,
                       toDate: null,
@@ -204,13 +210,66 @@ const AllocateInspection: React.FC = () => {
           </View>
         </View>
       </Modal>
-      {searchResults && (
-        <View style={styles.searchResults}>
-          <Text style={styles.searchResultsTitle}>Search Results</Text>
-        
-          <Text>{JSON.stringify(searchResults)}</Text>
-        </View>
-      )}
+      <ScrollView>
+        {searchResults && searchResults.paginationListRecords ? (
+          searchResults.paginationListRecords.map((item, index) => (
+            <View key={index} style={styles.recordContainer}>
+              <View style={styles.column}>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Ref ID:</Text>
+                  <Text style={styles.recordValue}>{item.displayRefId}</Text>
+                </View>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Premises Address:</Text>
+                  <Text style={styles.recordValue}>{item.addressPremises}</Text>
+                </View>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Company Name:</Text>
+                  <Text style={styles.recordValue}>{item.companyName}</Text>
+                </View>
+              </View>
+
+              <View style={styles.column}>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Issue Date:</Text>
+                  <Text style={styles.recordValue}>{item.issuedDate}</Text>
+                </View>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Expiry Date:</Text>
+                  <Text style={styles.recordValue}>{item.expiryDate}</Text>
+                </View>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Status:</Text>
+                  <Text style={styles.recordValue}>{item.statusDesc}</Text>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={styles.proceedButton}
+                onPress={async () => {
+                  try {
+                    const result = await getAllocateInspectionDetails(item.refId, item.certificateNo)
+                    console.log("Allocate Inspection Details Result:", result)
+                    setSelectedInspectionDetails(result)
+                    setIsDetailsModalVisible(true)
+                  } catch (error) {
+                    console.error("Error fetching Allocate Inspection Details:", error)
+                  }
+                }}
+              >
+                <Text style={styles.proceedButtonText}>Proceed</Text>
+              </TouchableOpacity>
+            </View>
+          ))
+        ) : (
+          <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>No records found</Text>
+        )}
+      </ScrollView>
+      <AllocateInspectionDetailsModal
+        isVisible={isDetailsModalVisible}
+        onClose={() => setIsDetailsModalVisible(false)}
+        data={selectedInspectionDetails}
+      />
     </SafeAreaView>
   )
 }
@@ -237,9 +296,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
-
-
-  
+  column: {
+    flex: 1,
+    minWidth: "45%",
+    maxWidth: "48%",
+  },
   modalContent: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 20,
@@ -269,6 +330,41 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#fff",
     color: "#333",
+  },
+  recordContainer: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 16,
+  },
+  recordRow: {
+    marginBottom: 10,
+  },
+  recordLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 4,
+  },
+  recordValue: {
+    fontSize: 14,
+    color: "#333",
+    flexShrink: 1,
+  },
+  noRecordsText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#999",
   },
   pickerWrapper: {
     borderWidth: 1,
@@ -314,13 +410,18 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-  errorText: {},
+  errorText: {
+    color: "red",
+    marginBottom: 10,
+  },
   applyButtonText: {
     color: "#FFF",
     fontSize: 16,
     fontWeight: "600",
   },
-  loader: {},
+  loader: {
+    marginVertical: 10,
+  },
   searchResults: {
     marginTop: 20,
     padding: 10,
@@ -331,6 +432,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 10,
+  },
+  proceedButton: {
+    backgroundColor: "#007bff",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: "center",
+    alignSelf: "flex-end",
+    width: 100,
+  },
+  proceedButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "600",
   },
 })
 
