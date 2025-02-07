@@ -180,7 +180,7 @@ const AllocateInspection: React.FC = () => {
                       displayRefId: referenceNo,
                       companyName: companyName,
                       district: selectedDistrict,
-                      subDivision: districts,
+                      subDivision: "257",
                       fromDate: null,
                       toDate: null,
                       categoryId: "",
@@ -237,6 +237,9 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
+
+
+  
   modalContent: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 20,
