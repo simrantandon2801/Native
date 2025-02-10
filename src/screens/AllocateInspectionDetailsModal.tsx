@@ -1,11 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from "react-native"
 import Modal from "react-native-modal"
 import { Picker } from "@react-native-picker/picker"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
+import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
 
 interface AllocateInspectionDetailsModalProps {
   isVisible: boolean
@@ -21,11 +22,17 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [isAllocateModalVisible, setIsAllocateModalVisible] = useState(false)
   const [selectedInspector, setSelectedInspector] = useState("")
   const [remarks, setRemarks] = useState("")
-  const [inspectors, setInspectors] = useState<Array<{ fsoName: string; fssaiUserId: string }>>([])
+  const [inspectors, setInspectors] = useState([])
+  const [secondaryInspectors, setSecondaryInspectors] = useState([])
+  const [selectedSecondaryInspector, setSelectedSecondaryInspector] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const openAllocateModal = () => {
     console.log("Opening Allocate Modal")
     setIsAllocateModalVisible(true)
+    setSelectedInspector("")
+    setSelectedSecondaryInspector("")
     fetchInspectors()
   }
 
@@ -37,18 +44,35 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
 
   const fetchInspectors = async () => {
     try {
-      const userId = "10000000016" // This should be dynamically set or retrieved from a state/prop
+      const userId = "10000000016"
       const response = await getListOffsounDerDoForReg(userId)
-      // Assuming the response contains an array of inspector names
-      // Update this based on the actual response structure
+
       setInspectors(response)
+      setSecondaryInspectors(response)
     } catch (error) {
       console.error("Error fetching inspectors:", error)
     }
   }
 
+  useEffect(() => {
+    const fetchSecondaryInspectors = async () => {
+      try {
+        setLoading(true)
+        const userId = "10000000016" // This should be dynamically set or passed as a prop
+        const inspectors = await getSecondaryInspectors(userId)
+        setSecondaryInspectors(inspectors)
+        setLoading(false)
+      } catch (err) {
+        setError("Failed to load secondary inspectors.")
+        setLoading(false)
+      }
+    }
+
+    fetchSecondaryInspectors()
+  }, [])
+
   const handleCreateInspection = () => {
-    console.log("Creating inspection with:", { selectedInspector, remarks })
+    console.log("Creating inspection with:", { selectedInspector, selectedSecondaryInspector, remarks })
     closeAllocateModal()
   }
 
@@ -98,31 +122,60 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
         <View style={styles.allocateModalContainer}>
           <View style={styles.allocateModalContent}>
             <Text style={styles.allocateModalTitle}>Allocate Inspection</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={selectedInspector}
-                onValueChange={(itemValue) => setSelectedInspector(itemValue)}
-                style={styles.picker}
-              >
-                <Picker.Item label="Select Primary Inspector" value="" />
-                {inspectors.map((inspector, index) => (
-                  <Picker.Item key={index} label={inspector.fsoName} value={inspector.fssaiUserId} />
-                ))}
-              </Picker>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Primary Inspector</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedInspector}
+                  onValueChange={(itemValue) => setSelectedInspector(itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Select Primary Inspector" value="" />
+                  {inspectors.map((inspector, index) => (
+                    <Picker.Item key={index} label={inspector.fsoName} value={inspector.fssaiUserId} />
+                  ))}
+                </Picker>
+              </View>
+              <TextInput
+                style={styles.input}
+                value={inspectors.find((i) => i.fssaiUserId === selectedInspector)?.fsoName || ""}
+                editable={false}
+                placeholder="Selected Primary Inspector"
+              />
             </View>
-            <TextInput
-              style={[styles.remarksInput, { minHeight: 40, marginBottom: 15 }]}
-              value={inspectors.find((i) => i.fssaiUserId === selectedInspector)?.fsoName || ""}
-              editable={false}
-              placeholder="Selected Inspector"
-            />
-            <TextInput
-              style={styles.remarksInput}
-              placeholder="Remarks"
-              value={remarks}
-              onChangeText={setRemarks}
-              multiline
-            />
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Secondary Inspector</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={selectedSecondaryInspector}
+                  onValueChange={(itemValue) => setSelectedSecondaryInspector(itemValue)}
+                  style={styles.picker}
+                >
+                  <Picker.Item label="Select Secondary Inspector" value="" />
+                  {secondaryInspectors.map((inspector, index) => (
+                    <Picker.Item key={index} label={inspector.fsoName} value={inspector.fssaiUserId} />
+                  ))}
+                </Picker>
+              </View>
+              <TextInput
+                style={styles.input}
+                value={secondaryInspectors.find((i) => i.fssaiUserId === selectedSecondaryInspector)?.fsoName || ""}
+                editable={false}
+                placeholder="Selected Secondary Inspector"
+              />
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>Remarks</Text>
+              <TextInput
+                style={styles.remarksInput}
+                placeholder="Enter remarks"
+                value={remarks}
+                onChangeText={setRemarks}
+                multiline
+              />
+            </View>
             <View style={styles.allocateButtonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={closeAllocateModal}>
                 <Text style={styles.buttonText}>Cancel</Text>
@@ -263,6 +316,35 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 14,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 15,
+  },
+  inputContainer: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  checkboxContainer: {
+    maxHeight: 150,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  checkboxItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 5,
+  },
+  checkboxLabel: {
+    marginLeft: 8,
   },
 })
 

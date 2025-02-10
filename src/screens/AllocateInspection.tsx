@@ -70,7 +70,7 @@ const AllocateInspection: React.FC = () => {
     try {
       const districtData = await getDistrictList(stateCode)
       setDistricts(districtData)
-    } catch (err) {
+    } catch (err) { 
       setError("Failed to fetch districts")
       console.error("Error fetching districts:", err)
       setDistricts([])
