@@ -11,7 +11,7 @@ import {
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
-  ScrollView,
+  ScrollView,RefreshControl
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { Filter } from "lucide-react-native"
@@ -22,6 +22,7 @@ import AllocateInspectionDetailsModal from "./AllocateInspectionDetailsModal"
 
 const AllocateInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [selectedState, setSelectedState] = useState("")
@@ -36,8 +37,9 @@ const AllocateInspection: React.FC = () => {
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
   const [selectedInspectionDetails, setSelectedInspectionDetails] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
+
     const fetchData = async () => {
       try {
         const stateData = await getStateList()
@@ -49,13 +51,28 @@ const AllocateInspection: React.FC = () => {
         setError("Failed to fetch initial data")
       }
     }
-    fetchData()
-  }, [])
+    useEffect(()=>{
+      fetchData()
+
+    },[])
+       
+const onRefresh = () => {
+  setRefreshing(true)
+  fetchData()
+}
+  
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible)
   }
-
+if (isLoading && !refreshing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0000ff" />
+        <Text style={styles.loadingText}>Loading...</Text>
+      </View>
+    )
+  }
   const handleStateChange = async (stateCode: string) => {
     setSelectedState(stateCode)
     setSelectedDistrict("")
@@ -210,7 +227,7 @@ const AllocateInspection: React.FC = () => {
           </View>
         </View>
       </Modal>
-      <ScrollView>
+      <ScrollView  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {searchResults && searchResults.paginationListRecords ? (
           searchResults.paginationListRecords.map((item, index) => (
             <View key={index} style={styles.recordContainer}>
@@ -446,6 +463,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#0000ff",
   },
 })
 

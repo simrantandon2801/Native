@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView } from "react-native"
+import { View, Text, StyleSheet, ScrollView ,RefreshControl,ActivityIndicator} from "react-native"
 import { getRejectedInspectionAttachmentCount } from "../database/Dashboardapi"
 
 interface RejectedData {
@@ -21,14 +21,15 @@ const RejectedList: React.FC = () => {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
+
     const fetchRejected = async () => {
       setIsLoading(true)
       setError(null)
       try {
         const payload: any = {
-          statusId: "18", // Status ID for Rejected
+          statusId: "18", 
           userId: "3816881804355836",
           displayRefId: "",
           companyName: "",
@@ -47,22 +48,34 @@ const RejectedList: React.FC = () => {
         setError("Failed to load data. Please try again.")
       } finally {
         setIsLoading(false)
+        setRefreshing(false)
       }
     }
 
+  useEffect(()=>{
     fetchRejected()
-  }, [])
+  },[])
 
-  if (isLoading) {
-    return <Text style={styles.loadingText}>Loading...</Text>
+  const onRefresh = () => {
+    setRefreshing(true)
+    fetchRejected()
   }
+   if (isLoading && !refreshing) {
+      return (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      )
+    }
 
   if (error) {
     return <Text style={styles.errorText}>{error}</Text>
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <Text style={styles.listTitle}>Rejected Inspections</Text>
       {rejectedData.paginationListRecords.length > 0 ? (
         rejectedData.paginationListRecords.map((item) => (
@@ -132,6 +145,11 @@ const styles = StyleSheet.create({
   },
   column: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   listItemLabel: {
     fontSize: 12,

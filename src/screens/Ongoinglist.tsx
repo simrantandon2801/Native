@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from "react-native"
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator,RefreshControl, TouchableOpacity, Alert } from "react-native"
 import { getOngoingInspectionCount } from "../database/Dashboardapi"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { getMasterInspectionSection } from "../database/Resumeapi"
@@ -37,10 +37,9 @@ const OngoingList: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [inspecVar, setInspecVar] = useState();
   const [refIdVar, setRefIdVar] = useState();
+    const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
-    fetchOngoing()
-  }, [])
+
 
   const fetchOngoing = async () => {
     setIsLoading(true)
@@ -67,14 +66,21 @@ const OngoingList: React.FC = () => {
       setError("Failed to load data. Please try again.")
     } finally {
       setIsLoading(false)
+      setRefreshing(false)
     }
   }
-
+  useEffect(() => {
+    fetchOngoing()
+  }, [])
+  const onRefresh = () => {
+    setRefreshing(true)
+    fetchOngoing()
+  }
   const handleResumePress = async (inspectionId: number, refId: number) => {
     try {
       console.log("dddddddddddddddddddddddddddddddddddddddd: ", inspectionId)
       console.log("ddddddddddddddddddddddddddddddddddddddddddddddddd: ref : ", refIdVar)
-      const payload = {
+      const payload : any= {
         inspectionId: inspectionId,
         statusId: "20",
         userId: "3816881804355836",
@@ -92,13 +98,14 @@ const OngoingList: React.FC = () => {
   };
   
 
-  if (isLoading) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    )
-  }
+  if (isLoading && !refreshing) {
+       return (
+         <View style={styles.loadingContainer}>
+           <ActivityIndicator size="large" color="#0000ff" />
+           <Text style={styles.loadingText}>Loading...</Text>
+         </View>
+       )
+     }
 
   if (error) {
     return (
@@ -114,7 +121,8 @@ const OngoingList: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Text style={styles.listTitle}>Ongoing Inspections</Text>
-      <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <ScrollView contentContainerStyle={styles.scrollViewContent}
+       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {ongoingData.paginationListRecords.length > 0 ? (
           ongoingData.paginationListRecords.map((item) => (
             <TouchableOpacity key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
@@ -196,6 +204,17 @@ const styles = StyleSheet.create({
   },
   listItemBody: {
     marginTop: 4,
+  },
+  loadingText: {
+    textAlign: "center",
+    marginTop: 20,
+    color: "#333",
+    fontFamily: "Outfit",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   listItemText: {
     fontSize: 14,

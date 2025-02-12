@@ -1,7 +1,7 @@
 import type React from "react"
 // import Toast from "react-native-toast-message"
 import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Modal } from "react-native"
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Modal ,RefreshControl} from "react-native"
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import { getSecondaryOfficerEsignDetails, startInspection } from "../database/Officerviewapi"
 import { DataTable } from "react-native-paper"
@@ -34,8 +34,9 @@ const Acceptedlist: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false)
   const [officerData, setOfficerData] = useState<OfficerData[]>([])
   const [isStartingInspection, setIsStartingInspection] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
+
     const fetchAccepted = async () => {
       setIsLoading(true)
       setError(null)
@@ -52,7 +53,6 @@ const Acceptedlist: React.FC = () => {
           fsoName: null,
           kobId: null,
         }
-
         const result = await getAcceptedInspectionAttachmentCount(payload)
         setAcceptedData(result)
       } catch (error) {
@@ -60,11 +60,17 @@ const Acceptedlist: React.FC = () => {
         setError("Failed to load data. Please try again.")
       } finally {
         setIsLoading(false)
+        setRefreshing(false)
       }
     }
-
-    fetchAccepted()
-  }, [])
+useEffect(()=>{
+  fetchAccepted()
+},[])
+    
+const onRefresh = () => {
+  setRefreshing(true)
+  fetchAccepted()
+}
 
   const handleViewInspectionOfficers = async (item: any) => {
     try {
@@ -122,8 +128,8 @@ const Acceptedlist: React.FC = () => {
       setIsStartingInspection(false)
     }
   }
-
-  if (isLoading) {
+ 
+  if (isLoading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -141,7 +147,8 @@ const Acceptedlist: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container}  
+     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <Text style={styles.listTitle}>Accepted Inspections</Text>
       {acceptedData.paginationListRecords.length > 0 ? (
         acceptedData.paginationListRecords.map((item) => (

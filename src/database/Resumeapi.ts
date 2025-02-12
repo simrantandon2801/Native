@@ -31,7 +31,7 @@ interface MasterInspectionSectionResponse {
 
 export const getMasterInspectionSection = async (
   payload: MasterInspectionSectionPayload,
-): Promise<MasterInspectionSectionResponse[]> => {
+) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
