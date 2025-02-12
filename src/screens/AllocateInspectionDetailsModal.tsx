@@ -2,12 +2,14 @@
 
 import type React from "react"
 import { useState } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput } from "react-native"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput,Alert } from "react-native"
 import Modal from "react-native-modal"
 import { Picker } from "@react-native-picker/picker"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
 import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
-import MultiSelect from "react-native-multiple-select"
+// import MultiSelect from "react-native-multiple-select"
+// import { createInspection } from "../database/CreateInspection"
+import { createInspection,  } from "../database/CreateInspection"
 
 interface AllocateInspectionDetailsModalProps {
   isVisible: boolean
@@ -26,9 +28,16 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [inspectors, setInspectors] = useState([])
   // const [secondaryInspectors, setSecondaryInspectors] = useState([])
   const [selectedSecondaryInspectors, setSelectedSecondaryInspectors] = useState<Inspector[]>([])
+  const [isSecondaryModalVisible, setIsSecondaryModalVisible] = useState(false);
   // const [selectedSecondaryInspectors, setSelectedSecondaryInspectors] = useState<string[]>([])
+  const [secondaryInspectors, setSecondaryInspectors] = useState<Inspector[]>([]);
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false);
+
+  const toggleSecondaryPicker = () => {
+    setIsSecondaryPickerVisible(!isSecondaryPickerVisible);
+  };
   interface Inspector {
     fssaiUserId: string;
     fsoName: string;
@@ -48,7 +57,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     setSelectedSecondaryInspectors([])
     setRemarks("")
   }
-
+  const toggleSecondaryModal = () => setIsSecondaryModalVisible(!isSecondaryModalVisible);
   const fetchInspectors = async () => {
     try {
       const userId = "10000000016"
@@ -58,7 +67,26 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
       console.error("Error fetching inspectors:", error)
     }
   }
-
+  const handleSecondaryInspectorSelection = (inspectorId: string) => {
+    const isSelected = secondaryInspectors.some(
+      inspector => inspector.fssaiUserId === inspectorId
+    );
+    
+    if (isSelected) {
+      setSecondaryInspectors(
+        secondaryInspectors.filter(
+          inspector => inspector.fssaiUserId !== inspectorId
+        )
+      );
+    } else {
+      const inspector = selectedSecondaryInspectors.find(
+        i => i.fssaiUserId === inspectorId
+      );
+      if (inspector) {
+        setSecondaryInspectors([...secondaryInspectors, inspector]);
+      }
+    }
+  };
   const fetchSecondaryInspectors = async () => {
     try {
       const userId = "10000000016"
@@ -69,22 +97,54 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     }
   }
 
-  const handleSecondaryInspectorChange = (selectedKeys: string[]) => {
-    // Map the selected keys (fssaiUserId) to their corresponding Inspector objects
-    const updatedInspectors = inspectors.filter(inspector =>
-      selectedKeys.includes(inspector.fssaiUserId)
-    );
-    setSelectedSecondaryInspectors(updatedInspectors);
-  };
+  // const handleSecondaryInspectorChange = (selectedKeys: string[]) => {
+    
+  //   const updatedInspectors = inspectors.filter(inspector =>
+  //     selectedKeys.includes(inspector.fssaiUserId)
+  //   );
+  //   setSelectedSecondaryInspectors(updatedInspectors);
+  // };
 
-  const handleCreateInspection = () => {
-    console.log("Creating inspection with:", {
-      selectedInspector,
-      selectedSecondaryInspectors,
-      remarks,
-    })
+  const handleCreateInspection = async () => {
+    try {
+      const payload: any = {
+        displayRefId: data.displayRefId || "",
+        inspectionDate: "",
+        refId: data.refId || 0,
+        doRemarks: remarks,
+        fsoId: selectedInspector,
+        statusId: 17,
+        fsoAcknowledgement: true,
+        fsoName: inspectors.find((i) => i.fssaiUserId === selectedInspector)?.fsoName || "",
+        createdByName: "nhbsecretary", 
+        fsoAssignmentSecondaryOfficerRegistration: selectedSecondaryInspectors.map((inspector) => ({
+          refId: data.refId || 0,
+          fsoId: inspector.fssaiUserId,
+          createdBy: "10000000016",
+          updatedBy: "10000000016", 
+          inspectionType: "POST",
+          fsoName: inspector.fsoName,
+          createdByName: "nhbsecretary",
+          doRemarks: remarks,
+          officerType: "S",
+        })),
+        inspectionType: "POST",
+        createdBy: "10000000016", 
+        updatedBy: "10000000016", 
+        checkReschedule: false,
+      }
+  
+      const result = await createInspection(payload)
+      console.log("Inspection created:", result)
+  
    
-    closeAllocateModal()
+      Alert.alert("Inspection created successfully!")
+      closeAllocateModal()
+    } catch (error) {
+      console.error("Error creating inspection:", error)
+      
+      Alert.alert("Failed to create inspection. Please try again.")
+    }
   }
 
   return (
@@ -133,6 +193,8 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
         <View style={styles.allocateModalContainer}>
           <View style={styles.allocateModalContent}>
             <Text style={styles.allocateModalTitle}>Allocate Inspection</Text>
+
+            
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Primary Inspector</Text>
               <View style={styles.pickerContainer}>
@@ -155,27 +217,47 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
               />
             </View>
  
-           <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Secondary Inspectors</Text>
-              <MultiSelect
-  items={selectedSecondaryInspectors}
-  uniqueKey="fssaiUserId"
-  onSelectedItemsChange={handleSecondaryInspectorChange}
-  selectedItems={selectedSecondaryInspectors}
-  selectText="Select Secondary Inspectors"
-  searchInputPlaceholderText="Search Secondary Inspectors..."
-  tagRemoveIconColor="#CCC"
-  tagBorderColor="#CCC"
-  tagTextColor="#CCC"
-  selectedItemTextColor="#CCC"
-  selectedItemIconColor="#CCC"
-  itemTextColor="#000"
-  displayKey="fsoName"
-  searchInputStyle={{ color: "#CCC" }}
-  submitButtonColor="#CCC"
-  submitButtonText="Submit"
-/>
-            </View> 
+            <View style={styles.inputContainer}>
+  <Text style={styles.inputLabel}>Secondary Inspectors</Text>
+  <TouchableOpacity 
+    onPress={toggleSecondaryPicker} 
+    style={styles.pickerContainer}
+  >
+    <TextInput
+      style={styles.input}
+      value={
+        secondaryInspectors.length > 0
+          ? secondaryInspectors.map(inspector => inspector.fsoName).join(', ')
+          : 'Select Secondary Inspectors'
+      }
+      editable={false}
+      placeholder="Select Secondary Inspectors"
+    />
+  </TouchableOpacity>
+  
+  {isSecondaryPickerVisible && (
+    <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
+      <ScrollView style={{ maxHeight: 200 }}>
+        {selectedSecondaryInspectors.map((inspector, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.multiSelectItem,
+              secondaryInspectors.some(
+                si => si.fssaiUserId === inspector.fssaiUserId
+              ) && styles.multiSelectItemSelected
+            ]}
+            onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
+          >
+            <Text style={styles.multiSelectItemText}>
+              {inspector.fsoName}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
+  )}
+</View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Remarks</Text>
@@ -364,7 +446,28 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     padding: 5,
   },
+  multiSelectPicker: {
+    position: 'absolute',
+    top: 90,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    zIndex: 1000,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  multiSelectItem: {
+    padding: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  multiSelectItemSelected: {
+    backgroundColor: '#e6f3ff',
+  },
+  multiSelectItemText: {
+    fontSize: 16,
+  }
 })
 
 export default AllocateInspectionDetailsModal
-
