@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   ScrollView,
   RefreshControl,
+  Alert,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { Filter, X } from "lucide-react-native"
@@ -56,14 +57,29 @@ const AllocateInspection: React.FC = () => {
     fetchData()
   }, [])
 
-  const onRefresh = () => {
-    setRefreshing(true)
-    fetchData()
-  }
+  const onRefresh = async () => {
+    setRefreshing(true);
+    setSearchResults({ paginationListRecords: [] }); 
+  
+    try {
+      const updatedResults = await fetchData();
+      setSearchResults(updatedResults);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+  
 
   const toggleModal = () => {
+    if (!isModalVisible) {
+      // Reset all form fields when opening the modal
+      handleReset()
+    }
     setIsModalVisible(!isModalVisible)
   }
+
   if (isLoading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -74,7 +90,7 @@ const AllocateInspection: React.FC = () => {
   }
   const handleStateChange = async (stateCode: string) => {
     setSelectedState(stateCode)
-    setSelectedDistrict(stateCode)
+    setSelectedDistrict("") // Reset district when state changes
     setError(null)
 
     if (!stateCode) {
@@ -107,11 +123,7 @@ const AllocateInspection: React.FC = () => {
     setSelectedBusinessType("")
     setDistricts([])
     setError(null)
-  }
-
-  const handleCloseModal = () => {
-    handleReset()
-    toggleModal()
+    setSearchResults("")
   }
 
   return (
@@ -126,7 +138,7 @@ const AllocateInspection: React.FC = () => {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filter Inspection</Text>
-              <TouchableOpacity onPress={handleCloseModal} style={styles.closeIcon}>
+              <TouchableOpacity onPress={toggleModal} style={styles.closeIcon}>
                 <X size={24} color="#000" />
               </TouchableOpacity>
             </View>
@@ -172,7 +184,6 @@ const AllocateInspection: React.FC = () => {
                 <Picker
                   selectedValue={selectedDistrict}
                   onValueChange={handleDistrictChange}
-                  onValueChange={setSelectedDistrict}
                   style={styles.picker}
                   dropdownIconColor="#666"
                   enabled={!isLoadingDistricts && districts.length > 0}
@@ -209,6 +220,14 @@ const AllocateInspection: React.FC = () => {
               <TouchableOpacity
                 style={styles.applyButton}
                 onPress={async () => {
+                  if (!selectedState) {
+                    Alert.alert("Please select State")
+                    return
+                  } else if (!selectedDistrict) {
+                    Alert.alert("Please select District")
+                    return
+                  }
+
                   setIsSearching(true)
                   try {
                     const payload = {
@@ -226,11 +245,8 @@ const AllocateInspection: React.FC = () => {
                     }
 
                     console.log(" Payload before API call:", JSON.stringify(payload, null, 2))
-
                     const results = await searchApplications(payload)
-
                     console.log(" API response received:", results)
-
                     setSearchResults(results)
                     toggleModal()
                   } catch (error) {
