@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import type React from "react"
 import { useState, useEffect } from "react"
@@ -11,10 +11,11 @@ import {
   StyleSheet,
   SafeAreaView,
   ActivityIndicator,
-  ScrollView,RefreshControl
+  ScrollView,
+  RefreshControl,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
-import { Filter } from "lucide-react-native"
+import { Filter, X } from "lucide-react-native"
 import { getDistrictList, searchApplications } from "../database/Districtapi"
 import { getStateList, getBusinessTypes } from "../database/Statebusinessapi"
 import { getAllocateInspectionDetails } from "../database/ProceedAllocateapi"
@@ -22,7 +23,7 @@ import AllocateInspectionDetailsModal from "./AllocateInspectionDetailsModal"
 
 const AllocateInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [selectedState, setSelectedState] = useState("")
@@ -38,34 +39,32 @@ const AllocateInspection: React.FC = () => {
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
   const [selectedInspectionDetails, setSelectedInspectionDetails] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [stateCode, setstatecode] = useState("")
 
-
-    const fetchData = async () => {
-      try {
-        const stateData = await getStateList()
-        setStates(stateData)
-        const businessTypeData = await getBusinessTypes()
-        setBusinessTypes(businessTypeData)
-      } catch (err) {
-        console.error("Error fetching initial data:", err)
-        setError("Failed to fetch initial data")
-      }
+  const fetchData = async () => {
+    try {
+      const stateData = await getStateList()
+      setStates(stateData)
+      const businessTypeData = await getBusinessTypes()
+      setBusinessTypes(businessTypeData)
+    } catch (err) {
+      console.error("Error fetching initial data:", err)
+      setError("Failed to fetch initial data")
     }
-    useEffect(()=>{
-      fetchData()
+  }
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-    },[])
-       
-const onRefresh = () => {
-  setRefreshing(true)
-  fetchData()
-}
-  
+  const onRefresh = () => {
+    setRefreshing(true)
+    fetchData()
+  }
 
   const toggleModal = () => {
     setIsModalVisible(!isModalVisible)
   }
-if (isLoading && !refreshing) {
+  if (isLoading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
@@ -75,7 +74,7 @@ if (isLoading && !refreshing) {
   }
   const handleStateChange = async (stateCode: string) => {
     setSelectedState(stateCode)
-    setSelectedDistrict("")
+    setSelectedDistrict(stateCode)
     setError(null)
 
     if (!stateCode) {
@@ -87,7 +86,7 @@ if (isLoading && !refreshing) {
     try {
       const districtData = await getDistrictList(stateCode)
       setDistricts(districtData)
-    } catch (err) { 
+    } catch (err) {
       setError("Failed to fetch districts")
       console.error("Error fetching districts:", err)
       setDistricts([])
@@ -95,7 +94,11 @@ if (isLoading && !refreshing) {
       setIsLoadingDistricts(false)
     }
   }
-
+  const handleDistrictChange = (districtCode: string) => {
+    setSelectedDistrict(districtCode)
+    console.log("okayfine-----", setSelectedDistrict)
+    setError(null)
+  }
   const handleReset = () => {
     setReferenceNo("")
     setCompanyName("")
@@ -104,6 +107,11 @@ if (isLoading && !refreshing) {
     setSelectedBusinessType("")
     setDistricts([])
     setError(null)
+  }
+
+  const handleCloseModal = () => {
+    handleReset()
+    toggleModal()
   }
 
   return (
@@ -116,7 +124,12 @@ if (isLoading && !refreshing) {
       <Modal visible={isModalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Filter Inspection</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter Inspection</Text>
+              <TouchableOpacity onPress={handleCloseModal} style={styles.closeIcon}>
+                <X size={24} color="#000" />
+              </TouchableOpacity>
+            </View>
 
             <Text style={styles.label}>Reference Number</Text>
             <TextInput
@@ -158,6 +171,7 @@ if (isLoading && !refreshing) {
               ) : (
                 <Picker
                   selectedValue={selectedDistrict}
+                  onValueChange={handleDistrictChange}
                   onValueChange={setSelectedDistrict}
                   style={styles.picker}
                   dropdownIconColor="#666"
@@ -191,29 +205,36 @@ if (isLoading && !refreshing) {
               <TouchableOpacity onPress={handleReset} style={styles.closeButton}>
                 <Text style={styles.closeButtonText}>Reset</Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.applyButton}
                 onPress={async () => {
                   setIsSearching(true)
                   try {
                     const payload = {
-                      fssaiUserId: "10000000016",
+                      fssaiUserId: Number("10000000016"),
                       statusId: 5,
                       licenseCategoryId: 1,
-                      displayRefId: "",
-                      companyName: "",
-                      district: "",
-                      subDivision: "257",
+                      displayRefId: referenceNo,
+                      companyName: companyName,
+                      district: stateCode,
+                      subDivision: selectedDistrict,
                       fromDate: null,
                       toDate: null,
                       categoryId: "",
                       kobId: selectedBusinessType,
                     }
+
+                    console.log(" Payload before API call:", JSON.stringify(payload, null, 2))
+
                     const results = await searchApplications(payload)
+
+                    console.log(" API response received:", results)
+
                     setSearchResults(results)
                     toggleModal()
                   } catch (error) {
-                    console.error("Error searching applications:", error)
+                    console.error(" Error searching applications:", error)
                     setError("Failed to search applications")
                   } finally {
                     setIsSearching(false)
@@ -227,57 +248,61 @@ if (isLoading && !refreshing) {
           </View>
         </View>
       </Modal>
-      <ScrollView  refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {searchResults && searchResults.paginationListRecords ? (
-          searchResults.paginationListRecords.map((item, index) => (
-            <View key={index} style={styles.recordContainer}>
-              <View style={styles.column}>
-                <View style={styles.recordRow}>
-                  <Text style={styles.recordLabel}>Ref ID:</Text>
-                  <Text style={styles.recordValue}>{item.displayRefId}</Text>
+          searchResults.paginationListRecords.length > 0 ? (
+            searchResults.paginationListRecords.map((item, index) => (
+              <View key={index} style={styles.recordContainer}>
+                <View style={styles.column}>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Ref ID:</Text>
+                    <Text style={styles.recordValue}>{item.displayRefId}</Text>
+                  </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Premises Address:</Text>
+                    <Text style={styles.recordValue}>{item.addressPremises}</Text>
+                  </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Company Name:</Text>
+                    <Text style={styles.recordValue}>{item.companyName}</Text>
+                  </View>
                 </View>
-                <View style={styles.recordRow}>
-                  <Text style={styles.recordLabel}>Premises Address:</Text>
-                  <Text style={styles.recordValue}>{item.addressPremises}</Text>
-                </View>
-                <View style={styles.recordRow}>
-                  <Text style={styles.recordLabel}>Company Name:</Text>
-                  <Text style={styles.recordValue}>{item.companyName}</Text>
-                </View>
-              </View>
 
-              <View style={styles.column}>
-                <View style={styles.recordRow}>
-                  <Text style={styles.recordLabel}>Issue Date:</Text>
-                  <Text style={styles.recordValue}>{item.issuedDate}</Text>
+                <View style={styles.column}>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Issue Date:</Text>
+                    <Text style={styles.recordValue}>{item.issuedDate}</Text>
+                  </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Expiry Date:</Text>
+                    <Text style={styles.recordValue}>{item.expiryDate}</Text>
+                  </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Status:</Text>
+                    <Text style={styles.recordValue}>{item.statusDesc}</Text>
+                  </View>
                 </View>
-                <View style={styles.recordRow}>
-                  <Text style={styles.recordLabel}>Expiry Date:</Text>
-                  <Text style={styles.recordValue}>{item.expiryDate}</Text>
-                </View>
-                <View style={styles.recordRow}>
-                  <Text style={styles.recordLabel}>Status:</Text>
-                  <Text style={styles.recordValue}>{item.statusDesc}</Text>
-                </View>
-              </View>
 
-              <TouchableOpacity
-                style={styles.proceedButton}
-                onPress={async () => {
-                  try {
-                    const result = await getAllocateInspectionDetails(item.refId, item.certificateNo)
-                    console.log("Allocate Inspection Details Result:", result)
-                    setSelectedInspectionDetails(result)
-                    setIsDetailsModalVisible(true)
-                  } catch (error) {
-                    console.error("Error fetching Allocate Inspection Details:", error)
-                  }
-                }}
-              >
-                <Text style={styles.proceedButtonText}>Proceed</Text>
-              </TouchableOpacity>
-            </View>
-          ))
+                <TouchableOpacity
+                  style={styles.proceedButton}
+                  onPress={async () => {
+                    try {
+                      const result = await getAllocateInspectionDetails(item.refId, item.certificateNo)
+                      console.log("Allocate Inspection Details Result:", result)
+                      setSelectedInspectionDetails(result)
+                      setIsDetailsModalVisible(true)
+                    } catch (error) {
+                      console.error("Error fetching Allocate Inspection Details:", error)
+                    }
+                  }}
+                >
+                  <Text style={styles.proceedButtonText}>Proceed</Text>
+                </TouchableOpacity>
+              </View>
+            ))
+          ) : (
+            <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>No records found</Text>
+          )
         ) : (
           <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>No records found</Text>
         )}
@@ -474,6 +499,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#0000ff",
   },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  closeIcon: {
+    padding: 8,
+  },
 })
 
 export default AllocateInspection
+

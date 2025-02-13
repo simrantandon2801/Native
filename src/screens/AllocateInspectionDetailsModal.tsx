@@ -68,6 +68,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     }
   }
   const handleSecondaryInspectorSelection = (inspectorId: string) => {
+    if (inspectorId === selectedInspector) return // Prevent selecting the primary inspector
     setSecondaryInspectors((prevInspectors) => {
       const isSelected = prevInspectors.some((inspector) => inspector.fssaiUserId === inspectorId)
       if (isSelected) {
@@ -82,7 +83,9 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     try {
       const userId = "10000000016"
       const response = await getSecondaryInspectors(userId)
-      setSelectedSecondaryInspectors(response)
+      // Filter out the primary inspector from the secondary inspectors list
+      const filteredInspectors = response.filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+      setSelectedSecondaryInspectors(filteredInspectors)
     } catch (error) {
       console.error("Error fetching secondary inspectors:", error)
     }
@@ -99,8 +102,8 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const handleCreateInspection = async () => {
     try {
       const payload: any = {
-        displayRefId: data.displayRefId || "",
-        inspectionDate: "",
+        displayRefId: data.displayRefId,
+        // inspectionDate: "",
         refId: data.refId,
         doRemarks: remarks,
         fsoId: selectedInspector,
@@ -135,10 +138,6 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
 
       Alert.alert("Failed to create inspection. Please try again.")
     }
-  }
-
-  const resetSecondaryInspectors = () => {
-    setSecondaryInspectors([])
   }
 
   return (
@@ -193,7 +192,10 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={selectedInspector}
-                  onValueChange={(itemValue) => setSelectedInspector(itemValue)}
+                  onValueChange={(itemValue) => {
+                    setSelectedInspector(itemValue)
+                    setSecondaryInspectors([])
+                  }}
                   style={styles.picker}
                 >
                   <Picker.Item label="Select Primary Inspector" value="" />
@@ -230,30 +232,25 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
                     placeholder="Select Secondary Inspectors"
                   />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={resetSecondaryInspectors}
-                  style={styles.resetButton}
-                  disabled={!selectedInspector || secondaryInspectors.length === 0}
-                >
-                  <Text style={styles.resetButtonText}>Reset</Text>
-                </TouchableOpacity>
               </View>
               {isSecondaryPickerVisible && selectedInspector && (
                 <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
                   <ScrollView style={{ maxHeight: 200 }}>
-                    {selectedSecondaryInspectors.map((inspector, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        style={[
-                          styles.multiSelectItem,
-                          secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
-                            styles.multiSelectItemSelected,
-                        ]}
-                        onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
-                      >
-                        <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
-                      </TouchableOpacity>
-                    ))}
+                    {selectedSecondaryInspectors
+                      .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+                      .map((inspector, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          style={[
+                            styles.multiSelectItem,
+                            secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
+                              styles.multiSelectItemSelected,
+                          ]}
+                          onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
+                        >
+                          <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
+                        </TouchableOpacity>
+                      ))}
                   </ScrollView>
                 </View>
               )}
@@ -475,16 +472,6 @@ const styles = StyleSheet.create({
   secondaryInspectorContainer: {
     flexDirection: "row",
     alignItems: "center",
-  },
-  resetButton: {
-    backgroundColor: "#f0f0f0",
-    padding: 10,
-    borderRadius: 5,
-    marginLeft: 10,
-  },
-  resetButtonText: {
-    color: "#007bff",
-    fontWeight: "bold",
   },
 })
 

@@ -27,7 +27,7 @@ const encryptData = (data: string): string => {
     return CryptoJS.enc.Base64.stringify(encryptedData).toString()
   }
 
-export const getDistrictList = async (stateCode: string): Promise<any> => {
+export const getDistrictList = async (stateCode: string) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -70,44 +70,52 @@ export const getDistrictList = async (stateCode: string): Promise<any> => {
   }
 }
 
-export const searchApplications = async (payload: SearchPayload): Promise<any> => {
-    try {
-      const storedUserId = await AsyncStorage.getItem("userId")
-      const accessToken = await AsyncStorage.getItem("accessToken")
-      const xAuthUserId = encryptData(storedUserId || "")
-  
-      const apiUrl = `${BASE_URL}/gateway/officer/inspection/getsubmitedapplicationsregall/1`
-  
-      console.log("zindaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-      if (!accessToken || !storedUserId) {
-        throw new Error("No authentication token or user ID found")
-      }
-      console.log("mar gayaaaaaaaaaaaaaaaaaaaaaaaaaa")
-  
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${accessToken}`,
-          "X-Auth-User-Id": xAuthUserId,
-        },
-        body: JSON.stringify(payload),
-      }
-  
-    )
-    console.log("response api : ", response)
-  
-      if (!response.ok) {
-        const errorText = await response.text()
-        console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
-        throw new Error(`HTTP error! Status: ${response.status}`)
-      }
-  
-      const data = await response.json()
-      console.log("Search applications result:", data)
-      return data
-    } catch (error) {
-      console.error("Error in searchApplications:", error)
-      throw error
+export const searchApplications = async (payload: SearchPayload) => {
+  try {
+    console.log("🚀 searchApplications function called");
+
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const xAuthUserId = encryptData(storedUserId || "");
+
+    console.log("User ID:", storedUserId);
+    console.log(" Access Token:", accessToken ? "Token Present" : "Token Missing");
+
+    if (!accessToken || !storedUserId) {
+      console.error(" No authentication token or user ID found");
+      throw new Error("No authentication token or user ID found");
     }
+
+    console.log("Authentication check passed. Making API request...");
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getsubmitedapplicationsregall/1`;
+    console.log(" API URL:", apiUrl);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    console.log(" API Response:", response);
+    console.log(" API Response Status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(` HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log(" API Success. Response Data:", data);
+
+    return data;
+  } catch (error) {
+    console.error(" Error in searchApplications:", error);
+    throw error;
   }
+};
