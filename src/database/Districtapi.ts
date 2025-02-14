@@ -21,6 +21,7 @@ interface SearchPayload {
     toDate: string | null
     categoryId: string
     kobId: string
+   
   }
 const encryptData = (data: string): string => {
     const encryptedData = CryptoJS.HmacSHA256(data, SECRET_KEY)
@@ -72,7 +73,7 @@ export const getDistrictList = async (stateCode: string) => {
 
 export const searchApplications = async (payload: SearchPayload) => {
   try {
-    console.log("🚀 searchApplications function called");
+    console.log(" searchApplications function called");
 
     const storedUserId = await AsyncStorage.getItem("userId");
     const accessToken = await AsyncStorage.getItem("accessToken");
@@ -101,7 +102,7 @@ export const searchApplications = async (payload: SearchPayload) => {
       body: JSON.stringify(payload),
     });
 
-    console.log(" API Response:", response);
+    console.log(" API Response search api:", response);
     console.log(" API Response Status:", response.status);
 
     if (!response.ok) {
@@ -111,7 +112,7 @@ export const searchApplications = async (payload: SearchPayload) => {
     }
 
     const data = await response.json();
-    console.log(" API Success. Response Data:", data);
+    console.log(" API Success. search Response Data:", data);
 
     return data;
   } catch (error) {

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import {
   View,
   Text,
@@ -16,12 +16,13 @@ import {
   Alert,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import { Filter, X } from "lucide-react-native"
 import { getDistrictList, searchApplications } from "../database/Districtapi"
 import { getStateList, getBusinessTypes } from "../database/Statebusinessapi"
 import { getAllocateInspectionDetails } from "../database/ProceedAllocateapi"
 import AllocateInspectionDetailsModal from "./AllocateInspectionDetailsModal"
-
+import { useFocusEffect } from "@react-navigation/native"
 const AllocateInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -38,10 +39,20 @@ const AllocateInspection: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
-  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState(null)
+  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState<AllocateInspectionDetailsResponse | null>(null);
   const [refreshing, setRefreshing] = useState(false)
   const [stateCode, setstatecode] = useState("")
+  const [certificateNo, setCertificateNo] = useState<string>('');
+  const [refId, setRefId] = useState<string>('');
 
+  interface AllocateInspectionDetailsResponse {
+      refId: string;
+      certificateNo: string;
+      kobDetails?: { kobname: string }[];
+      inspectionDetails?: { key: string; value: string }[];
+    }
+  
+  
   const fetchData = async () => {
     try {
       const stateData = await getStateList()
@@ -56,25 +67,36 @@ const AllocateInspection: React.FC = () => {
   useEffect(() => {
     fetchData()
   }, [])
+  useFocusEffect(
+    useCallback(() => {
+      // Reset and refresh data when screen comes into focus
+      setSearchResults({ paginationListRecords: [] })
+      fetchData()
 
+      // Optional: Clean up function
+      return () => {
+        // Any cleanup if needed
+      }
+    }, []), // Empty dependency array since we want this to run every time the screen is focused
+  )
   const onRefresh = async () => {
-    setRefreshing(true);
-    setSearchResults({ paginationListRecords: [] }); 
-  
-    try {
-      const updatedResults = await fetchData();
-      setSearchResults(updatedResults);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-  
+  setRefreshing(true);
+  setSearchResults({ paginationListRecords: [] }); 
+
+  try {
+    const updatedResults = await fetchData(); 
+    setSearchResults(updatedResults);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  } finally {
+    setRefreshing(false);
+  }
+};
+
 
   const toggleModal = () => {
     if (!isModalVisible) {
-      // Reset all form fields when opening the modal
+      // Reset all form fields 
       handleReset()
     }
     setIsModalVisible(!isModalVisible)
@@ -90,7 +112,7 @@ const AllocateInspection: React.FC = () => {
   }
   const handleStateChange = async (stateCode: string) => {
     setSelectedState(stateCode)
-    setSelectedDistrict("") // Reset district when state changes
+    setSelectedDistrict("") // Reset district jab state changes
     setError(null)
 
     if (!stateCode) {
@@ -300,20 +322,36 @@ const AllocateInspection: React.FC = () => {
                 </View>
 
                 <TouchableOpacity
-                  style={styles.proceedButton}
-                  onPress={async () => {
-                    try {
-                      const result = await getAllocateInspectionDetails(item.refId, item.certificateNo)
-                      console.log("Allocate Inspection Details Result:", result)
-                      setSelectedInspectionDetails(result)
-                      setIsDetailsModalVisible(true)
-                    } catch (error) {
-                      console.error("Error fetching Allocate Inspection Details:", error)
-                    }
-                  }}
-                >
-                  <Text style={styles.proceedButtonText}>Proceed</Text>
-                </TouchableOpacity>
+  style={styles.proceedButton}
+  onPress={async () => {
+    try {
+      console.log("Fetching details for refId:", item.refId, "certificateNo:", item.certificateNo);
+      
+      
+      await AsyncStorage.setItem('refId', item.refId.toString());
+      await AsyncStorage.setItem('certificateNo', item.certificateNo.toString());
+      
+    
+      const storedRefId1 = await AsyncStorage.getItem('refId');
+      const storedCertificateNo1 = await AsyncStorage.getItem('certificateNo');
+      
+      console.log("Stored refId:", storedRefId1);
+      console.log("Stored certificateNo:", storedCertificateNo1);
+
+     
+      const result = await getAllocateInspectionDetails(item.refId, item.CertificateNo);
+      console.log("API Response:", result);
+
+      setSelectedInspectionDetails(result);
+      setIsDetailsModalVisible(true);
+    } catch (error) {
+      console.error("Error fetching Allocate Inspection Details:", error);
+    }
+  }}
+>
+  <Text style={styles.proceedButtonText}>Proceed</Text>
+</TouchableOpacity>
+
               </View>
             ))
           ) : (
@@ -324,10 +362,13 @@ const AllocateInspection: React.FC = () => {
         )}
       </ScrollView>
       <AllocateInspectionDetailsModal
-        isVisible={isDetailsModalVisible}
-        onClose={() => setIsDetailsModalVisible(false)}
-        data={selectedInspectionDetails}
-      />
+  isVisible={isDetailsModalVisible}
+  onClose={() => setIsDetailsModalVisible(false)}
+  data={selectedInspectionDetails || {}}
+  refId={refId}
+  certificateNo={certificateNo}
+/>
+
     </SafeAreaView>
   )
 }

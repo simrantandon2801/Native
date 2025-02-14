@@ -1,12 +1,13 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from "react-native"
 import Modal from "react-native-modal"
 import { Picker } from "@react-native-picker/picker"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
 import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 // import MultiSelect from "react-native-multiple-select"
 // import { createInspection } from "../database/CreateInspection"
 import { createInspection } from "../database/CreateInspection"
@@ -14,14 +15,23 @@ import { createInspection } from "../database/CreateInspection"
 interface AllocateInspectionDetailsModalProps {
   isVisible: boolean
   onClose: () => void
-  data: any
+  data?: {
+    kobDetails?: { kobname: string }[]
+    inspectionDetails?: { key: string; value: string }[]
+  }
+  refId?: string
+  certificateNo?: string
 }
 
 const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalProps> = ({
   isVisible,
   onClose,
   data,
+  refId,
+  certificateNo,
 }) => {
+  console.log("Modal Open:", isVisible)
+  console.log("Fetching details for refId:", refId, "certificateNo:", certificateNo)
   const [isAllocateModalVisible, setIsAllocateModalVisible] = useState(false)
   const [selectedInspector, setSelectedInspector] = useState("")
   const [remarks, setRemarks] = useState("")
@@ -34,7 +44,12 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false)
+  const [searchResults, setSearchResults] = useState<{ paginationListRecords?: any[] }>({})
+  const [refId1, setRefId1] = useState("")
+  const [certificateNo1, setCertificateNo1] = useState("")
 
+  //  const [certificateNumber, setCertificateNo] = useState<string>('');
+  //   const [refId1, setRefId] = useState<string>('');
   const toggleSecondaryPicker = () => {
     setIsSecondaryPickerVisible(!isSecondaryPickerVisible)
   }
@@ -42,14 +57,28 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     fssaiUserId: string
     fsoName: string
   }
+
   const openAllocateModal = () => {
     console.log("Opening Allocate Modal")
+    onClose() // Close the first modal
     setIsAllocateModalVisible(true)
     setSelectedInspector("")
     setSelectedSecondaryInspectors([])
     fetchInspectors()
     fetchSecondaryInspectors()
+    // fetchSearchResults()
+    // setSearchResults()
   }
+
+  useEffect(() => {
+    const func = async () => {
+      const storedRefId = await AsyncStorage.getItem("refId")
+      const storedCertificateNo = await AsyncStorage.getItem("certificateNo")
+      setRefId1(storedRefId || "")
+      setCertificateNo1(storedCertificateNo || "")
+    }
+    func()
+  }, [])
 
   const closeAllocateModal = () => {
     setIsAllocateModalVisible(false)
@@ -68,7 +97,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     }
   }
   const handleSecondaryInspectorSelection = (inspectorId: string) => {
-    if (inspectorId === selectedInspector) return // Prevent selecting the primary inspector
+    if (inspectorId === selectedInspector) return
     setSecondaryInspectors((prevInspectors) => {
       const isSelected = prevInspectors.some((inspector) => inspector.fssaiUserId === inspectorId)
       if (isSelected) {
@@ -83,21 +112,13 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     try {
       const userId = "10000000016"
       const response = await getSecondaryInspectors(userId)
-      // Filter out the primary inspector from the secondary inspectors list
+
       const filteredInspectors = response.filter((inspector) => inspector.fssaiUserId !== selectedInspector)
       setSelectedSecondaryInspectors(filteredInspectors)
     } catch (error) {
       console.error("Error fetching secondary inspectors:", error)
     }
   }
-
-  // const handleSecondaryInspectorChange = (selectedKeys: string[]) => {
-
-  //   const updatedInspectors = inspectors.filter(inspector =>
-  //     selectedKeys.includes(inspector.fssaiUserId)
-  //   );
-  //   setSelectedSecondaryInspectors(updatedInspectors);
-  // };
 
   const handleCreateInspection = async () => {
     try {
@@ -147,6 +168,17 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
           <View style={styles.modalContent}>
             <ScrollView>
               <Text style={styles.modalTitle}>Inspection Details</Text>
+
+              {/* <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Reference ID:</Text>
+                <Text style={styles.detailValue}>{refId1}</Text>
+              </View> */}
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Registration Number:</Text>
+                <Text style={styles.detailValue}>{certificateNo1}</Text>
+              </View>
+
               {data && data.kobDetails && data.kobDetails.length > 0 && (
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Business Type:</Text>
@@ -472,6 +504,44 @@ const styles = StyleSheet.create({
   secondaryInspectorContainer: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  recordContainer: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 16,
+  },
+  recordRow: {
+    marginBottom: 10,
+  },
+  recordLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 4,
+  },
+  recordValue: {
+    fontSize: 14,
+    color: "#333",
+    flexShrink: 1,
+  },
+  noRecordsText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#999",
+  },
+  column: {
+    flex: 1,
   },
 })
 

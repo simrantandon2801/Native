@@ -5,9 +5,6 @@ import "react-native-get-random-values";
 
 const SECRET_KEY = "LsiplyG3M1bX7Rg";
 
-interface AllocateInspectionDetailsResponse {
-  [key: string]: any;
-}
 
 export const encryptData = (data: string): string => {
   const encryptedData = CryptoJS.HmacSHA256(data, SECRET_KEY);
@@ -17,11 +14,12 @@ export const encryptData = (data: string): string => {
 export const getAllocateInspectionDetails = async (
   refId: string,
   certificateNo: string
-): Promise<AllocateInspectionDetailsResponse> => {
+) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId");
     const accessToken = await AsyncStorage.getItem("accessToken");
     const xAuthUserId = encryptData(storedUserId || "");
+
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found");
@@ -45,7 +43,7 @@ export const getAllocateInspectionDetails = async (
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
-    const data: AllocateInspectionDetailsResponse = await response.json();
+    const data = await response.json();
     console.log("Allocate Inspection Details result:", data);
     return data;
   } catch (error) {
