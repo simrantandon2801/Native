@@ -52,6 +52,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [certificateNo1, setCertificateNo1] = useState("")
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false)
   const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" });
+  const [loggedInUserId, setLoggedInUserId] = useState("");
   //  const [certificateNumber, setCertificateNo] = useState<string>('');
   //   const [refId1, setRefId] = useState<string>('');
   const toggleSecondaryPicker = () => {
@@ -64,8 +65,10 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
+        const storedUserId = await AsyncStorage.getItem("userId");
         const storedUserName = await AsyncStorage.getItem("loggedInUserName");
-        if (storedUserName) {
+        if (storedUserId &&storedUserName) {
+          setLoggedInUserId(storedUserId);
           setLoggedInUser({ name: storedUserName });
         } else {
           console.warn("No logged-in user found in AsyncStorage.");
@@ -345,9 +348,8 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   style={[styles.confirmButton, styles.createButton]}
   onPress={async () => {
     setIsConfirmModalVisible(false);
-    
+
     try {
-    
       console.log("Data object before sending payload:", data);
       if (!data) {
         console.error("Data is not available yet.");
@@ -355,52 +357,61 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
         return;
       }
 
-    
       console.log("Data keys:", Object.keys(data || {}));
 
-     
       const selectedInspectorDetails = inspectors.find((i) => i.fssaiUserId === selectedInspector);
-      const createdById = selectedInspectorDetails?.fssaiUserId || "10000000016";
-      // const createdByName1 = selectedInspectorDetails?.fsoName || "Default Name"; 
+      const createdById1 = loggedInUserId; 
       const createdByName = loggedInUser?.name 
-      const payload: any = {
-        
+
+     
+      const staticAssignment = {
+        refId: refId1,
+        fsoId: selectedInspector,
+        createdBy: createdById1,
+        updatedBy: createdById1,
+        inspectionType: "POST",
+        fsoName: selectedInspectorDetails?.fsoName || "",
+        createdByName: createdByName,
+        doRemarks: remarks,
+        officerType: "P",
+      };
+
+    
+      const dynamicAssignments = secondaryInspectors.map((inspector) => ({
+        refId: refId1,
+        fsoId: inspector.fssaiUserId,
+        createdBy: createdById1,
+        updatedBy: createdById1,
+        inspectionType: "POST",
+        fsoName: inspector.fsoName,
+        createdByName: createdByName,
+        doRemarks: remarks,
+        officerType: "S",
+      }));
+
+      
+      const fsoAssignmentSecondaryOfficerRegistration = [staticAssignment, ...dynamicAssignments];
+
+      // Final Payload
+      const payload = {
         refId: refId1,
         doRemarks: remarks,
         fsoId: selectedInspector,
         statusId: 17,
         fsoAcknowledgement: true,
-        createdBy: createdById,
-        updatedBy: createdById,
+        createdBy: createdById1,
+        updatedBy: createdById1,
         fsoName: selectedInspectorDetails?.fsoName || "",
         createdByName: createdByName,
-        officerType: "P",
-       
-        
-
-
-        fsoAssignmentSecondaryOfficerRegistration: secondaryInspectors.map((inspector) => ({
-          refId: refId1,
-          fsoId: inspector.fssaiUserId,
-          createdBy: createdById,
-          updatedBy: createdById,
-          inspectionType: "POST",
-          fsoName: inspector.fsoName,
-          createdByName: createdByName, //wrong
-          doRemarks: remarks,
-          officerType: "S",
-        })),
+        // officerType: "P",
+        fsoAssignmentSecondaryOfficerRegistration: fsoAssignmentSecondaryOfficerRegistration,
         inspectionType: "POST",
-        // createdBy: createdById,
-        // updatedBy: createdById,
         checkReschedule: false,
       };
 
       console.log("Final payload:", JSON.stringify(payload, null, 2));
-
       const result = await createInspection(payload);
       console.log("Inspection created:", result);
-
       Alert.alert("Success", "Inspection created successfully!");
       closeAllocateModal();
     } catch (error) {
