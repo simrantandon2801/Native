@@ -34,8 +34,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   refId,
   certificateNo,
 }) => {
-  console.log("Modal Open:", isVisible)
-  console.log("Fetching details for refId:", refId, "certificateNo:", certificateNo)
+
   const [isAllocateModalVisible, setIsAllocateModalVisible] = useState(false)
   const [selectedInspector, setSelectedInspector] = useState("")
   const [remarks, setRemarks] = useState("")
@@ -52,7 +51,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [refId1, setRefId1] = useState("")
   const [certificateNo1, setCertificateNo1] = useState("")
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false)
-
+  const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" });
   //  const [certificateNumber, setCertificateNo] = useState<string>('');
   //   const [refId1, setRefId] = useState<string>('');
   const toggleSecondaryPicker = () => {
@@ -62,6 +61,22 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     fssaiUserId: string
     fsoName: string
   }
+  useEffect(() => {
+    const fetchLoggedInUser = async () => {
+      try {
+        const storedUserName = await AsyncStorage.getItem("loggedInUserName");
+        if (storedUserName) {
+          setLoggedInUser({ name: storedUserName });
+        } else {
+          console.warn("No logged-in user found in AsyncStorage.");
+        }
+      } catch (error) {
+        console.error("Error fetching logged-in user:", error);
+      }
+    };
+
+    fetchLoggedInUser();
+  }, []);
 
   const openAllocateModal = () => {
     console.log("Opening Allocate Modal")
@@ -330,39 +345,58 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   style={[styles.confirmButton, styles.createButton]}
   onPress={async () => {
     setIsConfirmModalVisible(false);
+    
     try {
-      // Get the selected inspector's details
+    
+      console.log("Data object before sending payload:", data);
+      if (!data) {
+        console.error("Data is not available yet.");
+        Alert.alert("Error", "Data is missing. Please try again.");
+        return;
+      }
+
+    
+      console.log("Data keys:", Object.keys(data || {}));
+
+     
       const selectedInspectorDetails = inspectors.find((i) => i.fssaiUserId === selectedInspector);
       const createdById = selectedInspectorDetails?.fssaiUserId || "10000000016";
-      const createdByName = selectedInspectorDetails?.fsoName || "Default Name"; 
-
+      // const createdByName1 = selectedInspectorDetails?.fsoName || "Default Name"; 
+      const createdByName = loggedInUser?.name 
       const payload: any = {
-        displayRefId: data?.displayRefId,
-        refId: data?.refId,
+        
+        refId: refId1,
         doRemarks: remarks,
         fsoId: selectedInspector,
         statusId: 17,
         fsoAcknowledgement: true,
+        createdBy: createdById,
+        updatedBy: createdById,
         fsoName: selectedInspectorDetails?.fsoName || "",
-        createdByName: createdByName, 
+        createdByName: createdByName,
+        officerType: "P",
+       
+        
+
+
         fsoAssignmentSecondaryOfficerRegistration: secondaryInspectors.map((inspector) => ({
-          refId: data?.refId ,
+          refId: refId1,
           fsoId: inspector.fssaiUserId,
-          createdBy: inspector.fssaiUserId || createdById,
+          createdBy: createdById,
           updatedBy: createdById,
           inspectionType: "POST",
           fsoName: inspector.fsoName,
-          createdByName: createdByName, 
+          createdByName: createdByName, //wrong
           doRemarks: remarks,
           officerType: "S",
         })),
         inspectionType: "POST",
-        createdBy: createdById,
-        updatedBy: createdById,
+        // createdBy: createdById,
+        // updatedBy: createdById,
         checkReschedule: false,
       };
 
-      console.log("Sending payload:", JSON.stringify(payload, null, 2));
+      console.log("Final payload:", JSON.stringify(payload, null, 2));
 
       const result = await createInspection(payload);
       console.log("Inspection created:", result);
@@ -377,6 +411,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
 >
   <Text style={styles.buttonText}>Yes</Text>
 </TouchableOpacity>
+
 
 
           </View>

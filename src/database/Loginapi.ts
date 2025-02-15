@@ -81,6 +81,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
 
       await AsyncStorage.setItem("accessToken", data.accessToken)
       await AsyncStorage.setItem("userId", String(data.userId))
+      await AsyncStorage.setItem("loggedInUserName", username);
       console.log("reached J")
 
       // Store the Registration Inspection menu data
