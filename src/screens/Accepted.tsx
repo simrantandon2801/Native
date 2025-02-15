@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     textAlign: "center",
-    marginTop: 50,
+    marginTop: 42,
     color: "#fff",
     fontFamily: "Outfit",
   },

@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     textAlign: "center",
-    marginTop: 50,
+    marginTop: 40,
     color: "#fff",
     fontFamily: "Outfit",
   },

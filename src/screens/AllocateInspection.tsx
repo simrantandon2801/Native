@@ -73,11 +73,11 @@ const AllocateInspection: React.FC = () => {
       setSearchResults({ paginationListRecords: [] })
       fetchData()
 
-      // Optional: Clean up function
+    
       return () => {
-        // Any cleanup if needed
+       
       }
-    }, []), // Empty dependency array since we want this to run every time the screen is focused
+    }, []), 
   )
   const onRefresh = async () => {
   setRefreshing(true);
@@ -97,7 +97,7 @@ const AllocateInspection: React.FC = () => {
   const toggleModal = () => {
     if (!isModalVisible) {
       // Reset all form fields 
-      handleReset()
+      // handleReset()
     }
     setIsModalVisible(!isModalVisible)
   }

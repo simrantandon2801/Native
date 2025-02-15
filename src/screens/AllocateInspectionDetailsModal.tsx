@@ -1,16 +1,18 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from "react-native"
 import Modal from "react-native-modal"
 import { Picker } from "@react-native-picker/picker"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
 import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useFocusEffect } from "@react-navigation/native"
 // import MultiSelect from "react-native-multiple-select"
 // import { createInspection } from "../database/CreateInspection"
 import { createInspection } from "../database/CreateInspection"
+import { X } from "lucide-react-native";
 
 interface AllocateInspectionDetailsModalProps {
   isVisible: boolean
@@ -18,6 +20,8 @@ interface AllocateInspectionDetailsModalProps {
   data?: {
     kobDetails?: { kobname: string }[]
     inspectionDetails?: { key: string; value: string }[]
+    displayRefId?: string
+    refId?: string
   }
   refId?: string
   certificateNo?: string
@@ -47,6 +51,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [searchResults, setSearchResults] = useState<{ paginationListRecords?: any[] }>({})
   const [refId1, setRefId1] = useState("")
   const [certificateNo1, setCertificateNo1] = useState("")
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false)
 
   //  const [certificateNumber, setCertificateNo] = useState<string>('');
   //   const [refId1, setRefId] = useState<string>('');
@@ -120,46 +125,35 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     }
   }
 
-  const handleCreateInspection = async () => {
-    try {
-      const payload: any = {
-        displayRefId: data.displayRefId,
-        // inspectionDate: "",
-        refId: data.refId,
-        doRemarks: remarks,
-        fsoId: selectedInspector,
-        statusId: 17,
-        fsoAcknowledgement: true,
-        fsoName: inspectors.find((i) => i.fssaiUserId === selectedInspector)?.fsoName || "",
-        createdByName: "nhbsecretary",
-        fsoAssignmentSecondaryOfficerRegistration: selectedSecondaryInspectors.map((inspector) => ({
-          refId: data.refId || 0,
-          fsoId: inspector.fssaiUserId,
-          createdBy: "10000000016",
-          updatedBy: "10000000016",
-          inspectionType: "POST",
-          fsoName: inspector.fsoName,
-          createdByName: "nhbsecretary",
-          doRemarks: remarks,
-          officerType: "S",
-        })),
-        inspectionType: "POST",
-        createdBy: "10000000016",
-        updatedBy: "10000000016",
-        checkReschedule: false,
-      }
-
-      const result = await createInspection(payload)
-      console.log("Inspection created:", result)
-
-      Alert.alert("Inspection created successfully!")
-      closeAllocateModal()
-    } catch (error) {
-      console.error("Error creating inspection:", error)
-
-      Alert.alert("Failed to create inspection. Please try again.")
+  const handleCreateInspection = () => {
+    if (!selectedInspector) {
+      Alert.alert( "Please select a primary inspector")
+      return
     }
+
+    if (!remarks.trim()) {
+      Alert.alert( "Please enter remarks")
+      return
+    }
+
+    setIsConfirmModalVisible(true)
   }
+
+  const resetForm = useCallback(() => {
+    setSelectedInspector("")
+    setSecondaryInspectors([])
+    setRemarks("")
+    setIsSecondaryPickerVisible(false)
+  }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      resetForm()
+      return () => {
+
+      }
+    }, [resetForm]),
+  )
 
   return (
     <>
@@ -245,48 +239,59 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Secondary Inspectors</Text>
-              <View style={styles.secondaryInspectorContainer}>
-                <TouchableOpacity
-                  onPress={selectedInspector ? toggleSecondaryPicker : undefined}
-                  style={[styles.pickerContainer, !selectedInspector && styles.disabledPicker, { flex: 1 }]}
-                >
-                  <TextInput
-                    style={styles.input}
-                    value={
-                      !selectedInspector
-                        ? "No data available"
-                        : secondaryInspectors.length > 0
-                          ? secondaryInspectors.map((inspector) => inspector.fsoName).join(", ")
-                          : "Select Secondary Inspectors"
-                    }
-                    editable={false}
-                    placeholder="Select Secondary Inspectors"
-                  />
-                </TouchableOpacity>
-              </View>
-              {isSecondaryPickerVisible && selectedInspector && (
-                <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
-                  <ScrollView style={{ maxHeight: 200 }}>
-                    {selectedSecondaryInspectors
-                      .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
-                      .map((inspector, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          style={[
-                            styles.multiSelectItem,
-                            secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
-                              styles.multiSelectItemSelected,
-                          ]}
-                          onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
-                        >
-                          <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
-                        </TouchableOpacity>
-                      ))}
-                  </ScrollView>
-                </View>
-              )}
-            </View>
+  <Text style={styles.inputLabel}>Secondary Inspectors</Text>
+  <View style={styles.secondaryInspectorContainer}>
+    <TouchableOpacity
+      onPress={selectedInspector ? toggleSecondaryPicker : undefined}
+      style={[styles.pickerContainer, !selectedInspector && styles.disabledPicker, { flex: 1 }]}
+    >
+      <TextInput
+        style={styles.input}
+        value={
+          !selectedInspector
+            ? "No data available"
+            : secondaryInspectors.length > 0
+              ? secondaryInspectors.map((inspector) => inspector.fsoName).join(", ")
+              : "Select Secondary Inspectors"
+        }
+        editable={false}
+        placeholder="Select Secondary Inspectors"
+      />
+    </TouchableOpacity>
+  </View>
+
+ 
+  {isSecondaryPickerVisible && selectedInspector && (
+    <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
+      <ScrollView style={{ maxHeight: 200 }}>
+        {selectedSecondaryInspectors
+          .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+          .map((inspector, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.multiSelectItem,
+                secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
+                  styles.multiSelectItemSelected,
+              ]}
+              onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
+            >
+              <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
+            </TouchableOpacity>
+          ))}
+      </ScrollView>
+
+
+      <TouchableOpacity
+        onPress={() => setIsSecondaryPickerVisible(false)}
+        style={styles.closeIcon}
+      >
+        <X size={20} color="black" />
+      </TouchableOpacity>
+    </View>
+  )}
+</View>
+
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Remarks</Text>
@@ -306,6 +311,74 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
                 <Text style={styles.buttonText}>Create Inspection</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal isVisible={isConfirmModalVisible} onBackdropPress={() => setIsConfirmModalVisible(false)}>
+        <View style={styles.confirmModalContainer}>
+          <Text style={styles.confirmModalTitle}>Confirm Allocation</Text>
+          <Text style={styles.confirmModalText}>Are you sure you want to allocate this inspection?</Text>
+          <View style={styles.confirmButtonContainer}>
+            <TouchableOpacity
+              style={[styles.confirmButton, styles.cancelButton]}
+              onPress={() => setIsConfirmModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+  style={[styles.confirmButton, styles.createButton]}
+  onPress={async () => {
+    setIsConfirmModalVisible(false);
+    try {
+      // Get the selected inspector's details
+      const selectedInspectorDetails = inspectors.find((i) => i.fssaiUserId === selectedInspector);
+      const createdById = selectedInspectorDetails?.fssaiUserId || "10000000016";
+      const createdByName = selectedInspectorDetails?.fsoName || "Default Name"; 
+
+      const payload: any = {
+        displayRefId: data?.displayRefId,
+        refId: data?.refId,
+        doRemarks: remarks,
+        fsoId: selectedInspector,
+        statusId: 17,
+        fsoAcknowledgement: true,
+        fsoName: selectedInspectorDetails?.fsoName || "",
+        createdByName: createdByName, 
+        fsoAssignmentSecondaryOfficerRegistration: secondaryInspectors.map((inspector) => ({
+          refId: data?.refId ,
+          fsoId: inspector.fssaiUserId,
+          createdBy: inspector.fssaiUserId || createdById,
+          updatedBy: createdById,
+          inspectionType: "POST",
+          fsoName: inspector.fsoName,
+          createdByName: createdByName, 
+          doRemarks: remarks,
+          officerType: "S",
+        })),
+        inspectionType: "POST",
+        createdBy: createdById,
+        updatedBy: createdById,
+        checkReschedule: false,
+      };
+
+      console.log("Sending payload:", JSON.stringify(payload, null, 2));
+
+      const result = await createInspection(payload);
+      console.log("Inspection created:", result);
+
+      Alert.alert("Success", "Inspection created successfully!");
+      closeAllocateModal();
+    } catch (error) {
+      console.error("Error creating inspection:", error);
+      Alert.alert("Error", "Failed to create inspection. Please try again.");
+    }
+  }}
+>
+  <Text style={styles.buttonText}>Yes</Text>
+</TouchableOpacity>
+
+
           </View>
         </View>
       </Modal>
@@ -542,6 +615,43 @@ const styles = StyleSheet.create({
   },
   column: {
     flex: 1,
+  },
+  confirmModalContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  confirmModalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  confirmModalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  confirmButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  confirmButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: 100,
+  },
+  closeIcon: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
+    padding: 5,
+    backgroundColor: "#fff",
+    borderRadius: 50,
+    elevation: 3, 
   },
 })
 

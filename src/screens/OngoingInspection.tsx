@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     width: cardWidth,
     height: cardWidth,
     borderRadius: 12,
-    backgroundColor: "#ff9933", // Changed color to represent ongoing status
+    backgroundColor: "#ff9933", 
     marginBottom: 16,
     padding: 16,
     justifyContent: "space-between",
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     textAlign: "center",
-    marginTop: 50,
+    marginTop: 42,
     color: "#fff",
     fontFamily: "Outfit",
   },
