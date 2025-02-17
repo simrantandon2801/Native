@@ -25,6 +25,7 @@ interface AllocateInspectionDetailsModalProps {
   }
   refId?: string
   certificateNo?: string
+  displayRefId?:string
 }
 
 const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalProps> = ({
@@ -49,10 +50,12 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false)
   const [searchResults, setSearchResults] = useState<{ paginationListRecords?: any[] }>({})
   const [refId1, setRefId1] = useState("")
+  const[displayrefID1,setdisplayRefID1]=useState("")
   const [certificateNo1, setCertificateNo1] = useState("")
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false)
   const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" });
   const [loggedInUserId, setLoggedInUserId] = useState("");
+   const [referenceNo, setReferenceNo] = useState("")
   //  const [certificateNumber, setCertificateNo] = useState<string>('');
   //   const [refId1, setRefId] = useState<string>('');
   const toggleSecondaryPicker = () => {
@@ -97,8 +100,10 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     const func = async () => {
       const storedRefId = await AsyncStorage.getItem("refId")
       const storedCertificateNo = await AsyncStorage.getItem("certificateNo")
+      const storedDisplayrefID=await AsyncStorage.getItem('displayrefID')
       setRefId1(storedRefId || "")
       setCertificateNo1(storedCertificateNo || "")
+      setdisplayRefID1(storedDisplayrefID||"")
     }
     func()
   }, [])
@@ -396,6 +401,8 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
       const payload = {
         refId: refId1,
         doRemarks: remarks,
+        inspectionDate:"",
+        displayRefId:displayrefID1,
         fsoId: selectedInspector,
         statusId: 17,
         fsoAcknowledgement: true,
@@ -410,9 +417,9 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
       };
 
       console.log("Final payload:", JSON.stringify(payload, null, 2));
-      const result = await createInspection(payload);
+    const result=await createInspection(payload)
       console.log("Inspection created:", result);
-      Alert.alert("Success", "Inspection created successfully!");
+      // Alert.alert("Success", "Inspection created successfully!");
       closeAllocateModal();
     } catch (error) {
       console.error("Error creating inspection:", error);

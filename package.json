@@ -68,6 +68,7 @@
     "react-native-web": "^0.19.13",
     "react-native-webview": "^13.12.5",
     "react-navigation": "^5.0.0",
+    "react-paginate": "^8.3.0",
     "react-time-picker": "^7.0.0",
     "react-toastify": "^11.0.3",
     "recharts": "^2.15.0",

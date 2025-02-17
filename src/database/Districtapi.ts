@@ -10,7 +10,7 @@ interface DistrictPayload {
   viewFlag: string
 }
 interface SearchPayload {
-    fssaiUserId: number
+    fssaiUserId: string
     statusId: number
     licenseCategoryId: number
     displayRefId: string
@@ -21,6 +21,7 @@ interface SearchPayload {
     toDate: string | null
     categoryId: string
     kobId: string
+    // currentPageNo:string
    
   }
 const encryptData = (data: string): string => {
@@ -71,7 +72,7 @@ export const getDistrictList = async (stateCode: string) => {
   }
 }
 
-export const searchApplications = async (payload: SearchPayload) => {
+export const searchApplications = async (payload: SearchPayload,currentPage:number) => {
   try {
     console.log(" searchApplications function called");
 
@@ -89,7 +90,7 @@ export const searchApplications = async (payload: SearchPayload) => {
 
     console.log("Authentication check passed. Making API request...");
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getsubmitedapplicationsregall/1`;
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getsubmitedapplicationsregall/${currentPage}`;
     console.log(" API URL:", apiUrl);
 
     const response = await fetch(apiUrl, {
