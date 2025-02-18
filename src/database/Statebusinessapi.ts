@@ -11,6 +11,7 @@ export const encryptData = (data: string): string => {
 }
 
 interface StateListResponse {
+  
   id: number
   name: string
  
