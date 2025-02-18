@@ -35,7 +35,7 @@ const AllocateInspection: React.FC = () => {
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [districts, setDistricts] = useState<Array<any>>([])
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false)
-  const [districtName, setDistrictName] = useState<string>("");
+  const [districtName, setDistrictName] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [states, setStates] = useState<Array<any>>([])
   const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
@@ -46,14 +46,14 @@ const AllocateInspection: React.FC = () => {
     null,
   )
   const [refreshing, setRefreshing] = useState(false)
-  const [kobId, setKobId] = useState('');
+  const [kobId, setKobId] = useState("")
   const [stateCode, setstatecode] = useState("")
   const [certificateNo, setCertificateNo] = useState<string>("")
   const [refId, setRefId] = useState<string>("")
   const [displayRefId, setdisplayRefId] = useState<string>("")
-  const [currentPage, setCurrentPage] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
-  const [Totalpage, setTotalpage] = useState(10)
+  // const [Totalpage, setTotalpage] = useState()
   interface AllocateInspectionDetailsResponse {
     refId: string
     certificateNo: string
@@ -63,37 +63,37 @@ const AllocateInspection: React.FC = () => {
   useEffect(() => {
     const fetchKobId = async () => {
       try {
-        const storedKobId = await AsyncStorage.getItem('kobId'); 
-        console.log("Stored kobId from AsyncStorage:", storedKobId); 
+        const storedKobId = await AsyncStorage.getItem("kobId")
+        console.log("Stored kobId from AsyncStorage:", storedKobId)
 
         if (storedKobId) {
-          setKobId(storedKobId); 
+          setKobId(storedKobId)
         } else {
-          console.warn("No kobId found in AsyncStorage. Using fallback value.");
-          setKobId(selectedBusinessType); 
+          console.warn("No kobId found in AsyncStorage. Using fallback value.")
+          setKobId(selectedBusinessType)
         }
       } catch (err) {
-        console.error("Error fetching kobId from AsyncStorage:", err);
+        console.error("Error fetching kobId from AsyncStorage:", err)
       }
-    };
+    }
 
-    fetchKobId();
-  }, [selectedBusinessType]);
-  
+    fetchKobId()
+  }, [selectedBusinessType])
+
   useEffect(() => {
     const loadCompanyName = async () => {
       try {
-        const savedCompanyName = await AsyncStorage.getItem('companyName');
+        const savedCompanyName = await AsyncStorage.getItem("companyName")
         if (savedCompanyName) {
-          setCompanyName(savedCompanyName); 
+          setCompanyName(savedCompanyName)
         }
       } catch (error) {
-        console.error('Error loading companyName from AsyncStorage:', error);
+        console.error("Error loading companyName from AsyncStorage:", error)
       }
-    };
+    }
 
-    loadCompanyName();
-  }, []);
+    loadCompanyName()
+  }, [])
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
@@ -112,7 +112,7 @@ const AllocateInspection: React.FC = () => {
     fetchLoggedInUser()
   }, [])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const stateData = await getStateList()
       setStates(stateData)
@@ -122,18 +122,17 @@ const AllocateInspection: React.FC = () => {
       console.error("Error fetching initial data:", err)
       setError("Failed to fetch initial data")
     }
-  }
+  }, [])
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [fetchData])
   useFocusEffect(
     useCallback(() => {
-  
       setSearchResults({ paginationListRecords: [] })
       fetchData()
 
       return () => {}
-    }, []),
+    }, [fetchData]),
   )
   useEffect(() => {
     const func = async () => {
@@ -144,13 +143,11 @@ const AllocateInspection: React.FC = () => {
   }, [])
   const onRefresh = async () => {
     setRefreshing(true)
-    setCurrentPage(0)
-    setTotalpage(10)
+    setCurrentPage(1)
     setSearchResults({ paginationListRecords: [] })
 
     try {
-      const updatedResults = await fetchData()
-      setSearchResults(updatedResults)
+      await fetchData()
     } catch (error) {
       console.error("Error fetching data:", error)
     } finally {
@@ -174,7 +171,7 @@ const AllocateInspection: React.FC = () => {
   }
   const handleStateChange = async (stateCode: string) => {
     setSelectedState(stateCode)
-    setDistrictName(""); 
+    setDistrictName("")
     setSelectedDistrict("")
     setCompanyName("")
     setError(null)
@@ -197,29 +194,28 @@ const AllocateInspection: React.FC = () => {
     }
   }
   const handleDistrictChange = async (districtCode: string) => {
-    setSelectedDistrict(districtCode);
+    setSelectedDistrict(districtCode)
 
-   
-    const selectedDistrictObj = districts.find((district) => district.districtCode === districtCode);
+    const selectedDistrictObj = districts.find((district) => district.districtCode === districtCode)
     if (selectedDistrictObj) {
-        const newDistrictName = selectedDistrictObj.districtName;
-        setDistrictName(newDistrictName); 
-        await AsyncStorage.setItem("districtName", newDistrictName); 
+      const newDistrictName = selectedDistrictObj.districtName
+      setDistrictName(newDistrictName)
+      await AsyncStorage.setItem("districtName", newDistrictName)
     }
-};
-useEffect(() => {
-  const loadDistrictName = async () => {
+  }
+  useEffect(() => {
+    const loadDistrictName = async () => {
       try {
-          const storedDistrictName = await AsyncStorage.getItem("districtName");
-          if (storedDistrictName) {
-              setDistrictName(storedDistrictName); 
-          }
+        const storedDistrictName = await AsyncStorage.getItem("districtName")
+        if (storedDistrictName) {
+          setDistrictName(storedDistrictName)
+        }
       } catch (err) {
-          console.error("Error loading districtName from AsyncStorage:", err);
+        console.error("Error loading districtName from AsyncStorage:", err)
       }
-  };
-  loadDistrictName();
-}, []);
+    }
+    loadDistrictName()
+  }, [])
   const handleReset = () => {
     setReferenceNo("")
     setCompanyName("")
@@ -230,15 +226,15 @@ useEffect(() => {
     setError(null)
     setSearchResults("")
   }
-  const handlePageChange = async (selectedItem: { selected: number }) => {
-    const newPage = selectedItem.selected + 1
-    setCurrentPage(newPage)
-    await handleSearch(newPage)
+  const handlePageChange = async (newPage: number) => {
+    if (newPage >= 1) {
+      setCurrentPage(newPage)
+      await handleSearch(newPage)
+    }
   }
 
   const handleSearch = async (page: number) => {
-    setIsSearching(false)
-    const companyNmae = companyName
+    setIsSearching(true)
     try {
       const createdBy = loggedInUserId1
       const payload = {
@@ -246,7 +242,7 @@ useEffect(() => {
         statusId: 5,
         licenseCategoryId: 1,
         displayRefId: displayRefId,
-        companyName: companyNmae,
+        companyName: companyName,
         district: selectedState,
         subDivision: selectedDistrict,
         fromDate: null,
@@ -257,11 +253,18 @@ useEffect(() => {
 
       console.log("Payload before API call:", JSON.stringify(payload, null, 2))
       const results = await searchApplications(payload, page)
-      console.log("API response received:", results);
-      console.log("Search results:", results);
-      setSearchResults(results)
-      setTotalpage(results.totalPage)
-      setCompanyName("")
+      console.log("API response received:", results)
+
+   
+      if (page === 1) {
+        setSearchResults(results)
+      } else {
+        setSearchResults((prev) => ({
+          ...prev,
+          paginationListRecords: [...(prev?.paginationListRecords || []), ...(results?.paginationListRecords || [])],
+        }))
+      }
+
       setCurrentPage(page)
     } catch (error) {
       console.error("Error searching applications:", error)
@@ -271,35 +274,39 @@ useEffect(() => {
     }
   }
   useEffect(() => {
-    console.log("Updated search results:", searchResults);
-  }, [searchResults]);
+    console.log("Updated search results:", searchResults)
+  }, [searchResults])
   const renderPagination = () => {
-    const pageCount = Totalpage
+    const hasMorePages =
+      searchResults?.paginationListRecords?.length > 0 &&
+      searchResults?.paginationListRecords?.length >= itemsPerPage * currentPage
 
     return (
       <View style={styles.paginationContainer}>
         <TouchableOpacity
-          onPress={() => handlePageChange({ selected: currentPage - 2 })}
+          onPress={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
         >
           <Text style={styles.paginationButtonText}>Previous</Text>
         </TouchableOpacity>
 
-        <Text style={styles.paginationInfo}>
-          Page {currentPage}-{pageCount}
-        </Text>
+        <Text style={styles.paginationInfo}>Page {currentPage}</Text>
 
         <TouchableOpacity
-          onPress={() => handlePageChange({ selected: currentPage })}
-          disabled={currentPage === pageCount}
-          style={[styles.paginationButton, currentPage === pageCount && styles.disabledButton]}
+          onPress={() => handlePageChange(currentPage + 1)}
+          disabled={!hasMorePages}
+          style={[styles.paginationButton, !hasMorePages && styles.disabledButton]}
         >
           <Text style={styles.paginationButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
     )
   }
+  useEffect(() => {
+    console.log("Current Page:", currentPage)
+    // console.log("Total Pages:", Totalpage)
+  }, [currentPage])
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -328,15 +335,15 @@ useEffect(() => {
 
             <Text style={styles.label}>Company Name</Text>
             <TextInput
-  style={styles.input}
-  placeholder="Enter company name"
-  value={companyName}
-  onChangeText={async (text) => {
-    setCompanyName(text);
-    await AsyncStorage.setItem('companyName', text); 
-  }}
-  placeholderTextColor="#999"
-/>
+              style={styles.input}
+              placeholder="Enter company name"
+              value={companyName}
+              onChangeText={async (text) => {
+                setCompanyName(text)
+                await AsyncStorage.setItem("companyName", text)
+              }}
+              placeholderTextColor="#999"
+            />
 
             <Text style={styles.label}>State</Text>
             <View style={styles.pickerWrapper}>
@@ -420,60 +427,58 @@ useEffect(() => {
       <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {searchResults && searchResults.paginationListRecords && searchResults.paginationListRecords.length > 0 ? (
           <View>
-            {searchResults.paginationListRecords
-              .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-              .map((item, index) => (
-                <View key={index} style={styles.recordContainer}>
-                  <View style={styles.column}>
-                    <View style={styles.recordRow}>
-                      <Text style={styles.recordLabel}>Ref ID:</Text>
-                      <Text style={styles.recordValue}>{item.displayRefId}</Text>
-                    </View>
-                    <View style={styles.recordRow}>
-                      <Text style={styles.recordLabel}>Premises Address:</Text>
-                      <Text style={styles.recordValue}>{item.addressPremises}</Text>
-                    </View>
-                    <View style={styles.recordRow}>
-                      <Text style={styles.recordLabel}>Company Name:</Text>
-                      <Text style={styles.recordValue}>{item.companyName}</Text>
-                    </View>
+            {searchResults.paginationListRecords.map((item, index) => (
+              <View key={index} style={styles.recordContainer}>
+                <View style={styles.column}>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Ref ID:</Text>
+                    <Text style={styles.recordValue}>{item.displayRefId}</Text>
                   </View>
-
-                  <View style={styles.column}>
-                    <View style={styles.recordRow}>
-                      <Text style={styles.recordLabel}>Issue Date:</Text>
-                      <Text style={styles.recordValue}>{item.issuedDate}</Text>
-                    </View>
-                    <View style={styles.recordRow}>
-                      <Text style={styles.recordLabel}>Expiry Date:</Text>
-                      <Text style={styles.recordValue}>{item.expiryDate}</Text>
-                    </View>
-                    <View style={styles.recordRow}>
-                      <Text style={styles.recordLabel}>Status:</Text>
-                      <Text style={styles.recordValue}>{item.statusDesc}</Text>
-                    </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Premises Address:</Text>
+                    <Text style={styles.recordValue}>{item.addressPremises}</Text>
                   </View>
-
-                  <TouchableOpacity
-                    style={styles.proceedButton}
-                    onPress={async () => {
-                      try {
-                        await AsyncStorage.setItem("refId", item.refId.toString())
-                        await AsyncStorage.setItem("certificateNo", item.certificateNo.toString())
-                        await AsyncStorage.setItem("displayrefID", item.displayRefId.toString())
-
-                        const result = await getAllocateInspectionDetails(item.refId, item.CertificateNo)
-                        setSelectedInspectionDetails(result)
-                        setIsDetailsModalVisible(true)
-                      } catch (error) {
-                        console.error("Error fetching Allocate Inspection Details:", error)
-                      }
-                    }}
-                  >
-                    <Text style={styles.proceedButtonText}>Proceed</Text>
-                  </TouchableOpacity>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Company Name:</Text>
+                    <Text style={styles.recordValue}>{item.companyName}</Text>
+                  </View>
                 </View>
-              ))}
+
+                <View style={styles.column}>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Issue Date:</Text>
+                    <Text style={styles.recordValue}>{item.issuedDate}</Text>
+                  </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Expiry Date:</Text>
+                    <Text style={styles.recordValue}>{item.expiryDate}</Text>
+                  </View>
+                  <View style={styles.recordRow}>
+                    <Text style={styles.recordLabel}>Status:</Text>
+                    <Text style={styles.recordValue}>{item.statusDesc}</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.proceedButton}
+                  onPress={async () => {
+                    try {
+                      await AsyncStorage.setItem("refId", item.refId.toString())
+                      await AsyncStorage.setItem("certificateNo", item.certificateNo.toString())
+                      await AsyncStorage.setItem("displayrefID", item.displayRefId.toString())
+
+                      const result = await getAllocateInspectionDetails(item.refId, item.CertificateNo)
+                      setSelectedInspectionDetails(result)
+                      setIsDetailsModalVisible(true)
+                    } catch (error) {
+                      console.error("Error fetching Allocate Inspection Details:", error)
+                    }
+                  }}
+                >
+                  <Text style={styles.proceedButtonText}>Proceed</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
           </View>
         ) : (
           <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>
@@ -718,3 +723,4 @@ const styles = StyleSheet.create({
 })
 
 export default AllocateInspection
+
