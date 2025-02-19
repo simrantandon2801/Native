@@ -30,6 +30,7 @@ const AllocateInspection: React.FC = () => {
   const [companyName, setCompanyName] = useState("")
   const [selectedState, setSelectedState] = useState("")
   const [selectedDistrict, setSelectedDistrict] = useState("")
+  
   const [displayrefId1, setdisplayRefId1] = useState("")
   const [loggedInUserId1, setLoggedInUserId1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
@@ -235,6 +236,7 @@ const AllocateInspection: React.FC = () => {
 
   const handleSearch = async (page: number) => {
     setIsSearching(true)
+    setSearchResults([]);
     try {
       const createdBy = loggedInUserId1
       const payload = {

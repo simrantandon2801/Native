@@ -15,7 +15,7 @@ interface InspectionOfficerResponse {
   name: string
 }
 
-export const getInspectionOfficers = async (): Promise<InspectionOfficerResponse[]> => {
+export const getInspectionOfficers = async () => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
