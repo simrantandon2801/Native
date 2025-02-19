@@ -33,6 +33,7 @@ interface ListOffsounDerDoForRegResponse {
     }
 
     const apiUrl = `${BASE_URL}/gateway/officer/do/listoffsounderdoforreg/1/${userId}`
+    
 
     console.log("Making API request to:", apiUrl)
     console.log("X-Auth-User-Id:", xAuthUserId)

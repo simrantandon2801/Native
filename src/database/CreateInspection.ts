@@ -11,7 +11,7 @@ const SECRET_KEY = "LsiplyG3M1bX7Rg";
 interface CreateInspectionPayload {
   displayRefId: string;
   inspectionDate: string;
-  refId: string;
+  refId: number;
   doRemarks: string;
   fsoId: string;
   statusId: number;

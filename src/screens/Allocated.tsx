@@ -22,6 +22,9 @@ import { useFocusEffect } from "@react-navigation/native"
 import { searchApplicationsAllocated } from "../database/AllocatedInspectionn/SearchAllocatedApi"
 import { getInspectionOfficers } from "../database/AllocatedInspectionn/ooficerapi"
 import { getBusinessTypes } from "../database/Statebusinessapi"
+import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
+import { getListOffsounDerDoForReg } from "../database/Allocateapi"
+import { ReassignModal } from "./ReassignModal"
 const AllocatedInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
@@ -48,6 +51,7 @@ const [isLoading, setIsLoading] = useState(false)
   const [showToPicker, setShowToPicker] = useState(false)
  const [kobId, setKobId] = useState("")
    const [error, setError] = useState<string | null>(null)
+   const [isReassignModalVisible, setIsReassignModalVisible] = useState(false)
   // const [Totalpage, setTotalpage] = useState()
   
   useEffect(() => {
@@ -388,41 +392,86 @@ const [isLoading, setIsLoading] = useState(false)
             {searchResults && searchResults.paginationListRecords && searchResults.paginationListRecords.length > 0 ? (
               <View>
                 {searchResults.paginationListRecords.map((item, index) => (
-               <View key={index} style={styles.recordContainer}>
-               <View style={styles.column}>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Assignment ID:</Text>
-                   <Text style={styles.recordValue}>{item.assignmentId}</Text>
-                 </View>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Aplicnt Name:</Text>
-                   <Text style={styles.recordValue}>{item.companyName}</Text>
-                 </View>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Ref ID:</Text>
-                   <Text style={styles.recordValue}>{item.displayRefId}</Text>
-                 </View>
-               </View>
+              <View style={styles.recordContainer}>
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Assignment ID:</Text>
+                <Text style={styles.recordValue}>{item.assignmentId}</Text>
+              </View>
+              
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Aplicnt Name:</Text>
+                <Text style={styles.recordValue}>{item.companyName}</Text>
+              </View>
+              
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Ref ID:</Text>
+                <Text style={styles.recordValue}>{item.displayRefId}</Text>
+              </View>
+              
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Officer Name:</Text>
+                <Text style={styles.recordValue}>{item.fsoName}</Text>
+              </View>
+              
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Stage:</Text>
+                <Text style={styles.recordValue}>{item.statusDesc}</Text>
+              </View>
+              
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Remarks:</Text>
+                <Text style={styles.recordValue}>{item.raRemarks}</Text>
+              </View>
+              
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Inspection Date:</Text>
+                <Text style={styles.recordValue}>{item.inspectionDate}</Text>
+              </View>
+        
+              <View style={styles.buttonContainerp}>
+              {item.statusId === 17 && (
+  <View style={styles.container5}>
+   
+    {/* <Text style={styles.proceedButtonText}>pending / </Text> */}
+    
+ 
+    <TouchableOpacity
+      onPress={() => {
+        setIsReassignModalVisible(true)
+        console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
+      }}
+    >
+      <Text style={styles.linkText}>Reassign</Text>
+    </TouchableOpacity>
+  </View>
+)}
+                
+                {item.statusId === 18 && (
+  <View style={styles.container5}>
+  
+    <TouchableOpacity
+      onPress={() => {
+        console.log("Reschedule button pressed for Assignment ID:", item.assignmentId);
+      }}
+    >
+      <Text style={styles.linkText}>Reschedule</Text>
+    </TouchableOpacity>
 
-               <View style={styles.column}>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Officer Name:</Text>
-                   <Text style={styles.recordValue}>{item.fsoName}</Text>
-                 </View>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Stage:</Text>
-                   <Text style={styles.recordValue}>{item.statusDesc}</Text>
-                 </View>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Remarks:</Text>
-                   <Text style={styles.recordValue}>{item.raRemarks}</Text>
-                 </View>
-                 <View style={styles.recordRow}>
-                   <Text style={styles.recordLabel}>Inspection Date:</Text>
-                   <Text style={styles.recordValue}>{item.inspectionDate}</Text>
-                 </View>
-               </View>
-             </View>
+   
+    <Text style={styles.proceedButtonText}> / </Text>
+
+   
+    <TouchableOpacity
+      onPress={() => {
+        console.log("View button pressed for Assignment ID:", item.assignmentId);
+      }}
+    >
+      <Text style={styles.linkText}>View</Text>
+    </TouchableOpacity>
+  </View>
+)}
+              </View>
+            </View>
 
                 ))}
               </View>
@@ -433,14 +482,43 @@ const [isLoading, setIsLoading] = useState(false)
             )}
           </ScrollView>
           {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
-        
+          <View style={styles.overlay}>
+          <ReassignModal
+            isVisible={isReassignModalVisible}
+            
+            onClose={() => setIsReassignModalVisible(false)}
+            // assignmentId={selectedAssignmentId}
+            inspectors={inspectionOfficers}
+            onReassign={async (data) => {
+              try {
+              
+                console.log("Reassigning:", {
+                  // assignmentId: selectedAssignmentId,
+                  ...data,
+                })
+              
+                setIsReassignModalVisible(false)
+
+                handleSearch(currentPage)
+              } catch (error) {
+                console.error("Error reassigning inspector:", error)
+              }
+            } } assignmentId={""}      />
+            </View>
         </SafeAreaView>
       )
     }
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    
     backgroundColor: "#f5f5f5",
+  },
+  overlay:{
+    flex:1,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end', 
+
   },
   header: {
     flexDirection: "row",
@@ -459,6 +537,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
+  buttoncontainer1:{
+    // textAlign:'center',
+    
+
+
+  },
   column: {
     flex: 1,
     minWidth: "45%",
@@ -471,6 +555,7 @@ const styles = StyleSheet.create({
     padding: 20,
     maxHeight: "90%",
   },
+
   modalTitle: {
     fontSize: 20,
     fontWeight: "600",
@@ -495,36 +580,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     color: "#333",
   },
-  recordContainer: {
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 16,
-  },
-  recordRow: {
-    marginBottom: 10,
-  },
-  recordLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#666",
-    marginBottom: 4,
-  },
-  recordValue: {
-    fontSize: 14,
-    color: "#333",
-    flexShrink: 1,
-  },
+  
+ 
   noRecordsText: {
     fontSize: 16,
     fontWeight: "500",
@@ -547,12 +604,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#fff",
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-    marginTop: 16,
-  },
+ 
   closeButton: {
     flex: 1,
     padding: 14,
@@ -597,20 +649,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
-  proceedButton: {
-    backgroundColor: "#007bff",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 10,
-    alignItems: "center",
-    alignSelf: "flex-end",
-    width: 100,
-  },
-  proceedButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-  },
+ 
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -659,6 +699,69 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginHorizontal: 10,
   },
+  recordContainer: {
+    backgroundColor: '#fff',
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  recordRow: {
+    flexDirection: 'row',
+    paddingVertical: 6,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#eee',
+  },
+  recordLabel: {
+    flex: 0.4,
+    fontWeight: '600',
+    color: '#666',
+  },
+  recordValue: {
+    flex: 0.6,
+    color: '#333',
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 16,
+  },
+  buttonContainerp: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    marginTop: 16,
+  },
+  proceedButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    backgroundColor: '#f5f5f5',
+  },
+  proceedButtonText: {
+    color: '#666',
+    fontSize: 14,
+  },
+  linkText: {
+    color: '#007AFF',
+    // textDecorationLine: 'underline',
+  },
+  container5:{
+      flexDirection: 'row', 
+    alignItems: 'center',
+    backgroundColor:'aliceblue',
+    padding:10,
+    borderRadius:10
+  }
 })
 
 export default AllocatedInspection
