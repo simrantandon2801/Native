@@ -341,7 +341,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
       <Modal isVisible={isConfirmModalVisible} onBackdropPress={() => setIsConfirmModalVisible(false)}>
         <View style={styles.confirmModalContainer}>
           <Text style={styles.confirmModalTitle}>Confirm Allocation</Text>
-          <Text style={styles.confirmModalText}>Are you sure you want to allocate this inspection?</Text>
+          <Text style={styles.confirmModalText}>Are you sure you want to Continue?</Text>
           <View style={styles.confirmButtonContainer}>
             <TouchableOpacity
               style={[styles.confirmButton, styles.cancelButton]}

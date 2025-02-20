@@ -13,6 +13,7 @@ import {
   ScrollView,
   RefreshControl,ActivityIndicator
 } from "react-native"
+import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from "@react-native-picker/picker"
 import { Filter, X } from "lucide-react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
@@ -29,6 +30,7 @@ const AllocatedInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
   const [loggedInUserIdd1, setLoggedInUserIdd1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [fsoName, setfsoName] = useState("")
@@ -56,7 +58,14 @@ const [isLoading, setIsLoading] = useState(false)
    const [isReassignModalVisible, setIsReassignModalVisible] = useState(false)
    const [selectedAssignmentId, setSelectedAssignmentId] = useState("")
   // const [Totalpage, setTotalpage] = useState()
-  
+  const openModal = () => {
+    setIsViewModalVisible(true);
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setIsViewModalVisible(false);
+  };
   useEffect(() => {
     const fetchKobId = async () => {
       try {
@@ -101,21 +110,31 @@ const [isLoading, setIsLoading] = useState(false)
 
     loadCompanyName()
   }, [])
-  const onFromDateChange = (event: any, selectedDate?: Date) => {
-    setShowFromPicker(false)
-    if (selectedDate) {
-      setFromDate(selectedDate)
+  const onFromDateChange = (event, selectedDate) => {
+    setShowFromPicker(false);
+    if (event.type === 'set') {
+      setFromDate(selectedDate);
+     
+      if (toDate && selectedDate > toDate) {
+        setToDate(null);
+      }
     }
-  }
+  };
+
+  const onToDateChange = (event, selectedDate) => {
+    setShowToPicker(false);
+    if (event.type === 'set') {
+      setToDate(selectedDate);
+    }
+  };
+
+  // Helper function to display date or placeholder
+  const getDisplayDate = (date) => {
+    return date ? date.toLocaleDateString() : 'Select Date';
+  };
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const onToDateChange = (event: any, selectedDate?: Date) => {
-    setShowToPicker(false)
-    if (selectedDate) {
-      setToDate(selectedDate)
-    }
-    setShowFromPicker(true)
-  }
+ 
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
@@ -180,7 +199,20 @@ const [isLoading, setIsLoading] = useState(false)
     setSearchResults({ paginationListRecords: [] })
 
     setSearchResults("")
+    const today = new Date(); 
+    setFromDate(today); 
+    setToDate(today); 
+  
+    setShowFromPicker(false);
+    setShowToPicker(false);
   }
+  useFocusEffect(
+    useCallback(() => {
+      handleReset()
+      setCurrentPage(1)
+      setSearchResults({ paginationListRecords: [] })
+    }, []),
+  )
   const handlePageChange = async (newPage: number) => {
     if (newPage >= 1) {
       setCurrentPage(newPage);
@@ -297,27 +329,38 @@ const [isLoading, setIsLoading] = useState(false)
                 placeholderTextColor="#999"
               />
 
-              <Text style={styles.label}>Allocated Date From</Text>
-              <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
-                <Text>{fromDate.toLocaleDateString()}</Text>
-              </TouchableOpacity>
-              {showFromPicker && (
-                <DateTimePicker value={fromDate} mode="date" onChange={onFromDateChange} maximumDate={today} />
-              )}
+<Text style={styles.label}>Allocated Date From</Text>
+      <TouchableOpacity 
+        style={styles.input} 
+        onPress={() => setShowFromPicker(true)}
+      >
+        <Text>{getDisplayDate(fromDate)}</Text>
+      </TouchableOpacity>
+      {showFromPicker && (
+        <DateTimePicker
+          value={fromDate || today}
+          mode="date"
+          onChange={onFromDateChange}
+          maximumDate={today}
+        />
+      )}
 
-              <Text style={styles.label}>Allocated Date To</Text>
-              <TouchableOpacity style={styles.input} onPress={() => setShowToPicker(true)}>
-                <Text>{toDate.toLocaleDateString()}</Text>
-              </TouchableOpacity>
-              {showToPicker && (
-                <DateTimePicker
-                  value={toDate}
-                  mode="date"
-                  onChange={onToDateChange}
-                  // minimumDate={fromDate}
-                  maximumDate={today}
-                />
-              )}
+      <Text style={styles.label}>Allocated Date To</Text>
+      <TouchableOpacity 
+        style={styles.input} 
+        onPress={() => setShowToPicker(true)}
+      >
+        <Text>{getDisplayDate(toDate)}</Text>
+      </TouchableOpacity>
+      {showToPicker && (
+        <DateTimePicker
+          value={toDate || today}
+          mode="date"
+          onChange={onToDateChange}
+          minimumDate={fromDate} // Enable this to enforce from date as minimum
+          maximumDate={today}
+        />
+      )}
 
               <Text style={styles.label}>Inspection Type</Text>
               <View style={styles.pickerWrapper}>
@@ -402,7 +445,7 @@ const [isLoading, setIsLoading] = useState(false)
               </View>
               
               <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Aplicnt Name:</Text>
+                <Text style={styles.recordLabel}>Aplicant Name:</Text>
                 <Text style={styles.recordValue}>{item.companyName}</Text>
               </View>
               
@@ -428,7 +471,13 @@ const [isLoading, setIsLoading] = useState(false)
               
               <View style={styles.recordRow}>
                 <Text style={styles.recordLabel}>Inspection Date:</Text>
-                <Text style={styles.recordValue}>{item.inspectionDate}</Text>
+                <Text style={styles.recordValue}>{item.createdOn}</Text>
+              </View>
+              <View style={styles.recordRow}>
+                <Text style={styles.recordLabel}>Inspection Date:</Text>
+                <Text style={styles.recordValue}>{item.
+inspectionType
+}</Text>
               </View>
         
               <View style={styles.buttonContainerp}>
@@ -475,10 +524,28 @@ const [isLoading, setIsLoading] = useState(false)
     <TouchableOpacity
       onPress={() => {
         console.log("View button pressed for Assignment ID:", item.assignmentId);
+        openModal()
       }}
     >
       <Text style={styles.linkText}>View</Text>
     </TouchableOpacity>
+    <Modal visible={isViewModalVisible} animationType="none" transparent={true}>
+  <View style={styles.modalContainerA}>
+    <View style={styles.modalContentA}>
+  
+      <TouchableOpacity 
+        style={styles.closeIcon} 
+        onPress={closeModal}
+      >
+        <X size={24} color="#000" />
+      </TouchableOpacity>
+
+     
+      <Text style={styles.modalTitleA}>View Details</Text>
+      <Text>{item.rejectedRemarks}</Text>
+    </View>
+  </View>
+</Modal>
   </View>
 )}
               </View>
@@ -525,6 +592,24 @@ const styles = StyleSheet.create({
     flex: 1,
     
     backgroundColor: "#f5f5f5",
+  },
+  modalContainerA: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+  },
+  modalContentA: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalTitleA: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   overlay:{
     flex:1,
@@ -681,6 +766,8 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     padding: 8,
+    left:100,
+
   },
   paginationContainer: {
     flexDirection: "row",

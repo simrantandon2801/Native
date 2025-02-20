@@ -78,8 +78,8 @@ export const reassignInspection = async (payload: ReassignInspectionPayload) => 
       throw new Error(`Unexpected status code: ${data.statusCode}`)
     }
   } catch (error) {
-    console.error("Error in reassignInspection:", error)
-    Alert.alert("Error", "An unexpected error occurred. Please try again later.")
+    console.error("Error in re-assignInspection:", error)
+    Alert.alert("Inspection not reassign this time.")
     throw error
   }
 }

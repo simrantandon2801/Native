@@ -17,7 +17,7 @@ interface ReassignModalProps {
   isVisible: boolean
   onClose: () => void
   assignmentId: string
-  
+
   refId: string
   createdByName: string
   onReassign: (data: {
@@ -31,7 +31,7 @@ export function ReassignModal({
   isVisible,
   onClose,
   assignmentId,
- 
+
   refId,
   createdByName,
   onReassign,
@@ -49,6 +49,8 @@ export function ReassignModal({
   const [isLoading, setIsLoading] = useState(false)
   const [selectedAssignmentId, setSelectedAssignmentId] = useState("")
   const [refIdd, setRefId] = useState("")
+
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   useEffect(() => {
     setSelectedAssignmentId(assignmentId.toString())
@@ -107,9 +109,8 @@ export function ReassignModal({
   useEffect(() => {
     const func = async () => {
       const storedRefId = await AsyncStorage.getItem("refId")
-   
+
       setRefId(storedRefId || "")
-     
     }
     func()
   }, [])
@@ -172,6 +173,12 @@ export function ReassignModal({
       return
     }
 
+    // Show confirmation modal
+    setShowConfirmModal(true)
+  }
+
+  const confirmReassign = async () => {
+    setShowConfirmModal(false)
     setIsLoading(true)
     try {
       const selectedPrimaryInspector = inspectors.find((inspector) => inspector.fssaiUserId === selectedInspector)
@@ -351,6 +358,27 @@ export function ReassignModal({
           </ScrollView>
         </View>
       </View>
+
+      {/* Confirmation Modal */}
+      <Modal visible={showConfirmModal} transparent animationType="fade">
+        <View style={styles.confirmModalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <Text style={styles.confirmModalTitle}>Confirm Reassignment</Text>
+            <Text style={styles.confirmModalText}>Are you sure you want to reassign this inspection?</Text>
+            <View style={styles.confirmModalButtons}>
+              <TouchableOpacity style={styles.confirmModalButton} onPress={() => setShowConfirmModal(false)}>
+                <Text style={styles.confirmModalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmModalButton, styles.confirmModalButtonConfirm]}
+                onPress={confirmReassign}
+              >
+                <Text style={[styles.confirmModalButtonText, styles.confirmModalButtonTextConfirm]}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </Modal>
   )
 }
@@ -470,6 +498,47 @@ const styles = StyleSheet.create({
     color: "#007AFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  confirmModalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  confirmModalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    width: "80%",
+    maxWidth: 400,
+  },
+  confirmModalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  confirmModalText: {
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  confirmModalButtons: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+  },
+  confirmModalButton: {
+    padding: 10,
+    marginLeft: 10,
+  },
+  confirmModalButtonConfirm: {
+    backgroundColor: "#007AFF",
+    borderRadius: 5,
+  },
+  confirmModalButtonText: {
+    fontSize: 16,
+    color: "#007AFF",
+  },
+  confirmModalButtonTextConfirm: {
+    color: "#fff",
   },
 })
 
