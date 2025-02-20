@@ -17,6 +17,8 @@ export const getSecondaryInspectors = async (userId: string)=> {
     const xAuthUserId = encryptData(storedUserId || "")
 
     const apiUrl = `${BASE_URL}/gateway/officer/do/listoffsounderdoforregforsecondaryofficers/1/${userId}`
+    
+
     console.log("UserId:", userId)
 
     if (!accessToken || !storedUserId) {

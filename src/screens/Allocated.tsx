@@ -32,6 +32,7 @@ const AllocatedInspection: React.FC = () => {
   const [loggedInUserIdd1, setLoggedInUserIdd1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [fsoName, setfsoName] = useState("")
+   const [refId, setRefId] = useState<string>("")
   const [refreshing, setRefreshing] = useState(false)
   const [displayRefId, setdisplayRefId] = useState("")
   const [itemsPerPage] = useState(10)
@@ -40,6 +41,7 @@ const AllocatedInspection: React.FC = () => {
    const [currentPage, setCurrentPage] = useState(1)
   const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
   const [isSearching, setIsSearching] = useState(false)
+
   const [searchResults, setSearchResults] = useState<any>(null)
   const [showFromPicker, setShowFromPicker] = useState(false)
   const [selectedInspectionType, setSelectedInspectionType] = useState("")
@@ -52,6 +54,7 @@ const [isLoading, setIsLoading] = useState(false)
  const [kobId, setKobId] = useState("")
    const [error, setError] = useState<string | null>(null)
    const [isReassignModalVisible, setIsReassignModalVisible] = useState(false)
+   const [selectedAssignmentId, setSelectedAssignmentId] = useState("")
   // const [Totalpage, setTotalpage] = useState()
   
   useEffect(() => {
@@ -434,15 +437,23 @@ const [isLoading, setIsLoading] = useState(false)
    
     {/* <Text style={styles.proceedButtonText}>pending / </Text> */}
     
- 
-    <TouchableOpacity
-      onPress={() => {
-        setIsReassignModalVisible(true)
-        console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
-      }}
-    >
-      <Text style={styles.linkText}>Reassign</Text>
-    </TouchableOpacity>
+   
+
+<TouchableOpacity
+  onPress={async () => {
+    try {
+      await AsyncStorage.setItem("refId", item.refId.toString())
+      // await AsyncStorage.setItem('selectedAssignmentId', item.assignmentId);
+      setSelectedAssignmentId(item.assignmentId);
+      setIsReassignModalVisible(true);
+      console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
+    } catch (error) {
+      console.error("Error saving assignment ID to AsyncStorage:", error);
+    }
+  }}
+>
+  <Text style={styles.linkText}>Reassign</Text>
+</TouchableOpacity>
   </View>
 )}
                 
@@ -487,13 +498,14 @@ const [isLoading, setIsLoading] = useState(false)
             isVisible={isReassignModalVisible}
             
             onClose={() => setIsReassignModalVisible(false)}
-            // assignmentId={selectedAssignmentId}
+            assignmentId={selectedAssignmentId}
+            refId={refId}
             inspectors={inspectionOfficers}
             onReassign={async (data) => {
               try {
               
                 console.log("Reassigning:", {
-                  // assignmentId: selectedAssignmentId,
+                  assignmentId: selectedAssignmentId,
                   ...data,
                 })
               
@@ -503,7 +515,7 @@ const [isLoading, setIsLoading] = useState(false)
               } catch (error) {
                 console.error("Error reassigning inspector:", error)
               }
-            } } assignmentId={""}      />
+            } }     />
             </View>
         </SafeAreaView>
       )

@@ -1,10 +1,13 @@
 "use client"
 import { useState, useEffect } from "react"
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ScrollView } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ScrollView, Alert } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { X } from "lucide-react-native"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
+import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { reassignInspection } from "../database/AllocatedInspectionn/ReassignInspection"
+
 interface Inspector {
   fsoName: string
   fssaiUserId: string
@@ -14,7 +17,9 @@ interface ReassignModalProps {
   isVisible: boolean
   onClose: () => void
   assignmentId: string
-  inspectors: Inspector[]
+  
+  refId: string
+  createdByName: string
   onReassign: (data: {
     primaryInspector: string
     secondaryInspectors: Inspector[]
@@ -22,26 +27,43 @@ interface ReassignModalProps {
   }) => void
 }
 
-export function ReassignModal({ isVisible, onClose, assignmentId, onReassign }: ReassignModalProps) {
+export function ReassignModal({
+  isVisible,
+  onClose,
+  assignmentId,
+ 
+  refId,
+  createdByName,
+  onReassign,
+}: ReassignModalProps) {
   const [selectedInspector, setSelectedInspector] = useState("")
   const [remarks, setRemarks] = useState("")
   const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false)
   const [selectedSecondaryInspectors, setSelectedSecondaryInspectors] = useState<Inspector[]>([])
   const [secondaryInspectors, setSecondaryInspectors] = useState<Inspector[]>([])
-  const [inspectors, setInspectors] = useState([])
+  const [inspectors, setInspectors] = useState<Inspector[]>([])
   const [loggedInUserIdd1, setLoggedInUserIdd1] = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" })
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState("")
+  const [refIdd, setRefId] = useState("")
+
+  useEffect(() => {
+    setSelectedAssignmentId(assignmentId.toString())
+  }, [assignmentId])
+
   const toggleSecondaryPicker = () => {
     setIsSecondaryPickerVisible(!isSecondaryPickerVisible)
   }
+
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
-        const storedUserId = await AsyncStorage.getItem("userId")
-
-        if (storedUserId) {
-          setLoggedInUserIdd1(storedUserId)
+        const storedUserName = await AsyncStorage.getItem("loggedInUserName")
+        if (storedUserName) {
+          setLoggedInUser({ name: storedUserName })
         } else {
           console.warn("No logged-in user found in AsyncStorage.")
         }
@@ -53,53 +75,178 @@ export function ReassignModal({ isVisible, onClose, assignmentId, onReassign }: 
     fetchLoggedInUser()
   }, [])
   useEffect(() => {
+    const func = async () => {
+      const storedRefId = await AsyncStorage.getItem("refId")
+
+      setRefId(storedRefId || "")
+    }
+    func()
+  }, [])
+  useEffect(() => {
+    const fetchLoggedInUser = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem("userId")
+        if (storedUserId) {
+          setLoggedInUserIdd1(storedUserId)
+        } else {
+          console.warn("No logged-in user found in AsyncStorage.")
+        }
+      } catch (error) {
+        console.error("Error fetching logged-in user:", error)
+      }
+    }
+    fetchLoggedInUser()
+  }, [])
+
+  useEffect(() => {
     if (loggedInUserIdd1) {
       fetchInspectors()
+      fetchSecondaryInspectors()
     }
   }, [loggedInUserIdd1])
+  useEffect(() => {
+    const func = async () => {
+      const storedRefId = await AsyncStorage.getItem("refId")
+   
+      setRefId(storedRefId || "")
+     
+    }
+    func()
+  }, [])
   const fetchInspectors = async () => {
     try {
       setLoading(true)
       const response = await getListOffsounDerDoForReg(loggedInUserIdd1)
-      console.log(response, "API Response")
-
+      if (response && Array.isArray(response)) {
+        setInspectors(response)
+      } else {
+        console.warn("Invalid or empty response from API:", response)
+      }
     } catch (error) {
       console.error("Error fetching inspectors:", error)
-    //   setError("Failed to fetch inspectors")
+      setError("Failed to fetch inspectors")
     } finally {
       setLoading(false)
     }
   }
-  //   const handleSecondaryInspectorSelection = (inspectorId: string) => {
-  //     const inspector = selectedSecondaryInspectors.find((insp) => insp.fssaiUserId === inspectorId)
-  //     if (!inspector) return
 
-  //     setSecondaryInspectors((prev) => {
-  //       const exists = prev.some((si) => si.fssaiUserId === inspectorId)
-  //       if (exists) {
-  //         return prev.filter((si) => si.fssaiUserId !== inspectorId)
-  //       } else {
-  //         return [...prev, inspector]
-  //       }
-  //     })
-  //   }
-
-  const handleSubmit = () => {
-    onReassign({
-      primaryInspector: selectedInspector,
-      secondaryInspectors,
-      remarks,
+  const handleSecondaryInspectorSelection = (inspectorId: string) => {
+    if (inspectorId === selectedInspector) return
+    setSecondaryInspectors((prevInspectors) => {
+      const isSelected = prevInspectors.some((inspector) => inspector.fssaiUserId === inspectorId)
+      if (isSelected) {
+        return prevInspectors.filter((inspector) => inspector.fssaiUserId !== inspectorId)
+      } else {
+        const inspector = selectedSecondaryInspectors.find((i) => i.fssaiUserId === inspectorId)
+        return inspector ? [...prevInspectors, inspector] : prevInspectors
+      }
     })
-    onClose()
+  }
+
+  const fetchSecondaryInspectors = async () => {
+    try {
+      const response = await getSecondaryInspectors(loggedInUserIdd1)
+      const filteredInspectors = response.filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+      setSelectedSecondaryInspectors(filteredInspectors)
+    } catch (error) {
+      console.error("Error fetching secondary inspectors:", error)
+      setError("Failed to fetch secondary inspectors")
+    }
+  }
+
+  const resetFields = () => {
+    setSelectedInspector("")
+    setRemarks("")
+    setSecondaryInspectors([])
+    setIsSecondaryPickerVisible(false)
+  }
+
+  const handleReassign = async () => {
+    if (!selectedInspector) {
+      Alert.alert("Error", "Please select a primary inspector")
+      return
+    }
+
+    if (!remarks.trim()) {
+      Alert.alert("Error", "Please enter remarks")
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const selectedPrimaryInspector = inspectors.find((inspector) => inspector.fssaiUserId === selectedInspector)
+
+      if (!selectedPrimaryInspector) {
+        throw new Error("Selected primary inspector not found")
+      }
+      const createdByName = loggedInUser?.name
+      const staticAssignment = {
+        refId: refIdd,
+        fsoId: selectedPrimaryInspector.fssaiUserId,
+        createdBy: loggedInUserIdd1,
+        updatedBy: loggedInUserIdd1,
+        inspectionType: "POST",
+        fsoName: selectedPrimaryInspector.fsoName,
+        createdByName: createdByName,
+        doRemarks: remarks,
+        officerType: "P",
+        assignmentId: assignmentId,
+      }
+
+      const dynamicAssignments = secondaryInspectors.map((inspector) => ({
+        refId: refIdd,
+        fsoId: inspector.fssaiUserId,
+        createdBy: loggedInUserIdd1,
+        updatedBy: loggedInUserIdd1,
+        inspectionType: "POST",
+        fsoName: inspector.fsoName,
+        createdByName: createdByName,
+        doRemarks: remarks,
+        officerType: "S",
+        assignmentId: assignmentId,
+      }))
+
+      const payload = {
+        assignmentId: assignmentId,
+        refId: refIdd,
+        fsoId: selectedPrimaryInspector.fssaiUserId,
+        reassignmentRemarks: remarks,
+        fsoName: selectedPrimaryInspector.fsoName,
+        createdByName: createdByName,
+        fsoAssignmentSecondaryOfficerRegistration: [staticAssignment, ...dynamicAssignments],
+      }
+
+      const result = await reassignInspection(payload)
+      console.log("Inspection reassigned:", result)
+      Alert.alert("Success", "Inspection reassigned successfully!")
+      onReassign({
+        primaryInspector: selectedPrimaryInspector.fssaiUserId,
+        secondaryInspectors,
+        remarks,
+      })
+      resetFields()
+      onClose()
+    } catch (error) {
+      console.error("Error reassigning inspection:", error)
+      Alert.alert("Error", "Failed to reassign inspection. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
-    <Modal visible={isVisible} transparent animationType="slide">
+    <Modal visible={isVisible} transparent animationType="none">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Reassign Inspector</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+            <TouchableOpacity
+              onPress={() => {
+                resetFields()
+                onClose()
+              }}
+              style={styles.closeButton}
+            >
               <X size={24} color="#000" />
             </TouchableOpacity>
           </View>
@@ -129,59 +276,56 @@ export function ReassignModal({ isVisible, onClose, assignmentId, onReassign }: 
                 editable={false}
                 placeholder="Selected Primary Inspector"
               />
-              {/* <View style={styles.inputContainer}>
-               <Text style={styles.inputLabel}>Secondary Inspectors</Text>
-               <View style={styles.secondaryInspectorContainer}>
-                 <TouchableOpacity
-                   onPress={selectedInspector ? toggleSecondaryPicker : undefined}
-                   style={[styles.pickerContainer, !selectedInspector && styles.disabledPicker, { flex: 1 }]}
-                 >
-                   <TextInput
-                     style={styles.input}
-                     value={
-                       !selectedInspector
-                         ? "No data available"
-                         : secondaryInspectors.length > 0
-                           ? secondaryInspectors.map((inspector) => inspector.fsoName).join(", ")
-                           : "Select Secondary Inspectors"
-                     }
-                     editable={false}
-                     placeholder="Select Secondary Inspectors"
-                   />
-                 </TouchableOpacity>
-               </View>
-             
-              
-               {isSecondaryPickerVisible && selectedInspector && (
-                 <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
-                   <ScrollView style={{ maxHeight: 200 }}>
-                     {selectedSecondaryInspectors
-                       .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
-                       .map((inspector, index) => (
-                         <TouchableOpacity
-                           key={index}
-                           style={[
-                             styles.multiSelectItem,
-                             secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
-                               styles.multiSelectItemSelected,
-                           ]}
-                           onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
-                         >
-                           <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
-                         </TouchableOpacity>
-                       ))}
-                   </ScrollView>
-             
-             
-                   <TouchableOpacity
-                     onPress={() => setIsSecondaryPickerVisible(false)}
-                     style={styles.closeIcon}
-                   >
-                     <X size={20} color="black" />
-                   </TouchableOpacity>
-                 </View>
-               )}
-             </View> */}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Secondary Inspectors</Text>
+                <View style={styles.secondaryInspectorContainer}>
+                  <TouchableOpacity
+                    onPress={selectedInspector ? toggleSecondaryPicker : undefined}
+                    style={[styles.pickerContainer, !selectedInspector && styles.disabledPicker, { flex: 1 }]}
+                  >
+                    <TextInput
+                      style={styles.input}
+                      value={
+                        !selectedInspector
+                          ? "No data available"
+                          : secondaryInspectors.length > 0
+                            ? secondaryInspectors.map((inspector) => inspector.fsoName).join(", ")
+                            : "Select Secondary Inspectors"
+                      }
+                      editable={false}
+                      placeholder="Select Secondary Inspectors"
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {isSecondaryPickerVisible && selectedInspector && (
+                  <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
+                    <View style={{ flex: 1 }}>
+                      <ScrollView>
+                        {selectedSecondaryInspectors
+                          .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+                          .map((inspector, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              style={[
+                                styles.multiSelectItem,
+                                secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
+                                  styles.multiSelectItemSelected,
+                              ]}
+                              onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
+                            >
+                              <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
+                            </TouchableOpacity>
+                          ))}
+                      </ScrollView>
+                    </View>
+
+                    <TouchableOpacity onPress={() => setIsSecondaryPickerVisible(false)} style={styles.closeIcon}>
+                      <X size={20} color="black" />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Remarks</Text>
@@ -193,13 +337,15 @@ export function ReassignModal({ isVisible, onClose, assignmentId, onReassign }: 
                   multiline
                 />
               </View>
-
+              <TouchableOpacity style={styles.resetButton} onPress={resetFields}>
+                <Text style={styles.resetButtonText}>Reset</Text>
+              </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.submitButton, (!selectedInspector || !remarks) && styles.disabledButton]}
-                onPress={handleSubmit}
-                disabled={!selectedInspector || !remarks}
+                style={[styles.submitButton, (!selectedInspector || !remarks || isLoading) && styles.disabledButton]}
+                onPress={handleReassign}
+                disabled={!selectedInspector || !remarks || isLoading}
               >
-                <Text style={styles.submitButtonText}>Submit</Text>
+                <Text style={styles.reassignButtonText}>{isLoading ? "Reassigning..." : "Reassign"}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -307,8 +453,21 @@ const styles = StyleSheet.create({
   disabledButton: {
     opacity: 0.5,
   },
-  submitButtonText: {
+  reassignButtonText: {
     color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  resetButton: {
+    backgroundColor: "#f0f0f0",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  resetButtonText: {
+    color: "#007AFF",
     fontSize: 16,
     fontWeight: "600",
   },
