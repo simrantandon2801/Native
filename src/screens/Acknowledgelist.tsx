@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, 
 import { getAcknowledgedInspectionCount } from "../database/Dashboardapi"
 import AcceptModal from "./AcceptModal"
 import RejectModal from "./RejectModal"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 interface AcknowledgedData {
   currentPageNo: number
@@ -27,6 +28,9 @@ const AcknowledgeList: React.FC = () => {
   const [isAcceptModalVisible, setIsAcceptModalVisible] = useState(false)
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
+  const [userId, setUserId] = useState(null);
+  const [displayRefId,setdisplayRefId]=useState("")
+  const[companyName,setCompanyName]=useState("")
 
   const fetchAcknowledgement = async () => {
     setIsLoading(true)
@@ -34,8 +38,8 @@ const AcknowledgeList: React.FC = () => {
     try {
       const payload: any = {
         statusId: "17",
-        userId: "3816881804355836",
-        displayRefId: "",
+        userId: userId,
+        displayRefId:"",
         companyName: "",
         fromDate: "",
         toDate: "",
@@ -58,7 +62,25 @@ const AcknowledgeList: React.FC = () => {
   useEffect(() => {
     fetchAcknowledgement()
   }, []) 
-
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        // Retrieve the userId from AsyncStorage
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (storedUserId !== null) {
+          // Update the state with the retrieved userId
+          setUserId(storedUserId);
+        } else {
+          console.log('No userId found in AsyncStorage');
+        }
+      } catch (error) {
+        console.error('Error fetching userId from AsyncStorage:', error);
+      }
+    };
+  
+    // Call the async function
+    fetchUserId();
+  }, []);
   const onRefresh = () => {
     setRefreshing(true)
     fetchAcknowledgement()

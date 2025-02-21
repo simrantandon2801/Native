@@ -26,6 +26,7 @@ import { getBusinessTypes } from "../database/Statebusinessapi"
 import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
 import { ReassignModal } from "./ReassignModal"
+import { RescheduleModal } from "./RescheduleModal";
 const AllocatedInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
@@ -37,6 +38,7 @@ const AllocatedInspection: React.FC = () => {
    const [refId, setRefId] = useState<string>("")
   const [refreshing, setRefreshing] = useState(false)
   const [displayRefId, setdisplayRefId] = useState("")
+  const [isRescheduleModalVisible, setIsRescheduleModalVisible] = useState(false)
   const [itemsPerPage] = useState(10)
   
   const [selectedInspectionOfficerName, setSelectedInspectionOfficerName] = useState("")
@@ -121,15 +123,15 @@ const [isLoading, setIsLoading] = useState(false)
     }
   };
 
-  const onToDateChange = (event, selectedDate) => {
+
+  const onToDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowToPicker(false);
-    if (event.type === 'set') {
+    if (event.type === 'set' && selectedDate) {
       setToDate(selectedDate);
     }
   };
-
   // Helper function to display date or placeholder
-  const getDisplayDate = (date) => {
+  const getDisplayDate = (date: Date | null): string => {
     return date ? date.toLocaleDateString() : 'Select Date';
   };
   const today = new Date()
@@ -200,8 +202,8 @@ const [isLoading, setIsLoading] = useState(false)
 
     setSearchResults("")
     const today = new Date(); 
-    setFromDate(today); 
-    setToDate(today); 
+    setFromDate(null);
+    setToDate(null);
   
     setShowFromPicker(false);
     setShowToPicker(false);
@@ -229,8 +231,8 @@ const [isLoading, setIsLoading] = useState(false)
           userId: createdBy, //done
           displayRefId: referenceNo,
           companyName: companyName,
-          fromDate: fromDate.toISOString().split("T")[0],
-          toDate: toDate.toISOString().split("T")[0],
+          fromDate: null,
+          toDate: null,
           inspectionType: selectedInspectionType,
           fsoName: fsoName,
           kobId: selectedBusinessType || "",
@@ -305,7 +307,7 @@ const [isLoading, setIsLoading] = useState(false)
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>Filter Inspection</Text>
-                <TouchableOpacity onPress={toggleModal} style={styles.closeIcon}>
+                <TouchableOpacity onPress={toggleModal} style={styles.closeIcon5}>
                   <X size={24} color="#000" />
                 </TouchableOpacity>
               </View>
@@ -345,19 +347,19 @@ const [isLoading, setIsLoading] = useState(false)
         />
       )}
 
-      <Text style={styles.label}>Allocated Date To</Text>
-      <TouchableOpacity 
-        style={styles.input} 
+<Text style={styles.label}>Allocated Date To</Text>
+      <TouchableOpacity
+        style={styles.input}
         onPress={() => setShowToPicker(true)}
       >
         <Text>{getDisplayDate(toDate)}</Text>
       </TouchableOpacity>
       {showToPicker && (
         <DateTimePicker
-          value={toDate || today}
+          value={toDate || today} 
           mode="date"
           onChange={onToDateChange}
-          minimumDate={fromDate} // Enable this to enforce from date as minimum
+          // minimumDate={fromDate || today} 
           maximumDate={today}
         />
       )}
@@ -445,7 +447,7 @@ const [isLoading, setIsLoading] = useState(false)
               </View>
               
               <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Aplicant Name:</Text>
+                <Text style={styles.recordLabel}>Applicant Name:</Text>
                 <Text style={styles.recordValue}>{item.companyName}</Text>
               </View>
               
@@ -509,13 +511,20 @@ inspectionType
                 {item.statusId === 18 && (
   <View style={styles.container5}>
   
-    <TouchableOpacity
-      onPress={() => {
-        console.log("Reschedule button pressed for Assignment ID:", item.assignmentId);
-      }}
-    >
-      <Text style={styles.linkText}>Reschedule</Text>
-    </TouchableOpacity>
+  <TouchableOpacity
+  onPress={async () => { // Make the function async
+    try {
+      await AsyncStorage.setItem("displayrefID", item.displayRefId.toString());
+    } catch (error) {
+      console.error("Error saving displayRefID:", error);
+    }
+    setIsRescheduleModalVisible(true);
+    console.log("Reschedule button pressed for Assignment ID:", item.assignmentId);
+  }}
+>
+  <Text style={styles.linkText}>Reschedule</Text>
+</TouchableOpacity>
+
 
    
     <Text style={styles.proceedButtonText}> / </Text>
@@ -541,7 +550,7 @@ inspectionType
       </TouchableOpacity>
 
      
-      <Text style={styles.modalTitleA}>View Details</Text>
+      <Text style={styles.modalTitleA}>Rejected Remarks</Text>
       <Text>{item.rejectedRemarks}</Text>
     </View>
   </View>
@@ -584,6 +593,23 @@ inspectionType
               }
             } }     />
             </View>
+            <RescheduleModal
+        isVisible={isRescheduleModalVisible}
+        onClose={() => setIsRescheduleModalVisible(false)}
+        inspectors={inspectionOfficers}
+        onReschedule={async (data) => {
+          try {
+            console.log("Rescheduling:", {
+              assignmentId: selectedAssignmentId,
+              ...data,
+            })
+            setIsRescheduleModalVisible(false)
+            handleSearch(currentPage)
+          } catch (error) {
+            console.error("Error rescheduling inspector:", error)
+          }
+        }}
+      />
         </SafeAreaView>
       )
     }
@@ -767,6 +793,11 @@ const styles = StyleSheet.create({
   closeIcon: {
     padding: 8,
     left:100,
+
+  },
+  closeIcon5: {
+    padding: 8,
+   
 
   },
   paginationContainer: {

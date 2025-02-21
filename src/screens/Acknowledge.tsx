@@ -58,7 +58,7 @@ const Acknowledge: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
-  const [userId, setUserId] = useState<string | null>(null)
+
   const [accessToken, setAccessToken] = useState<string | null>(null)
   // Remove this line
   // const [showAcknowledged, setShowAcknowledged] = useState(false)

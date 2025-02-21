@@ -4,7 +4,7 @@ import "react-native-get-random-values"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 // import api_services from './'
 // import api_services from './../services/api_services.js';
-import { POST,encryptData1 } from "./../services/api_services.js";
+
 
 
 const SECRET_KEY = "LsiplyG3M1bX7Rg"
