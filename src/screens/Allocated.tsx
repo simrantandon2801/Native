@@ -603,7 +603,7 @@ inspectionType
     }}
   />
 ) : (
-  <Text>Loading refId...</Text>
+  <Text></Text>
 )}
 
             </View>

@@ -193,7 +193,7 @@ export function ReassignModal({
       }
       const createdByName = loggedInUser?.name
       const staticAssignment = {
-        refId: refIdd,
+        refId: refId,
         fsoId: selectedPrimaryInspector.fssaiUserId,
         createdBy: loggedInUserIdd1,
         updatedBy: loggedInUserIdd1,
@@ -206,7 +206,7 @@ export function ReassignModal({
       }
 
       const dynamicAssignments = secondaryInspectors.map((inspector) => ({
-        refId: refIdd,
+        refId: refId,
         fsoId: inspector.fssaiUserId,
         createdBy: loggedInUserIdd1,
         updatedBy: loggedInUserIdd1,
@@ -220,7 +220,7 @@ export function ReassignModal({
 
       const payload = {
         assignmentId: assignmentId,
-        refId: refIdd,
+        refId: refId,
         fsoId: selectedPrimaryInspector.fssaiUserId,
         reassignmentRemarks: remarks,
         fsoName: selectedPrimaryInspector.fsoName,
