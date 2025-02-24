@@ -35,7 +35,7 @@ const AllocatedInspection: React.FC = () => {
   const [loggedInUserIdd1, setLoggedInUserIdd1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [fsoName, setfsoName] = useState("")
-   const [refId, setRefId] = useState<string>("")
+  const [refId, setRefId] = useState("");
   const [refreshing, setRefreshing] = useState(false)
   const [displayRefId, setdisplayRefId] = useState("")
   const [isRescheduleModalVisible, setIsRescheduleModalVisible] = useState(false)
@@ -63,7 +63,9 @@ const [isLoading, setIsLoading] = useState(false)
   const openModal = () => {
     setIsViewModalVisible(true);
   };
-
+  useEffect(() => {
+    console.log("Updated refId:", refId);
+  }, [refId]);
   // Function to close the modal
   const closeModal = () => {
     setIsViewModalVisible(false);
@@ -476,7 +478,7 @@ const [isLoading, setIsLoading] = useState(false)
                 <Text style={styles.recordValue}>{item.createdOn}</Text>
               </View>
               <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Inspection Date:</Text>
+                <Text style={styles.recordLabel}>Inspection Type:</Text>
                 <Text style={styles.recordValue}>{item.
 inspectionType
 }</Text>
@@ -490,21 +492,31 @@ inspectionType
     
    
 
-<TouchableOpacity
+    <TouchableOpacity
   onPress={async () => {
     try {
-      await AsyncStorage.setItem("refId", item.refId.toString())
-      // await AsyncStorage.setItem('selectedAssignmentId', item.assignmentId);
+      console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
+      console.log("Reference ID:", item.refId); // Debugging log
+
+      if (!item?.refId) {
+        console.error("Error: refId is undefined or empty");
+        return;
+      }
+
+      setRefId(item.refId); // Ensure refId is set before opening modal
       setSelectedAssignmentId(item.assignmentId);
       setIsReassignModalVisible(true);
-      console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
+      
     } catch (error) {
-      console.error("Error saving assignment ID to AsyncStorage:", error);
+      console.error("Error handling Reassign button:", error);
     }
   }}
 >
   <Text style={styles.linkText}>Reassign</Text>
 </TouchableOpacity>
+
+
+
   </View>
 )}
                 
@@ -570,28 +582,30 @@ inspectionType
           </ScrollView>
           {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
           <View style={styles.overlay}>
-          <ReassignModal
-            isVisible={isReassignModalVisible}
-            
-            onClose={() => setIsReassignModalVisible(false)}
-            assignmentId={selectedAssignmentId}
-            refId={refId}
-            inspectors={inspectionOfficers}
-            onReassign={async (data) => {
-              try {
-              
-                console.log("Reassigning:", {
-                  assignmentId: selectedAssignmentId,
-                  ...data,
-                })
-              
-                setIsReassignModalVisible(false)
+          {refId ? (
+  <ReassignModal
+    isVisible={isReassignModalVisible}
+    onClose={() => setIsReassignModalVisible(false)}
+    assignmentId={selectedAssignmentId}
+    refId={refId}  // Ensure this is not undefined
+    inspectors={inspectionOfficers}
+    onReassign={async (data) => {
+      try {
+        console.log("Reassigning:", {
+          assignmentId: selectedAssignmentId,
+          ...data,
+        });
+        setIsReassignModalVisible(false);
+        handleSearch(currentPage);
+      } catch (error) {
+        console.error("Error reassigning inspector:", error);
+      }
+    }}
+  />
+) : (
+  <Text>Loading refId...</Text>
+)}
 
-                handleSearch(currentPage)
-              } catch (error) {
-                console.error("Error reassigning inspector:", error)
-              }
-            } }     />
             </View>
             <RescheduleModal
         isVisible={isRescheduleModalVisible}

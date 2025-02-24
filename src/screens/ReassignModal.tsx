@@ -55,6 +55,11 @@ export function ReassignModal({
   useEffect(() => {
     setSelectedAssignmentId(assignmentId.toString())
   }, [assignmentId])
+  useEffect(() => {
+    if (isVisible) {
+      console.log("ReassignModal opened with refId:", refId);
+    }
+  }, [isVisible, refId]);
 
   const toggleSecondaryPicker = () => {
     setIsSecondaryPickerVisible(!isSecondaryPickerVisible)

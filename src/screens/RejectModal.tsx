@@ -28,34 +28,41 @@ const RejectModal: React.FC<RejectModalProps> = ({ visible, onClose, item }) => 
     
   }, [visible])
   const handleReject = async () => {
-    setIsLoading(true)
-    setError(null)
+    if (!item?.assignmentId) {
+      setError("Invalid assignment ID. Please try again.");
+      return;
+    }
+  
+    setIsLoading(true);
+    setError(null);
+    
     try {
       const payload = {
-        inspectionDate: new Date().toISOString(),
+        inspectionDate: null,
         statusId: 18,
-        assignmentId: 273341,
+        assignmentId: Number(item.assignmentId),  
         fsoAckDate: new Date().toISOString().split("T")[0],
         rejectedRemarks: remarks,
-      }
-
-      const response: InspectionResponse = await RejectInspection(payload)
-      console.log("Inspection rejected:", response)
-
+      };
+      console.log("rejected payload",payload)
+      const response = await RejectInspection(payload);
+      console.log("Inspection rejected:", response);
+  
       if (response.statusCode === "200") {
-        console.log("Inspection rejected successfully")
-        onClose()
-        Alert.alert("Success", "Inspection rejected successfully!", [{ text: "OK", onPress: onClose }])
+        console.log("Inspection rejected successfully");
+        onClose();
+        Alert.alert("Success", "Inspection rejected successfully!", [{ text: "OK", onPress: onClose }]);
       } else {
-        setError("Failed to reject inspection. Please try again.")
+        setError("Failed to reject inspection. Please try again.");
       }
     } catch (error) {
-      console.error("Error rejecting inspection:", error)
-      setError("An error occurred. Please try again.")
+      console.error("Error rejecting inspection:", error);
+      setError("An error occurred. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  
 
   return (
     <Modal visible={visible} transparent animationType="slide">

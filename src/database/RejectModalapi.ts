@@ -30,7 +30,7 @@ export const encryptionPassword = (data: string) => {
   return CryptoJS.enc.Base64.stringify(hmac)
 }
 
-export const RejectInspection = async (payload: PostPayload): Promise<InspectionResponse> => {
+export const RejectInspection = async (payload: PostPayload) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -58,7 +58,7 @@ export const RejectInspection = async (payload: PostPayload): Promise<Inspection
       throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
     }
 
-    const data: InspectionResponse = await response.json()
+    const data= await response.json()
     console.log("Accept inspection result:", data)
     return data
   } catch (error) {

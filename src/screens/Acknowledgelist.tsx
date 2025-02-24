@@ -28,27 +28,63 @@ const AcknowledgeList: React.FC = () => {
   const [isAcceptModalVisible, setIsAcceptModalVisible] = useState(false)
   const [isRejectModalVisible, setIsRejectModalVisible] = useState(false)
   const [selectedItem, setSelectedItem] = useState<any | null>(null)
-  const [userId, setUserId] = useState(null);
-  const [displayRefId,setdisplayRefId]=useState("")
-  const[companyName,setCompanyName]=useState("")
+  const [userId, setUserId] = useState<string | null>(null)
+  const [displayRefId, setDisplayRefId] = useState<string | null>(null)
+  const [companyName, setCompanyName] = useState<string | null>(null)
+  const [inspectionType, setInspectionType] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchDataFromAsyncStorage = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const storedUserId = await AsyncStorage.getItem("userId")
+        const storedDisplayRefId = await AsyncStorage.getItem("displayRefId")
+        const storedCompanyName = await AsyncStorage.getItem("companyName")
+        const storedInspectionType = await AsyncStorage.getItem("inspectionType")
+
+        setUserId(storedUserId)
+        setDisplayRefId(storedDisplayRefId)
+        setCompanyName(storedCompanyName)
+        setInspectionType(storedInspectionType)
+
+        console.log("Retrieved Data:", {
+          userId: storedUserId,
+          displayRefId: storedDisplayRefId,
+          companyName: storedCompanyName,
+          inspectionType: storedInspectionType,
+        })
+      } catch (err) {
+        console.error("Error fetching data from AsyncStorage:", err)
+        setError("Failed to load data from storage.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDataFromAsyncStorage()
+  }, [])
 
   const fetchAcknowledgement = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const payload: any = {
+      const payload = {
         statusId: "17",
-        userId: userId,
-        displayRefId:"",
-        companyName: "",
+        userId:userId,
+        displayRefId:displayRefId,
+        companyName: companyName,
         fromDate: "",
         toDate: "",
         processFlag: true,
-        inspectionType: null,
+        inspectionType: inspectionType,
         fsoName: null,
         kobId: null,
       }
+      console.log("======payload", payload)
       const result = await getAcknowledgedInspectionCount(payload)
+      console.log("+++++++Acknowledge",result)
       setAcknowledgedData(result)
     } catch (error) {
       console.error("Error loading data:", error)
@@ -61,26 +97,8 @@ const AcknowledgeList: React.FC = () => {
 
   useEffect(() => {
     fetchAcknowledgement()
-  }, []) 
-  useEffect(() => {
-    const fetchUserId = async () => {
-      try {
-        // Retrieve the userId from AsyncStorage
-        const storedUserId = await AsyncStorage.getItem('userId');
-        if (storedUserId !== null) {
-          // Update the state with the retrieved userId
-          setUserId(storedUserId);
-        } else {
-          console.log('No userId found in AsyncStorage');
-        }
-      } catch (error) {
-        console.error('Error fetching userId from AsyncStorage:', error);
-      }
-    };
-  
-    // Call the async function
-    fetchUserId();
-  }, []);
+  }, [userId, displayRefId,companyName,inspectionType]) 
+
   const onRefresh = () => {
     setRefreshing(true)
     fetchAcknowledgement()
@@ -133,16 +151,15 @@ const AcknowledgeList: React.FC = () => {
             <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
               <View style={styles.listItemContent}>
                 <View style={styles.leftContent}>
-                <Text style={styles.listItemText}> Assignment ID: {item.assignmentId || "N/A"}</Text>
-                  <Text style={styles.listItemText} >Company Name: {item.companyName || "N/A"}</Text>
-                  <Text style={styles.statusDesc}>Stage:{item.statusDesc || "N/A"}</Text>
-                
+                  <Text style={styles.listItemText}>Assignment ID: {item.assignmentId || "N/A"}</Text>
+                  <Text style={styles.listItemText}>Company Name: {item.companyName || "N/A"}</Text>
+                  <Text style={styles.statusDesc}>Stage: {item.statusDesc || "N/A"}</Text>
                 </View>
                 <View style={styles.rightContent}>
                   <Text style={styles.listItemText}>Type: {item.inspectionType || "N/A"}</Text>
                   <Text style={styles.listItemText}>Ref: {item.displayRefId || "N/A"}</Text>
                   <Text style={styles.listItemText}>RA: {item.raRemarks || "N/A"}</Text>
-                   <Text style={styles.listItemText}>Assigned By:{item.assignedBy || "N/A"}</Text>
+                  <Text style={styles.listItemText}>Assigned By: {item.assignedBy || "N/A"}</Text>
                 </View>
               </View>
               <View style={styles.buttonContainer}>
@@ -160,8 +177,13 @@ const AcknowledgeList: React.FC = () => {
         )}
       </ScrollView>
 
-      <AcceptModal visible={isAcceptModalVisible} onClose={closeAcceptModal} selectedItem={selectedItem} />
-      <RejectModal visible={isRejectModalVisible} onClose={closeRejectModal} selectedItem={selectedItem} />
+      <AcceptModal 
+  visible={isAcceptModalVisible} 
+  onClose={closeAcceptModal} 
+  item={selectedItem} 
+/>
+
+      <RejectModal visible={isRejectModalVisible} onClose={closeRejectModal}  item={selectedItem}  />
     </>
   )
 }
@@ -198,7 +220,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 15,
     paddingHorizontal: 16,
-    fontFamily:'Outfit',
+    fontFamily: "Outfit",
     color: "#333",
   },
   listItem: {
@@ -252,9 +274,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 12,
-    width:180,
-    alignItems:'center'
-  
+    width: 180,
+    alignItems: "center",
   },
   button: {
     flex: 1,
@@ -265,18 +286,17 @@ const styles = StyleSheet.create({
   acceptButton: {
     backgroundColor: "#007AFF",
     marginRight: 6,
-    padding:10
+    padding: 10,
   },
   rejectButton: {
     backgroundColor: "#007AFF",
-    padding:10,
+    padding: 10,
     marginLeft: 6,
   },
   buttonText: {
     color: "#fff",
-    fontFamily:'Source Sans Pro'
+    fontFamily: "Source Sans Pro",
   },
 })
 
 export default AcknowledgeList
-

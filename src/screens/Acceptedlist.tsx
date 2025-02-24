@@ -6,6 +6,7 @@ import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import { getSecondaryOfficerEsignDetails, startInspection } from "../database/Officerviewapi"
 import { DataTable } from "react-native-paper"
 import ToastManager, { Toast } from "toastify-react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 interface AcceptedData {
   currentPageNo: number
@@ -35,6 +36,7 @@ const Acceptedlist: React.FC = () => {
   const [officerData, setOfficerData] = useState<OfficerData[]>([])
   const [isStartingInspection, setIsStartingInspection] = useState(false)
     const [refreshing, setRefreshing] = useState(false)
+    const [userId, setUserId] = useState<string | null>(null)
 
 
     const fetchAccepted = async () => {
@@ -43,7 +45,7 @@ const Acceptedlist: React.FC = () => {
       try {
         const payload: any = {
           statusId: "19",
-          userId: "3816881804355836",
+          userId: userId,
           displayRefId: "",
           companyName: "",
           fromDate: "",
@@ -66,7 +68,32 @@ const Acceptedlist: React.FC = () => {
 useEffect(()=>{
   fetchAccepted()
 },[])
-    
+useEffect(() => {
+  const fetchDataFromAsyncStorage = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+
+      const storedUserId = await AsyncStorage.getItem("userId")
+
+
+      setUserId(storedUserId)
+     
+
+      console.log("Retrieved Data:", {
+        userId: storedUserId,
+      
+      })
+    } catch (err) {
+      console.error("Error fetching data from AsyncStorage:", err)
+      setError("Failed to load data from storage.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  fetchDataFromAsyncStorage()
+}, [])
 const onRefresh = () => {
   setRefreshing(true)
   fetchAccepted()

@@ -1,63 +1,74 @@
 import React, { useState } from "react"
-import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator,Alert } from "react-native"
+import { Modal, View, Text, StyleSheet, TouchableOpacity, TextInput, ActivityIndicator, Alert } from "react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import { acceptInspection, InspectionResponse } from '../database/AcceptModalapi'
-
 interface AcceptModalProps {
-  visible: boolean
-  onClose: () => void
-  item: {
-    assignmentId: number
-  }
+  visible: boolean;
+  onClose: () => void;
+  item?: { assignmentId: number }; // Make item optional
 }
 
+
 const AcceptModal: React.FC<AcceptModalProps> = ({ visible, onClose, item }) => {
-  const [inspectionDate, setInspectionDate] = useState(new Date())
+  const [inspectionDate, setInspectionDate] = useState<Date | null>(null)  
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-// console.log("Assignment ID:", item.assignmentId)
   const handleDateChange = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || inspectionDate
     setShowDatePicker(false)
-    setInspectionDate(currentDate)
+    setInspectionDate(selectedDate || null) 
+  }
+
+  const handleReset = () => {
+    setInspectionDate(null) 
   }
 
   const handleAccept = async () => {
-    setIsLoading(true)
-    setError(null)
-
+    if (!inspectionDate) {
+      setError("Please select an inspection date.");
+      return;
+    }
+  
+    if (!item || !item.assignmentId) {
+      setError("No valid assignment selected.");
+      return;
+    }
+  
+    setIsLoading(true);
+    setError(null);
+  
     try {
+      console.log("Assignment ID:", item.assignmentId);
+  
       const payload = {
         inspectionDate: inspectionDate.toISOString(),
         statusId: 19,
-        assignmentId: 273306, 
+        assignmentId: Number(item.assignmentId), 
         fsoAckDate: inspectionDate.toISOString().split('T')[0],
-        rejectedRemarks: ""
-      }
-    
-
-      const response: InspectionResponse = await acceptInspection(payload)
-      console.log("Inspection accepted:", response)
-      
+        rejectedRemarks: "",
+      };
+  
+      console.log("Payload being sent:", payload);
+  
+      const response = await acceptInspection(payload);
+      console.log("API Response:", response);
+  
       if (response.statusCode === "200") {
-        console.log("Inspection accepted successfully")
-        onClose()
-        Alert.alert("Success", "Inspection accepted successfully!", [
-          { text: "OK", onPress: onClose },
-        ]);
+        Alert.alert("Success", "Inspection accepted successfully!", [{ text: "OK", onPress: onClose }]);
+        onClose();
       } else {
-        setError("Failed to accept inspection. Please try again.")
+        setError("Failed to accept inspection. Please try again.");
       }
     } catch (error) {
-      console.error("Error accepting inspection:", error)
-      setError("An error occurred. Please try again.")
+      console.error("Error accepting inspection:", error.message || error);
+      setError("An error occurred. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
-
+  };
+  
+  
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.modalContainer}>
@@ -67,21 +78,29 @@ const AcceptModal: React.FC<AcceptModalProps> = ({ visible, onClose, item }) => 
           <TouchableOpacity onPress={() => setShowDatePicker(true)}>
             <TextInput
               style={styles.input}
-              value={inspectionDate.toLocaleDateString()}
+              value={inspectionDate ? inspectionDate.toLocaleDateString() : ""}
               editable={false}
               placeholder="Select Date"
             />
           </TouchableOpacity>
+
           {showDatePicker && (
-            <DateTimePicker 
-              value={inspectionDate} 
-              mode="date" 
-              display="default" 
-              onChange={handleDateChange} 
-            />
+          <DateTimePicker 
+          value={inspectionDate || new Date()} 
+          mode="date" 
+          display="default" 
+          minimumDate={new Date()} 
+          onChange={handleDateChange} 
+        />
+        
           )}
-          {/* {error && <Text style={styles.errorText}>{error}</Text>} */}
+
+          {error && <Text style={styles.errorText}>{error}</Text>}
+
           <View style={styles.buttonContainer}>
+            <TouchableOpacity onPress={handleReset} style={[styles.button, styles.resetButton]}>
+              <Text style={styles.buttonText}>Reset</Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={onClose} style={[styles.button, styles.cancelButton]}>
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
@@ -90,11 +109,7 @@ const AcceptModal: React.FC<AcceptModalProps> = ({ visible, onClose, item }) => 
               style={[styles.button, styles.acceptButton]}
               disabled={isLoading}
             >
-              {isLoading ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text style={styles.buttonText}>Accept</Text>
-              )}
+              {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Accept</Text>}
             </TouchableOpacity>
           </View>
         </View>
@@ -142,18 +157,26 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     alignItems: "center",
+    marginHorizontal: 5,
+  },
+  resetButton: {
+    backgroundColor: "#007bff",
   },
   cancelButton: {
-    backgroundColor: "#F44336",
-    marginRight: 5,
+    backgroundColor: "#007bff",
   },
   acceptButton: {
-    backgroundColor: "#4CAF50",
-    marginLeft: 5,
+    backgroundColor: "#007bff",
   },
   buttonText: {
     color: "white",
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    fontSize: 14,
+    marginBottom: 10,
+    textAlign: "center",
   },
 })
 
