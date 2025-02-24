@@ -28,6 +28,10 @@ const RejectModal: React.FC<RejectModalProps> = ({ visible, onClose, item }) => 
     
   }, [visible])
   const handleReject = async () => {
+    if (!remarks.trim()) {
+      setError("Remarks are required.");
+      return;
+    }
     if (!item?.assignmentId) {
       setError("Invalid assignment ID. Please try again.");
       return;

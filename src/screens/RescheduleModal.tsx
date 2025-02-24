@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, ScrollView, Alert } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { X } from "lucide-react-native"
@@ -8,7 +8,7 @@ import { getListOffsounDerDoForReg } from "../database/Allocateapi"
 import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { rescheduleInspection } from "../database/AllocatedInspectionn/RescheduleInspection"
-
+import { useFocusEffect } from "@react-navigation/native"
 interface Inspector {
   fsoName: string
   fssaiUserId: string
@@ -19,6 +19,7 @@ interface RescheduleModalProps {
   onClose: () => void
   assignmentId: string
   refId: string
+  displayrefId: string  // 👈 Added this
   createdByName: string
   onReschedule: (data: {
     primaryInspector: string
@@ -27,11 +28,13 @@ interface RescheduleModalProps {
   }) => void
 }
 
+
 export function RescheduleModal({
   isVisible,
   onClose,
   assignmentId,
   refId,
+  displayrefId,  // 👈 Accept it here
   createdByName,
   onReschedule,
 }: RescheduleModalProps) {
@@ -44,16 +47,26 @@ export function RescheduleModal({
   const [loggedInUserIdd1, setLoggedInUserIdd1] = useState("")
   const [loading, setLoading] = useState(false)
   const[displayRefId,setDisplayRefId]=useState("")
+  
   const [error, setError] = useState<string | null>(null)
   const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" })
   const [isLoading, setIsLoading] = useState(false)
   const [refIdd, setRefId] = useState("")
   const [showConfirmModal, setShowConfirmModal] = useState(false)
-
+  useFocusEffect(
+    useCallback(() => {
+      resetFields()
+      return () => {}
+    }, [])
+  )
   const toggleSecondaryPicker = () => {
     setIsSecondaryPickerVisible(!isSecondaryPickerVisible)
   }
-
+  useEffect(() => {
+    if (isVisible) {
+      console.log("RescheduleModal opened with refId:", refId);
+    }
+  }, [isVisible, refId,assignmentId]);
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
@@ -163,19 +176,22 @@ export function RescheduleModal({
   }
 
   const confirmReschedule = async () => {
-    setShowConfirmModal(false)
-    setIsLoading(true)
+    setShowConfirmModal(false);
+    setIsLoading(true);
+  
     try {
-      const selectedPrimaryInspector = inspectors.find((inspector) => inspector.fssaiUserId === selectedInspector)
+      const selectedPrimaryInspector = inspectors.find(
+        (inspector) => inspector.fssaiUserId === selectedInspector
+      );
   
       if (!selectedPrimaryInspector) {
-        throw new Error("Selected primary inspector not found")
+        throw new Error("Selected primary inspector not found");
       }
   
-      const createdByName = loggedInUser?.name
+      const createdByName = loggedInUser?.name;
   
       const primaryAssignment = {
-        refId: refIdd,
+        refId: refId,
         fsoId: selectedPrimaryInspector.fssaiUserId,
         createdBy: loggedInUserIdd1,
         updatedBy: loggedInUserIdd1,
@@ -183,13 +199,11 @@ export function RescheduleModal({
         fsoName: selectedPrimaryInspector.fsoName,
         createdByName: createdByName,
         doRemarks: remarks,
-        displayRefId: displayRefId,
-        inspectionDate: "",
-        officerType: "P"
-      }
+        officerType: "P",
+      };
   
       const secondaryAssignments = secondaryInspectors.map((inspector) => ({
-        refId:refIdd,
+        refId: refId,
         fsoId: inspector.fssaiUserId,
         createdBy: loggedInUserIdd1,
         updatedBy: loggedInUserIdd1,
@@ -198,47 +212,62 @@ export function RescheduleModal({
         createdByName: createdByName,
         doRemarks: remarks,
         officerType: "S",
-        displayRefId: displayRefId,
-        inspectionDate: "",
-      }))
+      }));
   
-      const payload = {
-        displayRefId: displayRefId,
+      // First payload
+      const payload1 = {
+        assignmentId: assignmentId,
+        fsoAcknowledgement: false,
+        processFlag: false,
+      };
+  
+      // Second payload
+      const payload2 = {
+        displayRefId: displayrefId,
         inspectionDate: "",
-        refId:refIdd,
+        refId: refId,
         doRemarks: remarks,
         fsoId: selectedPrimaryInspector.fssaiUserId,
         statusId: 17,
         fsoAcknowledgement: true,
         fsoName: selectedPrimaryInspector.fsoName,
         createdByName: createdByName,
-        fsoAssignmentSecondaryOfficerRegistration: [primaryAssignment, ...secondaryAssignments],
+        fsoAssignmentSecondaryOfficerRegistration: [
+          primaryAssignment,
+          ...secondaryAssignments,
+        ],
         inspectionType: "PRE",
         createdBy: loggedInUserIdd1,
         updatedBy: loggedInUserIdd1,
         checkReschedule: null,
-        roasterId: "null"
-      }
+        roasterId: "null",
+      };
   
-      console.log("Payload for reschedule:", payload)
+      console.log("First payload for reschedule:", payload1);
+      console.log("Second payload for reschedule:", payload2);
   
-      const result = await rescheduleInspection(payload)
-      console.log("Inspection rescheduled:", result)
-      Alert.alert("Success", "Inspection rescheduled successfully!")
+    
+      await rescheduleInspection(payload1, payload2);
+  
+      console.log("Inspection rescheduled successfully!");
+      Alert.alert("Success", "Inspection rescheduled successfully!");
+  
       onReschedule({
         primaryInspector: selectedPrimaryInspector.fssaiUserId,
         secondaryInspectors,
         remarks,
-      })
-      resetFields()
-      onClose()
+      });
+  
+      resetFields();
+      onClose();
     } catch (error) {
-      console.error("Error rescheduling inspection:", error)
-      Alert.alert("Error", "Failed to reschedule inspection. Please try again.")
+      console.error("Error rescheduling inspection:", error);
+      Alert.alert("Error", "Failed to reschedule inspection. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+  
 
   return (
     <Modal visible={isVisible} transparent animationType="none">

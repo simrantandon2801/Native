@@ -181,6 +181,7 @@ const AcknowledgeList: React.FC = () => {
   visible={isAcceptModalVisible} 
   onClose={closeAcceptModal} 
   item={selectedItem} 
+  
 />
 
       <RejectModal visible={isRejectModalVisible} onClose={closeRejectModal}  item={selectedItem}  />

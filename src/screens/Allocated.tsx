@@ -496,14 +496,14 @@ inspectionType
   onPress={async () => {
     try {
       console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
-      console.log("Reference ID:", item.refId); // Debugging log
+      console.log("Reference ID:", item.refId); 
 
       if (!item?.refId) {
         console.error("Error: refId is undefined or empty");
         return;
       }
 
-      setRefId(item.refId); // Ensure refId is set before opening modal
+      setRefId(item.refId);
       setSelectedAssignmentId(item.assignmentId);
       setIsReassignModalVisible(true);
       
@@ -526,7 +526,25 @@ inspectionType
   <TouchableOpacity
   onPress={async () => { // Make the function async
     try {
-      await AsyncStorage.setItem("displayrefID", item.displayRefId.toString());
+      console.log("Reassign button pressed for Assignment ID:", item.displayRefID);
+      console.log("Reference ID:", item.refId); 
+      if (!item?.refId) {
+        console.error("Error: refId is undefined or empty");
+        return;
+      }
+      if (!item?.displayRefId) {
+        console.error("Error: refId is undefined or empty");
+        return;
+      }
+      if (!item?.assignmentId) {
+        console.error("Error: refId is undefined or empty");
+        return;
+      }
+      setSelectedAssignmentId(item.assignmentId);
+      setRefId(item.refId);
+
+      setdisplayRefId(item.displayRefId);
+      // await AsyncStorage.setItem("displayrefID", item.displayRefId.toString());
     } catch (error) {
       console.error("Error saving displayRefID:", error);
     }
@@ -610,6 +628,9 @@ inspectionType
             <RescheduleModal
         isVisible={isRescheduleModalVisible}
         onClose={() => setIsRescheduleModalVisible(false)}
+        assignmentId={selectedAssignmentId}
+    refId={refId}
+    displayrefId={displayRefId}
         inspectors={inspectionOfficers}
         onReschedule={async (data) => {
           try {
