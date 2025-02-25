@@ -157,32 +157,28 @@ const Acceptedlist: React.FC = () => {
   }, [officerData])
 
   const handleStartInspection = async (item: any) => {
-    // Set loading state for this specific item
     setStartingInspections((prev) => ({ ...prev, [item.assignmentId]: true }))
-
     try {
-      // const currentDate = new Date().toISOString()
       const payload = {
         assignmentId: item.assignmentId,
         endDateTime: "",
         finalScore: "",
-        refId: item.refId ,
+        refId: item.refId,
         startDateTime: "",
         dateOfJoining: "",
         updatedOn: "",
         displayRefId: item.displayRefId,
       }
-      console.log("Startting inspection Payload",payload)
-
+      console.log("Startting inspection Payload", payload)
       const response = await startInspection(payload)
       console.log("Inspection started successfully:", response)
       if (response.statusCode === "200") {
         Alert.alert("Inspection has been started")
-        // Update only the specific item in the list
+        // Remove the started inspection from the list
         setAcceptedData((prevData: AcceptedData) => ({
           ...prevData,
-          paginationListRecords: prevData.paginationListRecords.map((record) =>
-            record.assignmentId === item.assignmentId ? { ...record, statusDesc: "Inspection Started" } : record,
+          paginationListRecords: prevData.paginationListRecords.filter(
+            (record) => record.assignmentId !== item.assignmentId,
           ),
         }))
       } else {
@@ -192,7 +188,6 @@ const Acceptedlist: React.FC = () => {
       console.error("Error starting inspection:", error)
       Toast.error("Failed to start inspection. Please try again.")
     } finally {
-      // Clear loading state for this specific item
       setStartingInspections((prev) => ({ ...prev, [item.assignmentId]: false }))
     }
   }
