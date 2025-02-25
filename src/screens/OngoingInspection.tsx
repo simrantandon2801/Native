@@ -41,37 +41,37 @@ const OngoingInspection: React.FC = () => {
     },
   ]
 
-  const fetchOngoingInspections = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const payload: any = {
-        statusId: "20", // Assuming 18 is the status ID for Ongoing
-        userId: "3816881804355836",
-        displayRefId: "",
-        companyName: "",
-        fromDate: "",
-        toDate: "",
-        processFlag: true,
-        inspectionType: null,
-        fsoName: null,
-        kobId: null,
-      }
+  // const fetchOngoingInspections = async () => {
+  //   setIsLoading(true)
+  //   setError(null)
+  //   try {
+  //     const payload: any = {
+  //       statusId: "20", // Assuming 18 is the status ID for Ongoing
+  //       userId: "3816881804355836",
+  //       displayRefId: "",
+  //       companyName: "",
+  //       fromDate: "",
+  //       toDate: "",
+  //       processFlag: true,
+  //       inspectionType: null,
+  //       fsoName: null,
+  //       kobId: null,
+  //     }
 
-      const result = await getOngoingInspectionCount(payload)
-      setOngoingInspectionData(result)
-    } catch (error) {
-      console.error("Error loading data:", error)
-      setError("Failed to load data. Please try again.")
-      Alert.alert("Error", "Failed to load data. Please check your internet connection and try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  //     const result = await getOngoingInspectionCount(payload)
+  //     setOngoingInspectionData(result)
+  //   } catch (error) {
+  //     console.error("Error loading data:", error)
+  //     setError("Failed to load data. Please try again.")
+  //     Alert.alert("Error", "Failed to load data. Please check your internet connection and try again.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchOngoingInspections()
-  }, [])
+  // useEffect(() => {
+  //   fetchOngoingInspections()
+  // }, [])
 
   const renderInspectionItem = ({ title, isOnline }: InspectionItem) => (
      <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Ongoinglist" as never)}>

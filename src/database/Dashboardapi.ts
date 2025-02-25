@@ -30,7 +30,7 @@ export const encryptionPassword = (data: string) => {
   return CryptoJS.enc.Base64.stringify(hmac)
 }
 
-export const getAcknowledgedInspectionCount = async (payload: any) => {
+export const getAcknowledgedInspectionCount = async (payload: any,currentPage:number) => {
   try {
 
     const storedUserId = await AsyncStorage.getItem("userId")
@@ -38,7 +38,7 @@ export const getAcknowledgedInspectionCount = async (payload: any) => {
 
     const xAuthUserId = encryptData(storedUserId|| '');
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/${currentPage}`
        const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
@@ -69,7 +69,7 @@ export const getAcknowledgedInspectionCount = async (payload: any) => {
 
 
 
-export const getAcceptedInspectionAttachmentCount = async (payload: any): Promise<any> => {
+export const getAcceptedInspectionAttachmentCount = async (payload: any,currentPage:number ) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -80,7 +80,7 @@ console.log('storeduserid-----------',storedUserId)
 console.log('---access',accessToken)
 console.log('==========xauth',xAuthUserId)
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/${currentPage}`
     console.log("chaljaja",apiUrl)
 
     if (!accessToken || !storedUserId) {

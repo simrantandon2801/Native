@@ -22,7 +22,7 @@ const RejectedList: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-
+ const [userId, setUserId] = useState<string | null>(null)
 
     const fetchRejected = async () => {
       setIsLoading(true)
@@ -30,7 +30,7 @@ const RejectedList: React.FC = () => {
       try {
         const payload: any = {
           statusId: "18", 
-          userId: "3816881804355836",
+          userId:userId,
           displayRefId: "",
           companyName: "",
           fromDate: "",
@@ -52,10 +52,15 @@ const RejectedList: React.FC = () => {
       }
     }
 
-  useEffect(()=>{
-    fetchRejected()
-  },[])
-
+  // useEffect(()=>{
+  //   fetchRejected()
+  // },[])
+ 
+  useEffect(() => {
+    if (userId) {
+      fetchRejected()
+    }
+  }, [userId,]) 
   const onRefresh = () => {
     setRefreshing(true)
     fetchRejected()

@@ -42,37 +42,37 @@ const Rejected: React.FC = () => {
     },
   ]
 
-  const fetchRejectedAttachments = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const payload: any = {
-        statusId: "18", 
-        userId: "3816881804355836",
-        displayRefId: "",
-        companyName: "",
-        fromDate: "",
-        toDate: "",
-        processFlag: true,
-        inspectionType: null,
-        fsoName: null,
-        kobId: null,
-      }
+  // const fetchRejectedAttachments = async () => {
+  //   setIsLoading(true)
+  //   setError(null)
+  //   try {
+  //     const payload: any = {
+  //       statusId: "18", 
+  //       userId: "3816881804355836",
+  //       displayRefId: "",
+  //       companyName: "",
+  //       fromDate: "",
+  //       toDate: "",
+  //       processFlag: true,
+  //       inspectionType: null,
+  //       fsoName: null,
+  //       kobId: null,
+  //     }
 
-      const result = await getRejectedInspectionAttachmentCount(payload)
-      setRejectedAttachmentData(result)
-    } catch (error) {
-      console.error("Error loading data:", error)
-      setError("Failed to load data. Please try again.")
-      Alert.alert("Error", "Failed to load data. Please check your internet connection and try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  //     const result = await getRejectedInspectionAttachmentCount(payload)
+  //     setRejectedAttachmentData(result)
+  //   } catch (error) {
+  //     console.error("Error loading data:", error)
+  //     setError("Failed to load data. Please try again.")
+  //     Alert.alert("Error", "Failed to load data. Please check your internet connection and try again.")
+  //   } finally {
+  //     setIsLoading(false)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchRejectedAttachments()
-  }, [])
+  // useEffect(() => {
+  //   fetchRejectedAttachments()
+  // }, [])
 
   const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
    <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Rejectedlist" as never)}>

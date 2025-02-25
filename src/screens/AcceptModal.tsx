@@ -6,10 +6,11 @@ interface AcceptModalProps {
   visible: boolean;
   onClose: () => void;
   item?: { assignmentId: number }; // Make item optional
+  onAcceptSuccess: (itemId: number) => void
 }
 
 
-const AcceptModal: React.FC<AcceptModalProps> = ({ visible, onClose, item }) => {
+const AcceptModal: React.FC<AcceptModalProps> = ({ visible, onClose, item ,onAcceptSuccess }) => {
   const [inspectionDate, setInspectionDate] = useState<Date | null>(null)  
   const [showDatePicker, setShowDatePicker] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -55,13 +56,19 @@ const AcceptModal: React.FC<AcceptModalProps> = ({ visible, onClose, item }) => 
       console.log("API Response:", response);
   
       if (response.statusCode === "200") {
-        Alert.alert("Success", "Inspection accepted successfully!", [{ text: "OK", onPress: onClose }]);
-        onClose();
+        Alert.alert("Success", "Inspection accepted successfully!", [{ 
+          text: "OK", 
+          onPress: () => {
+            onClose();
+            
+            onAcceptSuccess(response);
+          }
+        }]);
       } else {
         setError("Failed to accept inspection. Please try again.");
       }
     } catch (error) {
-      console.error("Error accepting inspection:", error.message || error);
+      // console.error("Error accepting inspection:", error.message || error);
       setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);

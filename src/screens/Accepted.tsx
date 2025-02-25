@@ -46,37 +46,6 @@ const Accepted: React.FC = () => {
     },
   ]
 
-  const fetchAcceptedAttachments = async () => {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const payload: any = {
-        statusId: "19", // Assuming 18 is the status ID for Accepted
-        userId: "3816881804355836",
-        displayRefId: "",
-        companyName: "",
-        fromDate: "",
-        toDate: "",
-        processFlag: true,
-        inspectionType: null,
-        fsoName: null,
-        kobId: null,
-      }
-
-      const result = await getAcceptedInspectionAttachmentCount(payload)
-      setAcceptedAttachmentData(result)
-    } catch (error) {
-      console.error("Error loading data:", error)
-      setError("Failed to load data. Please try again.")
-      Alert.alert("Error", "Failed to load data. Please check your internet connection and try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchAcceptedAttachments()
-  }, [])
 
   const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
     <TouchableOpacity style={styles.item} key={title}  onPress={() => navigation.navigate("Acceptedlist" as never)}>

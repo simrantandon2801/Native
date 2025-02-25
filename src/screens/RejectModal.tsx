@@ -10,9 +10,10 @@ interface RejectModalProps {
     companyName?: string
     assignmentId?: string
   } | null
+  onRejectSuccess: (itemId: number) => void
 }
 
-const RejectModal: React.FC<RejectModalProps> = ({ visible, onClose, item }) => {
+const RejectModal: React.FC<RejectModalProps> = ({ visible, onClose, item ,onRejectSuccess}) => {
   const [remarks, setRemarks] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -55,7 +56,11 @@ const RejectModal: React.FC<RejectModalProps> = ({ visible, onClose, item }) => 
       if (response.statusCode === "200") {
         console.log("Inspection rejected successfully");
         onClose();
-        Alert.alert("Success", "Inspection rejected successfully!", [{ text: "OK", onPress: onClose }]);
+        Alert.alert("Success", "Inspection rejected successfully!", [{ text: "OK",   onPress: () => {
+          onClose();
+          
+          onRejectSuccess(response);
+        }}]);
       } else {
         setError("Failed to reject inspection. Please try again.");
       }
@@ -86,9 +91,17 @@ const RejectModal: React.FC<RejectModalProps> = ({ visible, onClose, item }) => 
           <TouchableOpacity onPress={handleClose} style={[styles.button, styles.cancelButton]} disabled={isLoading}>
   <Text style={styles.buttonText}>Cancel</Text>
 </TouchableOpacity>
-            <TouchableOpacity onPress={handleReject} style={[styles.button, styles.rejectButton]} disabled={isLoading}>
-              {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Reject</Text>}
-            </TouchableOpacity>
+<TouchableOpacity 
+  onPress={handleReject} 
+  style={[
+    styles.button, 
+    styles.rejectButton,
+    (!remarks.trim() || isLoading) && { opacity: 0.5 } 
+  ]}
+  disabled={!remarks.trim() || isLoading} 
+>
+  {isLoading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Reject</Text>}
+</TouchableOpacity>
           </View>
         </View>
       </View>

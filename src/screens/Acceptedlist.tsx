@@ -1,12 +1,26 @@
+"use client"
+
 import type React from "react"
 // import Toast from "react-native-toast-message"
-import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Modal ,RefreshControl} from "react-native"
+import { useEffect, useState, useCallback } from "react"
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  TouchableOpacity,
+  Modal,
+  RefreshControl,
+} from "react-native"
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import { getSecondaryOfficerEsignDetails, startInspection } from "../database/Officerviewapi"
 import { DataTable } from "react-native-paper"
 import ToastManager, { Toast } from "toastify-react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useFocusEffect } from "@react-navigation/native"
+
+// import { useFocusEffect } from "@react-navigation/native"
 
 interface AcceptedData {
   currentPageNo: number
@@ -25,7 +39,7 @@ interface OfficerData {
 const Acceptedlist: React.FC = () => {
   const [acceptedData, setAcceptedData] = useState<AcceptedData>({
     currentPageNo: 1,
-    totalPages: 0,
+    totalPages: 1,
     pageLimit: 10,
     totalRecords: 0,
     paginationListRecords: [],
@@ -33,71 +47,93 @@ const Acceptedlist: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [modalVisible, setModalVisible] = useState(false)
+  const [refresh, setRefresh] = useState(false)
   const [officerData, setOfficerData] = useState<OfficerData[]>([])
   const [isStartingInspection, setIsStartingInspection] = useState(false)
-    const [refreshing, setRefreshing] = useState(false)
-    const [userId, setUserId] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10 
 
-
-    const fetchAccepted = async () => {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const payload: any = {
-          statusId: "19",
-          userId: userId,
-          displayRefId: "",
-          companyName: "",
-          fromDate: "",
-          toDate: "",
-          processFlag: true,
-          inspectionType: null,
-          fsoName: null,
-          kobId: null,
-        }
-        const result = await getAcceptedInspectionAttachmentCount(payload)
-        setAcceptedData(result)
-      } catch (error) {
-        console.error("Error loading data:", error)
-        setError("Failed to load data. Please try again.")
-      } finally {
-        setIsLoading(false)
-        setRefreshing(false)
-      }
-    }
-useEffect(()=>{
-  fetchAccepted()
-},[])
-useEffect(() => {
-  const fetchDataFromAsyncStorage = async () => {
+  
+  const fetchAccepted = async (page: number) => {
+    setIsLoading(true)
+    setError(null)
     try {
-      setIsLoading(true)
-      setError(null)
-
-      const storedUserId = await AsyncStorage.getItem("userId")
-
-
-      setUserId(storedUserId)
-     
-
-      console.log("Retrieved Data:", {
-        userId: storedUserId,
-      
-      })
-    } catch (err) {
-      console.error("Error fetching data from AsyncStorage:", err)
-      setError("Failed to load data from storage.")
+      const payload: any = {
+        statusId: "19",
+        userId: userId,
+        displayRefId: "",
+        companyName: "",
+        fromDate: "",
+        toDate: "",
+        processFlag: true,
+        inspectionType: null,
+        fsoName: null,
+        kobId: null,
+      }
+      const result = await getAcceptedInspectionAttachmentCount(payload, page)
+      setAcceptedData(result)
+      console.log("=============dh======",result)
+    } catch (error) {
+      console.error("Error loading data:", error)
+      setError("Failed to load data. Please try again.")
     } finally {
       setIsLoading(false)
+      setRefreshing(false)
     }
   }
 
-  fetchDataFromAsyncStorage()
-}, [])
-const onRefresh = () => {
-  setRefreshing(true)
-  fetchAccepted()
-}
+ 
+  useEffect(() => {
+    if (userId) {
+      fetchAccepted(currentPage)
+    }
+  }, [userId, currentPage]) 
+
+  // Update the useFocusEffect to use the current page
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     if (userId) {
+  //       fetchAccepted(currentPage)
+  //     }
+  //   }, [userId, currentPage]),
+  // )
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchAccepted()
+  //   }, [fetchAccepted])
+  // )
+  useEffect(() => {
+    const fetchDataFromAsyncStorage = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const storedUserId = await AsyncStorage.getItem("userId")
+
+        setUserId(storedUserId)
+
+        console.log("Retrieved Data:", {
+          userId: storedUserId,
+        })
+      } catch (err) {
+        console.error("Error fetching data from AsyncStorage:", err)
+        setError("Failed to load data from storage.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDataFromAsyncStorage()
+  }, [])
+
+  // Update the onRefresh function to reset to page 1
+  const onRefresh = () => {
+    setRefreshing(true)
+    setCurrentPage(1)
+    fetchAccepted(1)
+  }
 
   const handleViewInspectionOfficers = async (item: any) => {
     try {
@@ -155,7 +191,47 @@ const onRefresh = () => {
       setIsStartingInspection(false)
     }
   }
- 
+
+  // Update the handlePageChange function
+  const handlePageChange = async (newPage: number) => {
+    if (newPage >= 1) {
+      setCurrentPage(newPage)
+      await fetchAccepted(newPage)
+    }
+  }
+
+  // Update the renderPagination function to use the data from the API
+ const renderPagination = () => {
+        const hasMorePages =
+        acceptedData?.paginationListRecords?.length > 0 &&
+        acceptedData?.paginationListRecords?.length >= itemsPerPage 
+    
+        return (
+          <View style={styles.paginationContainer}>
+            <TouchableOpacity
+              onPress={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+            >
+              <Text style={styles.paginationButtonText}>Previous</Text>
+            </TouchableOpacity>
+    
+            <Text style={styles.paginationInfo}>Page {currentPage}</Text>
+    
+            <TouchableOpacity
+              onPress={() => handlePageChange(currentPage + 1)}
+              disabled={!hasMorePages}
+              style={[styles.paginationButton, !hasMorePages && styles.disabledButton]}
+            >
+              <Text style={styles.paginationButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        )
+      }
+      useEffect(() => {
+        console.log("Current Page:", currentPage)
+        // console.log("Total Pages:", Totalpage)
+      }, [currentPage])
   if (isLoading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -174,8 +250,10 @@ const onRefresh = () => {
   }
 
   return (
-    <ScrollView style={styles.container}  
-     refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+    >
       <Text style={styles.listTitle}>Accepted Inspections</Text>
       {acceptedData.paginationListRecords.length > 0 ? (
         acceptedData.paginationListRecords.map((item) => (
@@ -224,6 +302,7 @@ const onRefresh = () => {
       ) : (
         <Text style={styles.emptyListText}>No accepted inspections found.</Text>
       )}
+      {renderPagination()}
       <Modal
         animationType="none"
         transparent={true}
@@ -431,6 +510,36 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  paginationButton: {
+    padding: 10,
+    marginHorizontal: 5,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+  },
+  activeButton: {
+    backgroundColor: "#007bff",
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  paginationButtonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  activeButtonText: {
+    color: "#fff",
+  },
+  paginationInfo: {
+    fontSize: 16,
+    marginHorizontal: 10,
   },
 })
 

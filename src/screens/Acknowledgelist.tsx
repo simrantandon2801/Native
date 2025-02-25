@@ -1,10 +1,13 @@
+
+
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, RefreshControl, TouchableOpacity } from "react-native"
 import { getAcknowledgedInspectionCount } from "../database/Dashboardapi"
 import AcceptModal from "./AcceptModal"
 import RejectModal from "./RejectModal"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useFocusEffect } from "@react-navigation/native"
 
 interface AcknowledgedData {
   currentPageNo: number
@@ -32,6 +35,8 @@ const AcknowledgeList: React.FC = () => {
   const [displayRefId, setDisplayRefId] = useState<string | null>(null)
   const [companyName, setCompanyName] = useState<string | null>(null)
   const [inspectionType, setInspectionType] = useState<string | null>(null)
+   const [currentPage, setCurrentPage] = useState(1)
+    const itemsPerPage = 10 
 
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
@@ -66,14 +71,14 @@ const AcknowledgeList: React.FC = () => {
     fetchDataFromAsyncStorage()
   }, [])
 
-  const fetchAcknowledgement = async () => {
+  const fetchAcknowledgement = async (page: number) => {
     setIsLoading(true)
     setError(null)
     try {
       const payload = {
         statusId: "17",
-        userId:userId,
-        displayRefId:displayRefId,
+        userId: userId,
+        displayRefId: displayRefId,
         companyName: companyName,
         fromDate: "",
         toDate: "",
@@ -83,8 +88,8 @@ const AcknowledgeList: React.FC = () => {
         kobId: null,
       }
       console.log("======payload", payload)
-      const result = await getAcknowledgedInspectionCount(payload)
-      console.log("+++++++Acknowledge",result)
+      const result = await getAcknowledgedInspectionCount(payload,page)
+      console.log("+++++++Acknowledge", result)
       setAcknowledgedData(result)
     } catch (error) {
       console.error("Error loading data:", error)
@@ -94,15 +99,28 @@ const AcknowledgeList: React.FC = () => {
       setRefreshing(false)
     }
   }
+ useEffect(() => {
+    if (userId) {
+      fetchAcknowledgement(currentPage)
+    }
+  }, [userId, currentPage]) 
 
-  useEffect(() => {
-    fetchAcknowledgement()
-  }, [userId, displayRefId,companyName,inspectionType]) 
+  // useEffect(() => {
+  //   fetchAcknowledgement()
+  // }, [userId, displayRefId, companyName, inspectionType])
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchAcknowledgement()
+  //   }, []),
+  // )
+  // const onRefresh = () => {
+  //   setRefreshing(true)
+  //   // fetchAcknowledgement()
+  // }
 
-  const onRefresh = () => {
-    setRefreshing(true)
-    fetchAcknowledgement()
-  }
+  const refreshData = useCallback(() => {
+    // fetchAcknowledgement()
+  }, [userId, displayRefId, companyName, inspectionType])
 
   const handleAcceptPress = (item: any) => {
     setSelectedItem(item)
@@ -113,7 +131,14 @@ const AcknowledgeList: React.FC = () => {
     setSelectedItem(item)
     setIsRejectModalVisible(true)
   }
-
+  const onAcceptSuccess = () => {
+    setCurrentPage(1);
+    fetchAcknowledgement(1);
+  };
+  const onRejectSuccess = () => {
+    setCurrentPage(1);
+    fetchAcknowledgement(1);
+  };
   const closeAcceptModal = () => {
     setIsAcceptModalVisible(false)
   }
@@ -121,7 +146,57 @@ const AcknowledgeList: React.FC = () => {
   const closeRejectModal = () => {
     setIsRejectModalVisible(false)
   }
+  const onRefresh = () => {
+    setRefreshing(true)
+    setCurrentPage(1)
+    fetchAcknowledgement(1)
+  }
+ const removeItemFromList = useCallback((itemId: number) => {
+  setAcknowledgedData((prevData) => ({
+    ...prevData,
+    paginationListRecords: prevData.paginationListRecords.filter((item) => item.assignmentId !== itemId),
+    totalRecords: prevData.totalRecords > 0 ? prevData.totalRecords - 1 : 0,
+  }))
+}, [])
+ const handlePageChange = async (newPage: number) => {
+    if (newPage >= 1) {
+      setCurrentPage(newPage)
+      await fetchAcknowledgement(newPage)
+    }
+  }
 
+  // Update the renderPagination function to use the data from the API
+ const renderPagination = () => {
+        const hasMorePages =
+        acknowledgedData?.paginationListRecords?.length > 0 &&
+        acknowledgedData?.paginationListRecords?.length >= itemsPerPage 
+    
+        return (
+          <View style={styles.paginationContainer}>
+            <TouchableOpacity
+              onPress={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+            >
+              <Text style={styles.paginationButtonText}>Previous</Text>
+            </TouchableOpacity>
+    
+            <Text style={styles.paginationInfo}>Page {currentPage}</Text>
+    
+            <TouchableOpacity
+              onPress={() => handlePageChange(currentPage + 1)}
+              disabled={!hasMorePages}
+              style={[styles.paginationButton, !hasMorePages && styles.disabledButton]}
+            >
+              <Text style={styles.paginationButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        )
+      }
+      useEffect(() => {
+        console.log("Current Page:", currentPage)
+        // console.log("Total Pages:", Totalpage)
+      }, [currentPage])
   if (isLoading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
@@ -153,7 +228,7 @@ const AcknowledgeList: React.FC = () => {
                 <View style={styles.leftContent}>
                   <Text style={styles.listItemText}>Assignment ID: {item.assignmentId || "N/A"}</Text>
                   <Text style={styles.listItemText}>Company Name: {item.companyName || "N/A"}</Text>
-                  <Text style={styles.statusDesc}>Stage: {item.statusDesc || "N/A"}</Text>
+                  <Text style={styles.listItemText}>Stage: {item.statusDesc || "N/A"}</Text>
                 </View>
                 <View style={styles.rightContent}>
                   <Text style={styles.listItemText}>Type: {item.inspectionType || "N/A"}</Text>
@@ -175,16 +250,22 @@ const AcknowledgeList: React.FC = () => {
         ) : (
           <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
         )}
+          {renderPagination()}
       </ScrollView>
 
-      <AcceptModal 
-  visible={isAcceptModalVisible} 
-  onClose={closeAcceptModal} 
-  item={selectedItem} 
-  
+      <AcceptModal
+  visible={isAcceptModalVisible}
+  onClose={closeAcceptModal}
+  item={selectedItem}
+  onAcceptSuccess={onAcceptSuccess}
 />
 
-      <RejectModal visible={isRejectModalVisible} onClose={closeRejectModal}  item={selectedItem}  />
+      <RejectModal
+        visible={isRejectModalVisible}
+        onClose={closeRejectModal}
+        item={selectedItem}
+    onRejectSuccess={onRejectSuccess}
+      />
     </>
   )
 }
@@ -298,6 +379,36 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "Source Sans Pro",
   },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  paginationButton: {
+    padding: 10,
+    marginHorizontal: 5,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+  },
+  activeButton: {
+    backgroundColor: "#007bff",
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  paginationButtonText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  activeButtonText: {
+    color: "#fff",
+  },
+  paginationInfo: {
+    fontSize: 16,
+    marginHorizontal: 10,
+  },
 })
 
 export default AcknowledgeList
+

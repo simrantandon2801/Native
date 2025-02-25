@@ -375,8 +375,8 @@ const [isLoading, setIsLoading] = useState(false)
                   dropdownIconColor="#666"
                 >
                   <Picker.Item label="Select Inspection Type" value="" style={styles.placeholderStyle} />
-                  <Picker.Item label="Pre Inspection" value="pre" />
-                  <Picker.Item label="Post Inspection" value="post" />
+                  <Picker.Item label="PRE" value="PRE" />
+                  <Picker.Item label="POST" value="POST" />
                   {/* {inspectionTypes.map((type) => (
     <Picker.Item key={type.id} label={type.name} value={type.id} />
   ))} */}
@@ -474,7 +474,7 @@ const [isLoading, setIsLoading] = useState(false)
               </View>
               
               <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Inspection Date:</Text>
+                <Text style={styles.recordLabel}>Allocated Date:</Text>
                 <Text style={styles.recordValue}>{item.createdOn}</Text>
               </View>
               <View style={styles.recordRow}>
@@ -576,7 +576,7 @@ inspectionType
         style={styles.closeIcon} 
         onPress={closeModal}
       >
-        <X size={24} color="#000" />
+        <X size={20} color="#000" />
       </TouchableOpacity>
 
      
@@ -662,14 +662,14 @@ const styles = StyleSheet.create({
   },
   modalContentA: {
     width: '80%',
-    padding: 20,
+    padding: 30,
     backgroundColor: 'white',
     borderRadius: 10,
     alignItems: 'center',
   },
   modalTitleA: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 10,
   },
   overlay:{
@@ -828,6 +828,7 @@ const styles = StyleSheet.create({
   closeIcon: {
     padding: 8,
     left:100,
+  //  top:20
 
   },
   closeIcon5: {
