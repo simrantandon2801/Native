@@ -580,7 +580,7 @@ inspectionType
       </TouchableOpacity>
 
      
-      <Text style={styles.modalTitleA}>Rejected Remarks</Text>
+      <Text style={styles.modalTitleA}>Rejected Remarks:</Text>
       <Text>{item.rejectedRemarks}</Text>
     </View>
   </View>
@@ -662,7 +662,7 @@ const styles = StyleSheet.create({
   },
   modalContentA: {
     width: '80%',
-    padding: 30,
+    padding: 20,
     backgroundColor: 'white',
     borderRadius: 10,
     alignItems: 'center',
@@ -671,6 +671,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 10,
+    marginTop:-20
   },
   overlay:{
     flex:1,

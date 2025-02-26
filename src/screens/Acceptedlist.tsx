@@ -499,7 +499,7 @@ const Acceptedlist: React.FC = () => {
 
 <View style={styles.rightContent}>
   <Text style={styles.boldText}>
-    RA: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+    Remarks: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
   </Text>
   <Text style={styles.boldText}>
     Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   boldText: {
-    fontWeight: 500,
+    fontWeight: 400,
     color: "#000",
     marginTop:10,
     fontSize:14
