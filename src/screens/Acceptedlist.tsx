@@ -119,11 +119,17 @@ const Acceptedlist: React.FC = () => {
         setError(null)
 
         const storedUserId = await AsyncStorage.getItem("userId")
+        // const storedRefId=await AsyncStorage.getItem("RefId")
+        // const storedDisplayRefId=await AsyncStorage.getItem("displayRefId")
 
         setUserId(storedUserId)
+        // setRefId(storedRefId)
+        // setdisplayRefId(storedDisplayRefId)
 
         console.log("Retrieved Data:", {
           userId: storedUserId,
+          // refId:storedRefId,
+          // displayRefId:storedDisplayRefId
         })
       } catch (err) {
         console.error("Error fetching data from AsyncStorage:", err)
@@ -174,20 +180,20 @@ const Acceptedlist: React.FC = () => {
     }
     fetchData()
   }, [])
-  useEffect(() => {
-    const loadCompanyName = async () => {
-      try {
-        const savedCompanyName = await AsyncStorage.getItem("companyName")
-        if (savedCompanyName) {
-          setCompanyName(savedCompanyName)
-        }
-      } catch (error) {
-        console.error("Error loading companyName from AsyncStorage:", error)
-      }
-    }
+  // useEffect(() => {
+  //   const loadCompanyName = async () => {
+  //     try {
+  //       const savedCompanyName = await AsyncStorage.getItem("companyName")
+  //       if (savedCompanyName) {
+  //         setCompanyName(savedCompanyName)
+  //       }
+  //     } catch (error) {
+  //       console.error("Error loading companyName from AsyncStorage:", error)
+  //     }
+  //   }
 
-    loadCompanyName()
-  }, [])
+  //   loadCompanyName()
+  // }, [])
   const onFromDateChange = (event, selectedDate) => {
     setShowFromPicker(false)
     if (event.type === "set") {
@@ -235,6 +241,7 @@ const Acceptedlist: React.FC = () => {
     setShowToPicker(false)
     setCurrentPage(1)
     setHasSearched(false)
+    setdisplayRefId("")
   }
   // useFocusEffect(
   //   useCallback(() => {
@@ -449,6 +456,8 @@ const Acceptedlist: React.FC = () => {
                   onPress={async () => {
                     setCurrentPage(1)
                     setHasSearched(true)
+                    setdisplayRefId(referenceNo)
+                    setCompanyName(companyName)
                     await fetchAccepted(1)
                     toggleModal()
                   }}
@@ -539,22 +548,22 @@ const Acceptedlist: React.FC = () => {
                 </TouchableOpacity>
               </View>
               <ScrollView style={styles.tableContainer}>
-              <DataTable>
-                <DataTable.Header style={styles.tableHeader}>
-                  <DataTable.Title style={styles.tableHeaderCell}>S.No</DataTable.Title>
-                  <DataTable.Title style={styles.tableHeaderCell}>FSO Name</DataTable.Title>
-                  <DataTable.Title style={styles.tableHeaderCell}>Officer Type</DataTable.Title>
-                </DataTable.Header>
+                <DataTable>
+                  <DataTable.Header style={styles.tableHeader}>
+                    <DataTable.Title style={styles.tableHeaderCell}>S.No</DataTable.Title>
+                    <DataTable.Title style={styles.tableHeaderCell}>FSO Name</DataTable.Title>
+                    <DataTable.Title style={styles.tableHeaderCell}>Officer Type</DataTable.Title>
+                  </DataTable.Header>
 
-                {officerData.map((officer, index) => (
-                  <DataTable.Row key={officer.id || index} style={styles.tableRow}>
-                    <DataTable.Cell style={styles.tableCell}>{index + 1}</DataTable.Cell>
-                    <DataTable.Cell style={styles.tableCell}>{officer.fsoName}</DataTable.Cell>
-                    <DataTable.Cell style={styles.tableCell}>{officer.officerType}</DataTable.Cell>
-                  </DataTable.Row>
-                ))}
-              </DataTable>
-            </ScrollView>
+                  {officerData.map((officer, index) => (
+                    <DataTable.Row key={officer.id || index} style={styles.tableRow}>
+                      <DataTable.Cell style={styles.tableCell}>{index + 1}</DataTable.Cell>
+                      <DataTable.Cell style={styles.tableCell}>{officer.fsoName}</DataTable.Cell>
+                      <DataTable.Cell style={styles.tableCell}>{officer.officerType}</DataTable.Cell>
+                    </DataTable.Row>
+                  ))}
+                </DataTable>
+              </ScrollView>
               <TouchableOpacity style={styles.closeButtonView} onPress={() => setOfficerModalVisible(false)}>
                 <Text style={styles.closeButtonText6}>Close</Text>
               </TouchableOpacity>
@@ -804,12 +813,12 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     fontSize: 16,
   },
-    closeButtonText6: {
+  closeButtonText6: {
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
   },
-  
+
   errorText: {
     color: "red",
     marginBottom: 10,
