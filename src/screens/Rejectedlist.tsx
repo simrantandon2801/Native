@@ -65,6 +65,8 @@ const Rejectedlist: React.FC = () => {
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [isRemarksModalVisible, setIsRemarksModalVisible] = useState(false)
+  const [selectedRemarks, setSelectedRemarks] = useState<string | null>(null)
 
   const fetchRejected = useCallback(
     async (page: number) => {
@@ -83,7 +85,7 @@ const Rejectedlist: React.FC = () => {
           fsoName: null,
           kobId: null,
         }
-        console.log("payload for Rejet", payload)
+        console.log("payload for Reject", payload)
         const result = await getRejectedInspectionAttachmentCount(payload, page)
         setRejectedData(result)
         setHasSearched(true)
@@ -268,6 +270,11 @@ const Rejectedlist: React.FC = () => {
     // console.log("Total Pages:", Totalpage)
   }, [currentPage])
 
+  const handleViewRemarks = (remarks: string) => {
+    setSelectedRemarks(remarks)
+    setIsRemarksModalVisible(true)
+  }
+
   // if (isLoading && !refreshing) {
   //   return (
   //     // <View style={styles.loadingContainer}>
@@ -404,7 +411,10 @@ const Rejectedlist: React.FC = () => {
           <Text style={styles.emptyListText}>No record found</Text>
         ) : rejectedData.paginationListRecords.length > 0 ? (
           rejectedData.paginationListRecords.map((item) => (
-            <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
+            <View
+              key={`item-${item.assignmentId || ""}-${Math.random().toString(36).substr(2, 9)}`}
+              style={styles.listItem}
+            >
               <View style={styles.listItemContent}>
                 <View style={styles.leftContent}>
                   <Text style={styles.boldText}>
@@ -433,6 +443,11 @@ const Rejectedlist: React.FC = () => {
                   </Text>
                 </View>
               </View>
+              <View style={styles.buttonview}>
+                <TouchableOpacity style={styles.viewButton} onPress={() => handleViewRemarks(item.raRemarks)}>
+                  <Text style={styles.viewButtonText}>View</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))
         ) : (
@@ -441,6 +456,20 @@ const Rejectedlist: React.FC = () => {
       </ScrollView>
 
       {hasSearched && rejectedData?.paginationListRecords?.length > 0 && renderPagination()}
+
+      <Modal visible={isRemarksModalVisible} transparent={true} onRequestClose={() => setIsRemarksModalVisible(false)}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <View style={styles.remarksModalContent}>
+            <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10, textAlign: "center" ,fontFamily:'Outfit'}}>Remarks</Text>
+            <ScrollView style={styles.remarksScrollView}>
+              <Text style={styles.remarksText}>{selectedRemarks || "No remarks available."}</Text>
+            </ScrollView>
+            <TouchableOpacity style={styles.closeFullButton} onPress={() => setIsRemarksModalVisible(false)}>
+              <Text style={styles.closeFullButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -457,8 +486,57 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: 400,
     color: "#000",
-    marginTop: 10,
+    marginTop: 15,
     fontSize: 14,
+  },
+  buttonview: {
+    marginTop: 10,
+    alignItems: "flex-start",
+  },
+  viewButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 8,
+    width:100,
+    alignItems:'center',
+    paddingHorizontal: 16,
+    borderRadius: 6,
+  },
+  viewButtonText: {
+    color: "#fff",
+    fontWeight: "500",
+    fontSize: 14,
+  },
+  remarksModalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    width: "90%",
+    maxHeight: "80%",
+    alignSelf: "center",
+  },
+  remarksScrollView: {
+    maxHeight: 300,
+    marginVertical: 10,
+  },
+  remarksText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#333",
+    // textAlign:'center'
+  },
+  closeFullButton: {
+    backgroundColor: "#007AFF",
+    width:100,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent:'center',
+    marginTop: 10,
+  },
+  closeFullButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
   normalText: {
     fontWeight: "normal",

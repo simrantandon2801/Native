@@ -78,9 +78,9 @@ const AcknowledgeList: React.FC = () => {
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
-          fromDate: "",
-          toDate: "",
-          processFlag: true,
+          fromDate: fromDate ? fromDate.toISOString().split("T")[0] : "",
+          toDate: toDate ? toDate.toISOString().split("T")[0] : "",
+          processFlag: null,
           inspectionType: null,
           fsoName: null,
           kobId: null,
@@ -97,7 +97,7 @@ const AcknowledgeList: React.FC = () => {
         setRefreshing(false)
       }
     },
-    [userId, displayRefId, companyName],
+    [userId, displayRefId, companyName,fromDate, toDate],
   )
   useEffect(() => {
     // Don't automatically fetch data on mount

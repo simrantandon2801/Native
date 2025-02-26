@@ -85,13 +85,14 @@ const Acceptedlist: React.FC = () => {
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
-          fromDate: "",
-          toDate: "",
+          fromDate: fromDate ? fromDate.toISOString().split("T")[0] : "",
+          toDate: toDate ? toDate.toISOString().split("T")[0] : "",
           processFlag: true,
           inspectionType: null,
           fsoName: null,
           kobId: null,
         }
+        console.log("payload for Accept",payload)
         const result = await getAcceptedInspectionAttachmentCount(payload, page)
         setAcceptedData(result)
         setHasSearched(true)
@@ -602,9 +603,9 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   boldText: {
-    fontWeight: 400,
+    fontWeight: 500,
     color: "#000",
-    marginTop:10,
+    marginTop:15,
     fontSize:14
   },
   normalText: {
