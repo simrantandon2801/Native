@@ -132,7 +132,7 @@ const [isLoading, setIsLoading] = useState(false)
       setToDate(selectedDate);
     }
   };
-  // Helper function to display date or placeholder
+
   const getDisplayDate = (date: Date | null): string => {
     return date ? date.toLocaleDateString() : 'Select Date';
   };
