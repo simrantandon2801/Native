@@ -180,20 +180,20 @@ const Acceptedlist: React.FC = () => {
     }
     fetchData()
   }, [])
-  // useEffect(() => {
-  //   const loadCompanyName = async () => {
-  //     try {
-  //       const savedCompanyName = await AsyncStorage.getItem("companyName")
-  //       if (savedCompanyName) {
-  //         setCompanyName(savedCompanyName)
-  //       }
-  //     } catch (error) {
-  //       console.error("Error loading companyName from AsyncStorage:", error)
-  //     }
-  //   }
+  useEffect(() => {
+    const loadCompanyName = async () => {
+      try {
+        const savedCompanyName = await AsyncStorage.getItem("companyName")
+        if (savedCompanyName) {
+          setCompanyName(savedCompanyName)
+        }
+      } catch (error) {
+        console.error("Error loading companyName from AsyncStorage:", error)
+      }
+    }
 
-  //   loadCompanyName()
-  // }, [])
+    loadCompanyName()
+  }, [])
   const onFromDateChange = (event, selectedDate) => {
     setShowFromPicker(false)
     if (event.type === "set") {
@@ -457,7 +457,7 @@ const Acceptedlist: React.FC = () => {
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)
-                    setCompanyName(companyName)
+                    // setCompanyName(companyName)
                     await fetchAccepted(1)
                     toggleModal()
                   }}
@@ -482,17 +482,33 @@ const Acceptedlist: React.FC = () => {
           acceptedData.paginationListRecords.map((item) => (
             <View key={item.assignmentId} style={styles.listItem}>
               <View style={styles.content}>
-                <View style={styles.leftContent}>
-                  <Text style={styles.listItemText}>Company Name:{item.companyName || "N/A"}</Text>
-                  <Text style={styles.listItemText}>Assignment ID: {item.assignmentId || "N/A"}</Text>
-                  <Text style={styles.listItemText}>Inspection Type: {item.inspectionType || "N/A"}</Text>
-                  <Text style={styles.listItemText}>Ref: {item.displayRefId || "N/A"}</Text>
-                </View>
-                <View style={styles.rightContent}>
-                  <Text style={styles.listItemText}>RA: {item.raRemarks || "N/A"}</Text>
-                  <Text style={styles.listItemText}>Assigned By: {item.assignedBy || "N/A"}</Text>
-                  <Text style={styles.listItemText}>Stage: {item.statusDesc || "N/A"}</Text>
-                </View>
+              <View style={styles.leftContent}>
+  <Text style={styles.boldText}>
+    Company Name: <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
+  </Text>
+  <Text style={styles.boldText}>
+    Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
+  </Text>
+  <Text style={styles.boldText}>
+    Inspection Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
+  </Text>
+  <Text style={styles.boldText}>
+    Ref ID: <Text style={styles.normalText}>{item.displayRefId || "N/A"}</Text>
+  </Text>
+</View>
+
+<View style={styles.rightContent}>
+  <Text style={styles.boldText}>
+    RA: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+  </Text>
+  <Text style={styles.boldText}>
+    Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
+  </Text>
+  <Text style={styles.boldText}>
+    Stage: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+  </Text>
+</View>
+
               </View>
               <View style={styles.buttonContainer}>
                 {/* <ToastManager /> */}
@@ -581,6 +597,20 @@ const styles = StyleSheet.create({
 
     backgroundColor: "#f5f5f5",
   },
+  listItemText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  boldText: {
+    fontWeight: 500,
+    color: "#000",
+    marginTop:10,
+    fontSize:14
+  },
+  normalText: {
+    fontWeight: "normal",
+    color: "#666",
+  },
   modalContainer: {
     flex: 1,
     justifyContent: "center",
@@ -602,6 +632,13 @@ const styles = StyleSheet.create({
   },
   nameColumn: {
     flex: 2,
+  },
+  listItemText1:{
+    fontSize: 14,
+    color: "#555",
+    fontWeight:600,
+    marginBottom: 8,
+
   },
   tableRow: {
     borderBottomWidth: 1,
@@ -647,7 +684,9 @@ const styles = StyleSheet.create({
   },
   listTitle: {
     fontSize: 18,
-    fontWeight: "600",
+    
+  
+    fontWeight: 600,
     marginTop: 20,
     fontFamily: "Outfit",
     marginBottom: 15,
