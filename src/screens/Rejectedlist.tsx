@@ -1,6 +1,24 @@
+"use client"
+
 import type React from "react"
-import { useEffect, useState } from "react"
-import { View, Text, StyleSheet, ScrollView ,RefreshControl,ActivityIndicator} from "react-native"
+import { useState, useEffect, useCallback } from "react"
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Modal,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  RefreshControl,
+  Alert,
+} from "react-native"
+import { Picker } from "@react-native-picker/picker"
+import { Filter, X } from "lucide-react-native"
+import DateTimePicker from "@react-native-community/datetimepicker"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import { getBusinessTypes } from "../database/Statebusinessapi"
 import { getRejectedInspectionAttachmentCount } from "../database/Dashboardapi"
 
 interface RejectedData {
@@ -10,8 +28,7 @@ interface RejectedData {
   totalRecords: number
   paginationListRecords: any[]
 }
-
-const RejectedList: React.FC = () => {
+const Rejectedlist: React.FC = () => {
   const [rejectedData, setRejectedData] = useState<RejectedData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -19,30 +36,58 @@ const RejectedList: React.FC = () => {
     totalRecords: 0,
     paginationListRecords: [],
   })
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
- const [userId, setUserId] = useState<string | null>(null)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [referenceNo, setReferenceNo] = useState("")
+  const [companyName, setCompanyName] = useState("")
+  const [isAcceptModalVisible, setIsAcceptModalVisible] = useState(false)
+  const [isRejectModalVisible, setIsRejectModalVisible] = useState(false)
+  const [selectedItem, setSelectedItem] = useState<any | null>(null)
+  const [selectedBusinessType, setSelectedBusinessType] = useState("")
+  const [userId, setUserId] = useState<string | null>(null)
 
-    const fetchRejected = async () => {
+  const [refId, setRefId] = useState("")
+  const [refreshing, setRefreshing] = useState(false)
+  const [displayRefId, setdisplayRefId] = useState("")
+  const [hasSearched, setHasSearched] = useState(false)
+  const [itemsPerPage] = useState(10)
+
+  const [currentPage, setCurrentPage] = useState(1)
+  const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
+  const [isSearching, setIsSearching] = useState(false)
+
+  const [showFromPicker, setShowFromPicker] = useState(false)
+  const [selectedInspectionType, setSelectedInspectionType] = useState("")
+
+  const [isLoading, setIsLoading] = useState(false)
+
+  const [fromDate, setFromDate] = useState(new Date())
+  const [toDate, setToDate] = useState(new Date())
+  const [showToPicker, setShowToPicker] = useState(false)
+  const [kobId, setKobId] = useState("")
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchRejected = useCallback(
+    async (page: number) => {
       setIsLoading(true)
       setError(null)
       try {
         const payload: any = {
-          statusId: "18", 
-          userId:userId,
-          displayRefId: "",
-          companyName: "",
-          fromDate: "",
-          toDate: "",
-          processFlag: true,
+          statusId: "18",
+          userId: userId,
+          displayRefId: displayRefId,
+          companyName: companyName,
+          fromDate: fromDate ? fromDate.toISOString().split("T")[0] : "",
+          toDate: toDate ? toDate.toISOString().split("T")[0] : "",
+          processFlag: null,
           inspectionType: null,
           fsoName: null,
           kobId: null,
         }
-
-        const result = await getRejectedInspectionAttachmentCount(payload)
+        console.log("payload for Rejet", payload)
+        const result = await getRejectedInspectionAttachmentCount(payload, page)
         setRejectedData(result)
+        setHasSearched(true)
+        console.log("=============Rejected======", result)
       } catch (error) {
         console.error("Error loading data:", error)
         setError("Failed to load data. Please try again.")
@@ -50,88 +95,415 @@ const RejectedList: React.FC = () => {
         setIsLoading(false)
         setRefreshing(false)
       }
+    },
+    [userId, displayRefId, companyName, fromDate, toDate],
+  )
+
+  useEffect(() => {
+    console.log("Updated refId:", refId)
+  }, [refId])
+
+  useEffect(() => {
+    const fetchDataFromAsyncStorage = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const storedUserId = await AsyncStorage.getItem("userId")
+
+        setUserId(storedUserId)
+
+        console.log("Retrieved Data:", {
+          userId: storedUserId,
+        })
+      } catch (err) {
+        console.error("Error fetching data from AsyncStorage:", err)
+        setError("Failed to load data from storage.")
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-  // useEffect(()=>{
-  //   fetchRejected()
-  // },[])
- 
+    fetchDataFromAsyncStorage()
+  }, [])
+
   useEffect(() => {
-    if (userId) {
-      fetchRejected()
+    const fetchKobId = async () => {
+      try {
+        const storedKobId = await AsyncStorage.getItem("kobId")
+        console.log("Stored kobId from AsyncStorage:", storedKobId)
+
+        if (storedKobId) {
+          setKobId(storedKobId)
+        } else {
+          console.warn("No kobId found in AsyncStorage. Using fallback value.")
+          setKobId(selectedBusinessType)
+        }
+      } catch (err) {
+        console.error("Error fetching kobId from AsyncStorage:", err)
+      }
     }
-  }, [userId,]) 
+
+    fetchKobId()
+  }, [selectedBusinessType])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const businessTypeData = await getBusinessTypes()
+        setBusinessTypes(businessTypeData)
+      } catch (err) {
+        console.error("Error fetching initial data:", err)
+      }
+    }
+    fetchData()
+  }, [])
+
+  useEffect(() => {
+    const loadCompanyName = async () => {
+      try {
+        const savedCompanyName = await AsyncStorage.getItem("companyName")
+        if (savedCompanyName) {
+          setCompanyName(savedCompanyName)
+        }
+      } catch (error) {
+        console.error("Error loading companyName from AsyncStorage:", error)
+      }
+    }
+
+    loadCompanyName()
+  }, [])
+  const onFromDateChange = (event, selectedDate) => {
+    setShowFromPicker(false)
+    if (event.type === "set") {
+      setFromDate(selectedDate)
+
+      if (toDate && selectedDate > toDate) {
+        setToDate(null)
+      }
+    }
+  }
   const onRefresh = () => {
     setRefreshing(true)
-    fetchRejected()
-  }
-   if (isLoading && !refreshing) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0000ff" />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      )
+    setCurrentPage(1)
+    if (hasSearched) {
+      fetchRejected(1)
+    } else {
+      setRefreshing(false)
     }
-
-  if (error) {
-    return <Text style={styles.errorText}>{error}</Text>
   }
+  const onToDateChange = (event: any, selectedDate: Date | undefined) => {
+    setShowToPicker(false)
+    if (event.type === "set" && selectedDate) {
+      setToDate(selectedDate)
+    }
+  }
+
+  const getDisplayDate = (date: Date | null): string => {
+    return date ? date.toLocaleDateString() : "Select Date"
+  }
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const toggleModal = () => {
+    if (!isModalVisible) {
+    }
+    setIsModalVisible(!isModalVisible)
+  }
+  const handleReset = async () => {
+    setReferenceNo("")
+    setCompanyName("")
+    setSelectedBusinessType("")
+    setSelectedInspectionType("")
+    setFromDate(null)
+    setToDate(null)
+    setShowFromPicker(false)
+    setShowToPicker(false)
+    setHasSearched(false)
+    setdisplayRefId("")
+    setCurrentPage(1)
+    await fetchRejected(1)
+  }
+
+  const handlePageChange = async (newPage: number) => {
+    if (newPage >= 1) {
+      setCurrentPage((prevPage) => prevPage + 1)
+      await fetchRejected(newPage)
+    }
+  }
+
+  useEffect(() => {
+    if (userId && hasSearched) {
+      fetchRejected(currentPage)
+    }
+  }, [userId, currentPage, fetchRejected, hasSearched])
+  const renderPagination = () => {
+    const hasMorePages =
+      rejectedData?.paginationListRecords?.length > 0 && rejectedData?.paginationListRecords?.length >= itemsPerPage
+
+    return (
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          onPress={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+        >
+          <Text style={styles.paginationButtonText}>Previous</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationInfo}>Page {currentPage}</Text>
+
+        <TouchableOpacity
+          onPress={() => handlePageChange(currentPage + 1)}
+          disabled={!hasMorePages}
+          style={[styles.paginationButton, !hasMorePages && styles.disabledButton]}
+        >
+          <Text style={styles.paginationButtonText}>Next</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+  useEffect(() => {
+    console.log("Current Page:", currentPage)
+    // console.log("Total Pages:", Totalpage)
+  }, [currentPage])
+
+  // if (isLoading && !refreshing) {
+  //   return (
+  //     // <View style={styles.loadingContainer}>
+  //     //   <ActivityIndicator size="large" color="#0000ff" />
+  //     //   <Text style={styles.loadingText}>Loading...</Text>
+  //     // </View>
+  //   )
+  // }
 
   return (
-    <ScrollView style={styles.container}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-      <Text style={styles.listTitle}>Rejected Inspections</Text>
-      {rejectedData.paginationListRecords.length > 0 ? (
-        rejectedData.paginationListRecords.map((item) => (
-          <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
-            <View style={styles.column}>
-              <Text style={styles.listItemLabel}>Assignment ID:</Text>
-              <Text style={styles.listItemText}>{item.assignmentId || "N/A"}</Text>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={toggleModal} style={styles.filterIcon}>
+          <Filter size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+      <Modal visible={isModalVisible}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Filter Inspection</Text>
+                <TouchableOpacity onPress={toggleModal} style={styles.closeIcon5}>
+                  <X size={24} color="#000" />
+                </TouchableOpacity>
+              </View>
+              {/* <Text style={styles.modalTitle}>Filter Inspection</Text> */}
 
-              <Text style={styles.listItemLabel}>Inspection Type:</Text>
-              <Text style={styles.listItemText}>{item.inspectionType || "N/A"}</Text>
+              <Text style={styles.label}>Reference Number</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter reference number"
+                value={referenceNo}
+                onChangeText={setReferenceNo}
+                placeholderTextColor="#999"
+              />
 
-              <Text style={styles.listItemLabel}>Ref:</Text>
-              <Text style={styles.listItemText}>{item.displayRefId || "N/A"}</Text>
+              <Text style={styles.label}>Company Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter company name"
+                value={companyName}
+                onChangeText={setCompanyName}
+                placeholderTextColor="#999"
+              />
 
-              <Text style={styles.listItemLabel}>Company Name:</Text>
-              <Text style={styles.listItemText}>{item.companyName || "N/A"}</Text>
-            </View>
-            <View style={styles.column}>
-              <Text style={styles.listItemLabel}>Status:</Text>
-              <Text style={styles.listItemText}>{item.statusDesc || "N/A"}</Text>
+              <Text style={styles.label}>Allocated Date From</Text>
+              <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
+                <Text>{getDisplayDate(fromDate)}</Text>
+              </TouchableOpacity>
+              {showFromPicker && (
+                <DateTimePicker value={fromDate || today} mode="date" onChange={onFromDateChange} maximumDate={today} />
+              )}
 
-              <Text style={styles.listItemLabel}>Rejection Remarks:</Text>
-              <Text style={styles.listItemText}>{item.raRemarks || "N/A"}</Text>
+              <Text style={styles.label}>Allocated Date To</Text>
+              <TouchableOpacity style={styles.input} onPress={() => setShowToPicker(true)}>
+                <Text>{getDisplayDate(toDate)}</Text>
+              </TouchableOpacity>
+              {showToPicker && (
+                <DateTimePicker
+                  value={toDate || today}
+                  mode="date"
+                  onChange={onToDateChange}
+                  // minimumDate={fromDate || today}
+                  maximumDate={today}
+                />
+              )}
 
-              <Text style={styles.listItemLabel}>Allocate Date:</Text>
-              <Text style={styles.listItemText}>{item.fsoAckDate || "N/A"}</Text>
+              <Text style={styles.label}>Inspection Type</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedInspectionType}
+                  onValueChange={setSelectedInspectionType}
+                  style={styles.picker}
+                  dropdownIconColor="#666"
+                >
+                  <Picker.Item label="Select Inspection Type" value="" style={styles.placeholderStyle} />
+                  <Picker.Item label="PRE" value="PRE" />
+                  <Picker.Item label="POST" value="POST" />
+                  {/* {inspectionTypes.map((type) => (
+    <Picker.Item key={type.id} label={type.name} value={type.id} />
+  ))} */}
+                </Picker>
+              </View>
 
-              <Text style={styles.listItemLabel}>Assigned By:</Text>
-              <Text style={styles.listItemText}>{item.assignedBy || "N/A"}</Text>
-            </View>
+              <Text style={styles.label}>Business Type</Text>
+              <View style={styles.pickerWrapper}>
+                <Picker
+                  selectedValue={selectedBusinessType}
+                  onValueChange={setSelectedBusinessType}
+                  style={styles.picker}
+                  dropdownIconColor="#666"
+                >
+                  <Picker.Item label="Select Business Type" value="" style={styles.placeholderStyle} />
+                  {businessTypes.map((type) => (
+                    <Picker.Item key={type.kobId} label={type.kobName} value={type.kobId} />
+                  ))}
+                </Picker>
+              </View>
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity onPress={handleReset} style={styles.closeButton}>
+                  <Text style={styles.closeButtonText}>Reset</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.applyButton}
+                  onPress={async () => {
+                    if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                      Alert.alert("Error", "Please select both From and To dates")
+                      return
+                    }
+                    setCurrentPage(1)
+                    setHasSearched(true)
+                    setdisplayRefId(referenceNo)
+                    await fetchRejected(1)
+                    toggleModal()
+                  }}
+                  disabled={isSearching}
+                >
+                  <Text style={styles.applyButtonText}>{isSearching ? "Searching..." : "Search"}</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        ))
-      ) : (
-        <Text style={styles.emptyListText}>No rejected inspections found.</Text>
-      )}
-    </ScrollView>
+        </View>
+      </Modal>
+
+      <ScrollView
+        style={styles.container}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <Text style={styles.listTitle}>Acknowledged Inspections</Text>
+
+        {!hasSearched ? (
+          <Text style={styles.emptyListText}>No record found</Text>
+        ) : rejectedData.paginationListRecords.length > 0 ? (
+          rejectedData.paginationListRecords.map((item) => (
+            <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
+              <View style={styles.listItemContent}>
+                <View style={styles.leftContent}>
+                  <Text style={styles.boldText}>
+                    Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Company Name: <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Stage: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+                  </Text>
+                </View>
+
+                <View style={styles.rightContent}>
+                  <Text style={styles.boldText}>
+                    Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Ref ID: <Text style={styles.normalText}>{item.displayRefId || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Remarks: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
+                  </Text>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
+        )}
+      </ScrollView>
+
+      {hasSearched && rejectedData?.paginationListRecords?.length > 0 && renderPagination()}
+    </SafeAreaView>
   )
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
     backgroundColor: "#f5f5f5",
   },
+  listItemText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  boldText: {
+    fontWeight: 400,
+    color: "#000",
+    marginTop: 10,
+    fontSize: 14,
+  },
+  normalText: {
+    fontWeight: "normal",
+    color: "#666",
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  acceptButton: {
+    backgroundColor: "#007AFF",
+    marginRight: 6,
+    padding: 10,
+  },
+  rejectButton: {
+    backgroundColor: "#007AFF",
+    padding: 10,
+    marginLeft: 6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontFamily: "Source Sans Pro",
+  },
+  content: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  listItemContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  listItemText: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 8,
+  },
   listTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
+    fontSize: 18,
+    fontWeight: "600",
     marginTop: 20,
-    marginBottom: 10,
-    paddingHorizontal: 16,
     fontFamily: "Outfit",
+    marginBottom: 15,
+    paddingHorizontal: 16,
     color: "#333",
   },
   listItem: {
@@ -139,55 +511,293 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     marginHorizontal: 16,
-    borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
+  emptyListText: {
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
+    color: "#666",
+  },
+  leftContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+  rightContent: {
+    flex: 1,
+    marginLeft: 8,
+  },
+  modalContainerA: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContentA: {
+    width: "80%",
+    padding: 30,
+    backgroundColor: "white",
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  modalTitleA: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+  overlay: {
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#e0e0e0",
+  },
+  filterIcon: {
+    padding: 8,
+    borderRadius: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  buttoncontainer1: {
+    // textAlign:'center',
+  },
   column: {
     flex: 1,
+    minWidth: "45%",
+    maxWidth: "48%",
   },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: "90%",
+  },
+
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginBottom: 20,
+    color: "#333",
+    textAlign: "center",
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#666",
+    marginBottom: 8,
+  },
+  input: {
+    height: 45,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    color: "#333",
+  },
+
+  noRecordsText: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#999",
+  },
+  pickerWrapper: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 16,
+    backgroundColor: "#fff",
+    overflow: "hidden",
+  },
+  picker: {
+    width: "100%",
+    color: "#333",
+    height: 50,
+  },
+  placeholderStyle: {
+    fontSize: 14,
+    color: "#fff",
+  },
+
+  closeButton: {
+    flex: 1,
+    padding: 14,
+    backgroundColor: "transparent",
+    borderRadius: 8,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#007bff",
+  },
+  applyButton: {
+    flex: 1,
+    backgroundColor: "#007bff",
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: "#007bff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
+  },
+  applyButtonText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  loader: {
+    marginVertical: 10,
+  },
+  searchResults: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+  },
+  searchResultsTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
   },
-  listItemLabel: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 2,
-    fontFamily: "Outfit",
-  },
-  listItemText: {
-    fontSize: 14,
-    color: "#333",
-    marginBottom: 8,
-    fontFamily: "Outfit",
-  },
-  emptyListText: {
-    textAlign: "center",
-    marginTop: 20,
-    color: "#666",
-    fontFamily: "Outfit",
-  },
-  errorText: {
-    color: "red",
-    textAlign: "center",
-    marginTop: 20,
-    paddingHorizontal: 16,
-    fontFamily: "Outfit",
-  },
   loadingText: {
-    textAlign: "center",
-    marginTop: 20,
+    marginTop: 10,
+    fontSize: 16,
+    color: "#0000ff",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  closeIcon: {
+    padding: 8,
+    left: 100,
+    //  top:20
+  },
+  closeIcon5: {
+    padding: 8,
+  },
+  paginationContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  paginationButton: {
+    padding: 10,
+    marginHorizontal: 5,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 5,
+  },
+  activeButton: {
+    backgroundColor: "#007bff",
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  paginationButtonText: {
+    fontSize: 16,
     color: "#333",
-    fontFamily: "Outfit",
+  },
+  activeButtonText: {
+    color: "#fff",
+  },
+  paginationInfo: {
+    fontSize: 16,
+    marginHorizontal: 10,
+  },
+  recordContainer: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderRadius: 8,
+    marginVertical: 8,
+    marginHorizontal: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  recordRow: {
+    flexDirection: "row",
+    paddingVertical: 6,
+    // borderBottomWidth: 1,
+    // borderBottomColor: '#eee',
+  },
+  recordLabel: {
+    flex: 0.4,
+    fontWeight: "600",
+    color: "#666",
+  },
+  recordValue: {
+    flex: 0.6,
+    color: "#333",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 16,
+  },
+  buttonContainerp: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 12,
+    marginTop: 16,
+  },
+  proceedButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    backgroundColor: "#f5f5f5",
+  },
+  proceedButtonText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  linkText: {
+    color: "#007AFF",
+    // textDecorationLine: 'underline',
+  },
+  container5: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "aliceblue",
+    padding: 10,
+    borderRadius: 10,
   },
 })
 
-export default RejectedList
+export default Rejectedlist
 

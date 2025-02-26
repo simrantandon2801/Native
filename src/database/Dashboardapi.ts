@@ -112,13 +112,13 @@ console.log("rachded ")
   }
 }
 
-export const getRejectedInspectionAttachmentCount = async (payload: any): Promise<any> => {
+export const getRejectedInspectionAttachmentCount = async (payload: any,currentPage:number): Promise<any> => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getassignmentlistreg/${currentPage}`
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")
