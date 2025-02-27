@@ -11,9 +11,8 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  RefreshControl,ActivityIndicator
+  ActivityIndicator,
 } from "react-native"
-import Icon from 'react-native-vector-icons/Ionicons';
 import { Picker } from "@react-native-picker/picker"
 import { Filter, X } from "lucide-react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
@@ -23,26 +22,24 @@ import { useFocusEffect } from "@react-navigation/native"
 import { searchApplicationsAllocated } from "../database/AllocatedInspectionn/SearchAllocatedApi"
 import { getInspectionOfficers } from "../database/AllocatedInspectionn/ooficerapi"
 import { getBusinessTypes } from "../database/Statebusinessapi"
-import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
-import { getListOffsounDerDoForReg } from "../database/Allocateapi"
 import { ReassignModal } from "./ReassignModal"
-import { RescheduleModal } from "./RescheduleModal";
+import { RescheduleModal } from "./RescheduleModal"
 const AllocatedInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
-  const [isViewModalVisible, setIsViewModalVisible] = useState(false);
+  const [isViewModalVisible, setIsViewModalVisible] = useState(false)
   const [loggedInUserIdd1, setLoggedInUserIdd1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [fsoName, setfsoName] = useState("")
-  const [refId, setRefId] = useState("");
+  const [refId, setRefId] = useState("")
   const [refreshing, setRefreshing] = useState(false)
   const [displayRefId, setdisplayRefId] = useState("")
   const [isRescheduleModalVisible, setIsRescheduleModalVisible] = useState(false)
   const [itemsPerPage] = useState(10)
-  
+
   const [selectedInspectionOfficerName, setSelectedInspectionOfficerName] = useState("")
-   const [currentPage, setCurrentPage] = useState(1)
+  const [currentPage, setCurrentPage] = useState(1)
   const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
   const [isSearching, setIsSearching] = useState(false)
 
@@ -50,26 +47,26 @@ const AllocatedInspection: React.FC = () => {
   const [showFromPicker, setShowFromPicker] = useState(false)
   const [selectedInspectionType, setSelectedInspectionType] = useState("")
   const [selectedInspectionOfficer, setSelectedInspectionOfficer] = useState("")
-const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [inspectionOfficers, setInspectionOfficers] = useState<Array<any>>([])
   const [fromDate, setFromDate] = useState(new Date())
   const [toDate, setToDate] = useState(new Date())
   const [showToPicker, setShowToPicker] = useState(false)
- const [kobId, setKobId] = useState("")
-   const [error, setError] = useState<string | null>(null)
-   const [isReassignModalVisible, setIsReassignModalVisible] = useState(false)
-   const [selectedAssignmentId, setSelectedAssignmentId] = useState("")
+  const [kobId, setKobId] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [isReassignModalVisible, setIsReassignModalVisible] = useState(false)
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState("")
   // const [Totalpage, setTotalpage] = useState()
   const openModal = () => {
-    setIsViewModalVisible(true);
-  };
+    setIsViewModalVisible(true)
+  }
   useEffect(() => {
-    console.log("Updated refId:", refId);
-  }, [refId]);
+    console.log("Updated refId:", refId)
+  }, [refId])
   // Function to close the modal
   const closeModal = () => {
-    setIsViewModalVisible(false);
-  };
+    setIsViewModalVisible(false)
+  }
   useEffect(() => {
     const fetchKobId = async () => {
       try {
@@ -115,30 +112,29 @@ const [isLoading, setIsLoading] = useState(false)
     loadCompanyName()
   }, [])
   const onFromDateChange = (event, selectedDate) => {
-    setShowFromPicker(false);
-    if (event.type === 'set') {
-      setFromDate(selectedDate);
-     
+    setShowFromPicker(false)
+    if (event.type === "set") {
+      setFromDate(selectedDate)
+
       if (toDate && selectedDate > toDate) {
-        setToDate(null);
+        setToDate(null)
       }
     }
-  };
-
+  }
 
   const onToDateChange = (event: any, selectedDate: Date | undefined) => {
-    setShowToPicker(false);
-    if (event.type === 'set' && selectedDate) {
-      setToDate(selectedDate);
+    setShowToPicker(false)
+    if (event.type === "set" && selectedDate) {
+      setToDate(selectedDate)
     }
-  };
+  }
 
   const getDisplayDate = (date: Date | null): string => {
-    return date ? date.toLocaleDateString() : 'Select Date';
-  };
+    return date ? date.toLocaleDateString() : "Select Date"
+  }
   const today = new Date()
   today.setHours(0, 0, 0, 0)
- 
+
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
@@ -157,13 +153,11 @@ const [isLoading, setIsLoading] = useState(false)
     fetchLoggedInUser()
   }, [])
 
-  
   // const onRefresh = async () => {
   //   // setRefreshing(true)
   //   setCurrentPage(1)
   //   setSearchResults({ paginationListRecords: [] })
 
-   
   // }
   useEffect(() => {
     const fetchInspectionData = async () => {
@@ -191,24 +185,23 @@ const [isLoading, setIsLoading] = useState(false)
     )
   }
 
- 
   const handleReset = () => {
     setReferenceNo("")
     setCompanyName("")
-   
+
     setSelectedBusinessType("")
-   
+
     setSelectedInspectionType("")
     setSelectedInspectionOfficer("")
     setSearchResults({ paginationListRecords: [] })
 
     setSearchResults("")
-    const today = new Date(); 
-    setFromDate(null);
-    setToDate(null);
-  
-    setShowFromPicker(false);
-    setShowToPicker(false);
+    const today = new Date()
+    setFromDate(null)
+    setToDate(null)
+
+    setShowFromPicker(false)
+    setShowToPicker(false)
   }
   useFocusEffect(
     useCallback(() => {
@@ -219,91 +212,89 @@ const [isLoading, setIsLoading] = useState(false)
   )
   const handlePageChange = async (newPage: number) => {
     if (newPage >= 1) {
-      setCurrentPage(newPage);
-      await handleSearch(newPage); 
+      setCurrentPage(newPage)
+      await handleSearch(newPage)
     }
-  };
+  }
 
-    const handleSearch = async (page: number) => {
-      setIsSearching(true)
-      setSearchResults([]);
-      try {
-        const createdBy = loggedInUserIdd1
-        const payload = {
-          userId: createdBy, //done
-          displayRefId: referenceNo,
-          companyName: companyName,
-          fromDate: null,
-          toDate: null,
-          inspectionType: selectedInspectionType,
-          fsoName: fsoName,
-          kobId: selectedBusinessType || "",
-        }
-  
-        console.log("Payload before API call:", JSON.stringify(payload, null, 2))
-        const results = await searchApplicationsAllocated(payload, page)
-        console.log("API response received:", results)
-  
-     
-        if (page === 1) {
-          setSearchResults(results)
-        } else {
-          setSearchResults((prev) => ({
-            ...prev,
-            paginationListRecords: [...(prev?.paginationListRecords || []), ...(results?.paginationListRecords || [])],
-          }))
-        }
-  
-        setCurrentPage(page)
-      } catch (error) {
-        console.error("Error searching applications:", error)
-        setError("Failed to search applications")
-      } finally {
-        setIsSearching(false)
+  const handleSearch = async (page: number) => {
+    setIsSearching(true)
+    setSearchResults([])
+    try {
+      const createdBy = loggedInUserIdd1
+      const payload = {
+        userId: createdBy, //done
+        displayRefId: referenceNo,
+        companyName: companyName,
+        fromDate: null,
+        toDate: null,
+        inspectionType: selectedInspectionType,
+        fsoName: fsoName,
+        kobId: selectedBusinessType || "",
       }
+
+      console.log("Payload before API call:", JSON.stringify(payload, null, 2))
+      const results = await searchApplicationsAllocated(payload, page)
+      console.log("API response received:", results)
+
+      if (page === 1) {
+        setSearchResults(results)
+      } else {
+        setSearchResults((prev) => ({
+          ...prev,
+          paginationListRecords: [...(prev?.paginationListRecords || []), ...(results?.paginationListRecords || [])],
+        }))
+      }
+
+      setCurrentPage(page)
+    } catch (error) {
+      console.error("Error searching applications:", error)
+      setError("Failed to search applications")
+    } finally {
+      setIsSearching(false)
     }
-     useEffect(() => {
-        console.log("Updated search results:", searchResults)
-      }, [searchResults])
-      const renderPagination = () => {
-        const hasMorePages =
-          searchResults?.paginationListRecords?.length > 0 &&
-          searchResults?.paginationListRecords?.length >= itemsPerPage 
-    
-        return (
-          <View style={styles.paginationContainer}>
-            <TouchableOpacity
-              onPress={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
-            >
-              <Text style={styles.paginationButtonText}>Previous</Text>
-            </TouchableOpacity>
-    
-            <Text style={styles.paginationInfo}>Page {currentPage}</Text>
-    
-            <TouchableOpacity
-              onPress={() => handlePageChange(currentPage + 1)}
-              disabled={!hasMorePages}
-              style={[styles.paginationButton, !hasMorePages && styles.disabledButton]}
-            >
-              <Text style={styles.paginationButtonText}>Next</Text>
-            </TouchableOpacity>
-          </View>
-        )
-      }
-      useEffect(() => {
-        console.log("Current Page:", currentPage)
-        // console.log("Total Pages:", Totalpage)
-      }, [currentPage])
-      return (
-        <SafeAreaView style={styles.container}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={toggleModal} style={styles.filterIcon}>
-              <Filter size={24} color="#000" />
-            </TouchableOpacity>
-          </View>
-          <Modal visible={isModalVisible}>
+  }
+  useEffect(() => {
+    console.log("Updated search results:", searchResults)
+  }, [searchResults])
+  const renderPagination = () => {
+    const hasMorePages =
+      searchResults?.paginationListRecords?.length > 0 && searchResults?.paginationListRecords?.length >= itemsPerPage
+
+    return (
+      <View style={styles.paginationContainer}>
+        <TouchableOpacity
+          onPress={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          style={[styles.paginationButton, currentPage === 1 && styles.disabledButton]}
+        >
+          <Text style={styles.paginationButtonText}>Previous</Text>
+        </TouchableOpacity>
+
+        <Text style={styles.paginationInfo}>Page {currentPage}</Text>
+
+        <TouchableOpacity
+          onPress={() => handlePageChange(currentPage + 1)}
+          disabled={!hasMorePages}
+          style={[styles.paginationButton, !hasMorePages && styles.disabledButton]}
+        >
+          <Text style={styles.paginationButtonText}>Next</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
+  useEffect(() => {
+    console.log("Current Page:", currentPage)
+    // console.log("Total Pages:", Totalpage)
+  }, [currentPage])
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={toggleModal} style={styles.filterIcon}>
+          <Filter size={24} color="#000" />
+        </TouchableOpacity>
+      </View>
+      <Modal visible={isModalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -333,38 +324,27 @@ const [isLoading, setIsLoading] = useState(false)
                 placeholderTextColor="#999"
               />
 
-<Text style={styles.label}>Allocated Date From</Text>
-      <TouchableOpacity 
-        style={styles.input} 
-        onPress={() => setShowFromPicker(true)}
-      >
-        <Text>{getDisplayDate(fromDate)}</Text>
-      </TouchableOpacity>
-      {showFromPicker && (
-        <DateTimePicker
-          value={fromDate || today}
-          mode="date"
-          onChange={onFromDateChange}
-          maximumDate={today}
-        />
-      )}
+              <Text style={styles.label}>Allocated Date From</Text>
+              <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
+                <Text>{getDisplayDate(fromDate)}</Text>
+              </TouchableOpacity>
+              {showFromPicker && (
+                <DateTimePicker value={fromDate || today} mode="date" onChange={onFromDateChange} maximumDate={today} />
+              )}
 
-<Text style={styles.label}>Allocated Date To</Text>
-      <TouchableOpacity
-        style={styles.input}
-        onPress={() => setShowToPicker(true)}
-      >
-        <Text>{getDisplayDate(toDate)}</Text>
-      </TouchableOpacity>
-      {showToPicker && (
-        <DateTimePicker
-          value={toDate || today} 
-          mode="date"
-          onChange={onToDateChange}
-          // minimumDate={fromDate || today} 
-          maximumDate={today}
-        />
-      )}
+              <Text style={styles.label}>Allocated Date To</Text>
+              <TouchableOpacity style={styles.input} onPress={() => setShowToPicker(true)}>
+                <Text>{getDisplayDate(toDate)}</Text>
+              </TouchableOpacity>
+              {showToPicker && (
+                <DateTimePicker
+                  value={toDate || today}
+                  mode="date"
+                  onChange={onToDateChange}
+                  // minimumDate={fromDate || today}
+                  maximumDate={today}
+                />
+              )}
 
               <Text style={styles.label}>Inspection Type</Text>
               <View style={styles.pickerWrapper}>
@@ -419,218 +399,197 @@ const [isLoading, setIsLoading] = useState(false)
                 <TouchableOpacity onPress={handleReset} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>Reset</Text>
                 </TouchableOpacity>
-               <TouchableOpacity
-                             style={styles.applyButton}
-                             onPress={async () => {
-                               
-             
-                               setCurrentPage(1)
-                               await handleSearch(1)
-                               toggleModal()
-                             }}
-                             disabled={isSearching}
-                           >
-                             <Text style={styles.applyButtonText}>{isSearching ? "Searching..." : "Search"}</Text>
-                           </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.applyButton}
+                  onPress={async () => {
+                    setCurrentPage(1)
+                    await handleSearch(1)
+                    toggleModal()
+                  }}
+                  disabled={isSearching}
+                >
+                  <Text style={styles.applyButtonText}>{isSearching ? "Searching..." : "Search"}</Text>
+                </TouchableOpacity>
               </View>
             </ScrollView>
           </View>
         </View>
       </Modal>
 
-          <ScrollView >
-            {searchResults && searchResults.paginationListRecords && searchResults.paginationListRecords.length > 0 ? (
-              <View>
-                {searchResults.paginationListRecords.map((item, index) => (
-              <View style={styles.recordContainer}>
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Assignment ID:</Text>
-                <Text style={styles.recordValue}>{item.assignmentId}</Text>
+      <ScrollView>
+        {searchResults && searchResults.paginationListRecords && searchResults.paginationListRecords.length > 0 ? (
+          <View>
+            {searchResults.paginationListRecords.map((item, index) => (
+              <View key={item.assignmentId || index} style={styles.recordContainer}>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Assignment ID:</Text>
+                  <Text style={styles.recordValue}>{item.assignmentId}</Text>
+                </View>
+
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Applicant Name:</Text>
+                  <Text style={styles.recordValue}>{item.companyName}</Text>
+                </View>
+
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Ref ID:</Text>
+                  <Text style={styles.recordValue}>{item.displayRefId}</Text>
+                </View>
+
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Officer Name:</Text>
+                  <Text style={styles.recordValue}>{item.fsoName}</Text>
+                </View>
+
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Stage:</Text>
+                  <Text style={styles.recordValue}>{item.statusDesc}</Text>
+                </View>
+
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Remarks:</Text>
+                  <Text style={styles.recordValue}>{item.raRemarks}</Text>
+                </View>
+
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Allocated Date:</Text>
+                  <Text style={styles.recordValue}>{item.createdOn}</Text>
+                </View>
+                <View style={styles.recordRow}>
+                  <Text style={styles.recordLabel}>Inspection Type:</Text>
+                  <Text style={styles.recordValue}>{item.inspectionType}</Text>
+                </View>
+
+                <View style={styles.buttonContainerp}>
+                  {item.statusId === 17 && (
+                    <View style={styles.container5}>
+                      {/* <Text style={styles.proceedButtonText}>pending / </Text> */}
+
+                      <TouchableOpacity
+                        onPress={async () => {
+                          try {
+                            console.log("Reassign button pressed for Assignment ID:", item.assignmentId)
+                            console.log("Reference ID:", item.refId)
+
+                            if (!item?.refId) {
+                              console.error("Error: refId is undefined or empty")
+                              return
+                            }
+
+                            setRefId(item.refId)
+                            setSelectedAssignmentId(item.assignmentId)
+                            setIsReassignModalVisible(true)
+                          } catch (error) {
+                            console.error("Error handling Reassign button:", error)
+                          }
+                        }}
+                      >
+                        <Text style={styles.linkText}>Reassign</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {item.statusId === 18 && (
+                    <View style={styles.container5}>
+                      <TouchableOpacity
+                        onPress={async () => {
+                          // Make the function async
+                          try {
+                            console.log("Reassign button pressed for Assignment ID:", item.displayRefID)
+                            console.log("Reference ID:", item.refId)
+                            if (!item?.refId) {
+                              console.error("Error: refId is undefined or empty")
+                              return
+                            }
+                            if (!item?.displayRefId) {
+                              console.error("Error: refId is undefined or empty")
+                              return
+                            }
+                            if (!item?.assignmentId) {
+                              console.error("Error: refId is undefined or empty")
+                              return
+                            }
+                            setSelectedAssignmentId(item.assignmentId)
+                            setRefId(item.refId)
+
+                            setdisplayRefId(item.displayRefId)
+                            // await AsyncStorage.setItem("displayrefID", item.displayRefId.toString());
+                          } catch (error) {
+                            console.error("Error saving displayRefID:", error)
+                          }
+                          setIsRescheduleModalVisible(true)
+                          console.log("Reschedule button pressed for Assignment ID:", item.assignmentId)
+                        }}
+                      >
+                        <Text style={styles.linkText}>Reschedule</Text>
+                      </TouchableOpacity>
+
+                      <Text style={styles.proceedButtonText}> / </Text>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          console.log("View button pressed for Assignment ID:", item.assignmentId)
+                          openModal()
+                        }}
+                      >
+                        <Text style={styles.linkText}>View</Text>
+                      </TouchableOpacity>
+                      <Modal visible={isViewModalVisible} animationType="none" transparent={true}>
+                        <View style={styles.modalContainerA}>
+                          <View style={styles.modalContentA}>
+                            <TouchableOpacity style={styles.closeIcon} onPress={closeModal}>
+                              <X size={20} color="#000" />
+                            </TouchableOpacity>
+
+                            <Text style={styles.modalTitleA}>Rejected Remarks:</Text>
+                            <Text>{item.rejectedRemarks}</Text>
+                          </View>
+                        </View>
+                      </Modal>
+                    </View>
+                  )}
+                </View>
               </View>
-              
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Applicant Name:</Text>
-                <Text style={styles.recordValue}>{item.companyName}</Text>
-              </View>
-              
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Ref ID:</Text>
-                <Text style={styles.recordValue}>{item.displayRefId}</Text>
-              </View>
-              
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Officer Name:</Text>
-                <Text style={styles.recordValue}>{item.fsoName}</Text>
-              </View>
-              
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Stage:</Text>
-                <Text style={styles.recordValue}>{item.statusDesc}</Text>
-              </View>
-              
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Remarks:</Text>
-                <Text style={styles.recordValue}>{item.raRemarks}</Text>
-              </View>
-              
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Allocated Date:</Text>
-                <Text style={styles.recordValue}>{item.createdOn}</Text>
-              </View>
-              <View style={styles.recordRow}>
-                <Text style={styles.recordLabel}>Inspection Type:</Text>
-                <Text style={styles.recordValue}>{item.
-inspectionType
-}</Text>
-              </View>
-        
-              <View style={styles.buttonContainerp}>
-              {item.statusId === 17 && (
-  <View style={styles.container5}>
-   
-    {/* <Text style={styles.proceedButtonText}>pending / </Text> */}
-    
-   
-
-    <TouchableOpacity
-  onPress={async () => {
-    try {
-      console.log("Reassign button pressed for Assignment ID:", item.assignmentId);
-      console.log("Reference ID:", item.refId); 
-
-      if (!item?.refId) {
-        console.error("Error: refId is undefined or empty");
-        return;
-      }
-
-      setRefId(item.refId);
-      setSelectedAssignmentId(item.assignmentId);
-      setIsReassignModalVisible(true);
-      
-    } catch (error) {
-      console.error("Error handling Reassign button:", error);
-    }
-  }}
->
-  <Text style={styles.linkText}>Reassign</Text>
-</TouchableOpacity>
-
-
-
-  </View>
-)}
-                
-                {item.statusId === 18 && (
-  <View style={styles.container5}>
-  
-  <TouchableOpacity
-  onPress={async () => { // Make the function async
-    try {
-      console.log("Reassign button pressed for Assignment ID:", item.displayRefID);
-      console.log("Reference ID:", item.refId); 
-      if (!item?.refId) {
-        console.error("Error: refId is undefined or empty");
-        return;
-      }
-      if (!item?.displayRefId) {
-        console.error("Error: refId is undefined or empty");
-        return;
-      }
-      if (!item?.assignmentId) {
-        console.error("Error: refId is undefined or empty");
-        return;
-      }
-      setSelectedAssignmentId(item.assignmentId);
-      setRefId(item.refId);
-
-      setdisplayRefId(item.displayRefId);
-      // await AsyncStorage.setItem("displayrefID", item.displayRefId.toString());
-    } catch (error) {
-      console.error("Error saving displayRefID:", error);
-    }
-    setIsRescheduleModalVisible(true);
-    console.log("Reschedule button pressed for Assignment ID:", item.assignmentId);
-  }}
->
-  <Text style={styles.linkText}>Reschedule</Text>
-</TouchableOpacity>
-
-
-   
-    <Text style={styles.proceedButtonText}> / </Text>
-
-   
-    <TouchableOpacity
-      onPress={() => {
-        console.log("View button pressed for Assignment ID:", item.assignmentId);
-        openModal()
-      }}
-    >
-      <Text style={styles.linkText}>View</Text>
-    </TouchableOpacity>
-    <Modal visible={isViewModalVisible} animationType="none" transparent={true}>
-  <View style={styles.modalContainerA}>
-    <View style={styles.modalContentA}>
-  
-      <TouchableOpacity 
-        style={styles.closeIcon} 
-        onPress={closeModal}
-      >
-        <X size={20} color="#000" />
-      </TouchableOpacity>
-
-     
-      <Text style={styles.modalTitleA}>Rejected Remarks:</Text>
-      <Text>{item.rejectedRemarks}</Text>
-    </View>
-  </View>
-</Modal>
-  </View>
-)}
-              </View>
-            </View>
-
-                ))}
-              </View>
-            ) : (
-              <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>
-                {isSearching ? "Searching..." : "No records found"}
-              </Text>
-            )}
-          </ScrollView>
-          {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
-          <View style={styles.overlay}>
-          {refId ? (
-  <ReassignModal
-    isVisible={isReassignModalVisible}
-    onClose={() => setIsReassignModalVisible(false)}
-    assignmentId={selectedAssignmentId}
-    refId={refId}  // Ensure this is not undefined
-    inspectors={inspectionOfficers}
-    onReassign={async (data) => {
-      try {
-        console.log("Reassigning:", {
-          assignmentId: selectedAssignmentId,
-          ...data,
-        });
-        setIsReassignModalVisible(false);
-        handleSearch(currentPage);
-      } catch (error) {
-        console.error("Error reassigning inspector:", error);
-      }
-    }}
-  />
-) : (
-  <Text></Text>
-)}
-
-            </View>
-            <RescheduleModal
+            ))}
+          </View>
+        ) : (
+          <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>
+            {isSearching ? "Searching..." : "No records found"}
+          </Text>
+        )}
+      </ScrollView>
+      {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
+      <View style={styles.overlay}>
+        {refId ? (
+          <ReassignModal
+            isVisible={isReassignModalVisible}
+            onClose={() => setIsReassignModalVisible(false)}
+            assignmentId={selectedAssignmentId}
+            refId={refId} // Ensure this is not undefined
+            inspectors={inspectionOfficers}
+            onReassign={async (data) => {
+              try {
+                console.log("Reassigning:", {
+                  assignmentId: selectedAssignmentId,
+                  ...data,
+                })
+                setIsReassignModalVisible(false)
+                handleSearch(currentPage)
+              } catch (error) {
+                console.error("Error reassigning inspector:", error)
+              }
+            }}
+          />
+        ) : (
+          <Text></Text>
+        )}
+      </View>
+      <RescheduleModal
         isVisible={isRescheduleModalVisible}
         onClose={() => setIsRescheduleModalVisible(false)}
         assignmentId={selectedAssignmentId}
-    refId={refId}
-    displayrefId={displayRefId}
+        refId={refId}
+        displayrefId={displayRefId}
         inspectors={inspectionOfficers}
         onReschedule={async (data) => {
           try {
@@ -645,39 +604,38 @@ inspectionType
           }
         }}
       />
-        </SafeAreaView>
-      )
-    }
+    </SafeAreaView>
+  )
+}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    
+
     backgroundColor: "#f5f5f5",
   },
   modalContainerA: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContentA: {
-    width: '80%',
+    width: "80%",
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
   },
   modalTitleA: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 10,
-    marginTop:-20
+    marginTop: -20,
   },
-  overlay:{
-    flex:1,
-    alignItems: 'flex-end',
-    justifyContent: 'flex-end', 
-
+  overlay: {
+    flex: 1,
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
   },
   header: {
     flexDirection: "row",
@@ -696,11 +654,8 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
   },
-  buttoncontainer1:{
+  buttoncontainer1: {
     // textAlign:'center',
-    
-
-
   },
   column: {
     flex: 1,
@@ -734,13 +689,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 16,
     paddingHorizontal: 12,
-    paddingTop:12,
+    paddingTop: 12,
     borderRadius: 8,
     backgroundColor: "#fff",
     color: "#333",
   },
-  
- 
+
   noRecordsText: {
     fontSize: 16,
     fontWeight: "500",
@@ -763,7 +717,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#fff",
   },
- 
+
   closeButton: {
     flex: 1,
     padding: 14,
@@ -808,7 +762,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 10,
   },
- 
 
   loadingContainer: {
     flex: 1,
@@ -828,14 +781,11 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     padding: 8,
-    left:100,
-  //  top:20
-
+    left: 100,
+    //  top:20
   },
   closeIcon5: {
     padding: 8,
-   
-
   },
   paginationContainer: {
     flexDirection: "row",
@@ -867,12 +817,12 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   recordContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 16,
     borderRadius: 8,
     marginVertical: 8,
     marginHorizontal: 16,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -882,19 +832,19 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   recordRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: 6,
     // borderBottomWidth: 1,
     // borderBottomColor: '#eee',
   },
   recordLabel: {
     flex: 0.4,
-    fontWeight: '600',
-    color: '#666',
+    fontWeight: "600",
+    color: "#666",
   },
   recordValue: {
     flex: 0.6,
-    color: '#333',
+    color: "#333",
   },
   buttonContainer: {
     flexDirection: "row",
@@ -912,23 +862,23 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 6,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
   },
   proceedButtonText: {
-    color: '#666',
+    color: "#666",
     fontSize: 14,
   },
   linkText: {
-    color: '#007AFF',
+    color: "#007AFF",
     // textDecorationLine: 'underline',
   },
-  container5:{
-      flexDirection: 'row', 
-    alignItems: 'center',
-    backgroundColor:'aliceblue',
-    padding:10,
-    borderRadius:10
-  }
+  container5: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "aliceblue",
+    padding: 10,
+    borderRadius: 10,
+  },
 })
 
 export default AllocatedInspection

@@ -14,7 +14,7 @@ import {
   SafeAreaView,
   ScrollView,
   ActivityIndicator,
-  RefreshControl,
+  RefreshControl,Alert
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { Filter, X } from "lucide-react-native"
@@ -78,8 +78,8 @@ const AcknowledgeList: React.FC = () => {
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
-          fromDate: fromDate ? fromDate.toISOString().split("T")[0] : "",
-          toDate: toDate ? toDate.toISOString().split("T")[0] : "",
+          fromDate: null,
+          toDate:null,
           processFlag: null,
           inspectionType: null,
           fsoName: null,
@@ -251,6 +251,7 @@ const AcknowledgeList: React.FC = () => {
     setSelectedInspectionType("")
     setFromDate(null)
     setToDate(null)
+
     setShowFromPicker(false)
     setShowToPicker(false)
     setHasSearched(false)
@@ -409,6 +410,10 @@ const AcknowledgeList: React.FC = () => {
                 <TouchableOpacity
                   style={styles.applyButton}
                   onPress={async () => {
+                        if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                                          Alert.alert("Error", "Please select both From and To dates")
+                                          return
+                                        }
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)
@@ -510,8 +515,8 @@ const styles = StyleSheet.create({
   boldText: {
     fontWeight: 400,
     color: "#000",
-    marginTop:10,
-    fontSize:14
+    marginTop: 15,
+    fontSize: 14,
   },
   normalText: {
     fontWeight: "normal",

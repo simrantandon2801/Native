@@ -112,7 +112,7 @@ console.log("rachded ")
   }
 }
 
-export const getRejectedInspectionAttachmentCount = async (payload: any,currentPage:number): Promise<any> => {
+export const getRejectedInspectionAttachmentCount = async (payload: any,currentPage:number) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -149,13 +149,13 @@ export const getRejectedInspectionAttachmentCount = async (payload: any,currentP
   }
 }
 
-export const getOngoingInspectionCount = async (payload: any): Promise<any> => {
+export const getOngoingInspectionCount = async (payload: any,currentPage:number)=> {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/${currentPage}`
    
 
     if (!accessToken || !storedUserId) {
