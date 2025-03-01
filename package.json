@@ -82,6 +82,7 @@
     "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
+  
   "devDependencies": {
     "@babel/core": "^7.26.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.20.7",

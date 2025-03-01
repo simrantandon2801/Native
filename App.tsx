@@ -3,22 +3,22 @@ import { SafeAreaView, StatusBar, useColorScheme, StyleSheet } from "react-nativ
 import { createStackNavigator } from "@react-navigation/stack"
 import { NavigationContainer } from "@react-navigation/native"
 import { Colors } from "react-native/Libraries/NewAppScreen"
-import LoginScreen from "./src/screens/Loginscreen"
+import LoginScreen from "./src/screens/LoginScreen"
 import MainDrawer from "./src/drawer/Maindrawer"
 import Acknowledge from "./src/screens/Acknowledge"
 import Acknowledgelist from "./src/screens/Acknowledgelist"
 import Accepted from "./src/screens/Accepted"
 
 import Rejected from "./src/screens/Rejected"
+
 import RejectedList from "./src/screens/Rejectedlist"
 import Ongoinglist from "./src/screens/Ongoinglist"
 import Acceptedlist from "./src/screens/Acceptedlist"
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
+// import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 
-import HomeScreen from "./src/BottomTabs/HomeScreen"
-import ProfileScreen from "./src/BottomTabs/ProfileScreen"
+
 import { Home, User, type LucideIcon } from "lucide-react-native"
-import BottomTabNavigator from "./src/BottomTabs/BottomTabnavi"
+
 import AllocateInspection from "./src/screens/AllocateInspection"
 
 import AllocatedInspetion from "./src/screens/Allocated"
@@ -26,33 +26,33 @@ import Resumelist from "./src/screens/Resumelist"
 
 
 const Stack = createStackNavigator()
-const Tab = createBottomTabNavigator()
+// const Tab = createBottomTabNavigator()
 
 
-function TabNavigator() {
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ color, size }) => {
-          let IconComponent: LucideIcon | null = null
+// function TabNavigator() {
+//   return (
+//     <Tab.Navigator
+//       screenOptions={({ route }) => ({
+//         tabBarIcon: ({ color, size }) => {
+//           let IconComponent: LucideIcon | null = null
 
-          if (route.name === "Home") {
-            IconComponent = Home
-          } else if (route.name === "Profile") {
-            IconComponent = User
-          }
+//           if (route.name === "Home") {
+//             IconComponent = Home
+//           } else if (route.name === "Profile") {
+//             IconComponent = User
+//           }
 
-          return IconComponent ? <IconComponent size={size} color={color} /> : null
-        },
-        tabBarActiveTintColor: "orange",
-        tabBarInactiveTintColor: "gray",
-      })}
-    >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
-  )
-}
+//           return IconComponent ? <IconComponent size={size} color={color} /> : null
+//         },
+//         tabBarActiveTintColor: "orange",
+//         tabBarInactiveTintColor: "gray",
+//       })}
+//     >
+//       <Tab.Screen name="Home" component={HomeScreen} />
+//       <Tab.Screen name="Profile" component={ProfileScreen} />
+//     </Tab.Navigator>
+//   )
+// }
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === "dark"
 
@@ -70,7 +70,7 @@ function App(): React.JSX.Element {
         <Stack.Navigator initialRouteName="Login">
        
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="MainTabs" component={BottomTabNavigator} options={{ headerShown: false }} />
+         
           <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
           <Stack.Screen name="Acknowledge" component={Acknowledge} />
           <Stack.Screen name="Acknowledgelist" component={Acknowledgelist} />

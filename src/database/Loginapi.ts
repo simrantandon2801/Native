@@ -1,7 +1,7 @@
 import CryptoJS from "crypto-js"
 import { BASE_URL } from "@env"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-
+import { Alert } from "react-native"
 const secretKey = "$$CHALLENGE"
 
 export interface LoginResponse {
@@ -31,7 +31,14 @@ const encryptPasswordMD5 = (password: string, key: string): string => {
   return CryptoJS.enc.Base64.stringify(hmac)
 }
 
-export const loginUser = async (username: string, password: string): Promise<LoginResponse> => {
+export const loginUser = async (username: string, password: string) => {
+  console.log("Base URLfky:", BASE_URL);
+
+  if (!BASE_URL) {
+    console.error("BASE_URL is null or undefined");
+    throw new Error("BASE_URL is not configured properly");
+  }
+
   const encryptedPassword = encryptPassword(password, secretKey)
   const encryptedPasswordMD5 = encryptPasswordMD5(password, secretKey)
 
@@ -50,53 +57,58 @@ export const loginUser = async (username: string, password: string): Promise<Log
         md5Password: encryptedPasswordMD5,
       }),
     })
-
+    console.log("Base URLfky:", BASE_URL);
     console.log("Response status:", response.status)
-    console.log("reached B")
+  
 
     if (!response.ok) {
-      console.log("reached C")
+   
       const errorText = await response.text()
       console.error("Error response:", errorText)
       throw new Error(`Network response was not ok: ${response.status} ${errorText}`)
     }
 
-    const data: LoginResponse = await response.json()
-    console.log("Login response data:", JSON.stringify(data, null, 2))
+    const data= await response.json()
+    console.log("Login response data:", JSON.stringify(data))
+ 
   
-    console.log("reached E")
+   
     if (!data.roles || !Array.isArray(data.roles)) {
       console.error("Invalid roles data:", data.roles)
       throw new Error("Invalid roles data received from server")
     }
-    console.log("reached F")
+   
     const targetRole = data.roles.find((role) => role.roleId === 4 || role.roleId === 40)
     console.log(targetRole)
-    console.log("reached G")
+   
 
     if (targetRole) {
       let menuList:any[]= data.Menus;
       const registrationInspectionMenu = menuList.Menus.find((menu) => menu.Name === "Inspection")
-      console.log("reached H")
+      console.log("sdd",menuList)
+     
 
       await AsyncStorage.setItem("accessToken", data.accessToken)
-      await AsyncStorage.setItem("userId", String(data.userId))
+      await AsyncStorage.setItem("userId", data.userId)
       await AsyncStorage.setItem("loggedInUserName", username);
-      console.log("reached J")
+      
 
-      // Store the Registration Inspection menu data
+     
       await AsyncStorage.setItem("Nameresponse####", JSON.stringify(registrationInspectionMenu.Name))
       await AsyncStorage.setItem("menufromresponse", JSON.stringify(registrationInspectionMenu.SubMenus))
+
+      // await AsyncStorage.setItem("BASE_URL", BASE_URL);
 
       if (registrationInspectionMenu) {
         console.log("Login response - Registration Inspection:", registrationInspectionMenu.Name)
         console.log("Login response - SubMenus:", registrationInspectionMenu.SubMenus)
-        console.log("reached I")
+        // console.log("Login response - url:",registrationInspectionMenu.BASE_URL)
+       
 
         
-        console.log('suhhsd-------------',)
        
-        console.log("reached K")
+       
+        
 
         console.log("Login data stored in AsyncStorage")
 
@@ -105,7 +117,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
         console.log("Stored SubMenus:", JSON.parse(storedSubMenus || "[]"))
         const storedName = await AsyncStorage.getItem("Nameresponse####")
         console.log("Stored Name:", JSON.parse(storedName || '""'))
-        console.log("reached L")
+    
       } else {
         console.log("Registration Inspection menu not found for the role")
       }

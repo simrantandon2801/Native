@@ -92,7 +92,24 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+          release {
+            storeFile file("app/bharatgapp-release-key.keystore")
+            storePassword "bharat123"
+            keyAlias "bharatgapp-key-alias"
+            keyPassword "bharat123"
+        }
+   
     }
+    // externalNativeBuild {
+    //         cmake {
+    //             arguments "-DANDROID_STL=c++_shared", 
+    //                       "-DREACT_ANDROID_DIR=$rootDir/../node_modules/react-native/ReactAndroid",
+    //                       "-DREACT_COMMON_DIR=$rootDir/../node_modules/react-native/ReactCommon",
+    //                       "-DNODE_MODULES_DIR=$rootDir/../node_modules",
+    //                       "-DANDROID_TOOLCHAIN=clang",
+    //                       "-DCMAKE_CXX_FLAGS=-Wno-dollar-in-identifier-extension"
+    //         }
+    //     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -101,14 +118,14 @@ android {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
-            minifyEnabled enableProguardInReleaseBuilds
+            // minifyEnabled false
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
 }
 
 dependencies {
-    // The version of react-native is set by the React Native Gradle Plugin
+    
     implementation("com.facebook.react:react-android")
     
 
