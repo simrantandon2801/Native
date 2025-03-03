@@ -37,7 +37,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
 
   try {
     console.log("Attempting login with:", { username, encryptedPassword, encryptedPasswordMD5 })
-    console.log("reached A");
+    console.log("reached ASSADJh");
 
     const response = await fetch(`${BASE_URL}/gateway/officer/authority`, {
       method: "POST",

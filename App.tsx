@@ -3,11 +3,12 @@ import { SafeAreaView, StatusBar, useColorScheme, StyleSheet } from "react-nativ
 import { createStackNavigator } from "@react-navigation/stack"
 import { NavigationContainer } from "@react-navigation/native"
 import { Colors } from "react-native/Libraries/NewAppScreen"
-import LoginScreen from "./src/screens/Loginscreen"
+
 import MainDrawer from "./src/drawer/Maindrawer"
 import Acknowledge from "./src/screens/Acknowledge"
 import Acknowledgelist from "./src/screens/Acknowledgelist"
 import Accepted from "./src/screens/Accepted"
+import LoginScreen from "./src/screens/LoginScreen"
 
 import Rejected from "./src/screens/Rejected"
 import RejectedList from "./src/screens/Rejectedlist"

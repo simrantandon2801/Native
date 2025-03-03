@@ -208,7 +208,11 @@ const Acceptedlist: React.FC = () => {
   const onToDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowToPicker(false)
     if (event.type === "set" && selectedDate) {
-      setToDate(selectedDate)
+      // Only set the toDate if it's valid (on or after fromDate)
+      if (!fromDate || selectedDate >= fromDate) {
+        setToDate(selectedDate)
+      }
+      // No alert - just don't update if invalid
     }
   }
 
@@ -227,6 +231,7 @@ const Acceptedlist: React.FC = () => {
 
   const toggleModal = () => {
     if (!isModalVisible) {
+      handleReset()
     }
     setIsModalVisible(!isModalVisible)
   }
@@ -394,7 +399,7 @@ const Acceptedlist: React.FC = () => {
                 placeholderTextColor="#999"
               />
 
-              <Text style={styles.label}>Allocated Date From</Text>
+<Text style={styles.label}>Allocated Date From</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
                 <Text>{getDisplayDate(fromDate)}</Text>
               </TouchableOpacity>
@@ -411,8 +416,8 @@ const Acceptedlist: React.FC = () => {
                   value={toDate || today}
                   mode="date"
                   onChange={onToDateChange}
-                  // minimumDate={fromDate || today}
-                  maximumDate={today}
+                  minimumDate={fromDate || undefined}
+                  // maximumDate={today}
                 />
               )}
 
@@ -454,6 +459,10 @@ const Acceptedlist: React.FC = () => {
                 <TouchableOpacity
                   style={styles.applyButton}
                   onPress={async () => {
+                      if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                                          Alert.alert("Please select both From and To dates")
+                                          return
+                                        }
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)

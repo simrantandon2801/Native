@@ -1,6 +1,6 @@
 import type React from "react"
 import { useEffect, useState, useCallback } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView,Alert, } from "react-native"
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -11,6 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useNavigation } from "@react-navigation/native"
 import { LogOut, ChevronDown, ChevronUp, User } from "lucide-react-native"
 import Collapsible from "react-native-collapsible"
+
 
 
 import DashboardScreen from "../screens/Dashboardscreen"
@@ -101,11 +102,28 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   }, [])
 
   const handleLogout = useCallback(() => {
-    console.log("Logout pressed")
-    AsyncStorage.clear()
-    navigation.navigate("Login" as never)
-
-  }, [navigation])
+    
+    Alert.alert(
+      "Logout Confirmation", 
+      "Are you sure you want to logout?", 
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { 
+          text: "Logout", 
+          onPress: () => {
+            console.log("Logout confirmed");
+            AsyncStorage.clear();
+            navigation.navigate("Login" as never);
+          },
+      
+        }
+      ],
+      { cancelable: true }
+    );
+  }, [navigation]);
 
   const toggleCollapsible = useCallback(() => {
     setIsCollapsed((prevState) => {
