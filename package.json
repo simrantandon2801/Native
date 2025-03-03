@@ -44,6 +44,7 @@
     "react-native-crypto": "^2.2.0",
     "react-native-crypto-js": "^1.0.0",
     "react-native-date-picker": "^5.0.8",
+    "react-native-device-info": "^14.0.4",
     "react-native-dotenv": "^3.4.11",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.12.4",

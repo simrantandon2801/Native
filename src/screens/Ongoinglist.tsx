@@ -361,7 +361,7 @@ const OngoingList: React.FC = () => {
                   mode="date"
                   onChange={onToDateChange}
                   minimumDate={fromDate || undefined}
-                  maximumDate={today}
+                  // maximumDate={today}
                 />
               )}
 

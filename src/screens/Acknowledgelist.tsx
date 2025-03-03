@@ -373,7 +373,7 @@ const AcknowledgeList: React.FC = () => {
                   mode="date"
                   onChange={onToDateChange}
                   minimumDate={fromDate || undefined}
-                  maximumDate={today}
+                  // maximumDate={today}
                 />
               )}
 

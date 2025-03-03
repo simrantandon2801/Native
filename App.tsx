@@ -24,6 +24,7 @@ import AllocateInspection from "./src/screens/AllocateInspection"
 
 import AllocatedInspetion from "./src/screens/Allocated"
 import Resumelist from "./src/screens/Resumelist"
+import SplashScreen from "./src/screens/Splashscrren"
 
 
 const Stack = createStackNavigator()
@@ -68,8 +69,13 @@ function App(): React.JSX.Element {
           barStyle={isDarkMode ? "light-content" : "dark-content"}
           backgroundColor={backgroundStyle.backgroundColor}
         />
-        <Stack.Navigator initialRouteName="Login">
        
+        <Stack.Navigator initialRouteName="Splash">
+        <Stack.Screen
+          name="Splash"
+          component={SplashScreen}
+          options={{ headerShown: false }}
+        />
           <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} options={{ headerShown: false }} />
           <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
