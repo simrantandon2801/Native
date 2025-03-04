@@ -67,7 +67,7 @@ export const getMasterInspectionSection = async (
       throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
     }
 
-    const data: MasterInspectionSectionResponse[] = await response.json()
+    const data = await response.json()
     console.log("Master Inspection Section result:", data)
     return data
   } catch (error) {

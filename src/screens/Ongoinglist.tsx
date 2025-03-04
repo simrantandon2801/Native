@@ -196,7 +196,7 @@ const OngoingList: React.FC = () => {
   const handleResumePress = async (inspectionId: number, refId: number) => {
     try {
       console.log("dddddddddddddddddddddddddddddddddddddddd: ", inspectionId)
-      // console.log("ddddddddddddddddddddddddddddddddddddddddddddddddd: ref : ", refIdVar)
+     
       const payload : any= {
         inspectionId: inspectionId,
         statusId: "20",
@@ -217,16 +217,25 @@ const OngoingList: React.FC = () => {
   const onToDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowToPicker(false)
     if (event.type === "set" && selectedDate) {
-      // Only set the toDate if it's valid (on or after fromDate)
+      
       if (!fromDate || selectedDate >= fromDate) {
         setToDate(selectedDate)
       }
-      // No alert - just don't update if invalid
+
     }
   }
 
+  // const getDisplayDate = (date: Date | null): string => {
+  //   return date ? date.toLocaleDateString() : "Select Date"
+  // }
   const getDisplayDate = (date: Date | null): string => {
-    return date ? date.toLocaleDateString() : "Select Date"
+    if (!date) return "Select Date"
+
+    
+    const localDate = new Date(date.getTime())
+
+  
+    return localDate.toLocaleDateString()
   }
   const today = new Date()
   today.setHours(0, 0, 0, 0)

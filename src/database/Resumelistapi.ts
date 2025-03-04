@@ -3,6 +3,8 @@ import { BASE_URL } from "@env"
 import "react-native-get-random-values"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 
+
+
 const SECRET_KEY = "LsiplyG3M1bX7Rg"
 
 export const encryptData = (data: string): string => {
@@ -10,22 +12,8 @@ export const encryptData = (data: string): string => {
   return CryptoJS.enc.Base64.stringify(encryptedData).toString()
 }
 
-interface InspectionParameterPayload {
-  sectionId: number
-  inspectionId: string
-  refId: string
-}
 
-interface InspectionParameterResponse {
-  
-  id: number
-  name: string
- 
-}
-
-export const getInspectionParameterResults = async (
-  payload: InspectionParameterPayload
-): Promise<InspectionParameterResponse[]> => {
+export const getInspectionParameterResults = async ()=> {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -35,13 +23,8 @@ export const getInspectionParameterResults = async (
       throw new Error("No authentication token or user ID found")
     }
 
-    const queryParams = new URLSearchParams({
-      sectionId: payload.sectionId.toString(),
-      inspectionId: payload.inspectionId,
-      refId: payload.refId,
-    }).toString()
-
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/masterinspectionparameterresult?${queryParams}`
+  
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/masterinspectionparameterresult`
 
     const response = await fetch(apiUrl, {
       method: "GET",
@@ -58,11 +41,52 @@ export const getInspectionParameterResults = async (
       throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
     }
 
-    const data: InspectionParameterResponse[] = await response.json()
+    const data= await response.json()
     console.log("Inspection parameter results:", data)
     return data
   } catch (error) {
     console.error("Error in getInspectionParameterResults:", error)
+    throw error
+  }
+}
+
+//tap api of resimelist
+
+
+export const getMasterInspectionParameterReg = async (refId: string, inspectionId: string, sectionId: number) => {
+  
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId")
+    const accessToken = await AsyncStorage.getItem("accessToken")
+    const xAuthUserId = encryptData(storedUserId || "")
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found")
+    }
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/masterinspectionparameterreg/${refId}/${inspectionId}/${sectionId}/`
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    })
+    console.log("reg9888",response)
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+    }
+
+    const data= await response.json()
+    console.log("Master inspection parameter reg:", data)
+    return data
+  } catch (error) {
+    console.error("Error in getMasterInspectionParameterReg:", error)
     throw error
   }
 }

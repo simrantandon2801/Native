@@ -25,6 +25,7 @@ import AllocateInspection from "./src/screens/AllocateInspection"
 import AllocatedInspetion from "./src/screens/Allocated"
 import Resumelist from "./src/screens/Resumelist"
 import SplashScreen from "./src/screens/Splashscrren"
+import ParameterResultsScreen from "./src/screens/ParameterResultscreen"
 
 
 const Stack = createStackNavigator()
@@ -90,6 +91,11 @@ function App(): React.JSX.Element {
           <Stack.Screen name="Allocate Inspection" component={AllocateInspection} />
           <Stack.Screen name="Allocated Inspection" component={AllocatedInspetion} />
           <Stack.Screen name="Resumelist" component={Resumelist} />
+          <Stack.Screen 
+        name="ParameterResults" 
+        component={ParameterResultsScreen} 
+        options={{ title: 'Parameter Results' }}
+      />
           
           
         </Stack.Navigator>

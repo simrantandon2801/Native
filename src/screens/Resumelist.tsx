@@ -2,9 +2,9 @@ import type React from "react"
 import { useState } from "react"
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { useRoute, type RouteProp } from "@react-navigation/native"
-import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
-import { getInspectionParameterResults } from "../database/Resumelistapi"
+import { useRoute,useNavigation, type RouteProp } from "@react-navigation/native"
+// import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
+import {  getMasterInspectionParameterReg} from "../database/Resumelistapi"
 
 type RouteParams = {
   data: Section[]
@@ -25,46 +25,39 @@ interface Section {
 }
 
 const Resumelist: React.FC = () => {
+  const navigation = useNavigation()
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
   const { data, refId, inspectionId } = route.params;
   console.log("data : ", data);
   console.log("-------------------------", refId, inspectionId)
 
-  const [selectedOption, setSelectedOption] = useState<string>("forward")
-  const [remarks, setRemarks] = useState<string>("")
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-
-  const handleApiCall = async () => {
-    if (!inspectionId || !refId) {
-      Alert.alert("Error", "Invalid inspection ID or reference ID")
-      return
-    }
-
-    setIsLoading(true)
-    setSelectedOption("sendBack")
-
-    try {
-      const result = await getListSendBackToFBOForClarification(inspectionId, refId)
-      console.log("API Response:", result)
-      Alert.alert("Success", "API call successful!")
-    } catch (error) {
-      console.error("API Error:", error)
-      Alert.alert("Error", "Failed to fetch data. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const [selectedOption, setSelectedOption] = useState("forward")
+  const [remarks, setRemarks] = useState("")
+  const [parameterRegResults, setParameterRegResults] = useState<any[]>([])
+  const [parameterResults, setParameterResults] = useState<any[]>([])
 
   const handleSectionTap = async (sectionId: number) => {
     try {
       const payload = {
         sectionId: sectionId,
         inspectionId: inspectionId,
-        refId: refId
+        refId: refId,
       }
-      const result = await getInspectionParameterResults(payload)
-      console.log("Section details:", result)
-     // navigate to a new screen 
+
+      // const results = await getInspectionParameterResults()
+      // setParameterResults(results)
+      // console.log("Section details:", results)
+
+      const regResults = await getMasterInspectionParameterReg(
+        payload.refId,
+        payload.inspectionId,
+        payload.sectionId
+      )
+      
+      console.log("Registration results:", regResults)
+      
+
+      navigation.navigate('ParameterResults',{ parameterRegResults: regResults })
     } catch (error) {
       console.error("Error fetching section details:", error)
       Alert.alert("Error", "Failed to fetch section details. Please try again.")
@@ -88,6 +81,29 @@ const Resumelist: React.FC = () => {
             </View>
           </TouchableOpacity>
         ))}
+        {parameterRegResults.length > 0 && (
+          <View style={styles.registrationResultsContainer}>
+            <Text style={styles.resultsHeader}>Registration Results:</Text>
+            {parameterRegResults.map((result, index) => (
+              <View key={index} style={styles.resultItem}>
+                <Text style={styles.resultLabel}>Parameter Value:</Text>
+                <Text style={styles.resultValue}>{result.parameterVal}</Text>
+
+                <Text style={styles.resultLabel}>Score:</Text>
+                <Text style={styles.resultValue}>{result.score}</Text>
+
+                <Text style={styles.resultLabel}>Group Name:</Text>
+                <Text style={styles.resultValue}>{result.groupName}</Text>
+
+                <Text style={styles.resultLabel}>Group ID:</Text>
+                <Text style={styles.resultValue}>{result.groupId}</Text>
+
+                {/* Add more fields as needed */}
+              </View>
+            ))}
+          </View>
+        )}
+
 
         <View style={styles.radioContainer}>
           <TouchableOpacity style={styles.radioButton} onPress={() => setSelectedOption("forward")}>
@@ -96,14 +112,14 @@ const Resumelist: React.FC = () => {
             </View>
             <Text style={styles.radioButtonLabel}>Forward to NHB</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.radioButton} onPress={handleApiCall} disabled={isLoading}>
+          {/* <TouchableOpacity style={styles.radioButton} onPress={handleApiCall} disabled={isLoading}>
             <View style={styles.radioButtonCircle}>
               {selectedOption === "sendBack" && <View style={styles.radioButtonInnerCircle} />}
             </View>
             <Text style={styles.radioButtonLabel}>
               {isLoading ? "Loading..." : "Send Back to Applicant for Clarification"}
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {selectedOption === "forward" && (
@@ -223,6 +239,36 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontFamily: "Outfit",
     color: "#fff",
+  },
+  registrationResultsContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  resultsHeader: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 8,
+  },
+  resultItem: {
+    marginBottom: 12,
+  },
+  resultLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#555",
+  },
+  resultValue: {
+    fontSize: 14,
+    color: "#333",
+    marginBottom: 4,
   },
 })
 
