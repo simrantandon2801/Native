@@ -59,7 +59,7 @@ const ParameterResultsScreen: React.FC = () => {
     <SafeAreaView>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.registrationResultsContainer}>
-          <Text style={styles.resultsHeader}>Registration Results:</Text>
+          {/* <Text style={styles.resultsHeader}>Registration Results:</Text> */}
           {parameterRegResults.map((result, index) => (
             <View key={index} style={styles.resultItem}>
               <Text style={styles.resultLabel}>Group Name:</Text>
@@ -109,12 +109,45 @@ const ParameterResultsScreen: React.FC = () => {
                         <Text style={styles.resultValue}>{parameterRegResults[currentItemIndex]?.score}</Text>
                       </View>
                     )}
-
+  {selectedParameter && (
+    <View>
+      {/* <Text style={styles.selectedValueText}>{selectedParameter}</Text> */}
+      {selectedScore !== null && (
+        <Text style={styles.selectedValueText1}>Score: {selectedScore}</Text>
+      )}
+    </View>
+  )}
+<Text style={styles.title}>Parameter result Name:</Text>
 <View style={styles.pickerContainer}>
   <Picker
     selectedValue={selectedParameter}
     onValueChange={(itemValue) => {
-      setSelectedParameter(itemValue); 
+      setSelectedParameter(itemValue);
+      
+      // Find the selected parameter item
+      const selectedItem = inspectionData.find(item => item.parameterResultName === itemValue);
+      
+      if (selectedItem) {
+        // Apply the scoring logic based on priority and parameterResultId
+        const priority = selectedItem.priority || 0;
+        const parameterResultId = selectedItem.parameterResultId || 0;
+        
+        let score = 'NA';
+        
+        if (priority === 0) {
+          if (parameterResultId === 1) score = 2;
+          else if (parameterResultId === 2) score = 0;
+          else if (parameterResultId === 3) score = 1;
+          else if (parameterResultId === 4) score = 0;
+        } else if (priority === 1) {
+          if (parameterResultId === 1) score = 4;
+          else if (parameterResultId === 2) score = 0;
+          else if (parameterResultId === 3) score = 2;
+          else if (parameterResultId === 4) score = 0;
+        }
+        
+        setSelectedScore(typeof score === 'number' ? score : null);
+      }
     }}
     style={styles.picker}
     dropdownIconColor="#666"
@@ -124,17 +157,15 @@ const ParameterResultsScreen: React.FC = () => {
       <Picker.Item key={idx} label={item.parameterResultName} value={item.parameterResultName} />
     ))}
   </Picker>
- 
   {selectedParameter && (
-    <Text style={styles.selectedValueText}> {selectedParameter}</Text>
+    <View>
+      <Text style={styles.selectedValueText}>{selectedParameter}</Text>
+     
+    </View>
   )}
+ 
 </View>
-  {/* <TextInput
-                style={styles.input}
-                value={inspectionData.find((i) => i.parameterResultName === selectedScore)?.parameterResultName || ""}
-                editable={false}
-                placeholder="Selected Primary Inspector"
-              /> */}
+ 
                     {/* {selectedParameter && (
                       <View style={styles.scoreContainer}>
                         <Text style={styles.resultLabel}>Selected Score:</Text>
@@ -178,6 +209,19 @@ const styles = StyleSheet.create({
 color:'#000',
 padding:10
 
+  },
+  selectedValueText1:{
+    color:'#000',
+    padding:10,
+    fontSize:18
+    
+      },
+  title:{
+    fontWeight:500,
+    marginTop:20,
+    marginBottom:10,
+
+    fontSize:16
   },
   registrationResultsContainer: {
     // padding: 16,
