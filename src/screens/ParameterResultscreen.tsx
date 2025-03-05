@@ -90,7 +90,19 @@ const ParameterResultsScreen: React.FC = () => {
       Alert.alert("Error", "Failed to fetch inspection parameter results")
     }
   }
-
+  const handleDone = () => {
+  
+    if (!selectedParameter) {
+     
+      return;
+    }
+  
+   
+    console.log("Selected Parameter:", selectedParameter);
+    console.log("Selected Score:", selectedScore);
+  
+    handleCloseModal();
+  };
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -114,6 +126,7 @@ const ParameterResultsScreen: React.FC = () => {
 
     fetchDataFromAsyncStorage()
   }, [])
+
 
   // Save the current parameter selection when modal is closed
   const handleCloseModal = async () => {
@@ -205,15 +218,18 @@ const ParameterResultsScreen: React.FC = () => {
               <Text style={styles.resultValue}>{result.score}</Text>
 
               {parameterSelections[index] && (
-                <View style={styles.selectionContainer}>
-                  {/* <Text style={styles.selectionLabel}>Selected Parameter:</Text> */}
-                  {/* <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text> */}
-                  <Text style={styles.selectionLabel}>Score:</Text>
-                  <Text style={styles.selectionValue}>
-                    {parameterSelections[index].score !== null ? parameterSelections[index].score : "N/A"}
-                  </Text>
-                </View>
-              )}
+  <View style={styles.selectionContainer}>
+    <Text style={styles.selectionLabel}>Selected Parameter:</Text>
+   
+    <View style={styles.rowContainer}>
+      <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text>
+      <Text style={styles.selectionLabel}>Score:</Text>
+      <Text style={styles.selectionValue}>
+        {parameterSelections[index].score !== null ? parameterSelections[index].score : "N/A"}
+      </Text>
+    </View>
+  </View>
+)}
 
               <TouchableOpacity style={styles.proceedButton} onPress={() => handleProceed(index)}>
                 <Text style={styles.proceedButtonText}>Proceed</Text>
@@ -258,7 +274,7 @@ const ParameterResultsScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-      {/* Popup Modal */}
+    
       <Modal
         animationType="fade"
         transparent={true}
@@ -348,9 +364,14 @@ const ParameterResultsScreen: React.FC = () => {
               </>
             )}
 
-            <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
+<View style={styles.buttonContainer}>
+  <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
+    <Text style={styles.closeButtonText}>Cancel</Text>
+  </TouchableOpacity>
+  <TouchableOpacity style={styles.DoneButton} onPress={handleDone}>
+    <Text style={styles.closeDoneText}>Done</Text>
+  </TouchableOpacity>
+</View>
           </View>
         </View>
       </Modal>
@@ -363,6 +384,27 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 30,
   },
+  DoneButton:{
+    // paddingLeft:20,
+    paddingRight:40
+
+  },
+  closeDoneText:{
+
+  },
+  buttonContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: 20, 
+   
+  },
+  rowContainer: {
+    flexDirection: 'row', 
+    gap:50,
+   
+    marginTop: 5, 
+  },
   actionButtonsContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -370,21 +412,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   selectionContainer: {
-    // backgroundColor: '#f0f8ff',
-    padding: 8,
-    borderRadius: 4,
+   
     marginTop: 8,
     marginBottom: 8,
   },
   selectionLabel: {
-    fontSize: 16,
+    // fontSize: 14,
     fontWeight: "bold",
     color: "#555",
   },
   selectionValue: {
     fontSize: 14,
     color: "#1a1a1a",
-    marginBottom: 4,
+    // marginBottom: 4,
   },
   draftButton: {
     backgroundColor: "#f0f0f0",
@@ -533,13 +573,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   closeButton: {
-    backgroundColor: "#007AFF",
+  
     paddingVertical: 12,
+    
+    width:100,
     borderRadius: 6,
     alignItems: "center",
   },
   closeButtonText: {
-    color: "#fff",
+    color: "red",
     fontSize: 16,
     fontWeight: "bold",
   },
