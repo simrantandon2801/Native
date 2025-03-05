@@ -98,7 +98,7 @@ const Resumelist: React.FC = () => {
                 <Text style={styles.resultLabel}>Group ID:</Text>
                 <Text style={styles.resultValue}>{result.groupId}</Text>
 
-                {/* Add more fields as needed */}
+              
               </View>
             ))}
           </View>

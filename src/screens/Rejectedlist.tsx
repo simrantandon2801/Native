@@ -410,7 +410,7 @@ const Rejectedlist: React.FC = () => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.listTitle}>Acknowledged Inspections</Text>
+        <Text style={styles.listTitle}>Rejected Inspections</Text>
 
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No record found</Text>
@@ -469,9 +469,11 @@ const Rejectedlist: React.FC = () => {
             <ScrollView style={styles.remarksScrollView}>
               <Text style={styles.remarksText}>{selectedRemarks || "No remarks available."}</Text>
             </ScrollView>
+            <View style={styles.viewcontainer}>
             <TouchableOpacity style={styles.closeFullButton} onPress={() => setIsRemarksModalVisible(false)}>
               <Text style={styles.closeFullButtonText}>Close</Text>
             </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -487,6 +489,11 @@ const styles = StyleSheet.create({
   listItemText: {
     fontSize: 16,
     color: "#333",
+  },
+  viewcontainer:{
+    justifyContent:'center',
+    alignItems:'center'
+
   },
   boldText: {
     fontWeight: 400,
@@ -535,6 +542,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: "center",
+    textAlign:'center',
     justifyContent:'center',
     marginTop: 10,
   },

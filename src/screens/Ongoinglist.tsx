@@ -436,7 +436,7 @@ const OngoingList: React.FC = () => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.listTitle}>Acknowledged Inspections</Text>
+        <Text style={styles.listTitle}>Ongoing Inspections</Text>
 
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No record found</Text>
