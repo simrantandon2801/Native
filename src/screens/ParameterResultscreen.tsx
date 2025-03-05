@@ -12,7 +12,7 @@ import {
   Modal,
   ActivityIndicator,
   Alert,
-  TextInput
+  TextInput,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { useRoute, type RouteProp } from "@react-navigation/native"
@@ -39,10 +39,30 @@ const ParameterResultsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   // Track selected parameters and scores for each item
-  const [parameterSelections, setParameterSelections] = useState<{[key: number]: {
-    parameterName: string;
-    score: number | null;
-  }}>({})
+  const [parameterSelections, setParameterSelections] = useState<{
+    [key: number]: {
+      parameterName: string
+      score: number | null
+    }
+  }>({})
+
+  // Load saved selections from AsyncStorage when component mounts
+  useEffect(() => {
+    const loadSavedSelections = async () => {
+      try {
+        const savedSelectionsString = await AsyncStorage.getItem('parameterSelections')
+        if (savedSelectionsString) {
+          const savedSelections = JSON.parse(savedSelectionsString)
+          setParameterSelections(savedSelections)
+          console.log("Loaded saved selections:", savedSelections)
+        }
+      } catch (error) {
+        console.error("Error loading saved selections:", error)
+      }
+    }
+    
+    loadSavedSelections()
+  }, [])
 
   const handleProceed = async (index: number) => {
     setCurrentItemIndex(index)
@@ -53,7 +73,7 @@ const ParameterResultsScreen: React.FC = () => {
       const results = await getInspectionParameterResults()
       setLoading(false)
       setInspectionData(results || [])
-      
+
       // If we already have a selection for this item, restore it
       if (parameterSelections[index]) {
         setSelectedParameter(parameterSelections[index].parameterName)
@@ -62,7 +82,7 @@ const ParameterResultsScreen: React.FC = () => {
         setSelectedParameter("")
         setSelectedScore(null)
       }
-      
+
       console.log("Received inspection parameter results for item", index, ":", results)
     } catch (error) {
       setLoading(false)
@@ -96,67 +116,74 @@ const ParameterResultsScreen: React.FC = () => {
   }, [])
 
   // Save the current parameter selection when modal is closed
-  const handleCloseModal = () => {
+  const handleCloseModal = async () => {
     if (currentItemIndex !== null && selectedParameter) {
-      setParameterSelections(prev => ({
-        ...prev,
+      const updatedSelections = {
+        ...parameterSelections,
         [currentItemIndex]: {
           parameterName: selectedParameter,
-          score: selectedScore
-        }
-      }))
+          score: selectedScore,
+        },
+      }
+      
+      setParameterSelections(updatedSelections)
+      
+      // Save selections to AsyncStorage
+      try {
+        await AsyncStorage.setItem('parameterSelections', JSON.stringify(updatedSelections))
+        console.log("Saved selections to AsyncStorage:", updatedSelections)
+      } catch (error) {
+        console.error("Error saving selections to AsyncStorage:", error)
+      }
     }
     setModalVisible(false)
-    setSelectedParameter("")
-    setSelectedScore(null)
   }
 
   const handleSaveAsDraft = async () => {
     setLoading(true)
 
     try {
-    
       const payload = {
         inspectionDetailsParametersRegistration: parameterRegResults.map((result, index) => {
-       
-          const selection = parameterSelections[index];
-          
+          const selection = parameterSelections[index]
+
           return {
- 
             ...result,
-       
             updatedBy: userId,
             createdBy: userId,
-          
             parameterResultName: selection?.parameterName || "",
             obtainedScore: selection?.score || null,
-        
             id: {
-              inspectionId: result.inspectionId || "",
-              parameterId: result.parameterId || "",
+              inspectionId: result.inspectionId,
+              parameterId: result.parameterId,
             },
             maxScore: result.score || "",
             parameterResultId: null,
-            priority: result.priority || 0,
+            priority: result.priority,
             refId: result.refId || "",
-          };
+          }
         }),
-     
-        observation: observation,
-        comments: comments
-      };
+        // Removed observation and comments from payload
+      }
+
+      console.log("Save as draft payload:", payload)
+
+      const response = await saveInspectionAsDraft(payload)
+      console.log("Save as draft response:", response)
+
       
-      console.log("Save as draft payload:", payload);
-      
-      const response = await saveInspectionAsDraft(payload);
-      console.log("Save as draft response:", response);
-      
-      setLoading(false);
-      Alert.alert("Success", "Draft saved successfully");
+      try {
+        await AsyncStorage.setItem('parameterSelections', JSON.stringify(parameterSelections))
+      } catch (error) {
+        console.error("Error saving selections to AsyncStorage:", error)
+      }
+
+      setLoading(false)
+      Alert.alert("Draft saved successfully")
     } catch (error) {
-      setLoading(false);
-      console.error("Error saving draft:", error);
-      Alert.alert("Error", "Failed to save draft");
+      setLoading(false)
+      console.error("Error saving draft:", error)
+      Alert.alert("Error", "Failed to save draft")
     }
   }
 
@@ -176,12 +203,11 @@ const ParameterResultsScreen: React.FC = () => {
               <Text style={styles.resultValue}>{result.parameterVal}</Text>
               <Text style={styles.resultLabel}>Maximum:</Text>
               <Text style={styles.resultValue}>{result.score}</Text>
-              
-           
+
               {parameterSelections[index] && (
                 <View style={styles.selectionContainer}>
-                  {/* <Text style={styles.selectionLabel}>Selected Parameter:</Text>
-                  <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text> */}
+                  {/* <Text style={styles.selectionLabel}>Selected Parameter:</Text> */}
+                  {/* <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text> */}
                   <Text style={styles.selectionLabel}>Score:</Text>
                   <Text style={styles.selectionValue}>
                     {parameterSelections[index].score !== null ? parameterSelections[index].score : "N/A"}
@@ -198,7 +224,7 @@ const ParameterResultsScreen: React.FC = () => {
         <View style={styles.textInputContainer}>
           <Text style={styles.textInputLabel}>Non-Conformance Observations</Text>
           <TextInput
-            style={[styles.textInput, { textAlignVertical: 'top', }]}
+            style={[styles.textInput, { textAlignVertical: "top" }]}
             multiline
             placeholder="Enter your observation"
             value={observation}
@@ -206,11 +232,10 @@ const ParameterResultsScreen: React.FC = () => {
           />
         </View>
 
-      
         <View style={styles.textInputContainer}>
           <Text style={styles.textInputLabel}>Comments</Text>
           <TextInput
-            style={[styles.textInput, { textAlignVertical: 'top',  }]}
+            style={[styles.textInput, { textAlignVertical: "top" }]}
             multiline
             placeholder="Enter your comments"
             value={comments}
@@ -218,7 +243,10 @@ const ParameterResultsScreen: React.FC = () => {
           />
         </View>
         <View>
-          <Text style={styles.text}>Note: In the case of [Save As Draft], only changes done in verification dropdown list will be saved. Text entered in Non-Conformance observations and Comments fields will not be saved.</Text>
+          <Text style={styles.text}>
+            Note: In the case of [Save As Draft], only changes done in verification dropdown list will be saved. Text
+            entered in Non-Conformance observations and Comments fields will not be saved.
+          </Text>
         </View>
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity style={styles.draftButton} onPress={handleSaveAsDraft}>
@@ -274,31 +302,29 @@ const ParameterResultsScreen: React.FC = () => {
                       <Picker
                         selectedValue={selectedParameter}
                         onValueChange={(itemValue) => {
-                          setSelectedParameter(itemValue);
-                          
-                          
-                          const selectedItem = inspectionData.find(item => item.parameterResultName === itemValue);
-                          
+                          setSelectedParameter(itemValue)
+
+                          const selectedItem = inspectionData.find((item) => item.parameterResultName === itemValue)
+
                           if (selectedItem) {
-                         
-                            const priority = selectedItem.priority || 0;
-                            const parameterResultId = selectedItem.parameterResultId || 0;
-                            
-                            let score = 'NA';
-                            
+                            const priority = selectedItem.priority || 0
+                            const parameterResultId = selectedItem.parameterResultId || 0
+
+                            let score = "NA"
+
                             if (priority === 0) {
-                              if (parameterResultId === 1) score = 2;
-                              else if (parameterResultId === 2) score = 0;
-                              else if (parameterResultId === 3) score = 1;
-                              else if (parameterResultId === 4) score = 0;
+                              if (parameterResultId === 1) score = 2
+                              else if (parameterResultId === 2) score = 0
+                              else if (parameterResultId === 3) score = 1
+                              else if (parameterResultId === 4) score = 0
                             } else if (priority === 1) {
-                              if (parameterResultId === 1) score = 4;
-                              else if (parameterResultId === 2) score = 0;
-                              else if (parameterResultId === 3) score = 2;
-                              else if (parameterResultId === 4) score = 0;
+                              if (parameterResultId === 1) score = 4
+                              else if (parameterResultId === 2) score = 0
+                              else if (parameterResultId === 3) score = 2
+                              else if (parameterResultId === 4) score = 0
                             }
-                            
-                            setSelectedScore(typeof score === 'number' ? score : null);
+
+                            setSelectedScore(typeof score === "number" ? score : null)
                           }
                         }}
                         style={styles.picker}
@@ -322,10 +348,7 @@ const ParameterResultsScreen: React.FC = () => {
               </>
             )}
 
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={handleCloseModal}
-            >
+            <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
               <Text style={styles.closeButtonText}>Close</Text>
             </TouchableOpacity>
           </View>
@@ -341,8 +364,8 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   actionButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 20,
     marginBottom: 20,
   },
@@ -355,12 +378,12 @@ const styles = StyleSheet.create({
   },
   selectionLabel: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#555',
+    fontWeight: "bold",
+    color: "#555",
   },
   selectionValue: {
     fontSize: 14,
-    color: '#1a1a1a',
+    color: "#1a1a1a",
     marginBottom: 4,
   },
   draftButton: {
@@ -393,28 +416,28 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  text:{
-    fontSize:12,
-    color:'grey'
+  text: {
+    fontSize: 12,
+    color: "grey",
   },
   input: {
     padding: 12,
     fontSize: 16,
   },
-  selectedValueText:{
-    color:'#000',
-    padding:10
+  selectedValueText: {
+    color: "#000",
+    padding: 10,
   },
-  selectedValueText1:{
-    color:'#000',
-    padding:10,
-    fontSize:18
+  selectedValueText1: {
+    color: "#000",
+    padding: 10,
+    fontSize: 18,
   },
-  title:{
-    fontWeight:'500',
-    marginTop:20,
-    marginBottom:10,
-    fontSize:16
+  title: {
+    fontWeight: "500",
+    marginTop: 20,
+    marginBottom: 10,
+    fontSize: 16,
   },
   registrationResultsContainer: {
     // padding: 16,
@@ -476,7 +499,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    width: "95%",
+    width: "100%",
     backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
