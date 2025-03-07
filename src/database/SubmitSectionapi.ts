@@ -1,42 +1,35 @@
 import CryptoJS from "crypto-js"
-import { BASE_URL } from "@env"
-import "react-native-get-random-values"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { BASE_URL } from "@env"
 
 const SECRET_KEY = "LsiplyG3M1bX7Rg"
 
-export const encryptData = (data: string): string => {
+const encryptData = (data: string): string => {
   const encryptedData = CryptoJS.HmacSHA256(data, SECRET_KEY)
   return CryptoJS.enc.Base64.stringify(encryptedData).toString()
 }
 
-
-
-export const getMasterInspectionSection = async (
-inspectionId:number
-) => {
+export const submitInspectionSection = async (payload: any): Promise<any> => {
   try {
+    console.log("Fetching user authentication details...")
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
-  
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/inspectiondetailsparameterreg`
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")
     }
 
-   
- 
-    
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/masterinspectionsectionreg/${inspectionId}`
-
     const response = await fetch(apiUrl, {
-      method: "GET",
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `${accessToken}`,
         "X-Auth-User-Id": xAuthUserId,
       },
+      body: JSON.stringify(payload),
     })
 
     if (!response.ok) {
@@ -46,10 +39,10 @@ inspectionId:number
     }
 
     const data = await response.json()
-    console.log("Master Inspection Section result:", data)
+    console.log("Inspection section submission result:", data)
     return data
   } catch (error) {
-    console.error("Error in getMasterInspectionSection:", error)
+    console.error("Error in submitInspectionSection:", error)
     throw error
   }
 }

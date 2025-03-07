@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { useRoute,useNavigation, type RouteProp } from "@react-navigation/native"
 // import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
 import {  getMasterInspectionParameterReg} from "../database/Resumelistapi"
+import {getInspectionParameterResults} from '../database/Resumelistapi'
 
 type RouteParams = {
   data: Section[]

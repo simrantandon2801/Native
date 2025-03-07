@@ -19,6 +19,7 @@ import { useRoute, type RouteProp } from "@react-navigation/native"
 import { getInspectionParameterResults } from "../database/Resumelistapi"
 import { saveInspectionAsDraft } from "../database/SaveDraftapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { submitInspectionSection } from "../database/SubmitSectionapi"
 
 type RouteParams = {
   parameterRegResults: any[]
@@ -46,11 +47,11 @@ const ParameterResultsScreen: React.FC = () => {
     }
   }>({})
 
-  // Load saved selections from AsyncStorage when component mounts
+  
   useEffect(() => {
     const loadSavedSelections = async () => {
       try {
-        const savedSelectionsString = await AsyncStorage.getItem('parameterSelections')
+        const savedSelectionsString = await AsyncStorage.getItem("parameterSelections")
         if (savedSelectionsString) {
           const savedSelections = JSON.parse(savedSelectionsString)
           setParameterSelections(savedSelections)
@@ -60,7 +61,7 @@ const ParameterResultsScreen: React.FC = () => {
         console.error("Error loading saved selections:", error)
       }
     }
-    
+
     loadSavedSelections()
   }, [])
 
@@ -74,7 +75,7 @@ const ParameterResultsScreen: React.FC = () => {
       setLoading(false)
       setInspectionData(results || [])
 
-      // If we already have a selection for this item, restore it
+    
       if (parameterSelections[index]) {
         setSelectedParameter(parameterSelections[index].parameterName)
         setSelectedScore(parameterSelections[index].score)
@@ -91,18 +92,15 @@ const ParameterResultsScreen: React.FC = () => {
     }
   }
   const handleDone = () => {
-  
     if (!selectedParameter) {
-     
-      return;
+      return
     }
-  
-   
-    console.log("Selected Parameter:", selectedParameter);
-    console.log("Selected Score:", selectedScore);
-  
-    handleCloseModal();
-  };
+
+    console.log("Selected Parameter:", selectedParameter)
+    console.log("Selected Score:", selectedScore)//fine
+
+    handleCloseModal()
+  }
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -127,8 +125,6 @@ const ParameterResultsScreen: React.FC = () => {
     fetchDataFromAsyncStorage()
   }, [])
 
-
-
   const handleCloseModal = async () => {
     if (currentItemIndex !== null && selectedParameter) {
       const updatedSelections = {
@@ -138,12 +134,11 @@ const ParameterResultsScreen: React.FC = () => {
           score: selectedScore,
         },
       }
-      
+
       setParameterSelections(updatedSelections)
-      
-     
+
       try {
-        await AsyncStorage.setItem('parameterSelections', JSON.stringify(updatedSelections))
+        await AsyncStorage.setItem("parameterSelections", JSON.stringify(updatedSelections))
         console.log("Saved selections to AsyncStorage:", updatedSelections)
       } catch (error) {
         console.error("Error saving selections to AsyncStorage:", error)
@@ -153,61 +148,111 @@ const ParameterResultsScreen: React.FC = () => {
   }
 
   const handleSaveAsDraft = async () => {
+    setLoading(true);
+
+    try {
+        const payload = {
+            inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => ({
+                updatedBy: userId,
+                createdBy: userId,
+                groupId: element.groupId,
+                parameterVal: element.parameterVal,
+                sectionId: element.sectionId,
+                priority: element.priority,
+                groupName: element.groupName,
+                id: {
+                    inspectionId: element.inspectionId,
+                    parameterId: element.parameterId,
+                },
+                refId: element.refId ,
+                parameterResultId: element.parameterResultId ,
+                score: element.score,
+                maxScore: element.maxScore || element.score || "",
+                obtainedScore: selectedScore,
+            })),
+        };
+
+        console.log("Save as draft payload:", payload);
+
+        const response = await saveInspectionAsDraft(payload);
+        console.log("Save as draft response:", response);
+
+        try {
+            await AsyncStorage.setItem("parameterSelections", JSON.stringify(parameterSelections));
+        } catch (error) {
+            console.error("Error saving selections to AsyncStorage:", error);
+        }
+
+        setLoading(false);
+        Alert.alert("Draft saved successfully");
+    } catch (error) {
+        setLoading(false);
+        console.error("Error saving draft:", error);
+        Alert.alert("Error", "Failed to save draft");
+    }
+};
+
+
+  const handleSubmitSection = async () => {
+    if (!observation.trim()) {
+      Alert.alert("Non-Conformance Observations is a required field")
+      return
+    }
+
+    if (!comments.trim()) {
+      Alert.alert("Comments is a required field")
+      return
+    }
+
     setLoading(true)
 
     try {
       const payload = {
-        inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => {
-          // const selection = parameterSelections[index];
-      
-          return {
-            updatedBy: userId,
-            createdBy: userId,
-            groupId: element.groupId,//
-            parameterVal: element.parameterVal,//
-            
-            sectionId: element.sectionId,
-            priority: element.priority,
-            groupName: element.groupName,//
-            
-            // parameterResultName: selection?.parameterName || "",
-            obtainedScore:  null,
-            id: {
-              inspectionId: element.inspectionId,
-              parameterId: element.parameterId,
-            },
-            refId: element.refId || "",
-            parameterResultId: null,
-            score: element.score,
-            maxScore: element.score || "",//
-          };
-        }),
-      };
-      
+        inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => ({
+          updatedBy: userId,
+          createdBy: userId,
+          groupId: element.groupId,
+          parameterVal: element.parameterVal,
+          sectionId: element.sectionId,
+          priority: element.priority,
+          groupName: element.groupName,
+          id: {
+            inspectionId: element.inspectionId,
+            parameterId: element.parameterId,
+          },
+          refId: element.refId || "",
+          parameterResultId: element.parameterResultId,
+          score: element.score,
+          maxScore: element.score || "",
+          obtainedScore: selectedScore,
+        })),
 
-      console.log("Save as draft payload:", payload)
-
-      const response = await saveInspectionAsDraft(payload)
-      console.log("Save as draft response:", response)
-
-      
-      try {
-        await AsyncStorage.setItem('parameterSelections', JSON.stringify(parameterSelections))
-      } catch (error) {
-        console.error("Error saving selections to AsyncStorage:", error)
+        inspectionDetailsSectionRegistration: {
+          id: {
+            inspectionId: parameterRegResults[0]?.inspectionId,
+            sectionId: parameterRegResults[0]?.sectionId,
+          },
+          createdBy: userId,
+          updatedBy: userId,
+          refId: parameterRegResults[0]?.refId || 0,
+          observation: observation,
+          isSubmitted: true,
+          commnets: comments,
+        },
       }
 
+      console.log("Submit section payload:", payload)
+
+      const response = await submitInspectionSection(payload)
+      console.log("Submit section response:", response)
+
       setLoading(false)
-      Alert.alert("Draft saved successfully")
+      Alert.alert("Success", "Section submitted successfully")
     } catch (error) {
       setLoading(false)
-      console.error("Error saving draft:", error)
-      Alert.alert("Error", "Failed to save draft")
+      console.error("Error submitting section:", error)
+      Alert.alert("Error", "Failed to submit section")
     }
-  }
-
-  const handleSubmitSection = () => {
-    Alert.alert("Success", "Section submitted successfully")
   }
 
   return (
@@ -224,18 +269,18 @@ const ParameterResultsScreen: React.FC = () => {
               <Text style={styles.resultValue}>{result.score}</Text>
 
               {parameterSelections[index] && (
-  <View style={styles.selectionContainer}>
-    <Text style={styles.selectionLabel}>Selected Parameter:</Text>
-   
-    <View style={styles.rowContainer}>
-      <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text>
-      <Text style={styles.selectionLabel}>Score:</Text>
-      <Text style={styles.selectionValue}>
-        {parameterSelections[index].score !== null ? parameterSelections[index].score : "N/A"}
-      </Text>
-    </View>
-  </View>
-)}
+                <View style={styles.selectionContainer}>
+                  <Text style={styles.selectionLabel}>Selected Parameter:</Text>
+
+                  <View style={styles.rowContainer}>
+                    <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text>
+                    <Text style={styles.selectionLabel}>Score:</Text>
+                    <Text style={styles.selectionValue}>
+                      {parameterSelections[index].score !== null ? parameterSelections[index].score : "N/A"}
+                    </Text>
+                  </View>
+                </View>
+              )}
 
               <TouchableOpacity style={styles.proceedButton} onPress={() => handleProceed(index)}>
                 <Text style={styles.proceedButtonText}>Proceed</Text>
@@ -244,7 +289,7 @@ const ParameterResultsScreen: React.FC = () => {
           ))}
         </View>
         <View style={styles.textInputContainer}>
-          <Text style={styles.textInputLabel}>Non-Conformance Observations</Text>
+          <Text style={styles.textInputLabel}>Non-Conformance Observations *</Text>
           <TextInput
             style={[styles.textInput, { textAlignVertical: "top" }]}
             multiline
@@ -255,7 +300,7 @@ const ParameterResultsScreen: React.FC = () => {
         </View>
 
         <View style={styles.textInputContainer}>
-          <Text style={styles.textInputLabel}>Comments</Text>
+          <Text style={styles.textInputLabel}>Comments *</Text>
           <TextInput
             style={[styles.textInput, { textAlignVertical: "top" }]}
             multiline
@@ -280,7 +325,6 @@ const ParameterResultsScreen: React.FC = () => {
         </View>
       </ScrollView>
 
-    
       <Modal
         animationType="fade"
         transparent={true}
@@ -330,7 +374,7 @@ const ParameterResultsScreen: React.FC = () => {
 
                           if (selectedItem) {
                             const priority = selectedItem.priority || 0
-                            const parameterResultId = selectedItem.parameterResultId || 0
+                            const parameterResultId = selectedItem.parameterResultId 
 
                             let score = "NA"
 
@@ -370,14 +414,14 @@ const ParameterResultsScreen: React.FC = () => {
               </>
             )}
 
-<View style={styles.buttonContainer}>
-  <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
-    <Text style={styles.closeButtonText}>Cancel</Text>
-  </TouchableOpacity>
-  <TouchableOpacity style={styles.DoneButton} onPress={handleDone}>
-    <Text style={styles.closeDoneText}>Done</Text>
-  </TouchableOpacity>
-</View>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.closeButton} onPress={handleCloseModal}>
+                <Text style={styles.closeButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.DoneButton} onPress={handleDone}>
+                <Text style={styles.closeDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -390,26 +434,22 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 30,
   },
-  DoneButton:{
+  DoneButton: {
     // paddingLeft:20,
-    paddingRight:40
-
+    paddingRight: 40,
   },
-  closeDoneText:{
-
-  },
+  closeDoneText: {},
   buttonContainer: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    padding: 20, 
-   
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
   },
   rowContainer: {
-    flexDirection: 'row', 
-    gap:50,
-   
-    marginTop: 5, 
+    flexDirection: "row",
+    gap: 50,
+
+    marginTop: 5,
   },
   actionButtonsContainer: {
     flexDirection: "row",
@@ -418,7 +458,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   selectionContainer: {
-   
     marginTop: 8,
     marginBottom: 8,
   },
@@ -579,10 +618,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   closeButton: {
-  
     paddingVertical: 12,
-    
-    width:100,
+
+    width: 100,
     borderRadius: 6,
     alignItems: "center",
   },
@@ -632,3 +670,4 @@ const styles = StyleSheet.create({
 })
 
 export default ParameterResultsScreen
+

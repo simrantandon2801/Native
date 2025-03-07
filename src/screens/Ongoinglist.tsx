@@ -89,7 +89,7 @@ const[inspectionId,setinspectionId]=useState("")
         const result = await getOngoingInspectionCount(payload, page)
         setOngoingData(result)
         setHasSearched(true)
-        console.log("=============Rejected======", result)
+        console.log("=============ongoing======", result)
       } catch (error) {
         console.error("Error loading data:", error)
         setError("Failed to load data. Please try again.")
@@ -203,27 +203,25 @@ useFocusEffect(
       setRefreshing(false)
     }
   }
-  const handleResumePress = async (inspectionId: number, refId: number) => {
+  const handleResumePress = async (inspectionId: number) => {
     try {
-      console.log("dddddddddddddddddddddddddddddddddddddddd: ", inspectionId)
-     
-      const payload : any= {
-        inspectionId: inspectionId,
-        statusId: "20",
-        userId:userId,
-        processFlag: true,
-      };
-      console.log("resume Payload -----",payload)
-      const result = await getMasterInspectionSection(payload);
-      console.log("Resume API result:", result);
-  
-  
-      navigation.navigate('Resumelist' as never, {data : result, inspectionId: inspectionId, refId: refId });
+      console.log("Resume pressed for inspection ID:", inspectionId)
+
+      const result = await getMasterInspectionSection(inspectionId)
+      console.log("Resume API result:", result)
+
+      navigation.navigate(
+        "Resumelist" as never,
+        {
+          data: result,
+          inspectionId: inspectionId,
+        } as never,
+      )
     } catch (error) {
-      console.error("Error in resume API call:", error);
-      Alert.alert("Error", "Failed to load inspection details. Please try again.");
+      console.error("Error in resume API call:", error)
+      Alert.alert("Error", "Failed to load inspection details. Please try again.")
     }
-  };
+  }
   const onToDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowToPicker(false)
     if (event.type === "set" && selectedDate) {
@@ -487,7 +485,7 @@ useFocusEffect(
                
                 </View>
               </View>
-              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId, item.refId)}>
+              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId)}>
                 <Text style={styles.resumeButtonText}>Resume</Text>
               </TouchableOpacity>
             </View>
