@@ -23,6 +23,8 @@ import { getBusinessTypes } from "../database/Statebusinessapi"
 import { getAcceptedInspectionAttachmentCount } from "../database/Dashboardapi"
 import { getSecondaryOfficerEsignDetails, startInspection } from "../database/Officerviewapi"
 import { DataTable } from "react-native-paper"
+import { useFocusEffect } from '@react-navigation/native';
+
 
 interface AcceptedData {
   currentPageNo: number
@@ -36,7 +38,7 @@ interface OfficerData {
   officerType: string
   id?: any
 }
-const Acceptedlist: React.FC = () => {
+const InspectionAccepted: React.FC = () => {
   const [acceptedData, setAcceptedData] = useState<AcceptedData>({
     currentPageNo: 1,
     totalPages: 1,
@@ -85,12 +87,12 @@ const Acceptedlist: React.FC = () => {
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
-          fromDate: "",
-          toDate: "",
+          fromDate: formatDate(fromDate),
+          toDate: formatDate(toDate),
           processFlag: true,
-          inspectionType: null,
+          inspectionType: selectedInspectionType || null,
           fsoName: null,
-          kobId: null,
+          kobId: selectedBusinessType || null,
         }
         const result = await getAcceptedInspectionAttachmentCount(payload, page)
         setAcceptedData(result)
@@ -104,14 +106,20 @@ const Acceptedlist: React.FC = () => {
         setRefreshing(false)
       }
     },
-    [userId, displayRefId, companyName],
+    [userId, displayRefId, companyName,fromDate, toDate,selectedInspectionType, selectedBusinessType],
   )
 
   useEffect(() => {
     console.log("Updated refId:", refId)
   }, [refId])
   // Function to close the modal
-
+  useFocusEffect(
+    useCallback(() => {
+      handleReset()
+      setCurrentPage(1)
+      setAcceptedData({ paginationListRecords: [] })
+    }, []),
+  )
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -119,17 +127,14 @@ const Acceptedlist: React.FC = () => {
         setError(null)
 
         const storedUserId = await AsyncStorage.getItem("userId")
-        // const storedRefId=await AsyncStorage.getItem("RefId")
-        // const storedDisplayRefId=await AsyncStorage.getItem("displayRefId")
+   
 
         setUserId(storedUserId)
-        // setRefId(storedRefId)
-        // setdisplayRefId(storedDisplayRefId)
+   
 
         console.log("Retrieved Data:", {
           userId: storedUserId,
-          // refId:storedRefId,
-          // displayRefId:storedDisplayRefId
+        
         })
       } catch (err) {
         console.error("Error fetching data from AsyncStorage:", err)
@@ -141,6 +146,10 @@ const Acceptedlist: React.FC = () => {
 
     fetchDataFromAsyncStorage()
   }, [])
+  const formatDate = (date) => {
+    if (!date) return null
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+  }
   const onRefresh = () => {
     setRefreshing(true)
     setCurrentPage(1)
@@ -208,11 +217,11 @@ const Acceptedlist: React.FC = () => {
   const onToDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowToPicker(false)
     if (event.type === "set" && selectedDate) {
-      // Only set the toDate if it's valid (on or after fromDate)
+     
       if (!fromDate || selectedDate >= fromDate) {
         setToDate(selectedDate)
       }
-      // No alert - just don't update if invalid
+    
     }
   }
 
@@ -231,7 +240,7 @@ const Acceptedlist: React.FC = () => {
 
   const toggleModal = () => {
     if (!isModalVisible) {
-      handleReset()
+      // handleReset()
     }
     setIsModalVisible(!isModalVisible)
   }
@@ -484,7 +493,7 @@ const Acceptedlist: React.FC = () => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.listTitle}>Accepted Inspections</Text>
+        {/* <Text style={styles.listTitle}>Accepted Inspections</Text> */}
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No records found</Text>
         ) : acceptedData.paginationListRecords.length > 0 ? (
@@ -492,30 +501,45 @@ const Acceptedlist: React.FC = () => {
             <View key={item.assignmentId} style={styles.listItem}>
               <View style={styles.content}>
               <View style={styles.leftContent}>
-  <Text style={styles.boldText}>
-    Company Name: <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
-  </Text>
-  <Text style={styles.boldText}>
+              <Text style={styles.boldText}>
     Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
   </Text>
   <Text style={styles.boldText}>
     Inspection Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
   </Text>
   <Text style={styles.boldText}>
-    Ref ID: <Text style={styles.normalText}>{item.displayRefId || "N/A"}</Text>
+    Ref No/Applicant No: <Text style={styles.normalText}>{item.displayRefId || "N/A"}/{item.certificateNo|| "N/A"}</Text>
   </Text>
+  <Text style={styles.boldText}>
+  Status Description: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+  </Text>
+   <View style={styles.companyy}>
+                  <Text style={styles.boldText}>
+                    Company Name/Organization: <Text style={styles.normalText}>{item.companyName || "N/A"}{item.addressPremises||"N/A"}</Text>
+                  </Text>
+                  </View>
+  
+ 
+ 
+ 
 </View>
 
 <View style={styles.rightContent}>
+
   <Text style={styles.boldText}>
-    Remarks: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+    Remarks by NHB: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+  </Text>
+
+  <Text style={styles.boldText}>
+   Allocated Date: <Text style={styles.normalText}>{item.createdOn || "N/A"}</Text>
   </Text>
   <Text style={styles.boldText}>
-    Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
+    Inspection Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
   </Text>
   <Text style={styles.boldText}>
-    Stage: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+    Inspection Date: <Text style={styles.normalText}>{item.inspectionDate || "N/A"}</Text>
   </Text>
+ 
 </View>
 
               </View>
@@ -576,7 +600,7 @@ const Acceptedlist: React.FC = () => {
                 <DataTable>
                   <DataTable.Header style={styles.tableHeader}>
                     <DataTable.Title style={styles.tableHeaderCell}>S.No</DataTable.Title>
-                    <DataTable.Title style={styles.tableHeaderCell}>FSO Name</DataTable.Title>
+                    <DataTable.Title style={styles.tableHeaderCell}>Officer Name</DataTable.Title>
                     <DataTable.Title style={styles.tableHeaderCell}>Officer Type</DataTable.Title>
                   </DataTable.Header>
 
@@ -608,12 +632,17 @@ const styles = StyleSheet.create({
   },
   listItemText: {
     fontSize: 16,
-    color: "#333",
+    color: "grey",
+  },
+  companyy:{
+    width:260,
+    // marginTop:0
+
   },
   boldText: {
     fontWeight: 400,
     color: "#000",
-    marginTop:10,
+    marginTop:20,
     fontSize:14
   },
   normalText: {
@@ -622,14 +651,18 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    // alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    padding: 16,
+    // padding: 16,
+    // width: 200
+    width:'112%'
   },
   tableContainer: {
-    marginVertical: 10,
-    width: "100%",
+    // marginVertical: 10,
+    // padding:5,
+    // width: "100%",
+    width:'100%'
   },
   tableHeader: {
     backgroundColor: "#f0f0f0",
@@ -640,7 +673,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   nameColumn: {
-    flex: 2,
+    // flex: 2,
   },
   listItemText1:{
     fontSize: 14,
@@ -655,6 +688,7 @@ const styles = StyleSheet.create({
   },
   tableCell: {
     justifyContent: "center",
+    fontSize:10,
     padding: 8,
   },
   viewText: {
@@ -681,6 +715,7 @@ const styles = StyleSheet.create({
   },
   inspectionOfficerListText: {
     color: "#000",
+  // fontSize:14
   },
   content: {
     flexDirection: "row",
@@ -722,7 +757,7 @@ const styles = StyleSheet.create({
   },
   rightContent: {
     flex: 1,
-    marginLeft: 8,
+    // marginLeft: 8,
   },
   modalContainerA: {
     flex: 1,
@@ -781,11 +816,11 @@ const styles = StyleSheet.create({
   },
 
   modalTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
-    marginBottom: 20,
+    marginBottom: 10,
     color: "#333",
-    textAlign: "center",
+    // textAlign: "center",
   },
   label: {
     fontSize: 14,
@@ -1010,4 +1045,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default Acceptedlist
+export default InspectionAccepted

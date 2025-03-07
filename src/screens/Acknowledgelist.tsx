@@ -13,8 +13,8 @@ import {
   StyleSheet,
   SafeAreaView,
   ScrollView,
-  ActivityIndicator,
-  RefreshControl,Alert
+  RefreshControl,
+  Alert,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { Filter, X } from "lucide-react-native"
@@ -22,6 +22,7 @@ import DateTimePicker from "@react-native-community/datetimepicker"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getBusinessTypes } from "../database/Statebusinessapi"
 import { getAcknowledgedInspectionCount } from "../database/Dashboardapi"
+import { useFocusEffect } from '@react-navigation/native';
 
 interface AcknowledgedData {
   currentPageNo: number
@@ -30,7 +31,7 @@ interface AcknowledgedData {
   totalRecords: number
   paginationListRecords: any[]
 }
-const AcknowledgeList: React.FC = () => {
+const InspectionAcknowledgment: React.FC = () => {
   const [acknowledgedData, setAcknowledgedData] = useState<AcknowledgedData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -62,8 +63,8 @@ const AcknowledgeList: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [fromDate, setFromDate] = useState(new Date())
-  const [toDate, setToDate] = useState(new Date())
+  const [fromDate, setFromDate] = useState(null)
+  const [toDate, setToDate] = useState(null)
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -78,12 +79,12 @@ const AcknowledgeList: React.FC = () => {
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
-          fromDate: null,
-          toDate:null,
+          fromDate: formatDate(fromDate),
+          toDate: formatDate(toDate),
           processFlag: null,
-          inspectionType: null,
+          inspectionType: selectedInspectionType || null,
           fsoName: null,
-          kobId: null,
+          kobId: selectedBusinessType || null,
         }
         const result = await getAcknowledgedInspectionCount(payload, page)
         setAcknowledgedData(result)
@@ -97,7 +98,7 @@ const AcknowledgeList: React.FC = () => {
         setRefreshing(false)
       }
     },
-    [userId, displayRefId, companyName,fromDate, toDate],
+    [userId, displayRefId, companyName, fromDate, toDate, selectedInspectionType, selectedBusinessType],
   )
   useEffect(() => {
     // Don't automatically fetch data on mount
@@ -112,25 +113,35 @@ const AcknowledgeList: React.FC = () => {
     setSelectedItem(item)
     setIsAcceptModalVisible(true)
   }
-
+ useFocusEffect(
+    useCallback(() => {
+      // handleReset()
+      setCurrentPage(1)
+      setAcknowledgedData({ paginationListRecords: [] })
+    }, []),
+  )
   const handleRejectPress = (item: any) => {
     setSelectedItem(item)
     setIsRejectModalVisible(true)
   }
   const onAcceptSuccess = () => {
-    setCurrentPage(1);
-    fetchAcknowledgement(1);
-  };
+    setCurrentPage(1)
+    fetchAcknowledgement(1)
+  }
   const onRejectSuccess = () => {
-    setCurrentPage(1);
-    fetchAcknowledgement(1);
-  };
+    setCurrentPage(1)
+    fetchAcknowledgement(1)
+  }
   const closeAcceptModal = () => {
     setIsAcceptModalVisible(false)
   }
 
   const closeRejectModal = () => {
     setIsRejectModalVisible(false)
+  }
+  const formatDate = (date) => {
+    if (!date) return null
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
   }
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
@@ -210,23 +221,15 @@ const AcknowledgeList: React.FC = () => {
   }, [])
   const onFromDateChange = (event, selectedDate) => {
     setShowFromPicker(false)
-    if (event.type === "set") {
+    if (event.type === "set" && selectedDate) {
       setFromDate(selectedDate)
-
-      if (toDate && selectedDate > toDate) {
-        setToDate(null)
-      }
     }
   }
 
-  const onToDateChange = (event: any, selectedDate: Date | undefined) => {
+  const onToDateChange = (event, selectedDate) => {
     setShowToPicker(false)
     if (event.type === "set" && selectedDate) {
-      // Only set the toDate if it's valid (on or after fromDate)
-      if (!fromDate || selectedDate >= fromDate) {
-        setToDate(selectedDate)
-      }
-      // No alert - just don't update if invalid
+      setToDate(selectedDate)
     }
   }
 
@@ -245,7 +248,7 @@ const AcknowledgeList: React.FC = () => {
 
   const toggleModal = () => {
     if (!isModalVisible) {
-      handleReset()
+      // handleReset()
     }
     setIsModalVisible(!isModalVisible)
   }
@@ -355,7 +358,7 @@ const AcknowledgeList: React.FC = () => {
                 placeholderTextColor="#999"
               />
 
-<Text style={styles.label}>Allocated Date From</Text>
+              <Text style={styles.label}>Allocated Date From</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
                 <Text>{getDisplayDate(fromDate)}</Text>
               </TouchableOpacity>
@@ -415,10 +418,10 @@ const AcknowledgeList: React.FC = () => {
                 <TouchableOpacity
                   style={styles.applyButton}
                   onPress={async () => {
-                        if ((fromDate && !toDate) || (!fromDate && toDate)) {
-                                          Alert.alert( "Please select both From and To dates")
-                                          return
-                                        }
+                    if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                      Alert.alert("Please select both From and To dates")
+                      return
+                    }
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)
@@ -439,7 +442,7 @@ const AcknowledgeList: React.FC = () => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.listTitle}>Acknowledged Inspections</Text>
+        {/* <Text style={styles.listTitle}>Acknowledged Inspections</Text> */}
 
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No record found</Text>
@@ -447,33 +450,42 @@ const AcknowledgeList: React.FC = () => {
           acknowledgedData.paginationListRecords.map((item) => (
             <View key={`${item.displayRefId || ""}-${item.companyName}`} style={styles.listItem}>
               <View style={styles.listItemContent}>
-              <View style={styles.leftContent}>
-  <Text style={styles.boldText}>
-    Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
-  </Text>
-  <Text style={styles.boldText}>
-    Company Name: <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
-  </Text>
-  <Text style={styles.boldText}>
-    Stage: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
-  </Text>
-</View>
-
-<View style={styles.rightContent}>
-  <Text style={styles.boldText}>
-    Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
-  </Text>
-  <Text style={styles.boldText}>
-    Ref ID: <Text style={styles.normalText}>{item.displayRefId || "N/A"}</Text>
-  </Text>
-  <Text style={styles.boldText}>
-    Remarks: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
-  </Text>
-  <Text style={styles.boldText}>
-    Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
-  </Text>
-</View>
-
+                <View style={styles.leftContent}>
+                  <Text style={styles.boldText}>
+                    Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
+                  </Text>
+                
+                  <Text style={styles.boldText}>
+                  Status Description: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Allocated Date: <Text style={styles.normalText}>{item.createdOn || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                     Inspection Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
+                  </Text>
+                  <View style={styles.companyy}>
+                  <Text style={styles.boldText}>
+                    Company Name/Organization: <Text style={styles.normalText}>{item.companyName || "N/A"}/{item.addressPremises||"N/A"}</Text>
+                  </Text>
+                  </View>
+                </View>
+              
+               
+                <View style={styles.rightContent}>
+                  <Text style={styles.boldText}>
+                    Inspection Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Ref No./Applicant No. <Text style={styles.normalText}>{item.displayRefId || "N/A"}/{item.certificateNo|| "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Remarks by NHB: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+                  </Text>
+                
+                 
+                </View>
+              
               </View>
               <View style={styles.buttonContainer}>
                 <TouchableOpacity style={[styles.button, styles.acceptButton]} onPress={() => handleAcceptPress(item)}>
@@ -486,21 +498,21 @@ const AcknowledgeList: React.FC = () => {
             </View>
           ))
         ) : (
-          <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
+          <Text style={styles.emptyListText}>No record found.</Text>
         )}
       </ScrollView>
       <AcceptModal
-  visible={isAcceptModalVisible}
-  onClose={closeAcceptModal}
-  item={selectedItem}
-  onAcceptSuccess={onAcceptSuccess}
-/>
+        visible={isAcceptModalVisible}
+        onClose={closeAcceptModal}
+        item={selectedItem}
+        onAcceptSuccess={onAcceptSuccess}
+      />
 
       <RejectModal
         visible={isRejectModalVisible}
         onClose={closeRejectModal}
         item={selectedItem}
-    onRejectSuccess={onRejectSuccess}
+        onRejectSuccess={onRejectSuccess}
       />
 
       {hasSearched && acknowledgedData?.paginationListRecords?.length > 0 && renderPagination()}
@@ -517,15 +529,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
+  companyy:{
+    width:260,
+    // marginTop:40
+
+  },
   boldText: {
     fontWeight: 400,
     color: "#000",
-    marginTop: 15,
+    marginTop: 20,
     fontSize: 14,
   },
   normalText: {
-    fontWeight: "normal",
-    color: "#666",
+  fontSize:14,
+    color: "grey",
   },
   button: {
     flex: 1,
@@ -589,7 +606,7 @@ const styles = StyleSheet.create({
   },
   leftContent: {
     flex: 1,
-    marginRight: 8,
+    // marginRight: 8,
   },
   rightContent: {
     flex: 1,
@@ -862,5 +879,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export default AcknowledgeList
+export default InspectionAcknowledgment
 

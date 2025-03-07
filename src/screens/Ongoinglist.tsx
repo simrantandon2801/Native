@@ -22,6 +22,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getBusinessTypes } from "../database/Statebusinessapi"
 import { getOngoingInspectionCount, } from "../database/Dashboardapi"
 import { useNavigation } from "@react-navigation/native"
+import { useFocusEffect } from '@react-navigation/native';
 interface OngoingData {
   currentPageNo: number
   totalPages: number
@@ -41,7 +42,7 @@ const OngoingList: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [reportID, setReportID] = useState("")
   const [companyName, setCompanyName] = useState("")
-
+const[inspectionId,setinspectionId]=useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -60,8 +61,8 @@ const OngoingList: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [fromDate, setFromDate] = useState(new Date())
-  const [toDate, setToDate] = useState(new Date())
+   const [fromDate, setFromDate] = useState(null)
+     const [toDate, setToDate] = useState(null)
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -75,16 +76,16 @@ const OngoingList: React.FC = () => {
         const payload: any = {
           statusId: "20",
           userId: userId,
-          displayRefId: displayRefId,
+          reportId: inspectionId,
           companyName: companyName,
-          fromDate: fromDate ? fromDate.toISOString().split("T")[0] : "",
-          toDate: toDate ? toDate.toISOString().split("T")[0] : "",
+          fromDate: formatDate(fromDate),
+          toDate: formatDate(toDate),
           processFlag: null,
-          inspectionType: null,
+          inspectionType: selectedInspectionType || null,
           fsoName: null,
-          kobId: null,
+          kobId: selectedBusinessType || null,
         }
-        console.log("payload for Reject", payload)
+        console.log("payload for Ongoing", payload)
         const result = await getOngoingInspectionCount(payload, page)
         setOngoingData(result)
         setHasSearched(true)
@@ -97,13 +98,19 @@ const OngoingList: React.FC = () => {
         setRefreshing(false)
       }
     },
-    [userId, displayRefId, companyName, fromDate, toDate],
+    [userId, displayRefId, companyName, inspectionId,fromDate, toDate,selectedInspectionType, selectedBusinessType],
   )
 
   useEffect(() => {
     console.log("Updated refId:", refId)
   }, [refId])
-
+useFocusEffect(
+    useCallback(() => {
+      // handleReset()
+      setCurrentPage(1)
+      setOngoingData({ paginationListRecords: [] })
+    }, []),
+  )
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -127,7 +134,10 @@ const OngoingList: React.FC = () => {
 
     fetchDataFromAsyncStorage()
   }, [])
-
+  const formatDate = (date) => {
+    if (!date) return null
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+  }
   useEffect(() => {
     const fetchKobId = async () => {
       try {
@@ -242,12 +252,12 @@ const OngoingList: React.FC = () => {
 
   const toggleModal = () => {
     if (!isModalVisible) {
-      handleReset()
+      // handleReset()
     }
     setIsModalVisible(!isModalVisible)
   }
   const handleReset = async () => {
-    setReportID("")
+    setinspectionId("")
     setCompanyName("")
     setSelectedBusinessType("")
     setSelectedInspectionType("")
@@ -338,8 +348,8 @@ const OngoingList: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Enter Report number"
-                value={reportID}
-                onChangeText={setReportID}
+                value={inspectionId}
+                onChangeText={setinspectionId}
                 placeholderTextColor="#999"
               />
 
@@ -352,7 +362,7 @@ const OngoingList: React.FC = () => {
                 placeholderTextColor="#999"
               />
 
-<Text style={styles.label}>Allocated Date From</Text>
+<Text style={styles.label}>From Date</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
                 <Text>{getDisplayDate(fromDate)}</Text>
               </TouchableOpacity>
@@ -360,7 +370,7 @@ const OngoingList: React.FC = () => {
                 <DateTimePicker value={fromDate || today} mode="date" onChange={onFromDateChange} maximumDate={today} />
               )}
 
-              <Text style={styles.label}>Allocated Date To</Text>
+              <Text style={styles.label}>To Date</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowToPicker(true)}>
                 <Text>{getDisplayDate(toDate)}</Text>
               </TouchableOpacity>
@@ -383,8 +393,8 @@ const OngoingList: React.FC = () => {
                   dropdownIconColor="#666"
                 >
                   <Picker.Item label="Select Inspection Type" value="" style={styles.placeholderStyle} />
-                  <Picker.Item label="Pre" value="Pre" />
-                  <Picker.Item label="Post" value="Post" />
+                  <Picker.Item label="Pre" value="PRE" />
+                  <Picker.Item label="Post" value="POST" />
                   {/* {inspectionTypes.map((type) => (
     <Picker.Item key={type.id} label={type.name} value={type.id} />
   ))} */}
@@ -418,7 +428,7 @@ const OngoingList: React.FC = () => {
                     }
                     setCurrentPage(1)
                     setHasSearched(true)
-                    setdisplayRefId(reportID)
+                    setdisplayRefId(inspectionId)
                     await fetchOngoing(1)
                     toggleModal()
                   }}
@@ -436,7 +446,7 @@ const OngoingList: React.FC = () => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.listTitle}>Ongoing Inspections</Text>
+        {/* <Text style={styles.listTitle}>Ongoing Inspections</Text> */}
 
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No record found</Text>
@@ -448,16 +458,23 @@ const OngoingList: React.FC = () => {
             >
               <View style={styles.listItemContent}>
                 <View style={styles.leftContent}>
-                  <Text style={styles.boldText}>
-                  Ref ID: <Text style={styles.normalText}>{item.displayRefId || "N/A"}
-                    </Text>
-                  </Text>
-                  <Text style={styles.boldText}>
-                    Company Name: <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
-                  </Text>
+                
+                  {/* <Text style={styles.boldText}>
+                    Company Name/Organization: <Text style={styles.normalText}>{item.companyName || "N/A"}/{item.fullAddress|| "N/A"}</Text>
+                  </Text> */}
                   <Text style={styles.boldText}>
                     Report ID: <Text style={styles.normalText}>{item.inspectionId}</Text>
                   </Text>
+                  <View style={styles.companyy}>
+                                               <Text style={styles.boldText}>
+                                                 Company Name/Organization: <Text style={styles.normalText}>{item.companyName || "N/A"}/{item.fullAddress||"N/A"}</Text>
+                                               </Text>
+                                               </View>
+                                               <View style={styles.companyy2}>
+                                               <Text style={styles.boldText}>
+                                               Ref No./Applicant No:  <Text style={styles.normalText}>{item.displayRefId || "N/A"}/{item.certificateNo|| "N/A"}</Text>
+                                               </Text>
+                                               </View>
                 </View>
 
                 <View style={styles.rightContent}>
@@ -476,7 +493,7 @@ const OngoingList: React.FC = () => {
             </View>
           ))
         ) : (
-          <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
+          <Text style={styles.emptyListText}>No inspections found.</Text>
         )}
       </ScrollView>
 
@@ -509,6 +526,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",
+  },
+  companyy:{
+    width:260,
+    marginTop:50
+
+  },
+  companyy2:{
+    width:260,
+    // marginTop:40
+
   },
   boldText: {
     fontWeight: 400,
@@ -567,7 +594,7 @@ const styles = StyleSheet.create({
   },
   normalText: {
     fontWeight: "normal",
-    color: "#666",
+    color: "grey",
   },
   button: {
     flex: 1,
@@ -627,7 +654,7 @@ const styles = StyleSheet.create({
   },
   leftContent: {
     flex: 1,
-    marginRight: 8,
+    // marginRight: 8,
   },
   rightContent: {
     flex: 1,

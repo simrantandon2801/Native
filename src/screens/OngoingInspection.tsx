@@ -20,7 +20,7 @@ interface OngoingInspectionData {
 const { width } = Dimensions.get("window")
 const cardWidth = (width - 80) / 2
 
-const OngoingInspection: React.FC = () => {
+const Ongoing: React.FC = () => {
   const navigation=useNavigation();
   const [ongoingInspectionData, setOngoingInspectionData] = useState<OngoingInspectionData>({
     currentPageNo: 1,
@@ -201,5 +201,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export default OngoingInspection
+export default Ongoing
 

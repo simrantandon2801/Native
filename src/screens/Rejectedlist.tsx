@@ -20,7 +20,7 @@ import DateTimePicker from "@react-native-community/datetimepicker"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getBusinessTypes } from "../database/Statebusinessapi"
 import { getRejectedInspectionAttachmentCount } from "../database/Dashboardapi"
-
+import { useFocusEffect } from '@react-navigation/native';
 interface RejectedData {
   currentPageNo: number
   totalPages: number
@@ -28,7 +28,7 @@ interface RejectedData {
   totalRecords: number
   paginationListRecords: any[]
 }
-const Rejectedlist: React.FC = () => {
+const InspectionRejected: React.FC = () => {
   const [rejectedData, setRejectedData] = useState<RejectedData>({
     currentPageNo: 1,
     totalPages: 0,
@@ -39,9 +39,7 @@ const Rejectedlist: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
-  const [isAcceptModalVisible, setIsAcceptModalVisible] = useState(false)
-  const [isRejectModalVisible, setIsRejectModalVisible] = useState(false)
-  const [selectedItem, setSelectedItem] = useState<any | null>(null)
+ 
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
 
@@ -60,8 +58,8 @@ const Rejectedlist: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [fromDate, setFromDate] = useState(new Date())
-  const [toDate, setToDate] = useState(new Date())
+   const [fromDate, setFromDate] = useState(null)
+   const [toDate, setToDate] = useState(null)
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -78,12 +76,12 @@ const Rejectedlist: React.FC = () => {
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
-          fromDate: fromDate ? fromDate.toISOString().split("T")[0] : "",
-          toDate: toDate ? toDate.toISOString().split("T")[0] : "",
+          fromDate: formatDate(fromDate),
+          toDate: formatDate(toDate),
           processFlag: null,
-          inspectionType: null,
+          inspectionType: selectedInspectionType || null,
           fsoName: null,
-          kobId: null,
+          kobId: selectedBusinessType || null,
         }
         console.log("payload for Reject", payload)
         const result = await getRejectedInspectionAttachmentCount(payload, page)
@@ -98,13 +96,19 @@ const Rejectedlist: React.FC = () => {
         setRefreshing(false)
       }
     },
-    [userId, displayRefId, companyName, fromDate, toDate],
+    [userId, displayRefId, companyName, fromDate, toDate,selectedInspectionType, selectedBusinessType],
   )
 
   useEffect(() => {
     console.log("Updated refId:", refId)
   }, [refId])
-
+useFocusEffect(
+    useCallback(() => {
+      // handleReset()
+      setCurrentPage(1)
+      setRejectedData({ paginationListRecords: [] })
+    }, []),
+  )
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -129,6 +133,10 @@ const Rejectedlist: React.FC = () => {
     fetchDataFromAsyncStorage()
   }, [])
 
+  const formatDate = (date) => {
+    if (!date) return null
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+  }
   useEffect(() => {
     const fetchKobId = async () => {
       try {
@@ -197,11 +205,11 @@ const Rejectedlist: React.FC = () => {
   const onToDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowToPicker(false)
     if (event.type === "set" && selectedDate) {
-      // Only set the toDate if it's valid (on or after fromDate)
+      
       if (!fromDate || selectedDate >= fromDate) {
         setToDate(selectedDate)
       }
-      // No alert - just don't update if invalid
+      
     }
   }
 
@@ -213,7 +221,7 @@ const Rejectedlist: React.FC = () => {
 
   const toggleModal = () => {
     if (!isModalVisible) {
-      handleReset()
+      // handleReset()
     }
     setIsModalVisible(!isModalVisible)
   }
@@ -410,7 +418,7 @@ const Rejectedlist: React.FC = () => {
         style={styles.container}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <Text style={styles.listTitle}>Rejected Inspections</Text>
+        {/* <Text style={styles.listTitle}>Rejected Inspections</Text> */}
 
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No record found</Text>
@@ -425,38 +433,46 @@ const Rejectedlist: React.FC = () => {
                   <Text style={styles.boldText}>
                     Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
                   </Text>
+                 
                   <Text style={styles.boldText}>
-                    Company Name: <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
+                    Status Description: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
                   </Text>
                   <Text style={styles.boldText}>
-                    Stage: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+                    Allocated Date: <Text style={styles.normalText}>{item.createdOn || "N/A"}</Text>
                   </Text>
+                  <Text style={styles.boldText}>
+                    Remarks By NHB: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
+                  </Text>
+               <View style={styles.companyy}>
+                                <Text style={styles.boldText}>
+                                  Company Name/Organization: <Text style={styles.normalText}>{item.companyName || "N/A"}{item.addressPremises||"N/A"}</Text>
+                                </Text>
+                                </View>
                 </View>
 
                 <View style={styles.rightContent}>
                   <Text style={styles.boldText}>
-                    Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
+                    Inpsection Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
                   </Text>
                   <Text style={styles.boldText}>
-                    Ref ID: <Text style={styles.normalText}>{item.displayRefId || "N/A"}</Text>
+                    Ref No:/Applicant No: <Text style={styles.normalText}>{item.displayRefId || "N/A"}/{item.certificateNo|| "N/A"}</Text>
                   </Text>
+               
                   <Text style={styles.boldText}>
-                    Remarks: <Text style={styles.normalText}>{item.raRemarks || "N/A"}</Text>
-                  </Text>
-                  <Text style={styles.boldText}>
-                    Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
+                   Inpsection Assigned By: <Text style={styles.normalText}>{item.assignedBy || "N/A"}</Text>
                   </Text>
                 </View>
               </View>
               <View style={styles.buttonview}>
-                <TouchableOpacity style={styles.viewButton} onPress={() => handleViewRemarks(item.raRemarks)}>
+                <TouchableOpacity style={styles.viewButton} onPress={() => handleViewRemarks(item.rejectedRemarks
+)}>
                   <Text style={styles.viewButtonText}>View</Text>
                 </TouchableOpacity>
               </View>
             </View>
           ))
         ) : (
-          <Text style={styles.emptyListText}>No acknowledged inspections found.</Text>
+          <Text style={styles.emptyListText}>No  inspections found.</Text>
         )}
       </ScrollView>
 
@@ -495,10 +511,15 @@ const styles = StyleSheet.create({
     alignItems:'center'
 
   },
+  companyy:{
+    width:260,
+    // marginTop:40
+
+  },
   boldText: {
     fontWeight: 400,
     color: "#000",
-    marginTop: 15,
+    marginTop: 20,
     fontSize: 14,
   },
   buttonview: {
@@ -613,7 +634,7 @@ const styles = StyleSheet.create({
   },
   leftContent: {
     flex: 1,
-    marginRight: 8,
+    // marginRight: 8,
   },
   rightContent: {
     flex: 1,
@@ -886,5 +907,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export default Rejectedlist
+export default InspectionRejected
 

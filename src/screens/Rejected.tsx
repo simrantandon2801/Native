@@ -75,7 +75,7 @@ const Rejected: React.FC = () => {
   // }, [])
 
   const renderInspectionAttachmentItem = ({ title, isOnline }: InspectionAttachmentItem) => (
-   <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Rejectedlist" as never)}>
+   <TouchableOpacity style={styles.item} key={title} onPress={() => navigation.navigate("Inspection Rejected" as never)}>
             <View style={styles.itemContent}>
               <Text style={styles.title}>Inspection Rejected</Text>
             </View>

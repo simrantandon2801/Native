@@ -26,6 +26,12 @@ import AllocatedInspetion from "./src/screens/Allocated"
 import Resumelist from "./src/screens/Resumelist"
 import SplashScreen from "./src/screens/Splashscrren"
 import ParameterResultsScreen from "./src/screens/ParameterResultscreen"
+import InspectionAcknowledgment from "./src/screens/Acknowledgelist"
+import InspectionAccepted from "./src/screens/Acceptedlist"
+import InspectionRejected from "./src/screens/Rejectedlist"
+import OngoingInspection from "./src/screens/OngoingInspection"
+import InspectionOngoing from "./src/screens/Ongoinglist"
+import Ongoing from "./src/screens/OngoingInspection"
 
 
 const Stack = createStackNavigator()
@@ -81,20 +87,20 @@ function App(): React.JSX.Element {
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} options={{ headerShown: false }} />
           <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
           <Stack.Screen name="Acknowledge" component={Acknowledge} />
-          <Stack.Screen name="Acknowledgelist" component={Acknowledgelist} />
+          <Stack.Screen name="InspectionAcknowledgement" component={InspectionAcknowledgment} />
           <Stack.Screen name="Accepted" component={Accepted} />
-          <Stack.Screen name="Acceptedlist" component={Acceptedlist} />
+          <Stack.Screen name="InspectionAccepted" component={InspectionAccepted} />
           <Stack.Screen name="Rejected" component={Rejected} />
-          <Stack.Screen name="Rejectedlist" component={RejectedList} />
-          <Stack.Screen name="Ongoing" component={Ongoinglist} />
-          <Stack.Screen name="Ongoinglist" component={Ongoinglist} />
+          <Stack.Screen name="InspectionRejected" component={InspectionRejected} />
+          <Stack.Screen name="Ongoing" component={Ongoing} />
+          <Stack.Screen name="Ongoinglist" component={Ongoinglist}  options={{ title: 'Ongoing Inspections' }} />
           <Stack.Screen name="Allocate Inspection" component={AllocateInspection} />
           <Stack.Screen name="Allocated Inspection" component={AllocatedInspetion} />
           <Stack.Screen name="Resumelist" component={Resumelist} />
           <Stack.Screen 
         name="ParameterResults" 
         component={ParameterResultsScreen} 
-        options={{ title: 'Parameter Results' }}
+        options={{ title: 'Update Inspection Checklist' }}
       />
           
           

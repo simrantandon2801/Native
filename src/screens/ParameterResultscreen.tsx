@@ -128,7 +128,7 @@ const ParameterResultsScreen: React.FC = () => {
   }, [])
 
 
-  // Save the current parameter selection when modal is closed
+
   const handleCloseModal = async () => {
     if (currentItemIndex !== null && selectedParameter) {
       const updatedSelections = {
@@ -141,7 +141,7 @@ const ParameterResultsScreen: React.FC = () => {
       
       setParameterSelections(updatedSelections)
       
-      // Save selections to AsyncStorage
+     
       try {
         await AsyncStorage.setItem('parameterSelections', JSON.stringify(updatedSelections))
         console.log("Saved selections to AsyncStorage:", updatedSelections)
@@ -157,27 +157,33 @@ const ParameterResultsScreen: React.FC = () => {
 
     try {
       const payload = {
-        inspectionDetailsParametersRegistration: parameterRegResults.map((result, index) => {
-          const selection = parameterSelections[index]
-
+        inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => {
+          // const selection = parameterSelections[index];
+      
           return {
-            ...result,
             updatedBy: userId,
             createdBy: userId,
-            parameterResultName: selection?.parameterName || "",
-            obtainedScore: selection?.score || null,
+            groupId: element.groupId,//
+            parameterVal: element.parameterVal,//
+            
+            sectionId: element.sectionId,
+            priority: element.priority,
+            groupName: element.groupName,//
+            
+            // parameterResultName: selection?.parameterName || "",
+            obtainedScore:  null,
             id: {
-              inspectionId: result.inspectionId,
-              parameterId: result.parameterId,
+              inspectionId: element.inspectionId,
+              parameterId: element.parameterId,
             },
-            maxScore: result.score || "",
+            refId: element.refId || "",
             parameterResultId: null,
-            priority: result.priority,
-            refId: result.refId || "",
-          }
+            score: element.score,
+            maxScore: element.score || "",//
+          };
         }),
-        // Removed observation and comments from payload
-      }
+      };
+      
 
       console.log("Save as draft payload:", payload)
 

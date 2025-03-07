@@ -49,8 +49,8 @@ const AllocatedInspection: React.FC = () => {
   const [selectedInspectionOfficer, setSelectedInspectionOfficer] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [inspectionOfficers, setInspectionOfficers] = useState<Array<any>>([])
-  const [fromDate, setFromDate] = useState(new Date())
-  const [toDate, setToDate] = useState(new Date())
+   const [fromDate, setFromDate] = useState(null)
+   const [toDate, setToDate] = useState(null)
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -226,8 +226,8 @@ const AllocatedInspection: React.FC = () => {
         userId: createdBy, //done
         displayRefId: referenceNo,
         companyName: companyName,
-        fromDate: null,
-        toDate: null,
+        fromDate: formatDate(fromDate),
+        toDate: formatDate(toDate),
         inspectionType: selectedInspectionType,
         fsoName: fsoName,
         kobId: selectedBusinessType || "",
@@ -257,6 +257,10 @@ const AllocatedInspection: React.FC = () => {
   useEffect(() => {
     console.log("Updated search results:", searchResults)
   }, [searchResults])
+  const formatDate = (date) => {
+    if (!date) return null
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+  }
   const renderPagination = () => {
     const hasMorePages =
       searchResults?.paginationListRecords?.length > 0 && searchResults?.paginationListRecords?.length >= itemsPerPage

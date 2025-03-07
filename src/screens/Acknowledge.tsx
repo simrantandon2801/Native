@@ -94,7 +94,7 @@ const Acknowledge: React.FC = () => {
     <TouchableOpacity
       style={styles.item}
       key={title}
-      onPress={() => navigation.navigate("Acknowledgelist" as never)}
+      onPress={() => navigation.navigate("Inspection Acknowledgement" as never)}
     >
       <View style={styles.itemContent}>
         <Text style={styles.title}>Inspection Acknowledgment</Text>
