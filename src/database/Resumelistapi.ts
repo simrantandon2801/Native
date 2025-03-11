@@ -50,7 +50,7 @@ export const getInspectionParameterResults = async ()=> {
   }
 }
 
-//tap api of resimelist
+
 
 
 export const getMasterInspectionParameterReg = async (refId: string, inspectionId: string, sectionId: number) => {

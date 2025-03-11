@@ -46,7 +46,7 @@ inspectionId:number
     }
 
     const data = await response.json()
-    console.log("Master Inspection Section result:", data)
+    console.log("--Section result:", data)
     return data
   } catch (error) {
     console.error("Error in getMasterInspectionSection:", error)

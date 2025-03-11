@@ -30,40 +30,46 @@ const Resumelist: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
   const { data, refId, inspectionId } = route.params;
   console.log("data : ", data);
-  console.log("-------------------------", refId, inspectionId)
+  console.log("-------------------------", inspectionId)
 
   const [selectedOption, setSelectedOption] = useState("forward")
   const [remarks, setRemarks] = useState("")
   const [parameterRegResults, setParameterRegResults] = useState<any[]>([])
   const [parameterResults, setParameterResults] = useState<any[]>([])
 
+ 
+  
   const handleSectionTap = async (sectionId: number) => {
     try {
-      const payload = {
-        sectionId: sectionId,
-        inspectionId: inspectionId,
-        refId: refId,
+      const results = await getInspectionParameterResults();
+   
+      setParameterResults(results);
+      console.log("Section details:", results);
+    
+  
+     
+      if (!refId || !inspectionId) {
+        throw new Error("refId or inspectionId is missing");
       }
-
-      // const results = await getInspectionParameterResults()
-      // setParameterResults(results)
-      // console.log("Section details:", results)
-
-      const regResults = await getMasterInspectionParameterReg(
-        payload.refId,
-        payload.inspectionId,
-        payload.sectionId
-      )
-      
-      console.log("Registration results:", regResults)
-      
-
-      navigation.navigate('ParameterResults',{ parameterRegResults: regResults })
+  
+      const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId);
+      console.log("API Response:", regresult); 
+  
+      const payload = {
+        sectionId,
+        inspectionId,
+        refId,
+      };
+      console.log("Paygyugyuyugyugload:", payload);
+      // handleParameterChange
+  
+     
+      navigation.navigate('ParameterResults' as never, { parameterRegResults: regresult,inspectionId:inspectionId });
     } catch (error) {
-      console.error("Error fetching section details:", error)
-      Alert.alert("Error", "Failed to fetch section details. Please try again.")
+      console.error("Error fetching section details:", error);
+      Alert.alert("Error", "Failed to fetch section details. Please try again.");
     }
-  }
+  };
 
   return (
     <SafeAreaView style={styles.container}>

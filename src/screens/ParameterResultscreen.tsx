@@ -23,11 +23,12 @@ import { submitInspectionSection } from "../database/SubmitSectionapi"
 
 type RouteParams = {
   parameterRegResults: any[]
+  inspectionId:any
 }
 
 const ParameterResultsScreen: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
-  const { parameterRegResults } = route.params
+  const { parameterRegResults,inspectionId } = route.params
   const [modalVisible, setModalVisible] = useState(false)
   const [observation, setObservation] = useState("")
   const [comments, setComments] = useState("")
@@ -35,10 +36,10 @@ const ParameterResultsScreen: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null)
   const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null)
   const [inspectionData, setInspectionData] = useState<any[]>([])
-  const [selectedParameter, setSelectedParameter] = useState<string>("")
-  const [selectedScore, setSelectedScore] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // const[inspectionId,setinspectionId]=useState("")
+
   // Track selected parameters and scores for each item
   const [parameterSelections, setParameterSelections] = useState<{
     [key: number]: {
@@ -47,42 +48,37 @@ const ParameterResultsScreen: React.FC = () => {
     }
   }>({})
 
-  
   useEffect(() => {
     const loadSavedSelections = async () => {
       try {
-        const savedSelectionsString = await AsyncStorage.getItem("parameterSelections")
+        if (!inspectionId) return; 
+        const uniqueKey = `parameterSelections_${inspectionId}`;
+        const savedSelectionsString = await AsyncStorage.getItem(uniqueKey);
+  
         if (savedSelectionsString) {
-          const savedSelections = JSON.parse(savedSelectionsString)
-          setParameterSelections(savedSelections)
-          console.log("Loaded saved selections:", savedSelections)
+          const savedSelections = JSON.parse(savedSelectionsString);
+          setParameterSelections(savedSelections);
+          console.log(`Loaded saved selections for Inspection ID ${inspectionId}:`, savedSelections);
         }
       } catch (error) {
-        console.error("Error loading saved selections:", error)
+        console.error("Error loading saved selections:", error);
       }
-    }
-
-    loadSavedSelections()
-  }, [])
+    };
+  
+    loadSavedSelections(); // Call function inside useEffect
+  }, [inspectionId]); // Dependency array ensures it runs when `inspectionId` changes
+  // Ensure it reloads when inspectionId changes
+    
 
   const handleProceed = async (index: number) => {
     setCurrentItemIndex(index)
     setModalVisible(true)
     setLoading(true)
-
+    // handleParameterChange("")
     try {
       const results = await getInspectionParameterResults()
       setLoading(false)
       setInspectionData(results || [])
-
-    
-      if (parameterSelections[index]) {
-        setSelectedParameter(parameterSelections[index].parameterName)
-        setSelectedScore(parameterSelections[index].score)
-      } else {
-        setSelectedParameter("")
-        setSelectedScore(null)
-      }
 
       console.log("Received inspection parameter results for item", index, ":", results)
     } catch (error) {
@@ -91,16 +87,18 @@ const ParameterResultsScreen: React.FC = () => {
       Alert.alert("Error", "Failed to fetch inspection parameter results")
     }
   }
+
   const handleDone = () => {
-    if (!selectedParameter) {
+    if (currentItemIndex === null || !parameterSelections[currentItemIndex]?.parameterName) {
       return
     }
 
-    console.log("Selected Parameter:", selectedParameter)
-    console.log("Selected Score:", selectedScore)//fine
+    console.log("Selected Parameter:", parameterSelections[currentItemIndex].parameterName)
+    console.log("Selected Score:", parameterSelections[currentItemIndex].score)
 
     handleCloseModal()
   }
+
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -126,72 +124,80 @@ const ParameterResultsScreen: React.FC = () => {
   }, [])
 
   const handleCloseModal = async () => {
-    if (currentItemIndex !== null && selectedParameter) {
-      const updatedSelections = {
-        ...parameterSelections,
-        [currentItemIndex]: {
-          parameterName: selectedParameter,
-          score: selectedScore,
-        },
-      }
-
-      setParameterSelections(updatedSelections)
-
+    if (!inspectionId) {
+      console.error("Inspection ID is missing.");
+      return;
+    }
+  
+    if (currentItemIndex !== null && parameterSelections[currentItemIndex]?.parameterName) {
       try {
-        await AsyncStorage.setItem("parameterSelections", JSON.stringify(updatedSelections))
-        console.log("Saved selections to AsyncStorage:", updatedSelections)
+        const uniqueKey = `parameterSelections_${inspectionId}`; 
+  
+        await AsyncStorage.setItem(uniqueKey, JSON.stringify(parameterSelections));
+  
+        console.log(`Saved selections to AsyncStorage for Inspection ID ${inspectionId}:`, parameterSelections);
       } catch (error) {
-        console.error("Error saving selections to AsyncStorage:", error)
+        console.error("Error saving selections to AsyncStorage:", error);
       }
     }
-    setModalVisible(false)
-  }
+  
+    setModalVisible(false);
+  };
+  
 
   const handleSaveAsDraft = async () => {
-    setLoading(true);
-
-    try {
-        const payload = {
-            inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => ({
-                updatedBy: userId,
-                createdBy: userId,
-                groupId: element.groupId,
-                parameterVal: element.parameterVal,
-                sectionId: element.sectionId,
-                priority: element.priority,
-                groupName: element.groupName,
-                id: {
-                    inspectionId: element.inspectionId,
-                    parameterId: element.parameterId,
-                },
-                refId: element.refId ,
-                parameterResultId: element.parameterResultId ,
-                score: element.score,
-                maxScore: element.maxScore || element.score || "",
-                obtainedScore: selectedScore,
-            })),
-        };
-
-        console.log("Save as draft payload:", payload);
-
-        const response = await saveInspectionAsDraft(payload);
-        console.log("Save as draft response:", response);
-
-        try {
-            await AsyncStorage.setItem("parameterSelections", JSON.stringify(parameterSelections));
-        } catch (error) {
-            console.error("Error saving selections to AsyncStorage:", error);
-        }
-
-        setLoading(false);
-        Alert.alert("Draft saved successfully");
-    } catch (error) {
-        setLoading(false);
-        console.error("Error saving draft:", error);
-        Alert.alert("Error", "Failed to save draft");
+    if (!inspectionId) {
+      Alert.alert("Error", "Inspection ID is missing.");
+      return;
     }
-};
-
+  
+    setLoading(true);
+  
+    try {
+      const uniqueKey = `parameterSelections_${inspectionId}`; // Unique key per inspection
+  
+      const payload = {
+        inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => ({
+          updatedBy: userId,
+          createdBy: userId,
+          groupId: element.groupId,
+          parameterVal: element.parameterVal,
+          sectionId: element.sectionId,
+          priority: element.priority,
+          groupName: element.groupName,
+          id: {
+            inspectionId: element.inspectionId,
+            parameterId: element.parameterId,
+          },
+          refId: element.refId,
+          parameterResultId: element.parameterResultId,
+          score: element.score,
+          maxScore: element.maxScore || element.score || "",
+          obtainedScore: parameterSelections[index]?.score || null,
+        })),
+      };
+  
+      console.log("Save as draft payload:", payload);
+  
+      const response = await saveInspectionAsDraft(payload);
+      console.log("Save as draft response:", response);
+  
+      try {
+        await AsyncStorage.setItem(uniqueKey, JSON.stringify(parameterSelections)); // Save per inspection
+        console.log(`Saved selections to AsyncStorage for Inspection ID ${inspectionId}:`, parameterSelections);
+      } catch (error) {
+        console.error("Error saving selections to AsyncStorage:", error);
+      }
+  
+      setLoading(false);
+      Alert.alert("Success", "Draft saved successfully");
+    } catch (error) {
+      setLoading(false);
+      console.error("Error saving draft:", error);
+      Alert.alert("Error", "Failed to save draft");
+    }
+  };
+  
 
   const handleSubmitSection = async () => {
     if (!observation.trim()) {
@@ -224,7 +230,7 @@ const ParameterResultsScreen: React.FC = () => {
           parameterResultId: element.parameterResultId,
           score: element.score,
           maxScore: element.score || "",
-          obtainedScore: selectedScore,
+          obtainedScore: parameterSelections[index]?.score || null,
         })),
 
         inspectionDetailsSectionRegistration: {
@@ -255,6 +261,39 @@ const ParameterResultsScreen: React.FC = () => {
     }
   }
 
+  let handleParameterChange = (itemValue: string) => {
+    console.log(handleParameterChange,"chaljafunction")
+    if (currentItemIndex === null) return
+
+    const selectedItem = inspectionData.find((item) => item.parameterResultName === itemValue)
+    let score = null
+
+    if (selectedItem) {
+      const priority = selectedItem.priority || 0
+      const parameterResultId = selectedItem.parameterResultId
+
+      if (priority === 0) {
+        if (parameterResultId === 1) score = 2
+        else if (parameterResultId === 2) score = 0
+        else if (parameterResultId === 3) score = 1
+        else if (parameterResultId === 4) score = 0
+      } else if (priority === 1) {
+        if (parameterResultId === 1) score = 4
+        else if (parameterResultId === 2) score = 0
+        else if (parameterResultId === 3) score = 2
+        else if (parameterResultId === 4) score = 0
+      }
+    }
+
+    setParameterSelections((prev) => ({
+      ...prev,
+      [currentItemIndex]: {
+        parameterName: itemValue,
+        score: score,
+      },
+    }))
+  }
+
   return (
     <SafeAreaView>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -268,19 +307,19 @@ const ParameterResultsScreen: React.FC = () => {
               <Text style={styles.resultLabel}>Maximum:</Text>
               <Text style={styles.resultValue}>{result.score}</Text>
 
-              {parameterSelections[index] && (
-                <View style={styles.selectionContainer}>
-                  <Text style={styles.selectionLabel}>Selected Parameter:</Text>
+              <View style={styles.selectionContainer}>
+                <Text style={styles.selectionLabel}>Selected Parameter:</Text>
 
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.selectionValue}>{parameterSelections[index].parameterName}</Text>
-                    <Text style={styles.selectionLabel}>Score:</Text>
-                    <Text style={styles.selectionValue}>
-                      {parameterSelections[index].score !== null ? parameterSelections[index].score : "N/A"}
-                    </Text>
-                  </View>
+                <View style={styles.rowContainer}>
+                  <Text style={styles.selectionValue}>{parameterSelections[index]?.parameterName || "N/A"}</Text>
+                  <Text style={styles.selectionLabel}>Score:</Text>
+                  <Text style={styles.selectionValue}>
+                    {parameterSelections[index]?.score !== null && parameterSelections[index]?.score !== undefined
+                      ? parameterSelections[index]?.score
+                      : "N/A"}
+                  </Text>
                 </View>
-              )}
+              </View>
 
               <TouchableOpacity style={styles.proceedButton} onPress={() => handleProceed(index)}>
                 <Text style={styles.proceedButtonText}>Proceed</Text>
@@ -356,43 +395,24 @@ const ParameterResultsScreen: React.FC = () => {
                         <Text style={styles.resultValue}>{parameterRegResults[currentItemIndex]?.score}</Text>
                       </View>
                     )}
-                    {selectedParameter && (
+                    {currentItemIndex !== null && (
                       <View>
-                        {selectedScore !== null && (
-                          <Text style={styles.selectedValueText1}>Score: {selectedScore}</Text>
-                        )}
+                        <Text style={styles.selectedValueText1}>
+                          Score:{" "}
+                          {parameterSelections[currentItemIndex]?.score !== null &&
+                          parameterSelections[currentItemIndex]?.score !== undefined
+                            ? parameterSelections[currentItemIndex]?.score
+                            : "N/A"}
+                        </Text>
                       </View>
                     )}
                     <Text style={styles.title}>Parameter result Name:</Text>
                     <View style={styles.pickerContainer}>
                       <Picker
-                        selectedValue={selectedParameter}
-                        onValueChange={(itemValue) => {
-                          setSelectedParameter(itemValue)
-
-                          const selectedItem = inspectionData.find((item) => item.parameterResultName === itemValue)
-
-                          if (selectedItem) {
-                            const priority = selectedItem.priority || 0
-                            const parameterResultId = selectedItem.parameterResultId 
-
-                            let score = "NA"
-
-                            if (priority === 0) {
-                              if (parameterResultId === 1) score = 2
-                              else if (parameterResultId === 2) score = 0
-                              else if (parameterResultId === 3) score = 1
-                              else if (parameterResultId === 4) score = 0
-                            } else if (priority === 1) {
-                              if (parameterResultId === 1) score = 4
-                              else if (parameterResultId === 2) score = 0
-                              else if (parameterResultId === 3) score = 2
-                              else if (parameterResultId === 4) score = 0
-                            }
-
-                            setSelectedScore(typeof score === "number" ? score : null)
-                          }
-                        }}
+                        selectedValue={
+                          currentItemIndex !== null ? parameterSelections[currentItemIndex]?.parameterName || "" : ""
+                        }
+                        onValueChange={handleParameterChange}
                         style={styles.picker}
                         dropdownIconColor="#666"
                       >
@@ -401,9 +421,11 @@ const ParameterResultsScreen: React.FC = () => {
                           <Picker.Item key={idx} label={item.parameterResultName} value={item.parameterResultName} />
                         ))}
                       </Picker>
-                      {selectedParameter && (
+                      {currentItemIndex !== null && parameterSelections[currentItemIndex]?.parameterName && (
                         <View>
-                          <Text style={styles.selectedValueText}>{selectedParameter}</Text>
+                          <Text style={styles.selectedValueText}>
+                            {parameterSelections[currentItemIndex]?.parameterName}
+                          </Text>
                         </View>
                       )}
                     </View>

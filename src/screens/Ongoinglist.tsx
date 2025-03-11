@@ -40,7 +40,7 @@ const OngoingList: React.FC = () => {
     paginationListRecords: [],
   })
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [reportID, setReportID] = useState("")
+
   const [companyName, setCompanyName] = useState("")
 const[inspectionId,setinspectionId]=useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
@@ -98,12 +98,15 @@ const[inspectionId,setinspectionId]=useState("")
         setRefreshing(false)
       }
     },
-    [userId, displayRefId, companyName, inspectionId,fromDate, toDate,selectedInspectionType, selectedBusinessType],
+    [userId, refId, companyName, inspectionId,fromDate, toDate,selectedInspectionType, selectedBusinessType],
   )
 
-  useEffect(() => {
-    console.log("Updated refId:", refId)
-  }, [refId])
+  // useEffect(() => {
+  //   console.log("Updated refId:", refId);
+    
+   
+  //   fetchOngoing(1); 
+  // }, [refId]);
 useFocusEffect(
     useCallback(() => {
       // handleReset()
@@ -203,20 +206,16 @@ useFocusEffect(
       setRefreshing(false)
     }
   }
-  const handleResumePress = async (inspectionId: number) => {
+  const handleResumePress = async (inspectionId: number,refId:number) => {
     try {
-      console.log("Resume pressed for inspection ID:", inspectionId)
+      console.log("Resume pressed for inspection ID:", inspectionId,refId)
+      console.log("Resume pressed for ref ID:", refId)
+      
 
       const result = await getMasterInspectionSection(inspectionId)
       console.log("Resume API result:", result)
 
-      navigation.navigate(
-        "Resumelist" as never,
-        {
-          data: result,
-          inspectionId: inspectionId,
-        } as never,
-      )
+      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId,})
     } catch (error) {
       console.error("Error in resume API call:", error)
       Alert.alert("Error", "Failed to load inspection details. Please try again.")
@@ -485,7 +484,7 @@ useFocusEffect(
                
                 </View>
               </View>
-              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId)}>
+              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId,item.refId)}>
                 <Text style={styles.resumeButtonText}>Resume</Text>
               </TouchableOpacity>
             </View>
