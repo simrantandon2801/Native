@@ -9,7 +9,7 @@ const encryptData = (data: string): string => {
   return CryptoJS.enc.Base64.stringify(encryptedData).toString()
 }
 
-export const submitInspectionSection = async (payload: any): Promise<any> => {
+export const submitInspectionSection = async (payload: any) => {
   try {
     console.log("Fetching user authentication details...")
     const storedUserId = await AsyncStorage.getItem("userId")

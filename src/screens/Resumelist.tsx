@@ -39,7 +39,7 @@ const Resumelist: React.FC = () => {
 
  
   
-  const handleSectionTap = async (sectionId: number) => {
+  const handleSectionTap = async (sectionId: number,submittedFlag:number) => {
     try {
       const results = await getInspectionParameterResults();
    
@@ -61,9 +61,9 @@ const Resumelist: React.FC = () => {
         refId,
       };
       console.log("Paygyugyuyugyugload:", payload);
+
       // handleParameterChange
-  
-     
+      submittedFlag?null:
       navigation.navigate('ParameterResults' as never, { parameterRegResults: regresult,inspectionId:inspectionId });
     } catch (error) {
       console.error("Error fetching section details:", error);
@@ -81,7 +81,7 @@ const Resumelist: React.FC = () => {
               styles.sectionItem,
               { borderLeftWidth: 4, borderLeftColor: section.submittedFlag ? "#4CAF50" : "red" },
             ]}
-            onPress={() => handleSectionTap(section.sectionId)}
+            onPress={() => handleSectionTap(section.sectionId,section.submittedFlag)}
           >
             <View style={styles.sectionContent}>
               <Text style={styles.sectionName}>{section.sectionName}</Text>

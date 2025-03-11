@@ -15,11 +15,12 @@ import {
   TextInput,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
-import { useRoute, type RouteProp } from "@react-navigation/native"
+import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native"
 import { getInspectionParameterResults } from "../database/Resumelistapi"
 import { saveInspectionAsDraft } from "../database/SaveDraftapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { submitInspectionSection } from "../database/SubmitSectionapi"
+import { Navigation } from "lucide-react-native"
 
 type RouteParams = {
   parameterRegResults: any[]
@@ -38,6 +39,7 @@ const ParameterResultsScreen: React.FC = () => {
   const [inspectionData, setInspectionData] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const navigation=useNavigation()
   // const[inspectionId,setinspectionId]=useState("")
 
   // Track selected parameters and scores for each item
@@ -254,6 +256,8 @@ const ParameterResultsScreen: React.FC = () => {
 
       setLoading(false)
       Alert.alert("Success", "Section submitted successfully")
+      AsyncStorage.removeItem(`parameterSelections_${inspectionId}`);
+     navigation.goBack()
     } catch (error) {
       setLoading(false)
       console.error("Error submitting section:", error)
