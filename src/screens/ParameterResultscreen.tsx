@@ -26,11 +26,19 @@ type RouteParams = {
   parameterRegResults: any[]
   inspectionId:any
 }
+type SectionType = {
+  sectionId: number;
+  sectionName: string;
+  submittedFlag: boolean;
+};
+
+// Initialize state with proper type
 
 const ParameterResultsScreen: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
   const { parameterRegResults,inspectionId } = route.params
   const [modalVisible, setModalVisible] = useState(false)
+  const [sections, setSections] = useState<SectionType[]>([]);
   const [observation, setObservation] = useState("")
   const [comments, setComments] = useState("")
   const [loading, setLoading] = useState(false)
@@ -49,6 +57,11 @@ const ParameterResultsScreen: React.FC = () => {
       score: string | null
     }
   }>({})
+
+  const [tempSelection, setTempSelection] = useState<{
+    parameterName: string;
+    score: string | null;
+  } | null>(null);
 
   useEffect(() => {
     const loadSavedSelections = async () => {
@@ -74,6 +87,12 @@ const ParameterResultsScreen: React.FC = () => {
 
   const handleProceed = async (index: number) => {
     setCurrentItemIndex(index)
+    // Initialize tempSelection with current value if it exists
+    if (parameterSelections[index]) {
+      setTempSelection(parameterSelections[index]);
+    } else {
+      setTempSelection(null);
+    }
     setModalVisible(true)
     setLoading(true)
     // handleParameterChange("")
@@ -90,15 +109,37 @@ const ParameterResultsScreen: React.FC = () => {
     }
   }
 
-  const handleDone = () => {
-    if (currentItemIndex === null || !parameterSelections[currentItemIndex]?.parameterName) {
-      return
+  const handleDone = async () => {
+    if (currentItemIndex === null || !tempSelection?.parameterName) {
+      setModalVisible(false);
+      return;
     }
 
-    console.log("Selected Parameter:", parameterSelections[currentItemIndex].parameterName)
-    console.log("Selected Score:", parameterSelections[currentItemIndex].score)
+    console.log("Selected Parameter:", tempSelection.parameterName);
+    console.log("Selected Score:", tempSelection.score);
 
-    handleCloseModal()
+    // Update the actual selections only when Done is clicked
+    setParameterSelections((prev) => ({
+      ...prev,
+      [currentItemIndex]: tempSelection,
+    }));
+
+    // Save to AsyncStorage
+    if (inspectionId) {
+      try {
+        const uniqueKey = `parameterSelections_${inspectionId}`;
+        const updatedSelections = {
+          ...parameterSelections,
+          [currentItemIndex]: tempSelection,
+        };
+        await AsyncStorage.setItem(uniqueKey, JSON.stringify(updatedSelections));
+        console.log(`Saved selections to AsyncStorage for Inspection ID ${inspectionId}:`, updatedSelections);
+      } catch (error) {
+        console.error("Error saving selections to AsyncStorage:", error);
+      }
+    }
+
+    setModalVisible(false);
   }
 
   useEffect(() => {
@@ -126,23 +167,7 @@ const ParameterResultsScreen: React.FC = () => {
   }, [])
 
   const handleCloseModal = async () => {
-    if (!inspectionId) {
-      console.error("Inspection ID is missing.");
-      return;
-    }
-  
-    if (currentItemIndex !== null && parameterSelections[currentItemIndex]?.parameterName) {
-      try {
-        const uniqueKey = `parameterSelections_${inspectionId}`; 
-  
-        await AsyncStorage.setItem(uniqueKey, JSON.stringify(parameterSelections));
-  
-        console.log(`Saved selections to AsyncStorage for Inspection ID ${inspectionId}:`, parameterSelections);
-      } catch (error) {
-        console.error("Error saving selections to AsyncStorage:", error);
-      }
-    }
-  
+    // Don't save anything when modal is closed via Cancel button
     setModalVisible(false);
   };
   
@@ -264,6 +289,13 @@ const ParameterResultsScreen: React.FC = () => {
   
       const response = await submitInspectionSection(payload)
       console.log("Submit section response:", response)
+      setSections(prevSections =>
+        prevSections.map(section =>
+          section.sectionId === parameterRegResults[0]?.sectionId
+            ? { ...section, submittedFlag: true }
+            : section
+        )
+      );
   
       setLoading(false)
       Alert.alert("Success", "Section submitted successfully")
@@ -277,7 +309,7 @@ const ParameterResultsScreen: React.FC = () => {
   }
 
   let handleParameterChange = (itemValue: string) => {
-    console.log(handleParameterChange,"chaljafunction")
+    console.log(handleParameterChange, "chaljafunction")
     if (currentItemIndex === null) return
 
     const selectedItem = inspectionData.find((item) => item.parameterResultName === itemValue)
@@ -300,13 +332,10 @@ const ParameterResultsScreen: React.FC = () => {
       }
     }
 
-    setParameterSelections((prev) => ({
-      ...prev,
-      [currentItemIndex]: {
-        parameterName: itemValue,
-        score: score,
-      },
-    }))
+    setTempSelection({
+      parameterName: itemValue,
+      score: score,
+    });
   }
 
   return (
@@ -414,9 +443,8 @@ const ParameterResultsScreen: React.FC = () => {
                       <View>
                         <Text style={styles.selectedValueText1}>
                           Score:{" "}
-                          {parameterSelections[currentItemIndex]?.score !== null &&
-                          parameterSelections[currentItemIndex]?.score !== undefined
-                            ? parameterSelections[currentItemIndex]?.score
+                          {tempSelection?.score !== null && tempSelection?.score !== undefined
+                            ? tempSelection.score
                             : "N/A"}
                         </Text>
                       </View>
@@ -424,9 +452,7 @@ const ParameterResultsScreen: React.FC = () => {
                     <Text style={styles.title}>Parameter result Name:</Text>
                     <View style={styles.pickerContainer}>
                       <Picker
-                        selectedValue={
-                          currentItemIndex !== null ? parameterSelections[currentItemIndex]?.parameterName || "" : ""
-                        }
+                        selectedValue={tempSelection?.parameterName || ""}
                         onValueChange={handleParameterChange}
                         style={styles.picker}
                         dropdownIconColor="#666"
@@ -436,10 +462,10 @@ const ParameterResultsScreen: React.FC = () => {
                           <Picker.Item key={idx} label={item.parameterResultName} value={item.parameterResultName} />
                         ))}
                       </Picker>
-                      {currentItemIndex !== null && parameterSelections[currentItemIndex]?.parameterName && (
+                      {tempSelection?.parameterName && (
                         <View>
                           <Text style={styles.selectedValueText}>
-                            {parameterSelections[currentItemIndex]?.parameterName}
+                            {tempSelection.parameterName}
                           </Text>
                         </View>
                       )}
@@ -707,4 +733,3 @@ const styles = StyleSheet.create({
 })
 
 export default ParameterResultsScreen
-
