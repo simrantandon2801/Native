@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect,useCallback } from "react"
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import {
   TextInput,
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
-import { useNavigation, useRoute, type RouteProp } from "@react-navigation/native"
+import { useFocusEffect, useNavigation, useRoute, type RouteProp } from "@react-navigation/native"
 import { getInspectionParameterResults } from "../database/Resumelistapi"
 import { saveInspectionAsDraft } from "../database/SaveDraftapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
@@ -48,9 +48,7 @@ const ParameterResultsScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigation=useNavigation()
-  // const[inspectionId,setinspectionId]=useState("")
-
-  // Track selected parameters and scores for each item
+ 
   const [parameterSelections, setParameterSelections] = useState<{
     [key: number]: {
       parameterName: string
@@ -80,14 +78,14 @@ const ParameterResultsScreen: React.FC = () => {
       }
     };
   
-    loadSavedSelections(); // Call function inside useEffect
-  }, [inspectionId]); // Dependency array ensures it runs when `inspectionId` changes
-  // Ensure it reloads when inspectionId changes
+    loadSavedSelections();
+  }, [inspectionId]); 
+
     
 
   const handleProceed = async (index: number) => {
     setCurrentItemIndex(index)
-    // Initialize tempSelection with current value if it exists
+   
     if (parameterSelections[index]) {
       setTempSelection(parameterSelections[index]);
     } else {
@@ -118,13 +116,13 @@ const ParameterResultsScreen: React.FC = () => {
     console.log("Selected Parameter:", tempSelection.parameterName);
     console.log("Selected Score:", tempSelection.score);
 
-    // Update the actual selections only when Done is clicked
+  
     setParameterSelections((prev) => ({
       ...prev,
       [currentItemIndex]: tempSelection,
     }));
 
-    // Save to AsyncStorage
+   
     if (inspectionId) {
       try {
         const uniqueKey = `parameterSelections_${inspectionId}`;
@@ -167,7 +165,7 @@ const ParameterResultsScreen: React.FC = () => {
   }, [])
 
   const handleCloseModal = async () => {
-    // Don't save anything when modal is closed via Cancel button
+   
     setModalVisible(false);
   };
   
@@ -181,7 +179,7 @@ const ParameterResultsScreen: React.FC = () => {
     setLoading(true);
   
     try {
-      const uniqueKey = `parameterSelections_${inspectionId}`; // Unique key per inspection
+      const uniqueKey = `parameterSelections_${inspectionId}`; 
   
       const payload = {
         inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => ({
@@ -210,7 +208,7 @@ const ParameterResultsScreen: React.FC = () => {
       console.log("Save as draft response:", response);
   
       try {
-        await AsyncStorage.setItem(uniqueKey, JSON.stringify(parameterSelections)); // Save per inspection
+        await AsyncStorage.setItem(uniqueKey, JSON.stringify(parameterSelections)); 
         console.log(`Saved selections to AsyncStorage for Inspection ID ${inspectionId}:`, parameterSelections);
       } catch (error) {
         console.error("Error saving selections to AsyncStorage:", error);
@@ -225,6 +223,7 @@ const ParameterResultsScreen: React.FC = () => {
     }
   };
   
+
 
   const handleSubmitSection = async () => {
    
@@ -289,24 +288,24 @@ const ParameterResultsScreen: React.FC = () => {
   
       const response = await submitInspectionSection(payload)
       console.log("Submit section response:", response)
-      setSections(prevSections =>
-        prevSections.map(section =>
-          section.sectionId === parameterRegResults[0]?.sectionId
-            ? { ...section, submittedFlag: true }
-            : section
-        )
-      );
-  
       setLoading(false)
       Alert.alert("Success", "Section submitted successfully")
       AsyncStorage.removeItem(`parameterSelections_${inspectionId}`);
+   
       navigation.goBack()
+      await AsyncStorage.setItem("refreshResumeList", "true")
+      
+    
+
     } catch (error) {
       setLoading(false)
       console.error("Error submitting section:", error)
       Alert.alert("Error", "Failed to submit section")
     }
+ 
+    
   }
+
 
   let handleParameterChange = (itemValue: string) => {
     console.log(handleParameterChange, "chaljafunction")

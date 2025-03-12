@@ -1,11 +1,15 @@
+"use client"
+
 import type React from "react"
-import { useState } from "react"
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from "react-native"
+import { useState, useCallback } from "react"
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import { useRoute,useNavigation, type RouteProp } from "@react-navigation/native"
+import { useRoute, useNavigation, useFocusEffect, type RouteProp } from "@react-navigation/native"
 // import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
-import {  getMasterInspectionParameterReg} from "../database/Resumelistapi"
-import {getInspectionParameterResults} from '../database/Resumelistapi'
+import { getMasterInspectionParameterReg,  } from "../database/Resumelistapi"
+import { getMasterInspectionSection } from "../database/Resumeapi"
+import { getInspectionParameterResults } from "../database/Resumelistapi"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 
 type RouteParams = {
   data: Section[]
@@ -28,51 +32,107 @@ interface Section {
 const Resumelist: React.FC = () => {
   const navigation = useNavigation()
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
-  const { data, refId, inspectionId } = route.params;
-  console.log("data : ", data);
-  console.log("-------------------------", inspectionId)
+  const { data: initialData, refId, inspectionId } = route.params
 
+  const [data, setData] = useState<Section[]>(initialData)
   const [selectedOption, setSelectedOption] = useState("forward")
   const [remarks, setRemarks] = useState("")
   const [parameterRegResults, setParameterRegResults] = useState<any[]>([])
   const [parameterResults, setParameterResults] = useState<any[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
- 
-  
-  const handleSectionTap = async (sectionId: number,submittedFlag:boolean) => {
+  const fetchSectionData = async (inspId: string, refId: string) => {
     try {
-      const results = await getInspectionParameterResults();
-   
-      setParameterResults(results);
-      console.log("Section details:", results);
-    
-  
-     
-      if (!refId || !inspectionId) {
-        throw new Error("refId or inspectionId is missing");
+      setIsRefreshing(true)
+      console.log("Refreshing section data for inspectionId:", inspId, "refId:", refId)
+
+      // Use the same API that's used in handleResumePress
+      const updatedSections = await getMasterInspectionSection(Number(inspId))
+      console.log("Updated sections:", updatedSections)
+
+      if (updatedSections && Array.isArray(updatedSections)) {
+        setData(updatedSections)
       }
-  
-      const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId);
-      console.log("API Response:", regresult); 
-  
+    } catch (error) {
+      console.error("Error refreshing section data:", error)
+      Alert.alert("Error", "Failed to refresh section data")
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  useFocusEffect(
+    useCallback(() => {
+      const checkRefreshFlag = async () => {
+        try {
+          const shouldRefresh = await AsyncStorage.getItem("refreshResumeList")
+
+          if (shouldRefresh === "true") {
+           
+            const storedInspectionId = (await AsyncStorage.getItem("refreshInspectionId")) || inspectionId
+            const storedRefId = (await AsyncStorage.getItem("refreshRefId")) || refId
+
+            
+            await AsyncStorage.removeItem("refreshResumeList")
+            await AsyncStorage.removeItem("refreshInspectionId")
+            await AsyncStorage.removeItem("refreshRefId")
+
+           
+            await fetchSectionData(storedInspectionId, storedRefId)
+          }
+        } catch (error) {
+          console.error("Error checking refresh flag:", error)
+        }
+      }
+
+      checkRefreshFlag()
+    }, [inspectionId, refId]),
+  )
+
+  const handleSectionTap = async (sectionId: number, submittedFlag: boolean) => {
+    try {
+      const results = await getInspectionParameterResults()
+
+      setParameterResults(results)
+      console.log("Section details:", results)
+
+      if (!refId || !inspectionId) {
+        throw new Error("refId or inspectionId is missing")
+      }
+
+      const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId)
+      console.log("API Response:", regresult)
+
       const payload = {
         sectionId,
         inspectionId,
         refId,
-      };
-      console.log("Paygyugyuyugyugload:", payload);
+      }
+      console.log("Payload:", payload)
 
       // handleParameterChange
-      submittedFlag?null:
-      navigation.navigate('ParameterResults' as never, { parameterRegResults: regresult,inspectionId:inspectionId });
+      submittedFlag
+        ? null
+        : navigation.navigate("ParameterResults" as never, {
+            parameterRegResults: regresult,
+            inspectionId: inspectionId,
+            refId: refId,
+          })
     } catch (error) {
-      console.error("Error fetching section details:", error);
-      Alert.alert("Error", "Failed to fetch section details. Please try again.");
+      console.error("Error fetching section details:", error)
+      Alert.alert("Error", "Failed to fetch section details. Please try again.")
     }
-  };
+  }
 
   return (
     <SafeAreaView style={styles.container}>
+      {isRefreshing && (
+        <View style={styles.refreshIndicator}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.refreshText}>Refreshing data...</Text>
+        </View>
+      )}
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {data.map((section: Section) => (
           <TouchableOpacity
@@ -80,11 +140,11 @@ const Resumelist: React.FC = () => {
             style={[
               styles.sectionItem,
               { borderLeftWidth: 4, borderLeftColor: section.submittedFlag ? "#4CAF50" : "red" },
-              section.submittedFlag && styles.submittedSection
+              section.submittedFlag && styles.submittedSection,
             ]}
-            onPress={() => handleSectionTap(section.sectionId,section.submittedFlag)}
+            onPress={() => handleSectionTap(section.sectionId, section.submittedFlag)}
           >
-             <View style={styles.sectionContent}>
+            <View style={styles.sectionContent}>
               <Text style={styles.sectionName}>{section.sectionName}</Text>
               {section.submittedFlag && <Text style={styles.submittedText}>Submitted</Text>}
             </View>
@@ -106,13 +166,10 @@ const Resumelist: React.FC = () => {
 
                 <Text style={styles.resultLabel}>Group ID:</Text>
                 <Text style={styles.resultValue}>{result.groupId}</Text>
-
-              
               </View>
             ))}
           </View>
         )}
-
 
         <View style={styles.radioContainer}>
           <TouchableOpacity style={styles.radioButton} onPress={() => setSelectedOption("forward")}>
@@ -150,7 +207,6 @@ const Resumelist: React.FC = () => {
             </TouchableOpacity>
           </>
         )}
-
       </ScrollView>
     </SafeAreaView>
   )
@@ -163,6 +219,21 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+  },
+  refreshIndicator: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    padding: 10,
+    alignItems: "center",
+    zIndex: 999,
+  },
+  refreshText: {
+    marginTop: 8,
+    color: "#007AFF",
+    fontWeight: "500",
   },
   sectionItem: {
     backgroundColor: "#fff",
@@ -293,3 +364,4 @@ const styles = StyleSheet.create({
 })
 
 export default Resumelist
+
