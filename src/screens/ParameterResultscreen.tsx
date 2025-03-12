@@ -20,7 +20,7 @@ import { getInspectionParameterResults } from "../database/Resumelistapi"
 import { saveInspectionAsDraft } from "../database/SaveDraftapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { submitInspectionSection } from "../database/SubmitSectionapi"
-import { Navigation } from "lucide-react-native"
+
 
 type RouteParams = {
   parameterRegResults: any[]
@@ -46,7 +46,7 @@ const ParameterResultsScreen: React.FC = () => {
   const [parameterSelections, setParameterSelections] = useState<{
     [key: number]: {
       parameterName: string
-      score: number | null
+      score: string | null
     }
   }>({})
 
@@ -202,18 +202,29 @@ const ParameterResultsScreen: React.FC = () => {
   
 
   const handleSubmitSection = async () => {
+   
+    const allParametersSelected = parameterRegResults.every((_, index) => 
+      parameterSelections[index]?.score !== null && 
+      parameterSelections[index]?.score !== undefined
+    );
+  
+    if (!allParametersSelected) {
+      Alert.alert("Please select a valid parameter for all items before submitting.");
+      return;
+    }
+    
     if (!observation.trim()) {
-      Alert.alert("Non-Conformance Observations is a required field")
-      return
+      Alert.alert("Non-Conformance Observations is a required field.");
+      return;
     }
-
+    
     if (!comments.trim()) {
-      Alert.alert("Comments is a required field")
-      return
+      Alert.alert("Comments is a required field.");
+      return;
     }
-
+  
     setLoading(true)
-
+  
     try {
       const payload = {
         inspectionDetailsParametersRegistration: parameterRegResults.map((element, index) => ({
@@ -234,7 +245,7 @@ const ParameterResultsScreen: React.FC = () => {
           maxScore: element.score || "",
           obtainedScore: parameterSelections[index]?.score || null,
         })),
-
+  
         inspectionDetailsSectionRegistration: {
           id: {
             inspectionId: parameterRegResults[0]?.inspectionId,
@@ -248,16 +259,16 @@ const ParameterResultsScreen: React.FC = () => {
           commnets: comments,
         },
       }
-
+  
       console.log("Submit section payload:", payload)
-
+  
       const response = await submitInspectionSection(payload)
       console.log("Submit section response:", response)
-
+  
       setLoading(false)
       Alert.alert("Success", "Section submitted successfully")
       AsyncStorage.removeItem(`parameterSelections_${inspectionId}`);
-     navigation.goBack()
+      navigation.goBack()
     } catch (error) {
       setLoading(false)
       console.error("Error submitting section:", error)

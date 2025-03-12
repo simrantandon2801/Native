@@ -194,6 +194,7 @@ const InspectionAcknowledgment: React.FC = () => {
 
     fetchKobId()
   }, [selectedBusinessType])
+                                              
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -205,6 +206,7 @@ const InspectionAcknowledgment: React.FC = () => {
     }
     fetchData()
   }, [])
+  
   useEffect(() => {
     const loadCompanyName = async () => {
       try {

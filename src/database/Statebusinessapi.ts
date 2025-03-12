@@ -10,20 +10,20 @@ export const encryptData = (data: string): string => {
   return CryptoJS.enc.Base64.stringify(encryptedData).toString()
 }
 
-interface StateListResponse {
+// interface StateListResponse {
   
-  id: number
-  name: string
+//   id: number
+//   name: string
  
-}
+// }
 
-interface BusinessTypeResponse {
-  id: number
-  name: string
+// interface BusinessTypeResponse {
+//   id: number
+//   name: string
  
-}
+// }
 
-export const getStateList = async (): Promise<StateListResponse[]> => {
+export const getStateList = async () => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -50,7 +50,7 @@ export const getStateList = async (): Promise<StateListResponse[]> => {
       throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
     }
 
-    const data: StateListResponse[] = await response.json()
+    const data = await response.json()
     console.log("State list:", data)
     return data
   } catch (error) {
@@ -59,7 +59,7 @@ export const getStateList = async (): Promise<StateListResponse[]> => {
   }
 }
 
-export const getBusinessTypes = async (): Promise<BusinessTypeResponse[]> => {
+export const getBusinessTypes = async () => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -86,7 +86,7 @@ export const getBusinessTypes = async (): Promise<BusinessTypeResponse[]> => {
       throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
     }
 
-    const data: BusinessTypeResponse[] = await response.json()
+    const data = await response.json()
     console.log("Business types:", data)
     return data
   } catch (error) {

@@ -215,7 +215,7 @@ useFocusEffect(
       const result = await getMasterInspectionSection(inspectionId)
       console.log("Resume API result:", result)
 
-      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId,})
+      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId})
     } catch (error) {
       console.error("Error in resume API call:", error)
       Alert.alert("Error", "Failed to load inspection details. Please try again.")

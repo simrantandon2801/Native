@@ -17,17 +17,17 @@ import { colors } from '../assets/styles/colors';
 import { loginUser } from '../database/Loginapi';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigations/types';
+// import { RootStackParamList } from '../navigations/types';
 
 
-// Define the type for navigation (useStack Navigation)
+
 type RootStackParamList = {
   Login: undefined
   MainDrawer: { screen: string; params: { username: string } }
 }
 
 type LoginScreenNavigationProp = StackNavigationProp<RootStackParamList, "Login">
-// type DashboardScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Dashboard'>;
+
 const LoginScreen: React.FC = () =>  {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +35,7 @@ const LoginScreen: React.FC = () =>  {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   
-  // Use typed navigation
+
   const navigation = useNavigation<LoginScreenNavigationProp>();
 
   const handleLogin = async () => {
@@ -51,7 +51,7 @@ const LoginScreen: React.FC = () =>  {
       const response = await loginUser(username, password);
       console.log('Login successful:- ', JSON.stringify(response, null, 2));
       
-      // Navigate to Dashboard and pass the username
+      
       navigation.navigate("MainDrawer", {
         screen: "Dashboard",
         params: { username: username },

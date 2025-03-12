@@ -39,47 +39,7 @@ const Acknowledge: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // States to store data retrieved from AsyncStorage
-  // const [userId, setUserId] = useState<string | null>(null);
-  // const [displayRefId, setDisplayRefId] = useState<string | null>(null);
-  // const [companyName, setCompanyName] = useState<string | null>(null);
-  // const [inspectionType, setInspectionType] = useState<string | null>(null);
-
-
-  // useEffect(() => {
-  //   const fetchDataFromAsyncStorage = async () => {
-  //     try {
-  //       setIsLoading(true);
-  //       setError(null);
-
-    
-  //       const storedUserId = await AsyncStorage.getItem("userId");
-  //       const storedDisplayRefId = await AsyncStorage.getItem("displayRefId");
-  //       const storedCompanyName = await AsyncStorage.getItem("companyName");
-  //       const storedInspectionType = await AsyncStorage.getItem("inspectionType");
-
-      
-  //       setUserId(storedUserId);
-  //       setDisplayRefId(storedDisplayRefId);
-  //       setCompanyName(storedCompanyName);
-  //       setInspectionType(storedInspectionType);
-
-  //       console.log("Retrieved Data:", {
-  //         userId: storedUserId,
-  //         displayRefId: storedDisplayRefId,
-  //         companyName: storedCompanyName,
-  //         inspectionType: storedInspectionType,
-  //       });
-  //     } catch (err) {
-  //       console.error("Error fetching data from AsyncStorage:", err);
-  //       setError("Failed to load data from storage.");
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
-
-  //   fetchDataFromAsyncStorage();
-  // }, []);
+ 
 
   const inspectionItems: InspectionItem[] = [
     {
@@ -115,7 +75,7 @@ const Acknowledge: React.FC = () => {
       <ScrollView contentContainerStyle={styles.contentContainer}>
         {error && <Text style={styles.errorText}>{error}</Text>}
         <View style={styles.header}>
-          {/* Header content */}
+         
         </View>
         <View style={styles.grid}>
           {inspectionItems.map((item) => renderInspectionItem(item))}

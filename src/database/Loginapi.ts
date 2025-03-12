@@ -119,4 +119,3 @@ export const loginUser = async (username: string, password: string): Promise<Log
     throw error
   }
 }
-

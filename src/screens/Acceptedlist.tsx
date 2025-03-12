@@ -60,7 +60,8 @@ const InspectionAccepted: React.FC = () => {
   const [displayRefId, setdisplayRefId] = useState("")
 
   const [itemsPerPage] = useState(10)
-
+  const [fromDate, setFromDate] = useState(null)
+  const [toDate, setToDate] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
   const [isSearching, setIsSearching] = useState(false)
@@ -70,8 +71,7 @@ const InspectionAccepted: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  const [fromDate, setFromDate] = useState(new Date())
-  const [toDate, setToDate] = useState(new Date())
+ 
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)

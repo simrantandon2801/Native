@@ -39,7 +39,7 @@ const Resumelist: React.FC = () => {
 
  
   
-  const handleSectionTap = async (sectionId: number,submittedFlag:number) => {
+  const handleSectionTap = async (sectionId: number,submittedFlag:boolean) => {
     try {
       const results = await getInspectionParameterResults();
    
@@ -80,11 +80,13 @@ const Resumelist: React.FC = () => {
             style={[
               styles.sectionItem,
               { borderLeftWidth: 4, borderLeftColor: section.submittedFlag ? "#4CAF50" : "red" },
+              section.submittedFlag && styles.submittedSection
             ]}
             onPress={() => handleSectionTap(section.sectionId,section.submittedFlag)}
           >
-            <View style={styles.sectionContent}>
+             <View style={styles.sectionContent}>
               <Text style={styles.sectionName}>{section.sectionName}</Text>
+              {section.submittedFlag && <Text style={styles.submittedText}>Submitted</Text>}
             </View>
           </TouchableOpacity>
         ))}
@@ -276,6 +278,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
     marginBottom: 4,
+  },
+  submittedSection: {
+    // borderBottomWidth: 2,
+    // borderBottomColor: "#4CAF50",
+    // backgroundColor: "rgba(76, 175, 80, 0.05)",
+  },
+  submittedText: {
+    fontSize: 12,
+    color: "#4CAF50",
+    fontWeight: "500",
+    marginTop: 4,
   },
 })
 
