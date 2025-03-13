@@ -216,6 +216,7 @@ const ParameterResultsScreen: React.FC = () => {
   
       setLoading(false);
       Alert.alert("Success", "Draft saved successfully");
+      navigation.goBack()
     } catch (error) {
       setLoading(false);
       console.error("Error saving draft:", error);
@@ -307,35 +308,47 @@ const ParameterResultsScreen: React.FC = () => {
   }
 
 
-  let handleParameterChange = (itemValue: string) => {
-    console.log(handleParameterChange, "chaljafunction")
+  const handleParameterChange = (itemValue: string) => {
+    console.log("Function triggered:", handleParameterChange)
+
     if (currentItemIndex === null) return
 
     const selectedItem = inspectionData.find((item) => item.parameterResultName === itemValue)
+    console.log(selectedItem, "selected item")
     let score = null
 
-    if (selectedItem) {
-      const priority = selectedItem.priority || 0
-      const parameterResultId = selectedItem.parameterResultId
+    if (selectedItem && currentItemIndex !== null) {
 
-      if (priority === 0) {
+      const priority = parameterRegResults[currentItemIndex]?.priority
+      console.log("Priority from API:", priority)
+
+      const parameterResultId = selectedItem.parameterResultId
+      console.log("ParameterResultId:", parameterResultId)
+
+      const priorityNum = Number(priority)
+      console.log("Priority after conversion:", priorityNum, "Type:", typeof priorityNum)
+
+      if (priorityNum === 0) {
         if (parameterResultId === 1) score = 2
         else if (parameterResultId === 2) score = 0
         else if (parameterResultId === 3) score = 1
         else if (parameterResultId === 4) score = 0
-      } else if (priority === 1) {
+      } else if (priorityNum === 1) {
         if (parameterResultId === 1) score = 4
         else if (parameterResultId === 2) score = 0
         else if (parameterResultId === 3) score = 2
         else if (parameterResultId === 4) score = 0
       }
+
+      console.log("Calculated Score:", score)
     }
 
     setTempSelection({
       parameterName: itemValue,
-      score: score,
-    });
+      score: score !== null ? score.toString() : null,
+    })
   }
+
 
   return (
     <SafeAreaView>
@@ -448,27 +461,40 @@ const ParameterResultsScreen: React.FC = () => {
                         </Text>
                       </View>
                     )}
-                    <Text style={styles.title}>Parameter result Name:</Text>
-                    <View style={styles.pickerContainer}>
-                      <Picker
-                        selectedValue={tempSelection?.parameterName || ""}
-                        onValueChange={handleParameterChange}
-                        style={styles.picker}
-                        dropdownIconColor="#666"
-                      >
-                        <Picker.Item label="Select Parameter" value="" />
-                        {inspectionData.map((item, idx) => (
-                          <Picker.Item key={idx} label={item.parameterResultName} value={item.parameterResultName} />
-                        ))}
-                      </Picker>
-                      {tempSelection?.parameterName && (
-                        <View>
-                          <Text style={styles.selectedValueText}>
-                            {tempSelection.parameterName}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
+                 <Text style={styles.title}>Parameter result Name:</Text>
+<View style={styles.pickerContainer}>
+  {/* Placeholder Text */}
+  <Text
+    style={[
+      styles.placeholderText,
+      tempSelection?.parameterName && styles.placeholderHidden,
+    ]}
+  >
+    Select Parameter
+  </Text>
+
+  {/* Picker Component */}
+  <Picker
+    selectedValue={tempSelection?.parameterName || ""}
+    onValueChange={handleParameterChange}
+    style={styles.picker}
+    dropdownIconColor="#666"
+  >
+    {/* Dynamic Options */}
+    {inspectionData.map((item, idx) => (
+      <Picker.Item key={idx} label={item.parameterResultName} value={item.parameterResultName} />
+    ))}
+  </Picker>
+
+  {/* Display Selected Value (if any) */}
+  {tempSelection?.parameterName && (
+    <View>
+      <Text style={styles.selectedValueText}>
+        {tempSelection.parameterName}
+      </Text>
+    </View>
+  )}
+</View>
                   </View>
                 ) : (
                   <Text style={styles.modalText}>No data available.</Text>
@@ -518,6 +544,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
     marginBottom: 20,
+  },
+  placeholderText: {
+    position: 'absolute',
+    top: 15,
+    left: 10,
+    fontSize: 14,
+    color: '#aaa', 
+    zIndex: 1,
+  },
+  placeholderHidden: {
+    display: 'none', 
   },
   selectionContainer: {
     marginTop: 8,
