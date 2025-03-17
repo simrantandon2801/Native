@@ -32,9 +32,9 @@ type SectionType = {
   submittedFlag: boolean;
 };
 
-// Initialize state with proper type
 
-const ParameterResultsScreen: React.FC = () => {
+
+const UpdateInspectionChecklist: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
   const { parameterRegResults,inspectionId } = route.params
   const [modalVisible, setModalVisible] = useState(false)
@@ -768,4 +768,4 @@ const styles = StyleSheet.create({
   },
 })
 
-export default ParameterResultsScreen
+export default UpdateInspectionChecklist

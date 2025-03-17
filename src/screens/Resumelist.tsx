@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert,
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRoute, useNavigation, useFocusEffect, type RouteProp } from "@react-navigation/native"
 // import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
-import { getMasterInspectionParameterReg,  } from "../database/Resumelistapi"
+import { getMasterInspectionParameterReg } from "../database/Resumelistapi"
 import { getMasterInspectionSection } from "../database/Resumeapi"
 import { getInspectionParameterResults } from "../database/Resumelistapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
@@ -88,36 +88,62 @@ const Resumelist: React.FC = () => {
       checkRefreshFlag()
     }, [inspectionId, refId]),
   )
+  
+  const handleResumePress = async (inspectionId: number, refId: number,sectionName:string) => {
+    try {
+      console.log("Resume pressed for inspection ID:", inspectionId, "ref ID:", refId,"sectionName:",sectionName);
+  
+      const result = await getMasterInspectionSection(inspectionId);
+      console.log("Resume API result:", result);
+      console.log("dsdj",result)
+      // navigation.navigate(sectionName as never, {
+      //   parameterRegResults: regresult,
+      //   inspectionId: inspectionId,
+      //   refId: refId,
+      // })
+    } catch (error) {
+      console.error("Error in resume API call:", error);
+      Alert.alert("Error", "Failed to load inspection details. Please try again.");
+    }
+  };
 
-  const handleSectionTap = async (sectionId: number, submittedFlag: boolean) => {
+  const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string) => {
     try {
       const results = await getInspectionParameterResults()
-
+      
       setParameterResults(results)
       console.log("Section details:", results)
-
+      
       if (!refId || !inspectionId) {
         throw new Error("refId or inspectionId is missing")
       }
-
+      
       const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId)
       console.log("API Response:", regresult)
-
+      console.log("dhs", regresult)
+      
+      console.log("Section name for navigation:", sectionName)
+      
       const payload = {
         sectionId,
         inspectionId,
         refId,
+        sectionName,
       }
-      console.log("Payload:", payload)
-
-      // handleParameterChange
-      submittedFlag
-        ? null
-        : navigation.navigate("ParameterResults" as never, {
-            parameterRegResults: regresult,
-            inspectionId: inspectionId,
-            refId: refId,
-          })
+      console.log("Paylonad:", payload)//done
+      
+      if (submittedFlag) {
+     
+      } else {
+      
+        navigation.navigate(sectionName as never, {
+          parameterRegResults: regresult,
+          inspectionId: inspectionId,
+          refId: refId,
+          sectionName:sectionName,
+        })
+        console.log("sectionNamnje",sectionName)
+      }
     } catch (error) {
       console.error("Error fetching section details:", error)
       Alert.alert("Error", "Failed to fetch section details. Please try again.")
@@ -142,7 +168,7 @@ const Resumelist: React.FC = () => {
               { borderLeftWidth: 4, borderLeftColor: section.submittedFlag ? "#4CAF50" : "red" },
               section.submittedFlag && styles.submittedSection,
             ]}
-            onPress={() => handleSectionTap(section.sectionId, section.submittedFlag)}
+            onPress={() => handleSectionTap(section.sectionId, section.submittedFlag, section.sectionName)}
           >
             <View style={styles.sectionContent}>
               <Text style={styles.sectionName}>{section.sectionName}</Text>
@@ -364,4 +390,3 @@ const styles = StyleSheet.create({
 })
 
 export default Resumelist
-

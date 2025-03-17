@@ -25,13 +25,17 @@ import AllocateInspection from "./src/screens/AllocateInspection"
 import AllocatedInspetion from "./src/screens/Allocated"
 import Resumelist from "./src/screens/Resumelist"
 import SplashScreen from "./src/screens/Splashscrren"
-import ParameterResultsScreen from "./src/screens/ParameterResultscreen"
+import ParameterResultsScreen from "./src/screens/UpdateInspectionChecklist"
 import InspectionAcknowledgment from "./src/screens/Acknowledgelist"
 import InspectionAccepted from "./src/screens/Acceptedlist"
 import InspectionRejected from "./src/screens/Rejectedlist"
 import OngoingInspection from "./src/screens/OngoingInspection"
 import InspectionOngoing from "./src/screens/Ongoinglist"
 import Ongoing from "./src/screens/OngoingInspection"
+import UpdateInspectionChecklist from "./src/screens/UpdateInspectionChecklist"
+import UploadDocuments from "./src/screens/UploadDocumentsPhotos"
+import UploadDocumentsPhotos from "./src/screens/UploadDocumentsPhotos"
+
 
 
 const Stack = createStackNavigator()
@@ -96,12 +100,12 @@ function App(): React.JSX.Element {
           <Stack.Screen name="Ongoinglist" component={Ongoinglist}  options={{ title: 'Ongoing Inspections' }} />
           <Stack.Screen name="Allocate Inspection" component={AllocateInspection} />
           <Stack.Screen name="Allocated Inspection" component={AllocatedInspetion} />
-          <Stack.Screen name="Resumelist" component={Resumelist} />
-          <Stack.Screen 
-        name="ParameterResults" 
-        component={ParameterResultsScreen} 
-        options={{ title: 'Update Inspection Checklist' }}
-      />
+          <Stack.Screen name="Resumelist" component={Resumelist} options={{ title: 'Ongoing Inspections' }}  />
+          <Stack.Screen name="Update Inspection Checklist" component={UpdateInspectionChecklist} />
+         
+  <Stack.Screen name="Upload Documents/Photos" component={UploadDocumentsPhotos} />
+
+
           
           
         </Stack.Navigator>
