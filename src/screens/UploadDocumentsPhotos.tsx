@@ -7,7 +7,7 @@ import * as ImagePicker from "react-native-image-picker"
 import { uploadInspectionDocument } from "../database/UploadImageapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useRoute, type RouteProp } from "@react-navigation/native"
-import { deleteInspectionDocument, getInspectionDocuments } from "../database/DocumentListapi"
+import { deleteInspectionDocument, getInspectionDocuments, viewInspectionDocument } from "../database/DocumentListapi"
 import { DataTable } from "react-native-paper"
 interface UploadDocumentsProps {
   visible: boolean
@@ -70,6 +70,14 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
       fetchDocuments()
     }
   }, [visible])
+  useEffect(() => {
+    if (!visible) {
+      
+      setDocumentName("");
+      setSelectedImage(null);
+      setUploading(false);
+    }
+  }, [visible]);
 
   const fetchDocuments = async () => {
     try {
@@ -134,7 +142,7 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
       console.log("upload payload", payload)
       await uploadInspectionDocument(selectedImage, payload)
 
-      // Add this line to refresh the documents list
+   
       await fetchDocuments()
 
       Alert.alert("Success", "Document uploaded successfully")
@@ -148,32 +156,49 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
   }
 
   const handleClose = () => {
-    console.log("handleClose called")
-
-    setDocumentName("")
-    setSelectedImage(null)
-    setUploading(false)
-
+    console.log("handleClose called");
+    
+   
+    setDocumentName("");
+    setSelectedImage(null);
+    setUploading(false);
+    
+   
     if (onClose) {
-      console.log("Calling onClose")
-      onClose()
+      console.log("Calling onClose");
+      onClose();  
     }
-  }
-
-  const handleViewImage = (imageUrl: string) => {
-    console.log("Image URLAa:", imageUrl); // Debugging
-    setCurrentImage(imageUrl);
-    setViewImageModal(true);
   };
+
+  const handleViewImage = async (documentPath: string) => {
+    try {
+      // Fetch the base64-encoded image string
+      const base64String = await viewInspectionDocument(documentPath);
+  
+      console.log("Base64 String:", base64String);
+  
+      if (!base64String) {
+        throw new Error("Base64 string is undefined or empty");
+      }
+  
+      // Set the base64 string as the image source
+      setCurrentImage(base64String);
+      setViewImageModal(true);
+    } catch (error) {
+      console.error("Error viewing document:", error);
+      Alert.alert("Error", "Could not load the document. Please try again.");
+    }
+  };
+  
+  
+  useEffect(() => {
+    console.log("Updated currentImage:", currentImage);
+  }, [currentImage])
   
 
   const handleDeleteDocument = async (documentId: string) => {
     try {
       console.log("Deleting document with ID:", documentId)
-
-   
-   
-
      
       const response = await deleteInspectionDocument(documentId)
       console.log("API Response:", response)
@@ -182,7 +207,7 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
     } catch (error) {
       console.error("Error deleting document:", error)
       Alert.alert("Error", "Failed to delete document.")
-      // Refresh documents to restore the original state in case of error
+    
       fetchDocuments()
     }
   }
@@ -193,16 +218,15 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
         animationType="none"
         transparent={true}
         visible={visible}
-        onRequestClose={() => {
-          console.log("onRequestClose triggered")
-          handleClose()
-        }}
+        onRequestClose={handleClose}
+     
+        
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeButtonIcon} onPress={handleClose}>
+            {/* <TouchableOpacity style={styles.closeButtonIcon} onPress={handleClose}>
               <Text style={styles.closeButtonText}>X</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <Text style={styles.sectionNameText}>{sectionName}</Text>
 
@@ -252,12 +276,12 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
                         {item.documentDesc}
                       </Text>
                       <View style={[styles.tableCell, { flexDirection: "row" }]}>
-                        {/* <TouchableOpacity
-                          style={styles.actionButton}
-                          onPress={() => handleViewImage(item.documentPath)}
-                        >
-                          <Text style={styles.actionButtonText}>View</Text>
-                        </TouchableOpacity> */}
+                      <TouchableOpacity
+  style={styles.actionButton}
+  onPress={() => handleViewImage(item.documentPath)}
+>
+  <Text style={styles.actionButtonText}>View</Text>
+</TouchableOpacity>
                         <TouchableOpacity
                           style={[styles.actionButton, styles.deleteButton]}
                           onPress={() => handleDeleteDocument(item.documentId)}
@@ -274,8 +298,8 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
             </View>
 
             <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
+  <Text style={styles.cancelButtonText}>Cancel</Text>
+</TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -287,7 +311,7 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
         onRequestClose={() => setViewImageModal(false)}
       >
         <View style={styles.imageModalOverlay}>
-          <View style={styles.imageModalContent}>
+          <View >
             <TouchableOpacity style={styles.closeImageButton} onPress={() => setViewImageModal(false)}>
               <Text style={styles.closeButtonText}>X</Text>
             </TouchableOpacity>
@@ -493,18 +517,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  imageModalContent: {
-    width: "90%",
-    height: "80%",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
-    position: "relative",
-  },
+  // imageModalContent: {
+  //   width: "40%",
+  //   height: "30%",
+  //   backgroundColor: "white",
+  //   borderRadius: 10,
+  //   padding: 20,
+  //   position: "relative",
+  //   alignItems: "center",
+  // },
   closeImageButton: {
     position: "absolute",
     top: 10,
-    right: 10,
+    right: 80,
     zIndex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.1)",
     borderRadius: 15,
@@ -514,8 +539,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   fullImage: {
-    width: "100%",
-    height: "100%",
+    width: 500,
+    height: 600,
   },
 })
 

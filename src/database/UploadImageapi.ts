@@ -59,7 +59,7 @@ export const uploadInspectionDocument = async (
       },
       body: formData,
     })
-    
+    console.log("response",response)
     if (!response.ok) {
       const errorText = await response.text()
       console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)

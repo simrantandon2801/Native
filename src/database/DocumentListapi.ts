@@ -82,4 +82,61 @@ export const deleteInspectionDocument = async (documentId: string) => {
   }
 };
 
+export const viewInspectionDocument = async (documentPath: string): Promise<string> => {
+  try {
+
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found");
+    }
+
+    const xAuthUserId = encryptData(storedUserId);
+
+   
+    const apiUrl = `${BASE_URL}/gateway/officer/dms/document-view/${documentPath}`;
+
+    console.log("Viewing document at URL:", apiUrl);
+
+   
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    });
+
+   
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (!contentType?.startsWith("image/")) {
+      throw new Error(`Unexpected Content-Type: ${contentType}`);
+    }
+
+   
+    const blob = await response.blob();
+
+   
+    const base64String = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob); 
+    });
+
+    console.log("Base64 string created:", base64String);
+
+    return base64String; 
+  } catch (error) {
+    console.error("Error in viewInspectionDocument:", error);
+    throw error; 
+  }
+};
 
