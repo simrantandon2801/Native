@@ -8,6 +8,7 @@ import { useRoute, type RouteProp, useNavigation } from "@react-navigation/nativ
 import { getInspectionPreviewDetails, getKobNameReg } from "../database/Previewapi"
 import { viewInspectionDocument } from "../database/DocumentListapi"
 import RNHTMLtoPDF from "react-native-html-to-pdf";
+import RNFS from "react-native-fs";
 interface PreviewDocumentsProps {
   visible: boolean
   onClose: () => void
@@ -121,20 +122,27 @@ const Preview: React.FC = () => {
       `;
 
       // Generate PDF using react-native-html-to-pdf
-      const options = {
+      const pdfOptions = {
         html: htmlContent,
         fileName: `Inspection_Report_${inspectionId}`,
-        directory: "Documents",
+        directory: "Documents", // Temporary directory
       };
 
-      const pdf = await RNHTMLtoPDF.convert(options);
+      const pdf = await RNHTMLtoPDF.convert(pdfOptions);
       console.log("PDF generated at:", pdf.filePath);
 
+      // Define the Downloads directory path
+      const downloadDir = `${RNFS.DownloadDirectoryPath}/Inspection_Report_${inspectionId}.pdf`;
+
+      // Move the file to the Downloads directory
+      await RNFS.moveFile(pdf.filePath, downloadDir);
+      console.log("PDF moved to Downloads folder:", downloadDir);
+
       // Show success message
-      Alert.alert("Success", "PDF downloaded successfully!");
+      Alert.alert("Success", "PDF downloaded successfully to the Downloads folder!");
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      Alert.alert("Error", "Failed to generate PDF. Please try again.");
+      console.error("Error generating or saving PDF:", error);
+      Alert.alert("Error", "Failed to generate or save PDF. Please try again.");
     }
   };
   const fetchKobNameReg = async () => {
