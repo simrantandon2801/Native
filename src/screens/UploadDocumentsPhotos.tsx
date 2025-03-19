@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, Modal, TextInput, TouchableOpacity, Image, Aler
 import * as ImagePicker from "react-native-image-picker"
 import { uploadInspectionDocument } from "../database/UploadImageapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import { useRoute, type RouteProp } from "@react-navigation/native"
+import { useRoute, type RouteProp, useNavigation } from "@react-navigation/native"
 import { deleteInspectionDocument, getInspectionDocuments, viewInspectionDocument } from "../database/DocumentListapi"
 import { DataTable } from "react-native-paper"
 interface UploadDocumentsProps {
@@ -19,6 +19,7 @@ interface UploadDocumentsProps {
 
 const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClose, sectionId }) => {
   const route = useRoute<RouteProp<Record<string, UploadDocumentsProps>>>()
+  const navigation = useNavigation()
   const { inspectionId, sectionName } = route.params
   console.log("inspectionId", inspectionId, "sectio", sectionName)
   const [documentName, setDocumentName] = useState("")
@@ -70,14 +71,6 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
       fetchDocuments()
     }
   }, [visible])
-  useEffect(() => {
-    if (!visible) {
-      
-      setDocumentName("");
-      setSelectedImage(null);
-      setUploading(false);
-    }
-  }, [visible]);
 
   const fetchDocuments = async () => {
     try {
@@ -142,7 +135,7 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
       console.log("upload payload", payload)
       await uploadInspectionDocument(selectedImage, payload)
 
-   
+      // Add this line to refresh the documents list
       await fetchDocuments()
 
       Alert.alert("Success", "Document uploaded successfully")
@@ -156,50 +149,45 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
   }
 
   const handleClose = () => {
-    console.log("handleClose called");
-    
-   
-    setDocumentName("");
-    setSelectedImage(null);
-    setUploading(false);
-    
-   
+    console.log("handleClose called")
+
+    setDocumentName("")
+    setSelectedImage(null)
+    setUploading(false)
+
     if (onClose) {
-      console.log("Calling onClose");
-      onClose();  
+      console.log("Calling onClose")
+      onClose()
     }
-  };
+  }
 
   const handleViewImage = async (documentPath: string) => {
     try {
-      // Fetch the base64-encoded image string
-      const base64String = await viewInspectionDocument(documentPath);
-  
-      console.log("Base64 String:", base64String);
-  
+      const base64String = await viewInspectionDocument(documentPath)
+
+      console.log("Base64 String:", base64String)
+
       if (!base64String) {
-        throw new Error("Base64 string is undefined or empty");
+        throw new Error("Base64 string is undefined or empty")
       }
-  
+
       // Set the base64 string as the image source
-      setCurrentImage(base64String);
-      setViewImageModal(true);
+      setCurrentImage(base64String)
+      setViewImageModal(true)
     } catch (error) {
-      console.error("Error viewing document:", error);
-      Alert.alert("Error", "Could not load the document. Please try again.");
+      console.error("Error viewing document:", error)
+      Alert.alert("Error", "Could not load the document. Please try again.")
     }
-  };
-  
-  
+  }
+
   useEffect(() => {
-    console.log("Updated currentImage:", currentImage);
+    console.log("Updated currentImage:", currentImage)
   }, [currentImage])
-  
 
   const handleDeleteDocument = async (documentId: string) => {
     try {
       console.log("Deleting document with ID:", documentId)
-     
+
       const response = await deleteInspectionDocument(documentId)
       console.log("API Response:", response)
       setDocuments((prevDocuments) => prevDocuments.filter((doc) => doc.documentId !== documentId))
@@ -207,27 +195,16 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
     } catch (error) {
       console.error("Error deleting document:", error)
       Alert.alert("Error", "Failed to delete document.")
-    
+
       fetchDocuments()
     }
   }
 
   return (
     <View>
-      <Modal
-        animationType="none"
-        transparent={true}
-        visible={visible}
-        onRequestClose={handleClose}
-     
-        
-      >
+      <Modal animationType="none" transparent={true} visible={visible} onRequestClose={handleClose}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {/* <TouchableOpacity style={styles.closeButtonIcon} onPress={handleClose}>
-              <Text style={styles.closeButtonText}>X</Text>
-            </TouchableOpacity> */}
-
             <Text style={styles.sectionNameText}>{sectionName}</Text>
 
             <Text style={styles.inputLabel}>Document Name</Text>
@@ -276,12 +253,12 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
                         {item.documentDesc}
                       </Text>
                       <View style={[styles.tableCell, { flexDirection: "row" }]}>
-                      <TouchableOpacity
-  style={styles.actionButton}
-  onPress={() => handleViewImage(item.documentPath)}
->
-  <Text style={styles.actionButtonText}>View</Text>
-</TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.actionButton}
+                          onPress={() => handleViewImage(item.documentPath)}
+                        >
+                          <Text style={styles.actionButtonText}>View</Text>
+                        </TouchableOpacity>
                         <TouchableOpacity
                           style={[styles.actionButton, styles.deleteButton]}
                           onPress={() => handleDeleteDocument(item.documentId)}
@@ -297,9 +274,9 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
               </ScrollView>
             </View>
 
-            <TouchableOpacity style={styles.cancelButton} onPress={handleClose}>
-  <Text style={styles.cancelButtonText}>Cancel</Text>
-</TouchableOpacity>
+            <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
+              <Text style={styles.cancelButtonText}>Back</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -311,7 +288,7 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
         onRequestClose={() => setViewImageModal(false)}
       >
         <View style={styles.imageModalOverlay}>
-          <View >
+          <View>
             <TouchableOpacity style={styles.closeImageButton} onPress={() => setViewImageModal(false)}>
               <Text style={styles.closeButtonText}>X</Text>
             </TouchableOpacity>

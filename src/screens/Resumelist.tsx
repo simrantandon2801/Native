@@ -15,6 +15,7 @@ type RouteParams = {
   data: Section[]
   refId: string
   inspectionId: string
+  assignmentId:number
 }
 
 interface Section {
@@ -32,7 +33,8 @@ interface Section {
 const Resumelist: React.FC = () => {
   const navigation = useNavigation()
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
-  const { data: initialData, refId, inspectionId } = route.params
+  const { data: initialData, refId, inspectionId,assignmentId } = route.params
+  console.log("assishd",assignmentId)
 
   const [data, setData] = useState<Section[]>(initialData)
   const [selectedOption, setSelectedOption] = useState("forward")
@@ -89,9 +91,9 @@ const Resumelist: React.FC = () => {
     }, [inspectionId, refId]),
   )
   
-  const handleResumePress = async (inspectionId: number, refId: number,sectionName:string) => {
+  const handleResumePress = async (inspectionId: number, refId: number,sectionName:string,assignmentId:number) => {
     try {
-      console.log("Resume pressed for inspection ID:", inspectionId, "ref ID:", refId,"sectionName:",sectionName);
+      console.log("Resume pressed for inspection ID:", inspectionId, "ref ID:", refId,"sectionName:",sectionName,"assignmentId",assignmentId);
   
       const result = await getMasterInspectionSection(inspectionId);
       console.log("Resume API result:", result);
@@ -107,7 +109,8 @@ const Resumelist: React.FC = () => {
     }
   };
 
-  const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string) => {
+  const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string,assignmentId:number) => {
+    console.log("AssigsddfrsfnmentID",assignmentId)
     try {
       const results = await getInspectionParameterResults()
       
@@ -118,7 +121,7 @@ const Resumelist: React.FC = () => {
         throw new Error("refId or inspectionId is missing")
       }
       
-      const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId)
+      const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId,)
       console.log("API Response:", regresult)
       console.log("dhs", regresult)
       
@@ -129,6 +132,8 @@ const Resumelist: React.FC = () => {
         inspectionId,
         refId,
         sectionName,
+        assignmentId
+        
       }
       console.log("Paylonad:", payload)//done
       
@@ -141,8 +146,10 @@ const Resumelist: React.FC = () => {
           inspectionId: inspectionId,
           refId: refId,
           sectionName:sectionName,
+          assignmentId:assignmentId
         })
         console.log("sectionNamnje",sectionName)
+        console.log(assignmentId,"assignmentID")
       }
     } catch (error) {
       console.error("Error fetching section details:", error)
@@ -168,7 +175,7 @@ const Resumelist: React.FC = () => {
               { borderLeftWidth: 4, borderLeftColor: section.submittedFlag ? "#4CAF50" : "red" },
               section.submittedFlag && styles.submittedSection,
             ]}
-            onPress={() => handleSectionTap(section.sectionId, section.submittedFlag, section.sectionName)}
+            onPress={() => handleSectionTap(section.sectionId, section.submittedFlag, section.sectionName,assignmentId)}
           >
             <View style={styles.sectionContent}>
               <Text style={styles.sectionName}>{section.sectionName}</Text>

@@ -89,7 +89,10 @@ const[inspectionId,setinspectionId]=useState("")
         const result = await getOngoingInspectionCount(payload, page)
         setOngoingData(result)
         setHasSearched(true)
-        console.log("=============ongoing======", result)
+        // console.log("=============ongoing======", result)
+        // console.log("sdgsduydd",result[1].assignmentId)
+        console.log("sdgsduydd",result.finalScore)
+        console.log("sdgsduydd",result.fsoId)
       } catch (error) {
         console.error("Error loading data:", error)
         setError("Failed to load data. Please try again.")
@@ -206,16 +209,18 @@ useFocusEffect(
       setRefreshing(false)
     }
   }
-  const handleResumePress = async (inspectionId: number,refId:number) => {
+  const handleResumePress = async (inspectionId: number,refId:number,assignmentId:number) => {
     try {
       console.log("Resume pressed for inspection ID:", inspectionId,refId)
       console.log("Resume pressed for ref ID:", refId)
+      console.log("assignmentId",assignmentId)
       
 
       const result = await getMasterInspectionSection(inspectionId)
       console.log("Resume API result:", result)
 
-      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId,})
+      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId,assignmentId:assignmentId})
+    
     } catch (error) {
       console.error("Error in resume API call:", error)
       Alert.alert("Error", "Failed to load inspection details. Please try again.")
@@ -484,7 +489,7 @@ useFocusEffect(
                
                 </View>
               </View>
-              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId,item.refId)}>
+              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId,item.refId,item.assignmentId)}>
                 <Text style={styles.resumeButtonText}>Resume</Text>
               </TouchableOpacity>
             </View>

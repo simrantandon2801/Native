@@ -84,10 +84,8 @@ const SearchInspection: React.FC = () => {
       
         {loading && <ActivityIndicator size="large" color="#0000ff" />}
 
-        {/* Error Message */}
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        {/* Render Inspection Data */}
         {inspectionData.paginationListRecords?.length ? (
           <View>
             {inspectionData.paginationListRecords.map((item, index) => (
@@ -111,11 +109,11 @@ const SearchInspection: React.FC = () => {
   );
 };
 
-// Styles
+
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1, 
-    backgroundColor: '#fff', // Optional: Set a background color
+    backgroundColor: '#fff',
   },
   container: {
     // flexGrow: 1, 

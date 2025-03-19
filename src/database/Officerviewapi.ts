@@ -84,7 +84,7 @@ interface StartInspectionResponse {
   statusCode: string
 }
 
-// ... existing encryption functions remain the same
+
 
 export const startInspection = async (payload: StartInspectionPayload): Promise<StartInspectionResponse> => {
   try {

@@ -35,6 +35,7 @@ import Ongoing from "./src/screens/OngoingInspection"
 import UpdateInspectionChecklist from "./src/screens/UpdateInspectionChecklist"
 import UploadDocuments from "./src/screens/UploadDocumentsPhotos"
 import UploadDocumentsPhotos from "./src/screens/UploadDocumentsPhotos"
+import Preview from "./src/screens/Preview"
 
 
 
@@ -102,6 +103,7 @@ function App(): React.JSX.Element {
           <Stack.Screen name="Allocated Inspection" component={AllocatedInspetion} />
           <Stack.Screen name="Resumelist" component={Resumelist} options={{ title: 'Ongoing Inspections' }}  />
           <Stack.Screen name="Update Inspection Checklist" component={UpdateInspectionChecklist} />
+          <Stack.Screen name="Preview" component={Preview} />
          
   <Stack.Screen name="Upload Documents/Photos" component={UploadDocumentsPhotos} />
 
