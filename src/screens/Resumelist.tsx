@@ -35,6 +35,7 @@ const Resumelist: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
   const { data: initialData, refId, inspectionId,assignmentId } = route.params
   console.log("assishd",assignmentId)
+  console.log("refID",refId)
 
   const [data, setData] = useState<Section[]>(initialData)
   const [selectedOption, setSelectedOption] = useState("forward")
@@ -109,7 +110,7 @@ const Resumelist: React.FC = () => {
     }
   };
 
-  const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string,assignmentId:number) => {
+  const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string,assignmentId:number,) => {
     console.log("AssigsddfrsfnmentID",assignmentId)
     try {
       const results = await getInspectionParameterResults()

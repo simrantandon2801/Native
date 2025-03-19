@@ -52,3 +52,39 @@ export const getInspectionPreviewDetails = async (payload: InspectionDetailsPayl
     throw error
   }
 }
+export const getKobNameReg = async (refId: string) => {
+  try {
+    console.log("Fetching KOB name registration data...")
+    const storedUserId = await AsyncStorage.getItem("userId")
+    const accessToken = await AsyncStorage.getItem("accessToken")
+    const xAuthUserId = encryptData(storedUserId || "")
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/kobnamereg/${refId}`
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found")
+    }
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`)
+    }
+
+    const data = await response.json()
+    console.log("KOB name registration data:", data)
+    return data
+  } catch (error) {
+    console.error("Error in getKobNameReg:", error)
+    throw error
+  }
+}
