@@ -9,6 +9,7 @@ import { getInspectionPreviewDetails, getKobNameReg } from "../database/Previewa
 import { viewInspectionDocument } from "../database/DocumentListapi"
 import RNHTMLtoPDF from "react-native-html-to-pdf";
 import RNFS from "react-native-fs";
+
 interface PreviewDocumentsProps {
   visible: boolean
   onClose: () => void
@@ -307,7 +308,7 @@ const Preview: React.FC = () => {
                 </View>
               )}
 
-              {/* No Data Message */}
+             
           
             </View>
           )}
@@ -315,13 +316,13 @@ const Preview: React.FC = () => {
         <View style={styles.buttonContainer}>
   <TouchableOpacity 
     style={styles.button}
-    onPress={() => handleDownloadPrintDate()} // Replace with your download/print logic
+    onPress={() => handleDownloadPrintDate()} 
   >
     <Text style={styles.buttonText}>Download Print Date</Text>
   </TouchableOpacity>
   <TouchableOpacity 
     style={styles.button}
-    onPress={() => navigation.goBack()} // Navigate back to the previous screen
+    onPress={() => navigation.goBack()} 
   >
     <Text style={styles.buttonText}>Back</Text>
   </TouchableOpacity>
