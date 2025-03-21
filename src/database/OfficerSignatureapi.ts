@@ -89,3 +89,38 @@ export const updateSendInvitation = async (secAssignmentId: number, email: strin
     throw error;
   }
 };
+export const getFssaiUserDetails = async (userId: string) => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const xAuthUserId = encryptData(storedUserId || "");
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found");
+    }
+
+    const apiUrl = `${BASE_URL}/gateway/officer/common/signup/fssaiuserdetails/${userId}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("FSSAI user details result:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in getFssaiUserDetails:", error);
+    throw error;
+  }
+};
