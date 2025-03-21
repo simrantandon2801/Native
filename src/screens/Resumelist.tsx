@@ -92,9 +92,9 @@ const Resumelist: React.FC = () => {
     }, [inspectionId, refId]),
   )
   
-  const handleResumePress = async (inspectionId: number, refId: number,sectionName:string,assignmentId:number) => {
+  const handleResumePress = async (inspectionId: number, refId: number,sectionName:string,assignmentId:number,sectionId:number) => {
     try {
-      console.log("Resume pressed for inspection ID:", inspectionId, "ref ID:", refId,"sectionName:",sectionName,"assignmentId",assignmentId);
+      console.log("Resume pressed for inspection ID:", inspectionId, "ref ID:", refId,"sectionName:",sectionName,"assignmentId",assignmentId,"sectionID",sectionId);
   
       const result = await getMasterInspectionSection(inspectionId);
       console.log("Resume API result:", result);
@@ -112,6 +112,8 @@ const Resumelist: React.FC = () => {
 
   const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string,assignmentId:number,) => {
     console.log("AssigsddfrsfnmentID",assignmentId)
+    console.log("sectionabhishek",sectionId)
+    console.log("AssigsddfrsfnmentID",sectionName)
     try {
       const results = await getInspectionParameterResults()
       
@@ -125,6 +127,7 @@ const Resumelist: React.FC = () => {
       const regresult = await getMasterInspectionParameterReg(refId, inspectionId, sectionId,)
       console.log("API Response:", regresult)
       console.log("dhs", regresult)
+      console.log("sectionID",sectionId)
       
       console.log("Section name for navigation:", sectionName)
       
@@ -147,10 +150,12 @@ const Resumelist: React.FC = () => {
           inspectionId: inspectionId,
           refId: refId,
           sectionName:sectionName,
-          assignmentId:assignmentId
+          assignmentId:assignmentId,
+          sectionId:sectionId
         })
         console.log("sectionNamnje",sectionName)
         console.log(assignmentId,"assignmentID")
+        console.log("sectionID",sectionId)
       }
     } catch (error) {
       console.error("Error fetching section details:", error)

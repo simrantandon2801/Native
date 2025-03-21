@@ -18,6 +18,7 @@ import { useRoute, type RouteProp, useNavigation } from "@react-navigation/nativ
 import DocumentPicker from 'react-native-document-picker';
 import {deleteInspectionSignature, getWitnessDetailsForRegistration, saveWitnessDetailsForRegistration} from '../database/Signatureapi'
 import { viewInspectionDocument } from "../database/DocumentListapi"
+import { submitInspectionSection } from "../database/SubmitSectionapi"
 
 interface PreviewDocumentsProps {
   visible: boolean
@@ -39,8 +40,8 @@ interface WitnessDetail {
 const ApplicantSignature: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, PreviewDocumentsProps>>>()
   const navigation = useNavigation()
-  const { inspectionId, sectionName, assignmentId, refId } = route.params
-  console.log("inspectionid", inspectionId, "sectionName", sectionName, "assignmentID", assignmentId, "refID", refId)
+  const { inspectionId, sectionName, assignmentId, refId ,sectionId} = route.params
+  console.log("inspectionid", inspectionId, "sectionName", sectionName, "assignmentID", assignmentId, "refID", refId,"sectionId",sectionId)
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +61,7 @@ const ApplicantSignature: React.FC = () => {
    const [viewImageModal, setViewImageModal] = useState(false)
     const [currentImage, setCurrentImage] = useState<string | null>(null)
   const [aadhaarPart3, setAadhaarPart3] = useState("");
+  const[loading,setLoading]=useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [fetchedData, setfetchedData] = useState<WitnessDetail[]>([]);
   const aadhaarInput1 = React.useRef<TextInput>(null);
@@ -108,9 +110,58 @@ const ApplicantSignature: React.FC = () => {
 
   
   useEffect(() => {
+  
     fetchWitnessDetails()
   }, [])
-
+ 
+  const handleSubmit = async () => {
+    setLoading(true); 
+  
+    try {
+  
+     
+    
+  
+     
+      const payload = {
+        inspectionDetailsParametersRegistration: [], 
+        inspectionDetailsSectionRegistration: {
+          id: {
+            inspectionId: inspectionId, 
+            sectionId: sectionId,
+          },
+          createdBy: userId, 
+          updatedBy: userId,
+          refId: refId , 
+          observation: null, 
+          isSubmitted: true, 
+          comments: null,
+        },
+      };
+  
+      console.log("Submit section payload:", payload);
+  
+    
+      const response = await submitInspectionSection(payload); 
+      console.log("Submit section response:", response);
+  
+   
+      setLoading(false); 
+      Alert.alert("Success", "Section submitted successfully");
+  
+     
+      await AsyncStorage.removeItem(`parameterSelections_${inspectionId}`); 
+  
+     
+      navigation.goBack();
+      await AsyncStorage.setItem("refreshResumeList", "true");
+    } catch (error) {
+     
+      setLoading(false); 
+      console.error("Error submitting section:", error);
+      Alert.alert("Error", "Failed to submit section");
+    }
+  };
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -152,6 +203,7 @@ const ApplicantSignature: React.FC = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
 
   const handleProceed = async () => {
     if (!validateForm()) {
@@ -309,12 +361,14 @@ const ApplicantSignature: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
+      
       <View style={styles.container}>
       {!fetchedData || fetchedData.length === 0 ? (
           <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
             <Text style={styles.addButtonText}>Add Applicant</Text>
           </TouchableOpacity>
         ) : null}
+       
         {fetchedData && fetchedData.length > 0 && (
   <ScrollView>
     <View style={styles.sectionContainer}>
@@ -349,6 +403,17 @@ const ApplicantSignature: React.FC = () => {
           </View>
         </View>
       ))}
+       <View style={styles.container}>
+    
+    <View style={styles.buttonContainerRow}>
+      <TouchableOpacity style={styles.submitButton}>
+        <Text style={styles.buttonText3}  onPress={handleSubmit}>Submit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.backButton}>
+        <Text style={styles.buttonText3}  onPress={() => navigation.goBack()} >Back</Text>
+      </TouchableOpacity>
+    </View>
+    </View>
     </View>
   </ScrollView>
 )}
@@ -549,6 +614,7 @@ const ApplicantSignature: React.FC = () => {
 
 
               </View>
+          
             </View>
           </View>
         </Modal>
@@ -679,6 +745,30 @@ const styles = StyleSheet.create({
   radioLabel: {
     fontSize: 16,
     color: "#333",
+  },
+  buttonContainerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  submitButton: {
+    backgroundColor: "#0066cc",
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginRight: 5,
+  },
+  backButton: {
+    backgroundColor: "#0066cc",
+    padding: 10,
+    borderRadius: 5,
+    flex: 1,
+    marginLeft: 5,
+  },
+  buttonText3: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "bold",
   },
   fileButton: {
     backgroundColor: "#f0f0f0",

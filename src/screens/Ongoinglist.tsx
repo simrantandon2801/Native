@@ -209,17 +209,19 @@ useFocusEffect(
       setRefreshing(false)
     }
   }
-  const handleResumePress = async (inspectionId: number,refId:number,assignmentId:number) => {
+  const handleResumePress = async (inspectionId: number,refId:number,assignmentId:number,sectionId:number) => {
     try {
       console.log("Resume pressed for inspection ID:", inspectionId,refId)
       console.log("Resume pressed for ref ID:", refId)
       console.log("assignmentId",assignmentId)
+      console.log("sectionID",sectionId)
+
       
 
       const result = await getMasterInspectionSection(inspectionId)
       console.log("Resume API result:", result)
 
-      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId,assignmentId:assignmentId})
+      navigation.navigate("Resumelist" as never,{data: result,inspectionId: inspectionId,refId:refId,assignmentId:assignmentId,sectionId:sectionId})
     
     } catch (error) {
       console.error("Error in resume API call:", error)
@@ -489,7 +491,9 @@ useFocusEffect(
                
                 </View>
               </View>
-              <TouchableOpacity style={styles.resumeButton} onPress={() => handleResumePress(item.inspectionId,item.refId,item.assignmentId)}>
+              <TouchableOpacity style={styles.resumeButton} onPress={() => 
+                handleResumePress(item.inspectionId,item.refId,item.assignmentId,item.sectionId)
+                }>
                 <Text style={styles.resumeButtonText}>Resume</Text>
               </TouchableOpacity>
             </View>

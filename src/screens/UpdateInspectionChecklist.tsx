@@ -289,6 +289,7 @@ const UpdateInspectionChecklist: React.FC = () => {
   
       const response = await submitInspectionSection(payload)
       console.log("Submit section response:", response)
+      AsyncStorage.setItem("codesubmit",JSON.stringify(response))
       setLoading(false)
       Alert.alert("Success", "Section submitted successfully")
       AsyncStorage.removeItem(`parameterSelections_${inspectionId}`);
