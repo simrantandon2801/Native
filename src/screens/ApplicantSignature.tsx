@@ -596,7 +596,7 @@ const ApplicantSignature: React.FC = () => {
       <TouchableOpacity style={styles.fileButton} onPress={handleChooseFile}>
         <Text style={styles.fileButtonText}>Choose File</Text>
       </TouchableOpacity>
-
+        {selectedDocument && <Text style={styles.selectedFileText}>{selectedDocument.name}</Text>}
       {errors.selectedDocument && <Text style={styles.errorText}>{errors.selectedDocument}</Text>}
     </View>
                   </>
@@ -637,6 +637,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     marginBottom: 5,
     fontSize:16
+  },
+  selectedFileText: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 5,
   },
   actionButton: {
     paddingVertical: 8, 

@@ -6,17 +6,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 
 const SECRET_KEY = "LsiplyG3M1bX7Rg"
 
-export interface InspectionResponse {
-  statusId: string
-  userId: string
-  processFlag: boolean
-  accessToken: string
-  xAuthUserId: string
-}
 
-interface PostPayload {
-  [key: string]: any
-}
+
 
 export const encryptData = (data: string): string => {
   const encryptedData = CryptoJS.HmacSHA256(data, SECRET_KEY)
@@ -28,15 +19,15 @@ export const encryptionPassword = (data: string) => {
   return CryptoJS.enc.Base64.stringify(hmac)
 }
 
-// ... (keep all existing functions)
 
-export const getClarificationFromOngoingInspection = async (payload: PostPayload): Promise<any> => {
+
+export const getClarificationFromOngoingInspection = async (payload: any,currentPage:number) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/${currentPage}`
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")
@@ -49,7 +40,8 @@ export const getClarificationFromOngoingInspection = async (payload: PostPayload
         Authorization: `${accessToken}`,
         "X-Auth-User-Id": xAuthUserId,
       },
-      body: JSON.stringify(payload),
+      body:JSON.stringify(payload),
+  
     })
 
     if (!response.ok) {
@@ -67,7 +59,7 @@ export const getClarificationFromOngoingInspection = async (payload: PostPayload
   }
 }
 
-export const getClarificationFromScrutinizeInspection = async (payload: PostPayload): Promise<any> => {
+export const getClarificationFromScrutinizeInspection = async ()=> {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
@@ -86,7 +78,7 @@ export const getClarificationFromScrutinizeInspection = async (payload: PostPayl
         Authorization: `${accessToken}`,
         "X-Auth-User-Id": xAuthUserId,
       },
-      body: JSON.stringify(payload),
+     
     })
 
     if (!response.ok) {
@@ -104,4 +96,39 @@ export const getClarificationFromScrutinizeInspection = async (payload: PostPayl
     throw error
   }
 }
+export const getViewScore = async (refId:string,inspectionId:string) => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const xAuthUserId = encryptData(storedUserId || "");
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found");
+    }
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/clarificationsenttofboreg/${refId}/${inspectionId}`;
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("View score:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in getFssaiUserDetails:", error);
+    throw error;
+  }
+};
 

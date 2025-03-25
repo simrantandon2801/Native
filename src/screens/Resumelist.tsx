@@ -10,6 +10,7 @@ import { getMasterInspectionParameterReg } from "../database/Resumelistapi"
 import { getMasterInspectionSection } from "../database/Resumeapi"
 import { getInspectionParameterResults } from "../database/Resumelistapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
 
 type RouteParams = {
   data: Section[]
@@ -17,7 +18,13 @@ type RouteParams = {
   inspectionId: string
   assignmentId:number
 }
-
+interface SendBackItem {
+  sectionName: string;
+  observation: string;
+  score: number;
+  maximumScore:number
+  comments:string // Assuming score is a number, adjust if it's a string
+}
 interface Section {
   sectionName: string
   submittedFlag: boolean
@@ -38,10 +45,12 @@ const Resumelist: React.FC = () => {
   console.log("refID",refId)
 
   const [data, setData] = useState<Section[]>(initialData)
-  const [selectedOption, setSelectedOption] = useState("forward")
+  const [selectedOption, setSelectedOption] = useState(null)
+ const [sendbacklist, setSendbacklist] = useState<SendBackItem[]>([]); // Initialize as an empty array
   const [remarks, setRemarks] = useState("")
   const [parameterRegResults, setParameterRegResults] = useState<any[]>([])
   const [parameterResults, setParameterResults] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   const fetchSectionData = async (inspId: string, refId: string) => {
@@ -109,7 +118,28 @@ const Resumelist: React.FC = () => {
       Alert.alert("Error", "Failed to load inspection details. Please try again.");
     }
   };
+  const handleApiCall = async (refId:string,inspectionId:string) => {
+    try {
+      console.log("refID==",refId)
+      console.log("inspectionID==",inspectionId)
+     
+      const response = await getListSendBackToFBOForClarification(refId, inspectionId);
+      console.log("refID==",refId)
+      console.log("inspectionID==",inspectionId)
 
+  
+   
+      console.log("API Response:", response);
+      setSendbacklist(response)
+  
+     
+      return response; 
+    } catch (error) {
+     
+      console.error("Error in handleApiCall:", error);
+      Alert.alert("Error", "Failed to fetch data. Please try again.");
+    }
+  };
   const handleSectionTap = async (sectionId: number, submittedFlag: boolean, sectionName: string,assignmentId:number,) => {
     console.log("AssigsddfrsfnmentID",assignmentId)
     console.log("sectionabhishek",sectionId)
@@ -210,22 +240,69 @@ const Resumelist: React.FC = () => {
           </View>
         )}
 
-        <View style={styles.radioContainer}>
-          <TouchableOpacity style={styles.radioButton} onPress={() => setSelectedOption("forward")}>
-            <View style={styles.radioButtonCircle}>
-              {selectedOption === "forward" && <View style={styles.radioButtonInnerCircle} />}
-            </View>
-            <Text style={styles.radioButtonLabel}>Forward to NHB</Text>
-          </TouchableOpacity>
-          {/* <TouchableOpacity style={styles.radioButton} onPress={handleApiCall} disabled={isLoading}>
-            <View style={styles.radioButtonCircle}>
-              {selectedOption === "sendBack" && <View style={styles.radioButtonInnerCircle} />}
-            </View>
-            <Text style={styles.radioButtonLabel}>
-              {isLoading ? "Loading..." : "Send Back to Applicant for Clarification"}
-            </Text>
-          </TouchableOpacity> */}
-        </View>
+<View style={styles.radioContainer}>
+  {/* Radio Button: Forward to NHB */}
+  <TouchableOpacity style={styles.radioButton} onPress={() => setSelectedOption("forward")}>
+    <View style={styles.radioButtonCircle}>
+      {selectedOption === "forward" && <View style={styles.radioButtonInnerCircle} />}
+    </View>
+    <Text style={styles.radioButtonLabel}>Forward to NHB</Text>
+  </TouchableOpacity>
+
+  {/* Radio Button: Send Back to Applicant for Clarification */}
+  <TouchableOpacity
+    style={styles.radioButton}
+    onPress={async () => {
+      setSelectedOption("sendBack");
+
+      try {
+        setIsLoading(true);
+        await handleApiCall(refId, inspectionId);
+      } catch (error) {
+        console.error("Error during API call:", error);
+        Alert.alert("Error", "Failed to fetch data. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    }}
+  >
+    <View style={styles.radioButtonCircle}>
+      {selectedOption === "sendBack" && <View style={styles.radioButtonInnerCircle} />}
+    </View>
+    <Text style={styles.radioButtonLabel}>
+      {isLoading ? "Loading..." : "Send Back to Applicant for Clarification"}
+    </Text>
+  </TouchableOpacity>
+
+
+  {selectedOption === "sendBack" && (
+    <View style={styles.sendBackListContainer}>
+      {sendbacklist.length > 0 ? (
+        sendbacklist.map((item, index) => (
+          <View key={index} style={styles.sendBackItem}>
+            <Text style={styles.sendBackLabel}>Section Name:</Text>
+            <Text style={styles.sendBackValue}>{item.sectionName || "N/A"}</Text>
+
+            <Text style={styles.sendBackLabel}>Observation:</Text>
+            <Text style={styles.sendBackValue}>{item.observation || "N/A"}</Text>
+
+            <Text style={styles.sendBackLabel}>Score:</Text>
+            <Text style={styles.sendBackValue}>{item.score || "N/A"}</Text>
+            <Text style={styles.sendBackLabel}>Maximum:</Text>
+            <Text style={styles.sendBackValue}>{item.maximumScore || "N/A"}</Text>
+            <Text style={styles.sendBackLabel}>Remarks:</Text>
+            <Text style={styles.sendBackValue}>{item.comments || "N/A"}</Text>
+
+
+       
+          </View>
+        ))
+      ) : (
+        <Text style={styles.noDataText}>No data available</Text>
+      )}
+    </View>
+  )}
+</View>
 
         {selectedOption === "forward" && (
           <>
@@ -244,6 +321,43 @@ const Resumelist: React.FC = () => {
             <TouchableOpacity style={styles.finishButton}>
               <Text style={styles.finishButtonText}>Finish</Text>
             </TouchableOpacity>
+          </>
+        )}
+          {selectedOption === "sendBack" && (
+          <>
+            <View style={styles.remarksContainer}>
+              <Text style={styles.remarksLabel}>Remarks:</Text>
+              <TextInput
+                style={styles.textarea}
+                value={remarks}
+                onChangeText={setRemarks}
+                multiline={true}
+                numberOfLines={6}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <TouchableOpacity
+  style={styles.finishButton}
+  onPress={() => {
+   
+    if (!selectedOption) {
+      Alert.alert("Please select an option (Forward or Send Back).");
+      return;
+    }
+
+    if (selectedOption === "sendBack" && sendbacklist.length === 0) {
+      Alert.alert("");
+      return;
+    }
+
+   
+    Alert.alert( "Please fill all section fields ");
+   
+  }}
+>
+  <Text style={styles.finishButtonText}>Finish</Text>
+</TouchableOpacity>
           </>
         )}
       </ScrollView>
@@ -273,6 +387,39 @@ const styles = StyleSheet.create({
     marginTop: 8,
     color: "#007AFF",
     fontWeight: "500",
+  },
+  sendBackListContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
+  },
+  sendBackItem: {
+    marginBottom: 15,
+    padding: 10,
+    backgroundColor: "#fff",
+    borderRadius: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2,
+  },
+  sendBackLabel: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  sendBackValue: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 5,
+  },
+  noDataText: {
+    textAlign: "center",
+    fontSize: 16,
+    color: "#999",
+    marginTop: 20,
   },
   sectionItem: {
     backgroundColor: "#fff",

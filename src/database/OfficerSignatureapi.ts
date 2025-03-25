@@ -11,7 +11,7 @@ export const encryptData = (data: string): string => {
   return CryptoJS.enc.Base64.stringify(encryptedData).toString()
 }
 
-export const getSecEsignDetails = async (assignmentId: number ,) => {
+export const getSecEsignDetails = async (assignmentId: number ) => {
   try {
     const storedUserId = await AsyncStorage.getItem("userId");
     const accessToken = await AsyncStorage.getItem("accessToken");
@@ -121,6 +121,77 @@ export const getFssaiUserDetails = async (userId: string) => {
     return data;
   } catch (error) {
     console.error("Error in getFssaiUserDetails:", error);
+    throw error;
+  }
+};
+export const submitapioficer = async (assignmentId: string) => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const xAuthUserId = encryptData(storedUserId || "");
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found");
+    }
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/checkEsignDoneOrNot/${assignmentId}`;
+  
+
+    const response = await fetch(apiUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("submit result:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in getFssaiUserDetails:", error);
+    throw error;
+  }
+};
+export const deleteInspectionofficerSignature = async (eSignId
+  : string,secAssignmentId:number) => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const xAuthUserId = encryptData(storedUserId || "");
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found");
+    }
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/deleteOfficerSignRegistrationDetails/${eSignId}/${secAssignmentId}`;
+
+    const response = await fetch(apiUrl, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+    }
+
+    console.log(" deleted successfully");
+    return true;
+  } catch (error) {
+    console.error("Error in deleteInspectionDocument:", error);
     throw error;
   }
 };
