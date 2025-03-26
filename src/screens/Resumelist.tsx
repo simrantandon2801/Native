@@ -45,8 +45,8 @@ const Resumelist: React.FC = () => {
   console.log("refID",refId)
 
   const [data, setData] = useState<Section[]>(initialData)
-  const [selectedOption, setSelectedOption] = useState(null)
- const [sendbacklist, setSendbacklist] = useState<SendBackItem[]>([]); // Initialize as an empty array
+  const [selectedOption, setSelectedOption] = useState("forward")
+ const [sendbacklist, setSendbacklist] = useState<SendBackItem[]>([]); 
   const [remarks, setRemarks] = useState("")
   const [parameterRegResults, setParameterRegResults] = useState<any[]>([])
   const [parameterResults, setParameterResults] = useState<any[]>([])

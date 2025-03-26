@@ -112,11 +112,11 @@ const Preview: React.FC = () => {
         <p>Start Date Time: ${inspectonDetails?.startDateTime || "N/A"}</p>
         <p>End Date Time: ${inspectonDetails?.endDateTime || "N/A"}</p>
         <p>Business Type: ${kobData || "N/A"}</p>
-        <h2>Score Details</h2>
+        // <h2>Score Details</h2>
         <p>Obtained Percentage: ${scoreDetails?.obtainedpercentage || "N/A"}</p>
         <p>Total Max: ${scoreDetails?.totalmax || "N/A"}</p>
         <p>Total Obtained: ${scoreDetails?.totalobtained || "N/A"}</p>
-        <h2>Section Details</h2>
+        <h2>Update Inspection Checklist</h2>
         ${sectionDetails && sectionDetails.length > 0
           ? sectionDetails.map((section, index) => `<p>Observation: ${section.observation || "N/A"}</p>`).join("")
           : "<p>No section details available</p>"}
@@ -209,6 +209,99 @@ const Preview: React.FC = () => {
             <View style={styles.contentContainer}>
          
             
+
+
+            
+{inspectonDetails && (
+  <View style={styles.sectionContainer}>
+    {/* <Text style={styles.sectionTitle}>Inspection Details</Text> */}
+ 
+    <View style={styles.infoCard}>
+      {/* <Text style={styles.infoText}>Applicant Name: {inspectonDetails.applicantName || "N/A"}</Text> */}
+      <Text style={styles.infoText}>Report ID: {inspectonDetails.inspectionId || "N/A"}</Text>
+      <Text style={styles.infoText}>Inspection Officer Name: {inspectonDetails.fsoName || "N/A"}</Text>
+      <Text style={styles.infoText}>Appliant Name: {inspectonDetails.companyName || "N/A"}</Text>
+      <Text style={styles.infoText}>Address: {inspectonDetails.address || "N/A"}</Text>
+      
+      <Text style={styles.infoText}>Inspection Date: {inspectonDetails.inspectionDate || "N/A"}</Text>
+      
+      <Text style={styles.infoText}>Applicant Certificate Number:{inspectonDetails.certificateNo || "N/A"}</Text>
+      <Text style={styles.infoText}>Inspection Officer UserId:{inspectonDetails.fsoId || "N/A"}</Text>
+      <Text style={styles.infoText}>Start Date Time:{inspectonDetails.startDateTime || "N/A"}</Text> 
+      
+<Text style={styles.infoText}>End Date Time:{inspectonDetails.endDateTime || "N/A"}</Text> 
+<Text style={styles.infoText}>Business Type:{kobData || "N/A"}</Text> 
+
+    </View>
+  </View>
+)}
+
+             
+{scoreDetails &&  (
+  <View style={styles.sectionContainer}>
+    {/* <Text style={styles.sectionTitle}>Score Details</Text> */}
+ 
+    <View style={styles.infoCard}>
+      <Text style={styles.infoText}>
+        Obtained Percentage: {scoreDetails.obtainedpercentage || "N/A"}
+      </Text>
+      <Text style={styles.infoText}>
+        Total Max: {scoreDetails.totalmax || "N/A"}
+      </Text>
+      <Text style={styles.infoText}>
+        Total Obtained: {scoreDetails.totalobtained || "N/A"}
+      </Text>
+    </View>
+  </View>
+)}
+
+         
+{sectionDetails && sectionDetails.length > 0 && (
+  <View style={styles.sectionContainer}>
+    <Text style={styles.sectionTitle}>Update Inspection Checklist</Text>
+
+    {/* Access the first section directly */}
+    <View style={styles.infoCard}>
+      <Text style={styles.infoText}>
+        Observation: {sectionDetails[0].observation || "N/A"}
+      </Text>
+      <Text style={styles.infoText}>
+        Comments: {sectionDetails[0].commnets || "N/A"}
+      </Text>
+      <Text style={styles.infoText}>
+        Submission Date: {sectionDetails[0].endDateTime || "N/A"}
+      </Text>
+
+
+      {sectionDetails[0].parameterDetails && sectionDetails[0].parameterDetails.length > 0 ? (
+        <View style={{ marginTop: 10 }}>
+         
+          {sectionDetails[0].parameterDetails.map((param, paramIndex) => (
+            <View key={paramIndex} style={styles.parameterCard}>
+              <Text style={styles.parameterText}>
+                Group Name: {param.groupName || "N/A"}
+              </Text>
+              <Text style={styles.parameterText}>
+                Parameters: {param.parameterVal || "N/A"}
+              </Text>
+              <Text style={styles.parameterText}>
+                Max Score: {param.maxScore || "N/A"}
+              </Text>
+              <Text style={styles.parameterText}>
+                Score Obtained: {param.obtainedScore || "N/A"}
+              </Text>
+              <Text style={styles.parameterText}>
+                Inspection: {param.parameterResultName || "N/A"}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={styles.noDataText}></Text>
+      )}
+    </View>
+  </View>
+)}
 {documentDetails && documentDetails.length > 0 && (
   <View style={styles.sectionContainer}>
     <Text style={styles.sectionTitle}>Upload Documents</Text>
@@ -249,65 +342,6 @@ const Preview: React.FC = () => {
     ))}
   </View>
 )}
-
-            
-{inspectonDetails && (
-  <View style={styles.sectionContainer}>
-    <Text style={styles.sectionTitle}>Inspection Details</Text>
- 
-    <View style={styles.infoCard}>
-      {/* <Text style={styles.infoText}>Applicant Name: {inspectonDetails.applicantName || "N/A"}</Text> */}
-      <Text style={styles.infoText}>Report ID: {inspectonDetails.inspectionId || "N/A"}</Text>
-      <Text style={styles.infoText}>Inspection Officer Name: {inspectonDetails.fsoName || "N/A"}</Text>
-      <Text style={styles.infoText}>Appliant Name: {inspectonDetails.companyName || "N/A"}</Text>
-      <Text style={styles.infoText}>Address: {inspectonDetails.address || "N/A"}</Text>
-      
-      <Text style={styles.infoText}>Inspection Date: {inspectonDetails.inspectionDate || "N/A"}</Text>
-      
-      <Text style={styles.infoText}>Applicant Certificate Number:{inspectonDetails.certificateNo || "N/A"}</Text>
-      <Text style={styles.infoText}>Inspection Officer UserId:{inspectonDetails.fsoId || "N/A"}</Text>
-      <Text style={styles.infoText}>Start Date Time:{inspectonDetails.startDateTime || "N/A"}</Text> 
-      
-<Text style={styles.infoText}>End Date Time:{inspectonDetails.endDateTime || "N/A"}</Text> 
-<Text style={styles.infoText}>Business Type:{kobData || "N/A"}</Text> 
-
-    </View>
-  </View>
-)}
-
-             
-{scoreDetails &&  (
-  <View style={styles.sectionContainer}>
-    <Text style={styles.sectionTitle}>Score Details</Text>
- 
-    <View style={styles.infoCard}>
-      <Text style={styles.infoText}>
-        Obtained Percentage: {scoreDetails.obtainedpercentage || "N/A"}
-      </Text>
-      <Text style={styles.infoText}>
-        Total Max: {scoreDetails.totalmax || "N/A"}
-      </Text>
-      <Text style={styles.infoText}>
-        Total Obtained: {scoreDetails.totalobtained || "N/A"}
-      </Text>
-    </View>
-  </View>
-)}
-
-         
-              {sectionDetails && sectionDetails.length > 0 && (
-                <View style={styles.sectionContainer}>
-                  <Text style={styles.sectionTitle}>Section Details</Text>
-                  {sectionDetails.map((section, index) => (
-                    <View key={index} style={styles.infoCard}>
-                      <Text style={styles.infoText}>Observation: {section.observation || "N/A"}</Text>
-                      <Text style={styles.infoText}>Comments: {section.commnets || "N/A"}</Text>
-                      <Text style={styles.infoText}>Submission Date: {section.endDateTime || "N/A"}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-
              
           
             </View>
@@ -339,6 +373,19 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  parameterCard: {
+    // backgroundColor: "#f9f9f9",
+    padding: 10,
+    // borderRadius: 5,
+    // marginBottom: 6,
+    // borderLeftWidth: 2,
+    // borderLeftColor: "#0066cc",
+  },
+  parameterText: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 4,
   },
   closeButtonText: {
     fontSize: 18,
@@ -426,8 +473,8 @@ const styles = StyleSheet.create({
     borderBottomColor: "#e0e0e0",
   },
   heading: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: 500,
     marginBottom: 8,
     textAlign: "center",
     color: "#333",
@@ -474,7 +521,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   sectionContainer: {
-    marginBottom: 24,
+    // marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,

@@ -11,7 +11,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   Modal,
-  TextInput,Image
+  TextInput,Image,ActivityIndicator
 } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useRoute, type RouteProp, useNavigation } from "@react-navigation/native"
@@ -406,9 +406,20 @@ const ApplicantSignature: React.FC = () => {
        <View style={styles.container}>
     
     <View style={styles.buttonContainerRow}>
-      <TouchableOpacity style={styles.submitButton}>
-        <Text style={styles.buttonText3}  onPress={handleSubmit}>Submit</Text>
-      </TouchableOpacity>
+    <TouchableOpacity
+  style={[
+    styles.submitButton,
+    { opacity: loading ? 0.5 : 1 }, // Reduce opacity when loading
+  ]}
+  onPress={handleSubmit}
+  disabled={loading} // Disable the button while loading
+>
+  {loading ? (
+    <ActivityIndicator size="small" color="#fff" />
+  ) : (
+    <Text style={styles.buttonText3}>Submit</Text>
+  )}
+</TouchableOpacity>
       <TouchableOpacity style={styles.backButton}>
         <Text style={styles.buttonText3}  onPress={() => navigation.goBack()} >Back</Text>
       </TouchableOpacity>

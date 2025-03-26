@@ -218,9 +218,13 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
             {selectedImage && <Image source={{ uri: selectedImage }} style={styles.previewImage} />}
 
             <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.button} onPress={pickImage}>
-                <Text style={styles.buttonText}>Choose Image</Text>
-              </TouchableOpacity>
+            <TouchableOpacity
+          style={[styles.button, uploading && styles.disabledButton]}
+          onPress={pickImage}
+          disabled={uploading} // Disable Choose Image button during upload
+        >
+          <Text style={styles.buttonText}>Choose Image</Text>
+        </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.button, uploading && styles.disabledButton]}

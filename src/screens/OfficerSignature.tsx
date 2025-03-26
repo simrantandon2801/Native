@@ -38,7 +38,7 @@ interface WitnessDetail {
   documentPath: string;
   eSignId: string; 
   signatureType: string;
-  secAssignmentId:number// Assuming this is the unique identifier for deletion
+  secAssignmentId:number
 }
 interface Officer {
   officerType: any;
@@ -512,39 +512,34 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
               <View style={styles.actionContainer}>
                 <Text style={styles.infoText}>Action:</Text>
 
-                <View style={styles.buttonContainervd}> 
-                  {/* View Button */}
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.viewButton]}
-                    onPress={() => handleViewImage(witness.documentPath)}
-                  >
-                    <Text style={styles.buttonText}>View</Text>
-                  </TouchableOpacity>
+                <View style={styles.buttonContainervd}>
+                      {/* View Button */}
+                      <TouchableOpacity
+                        style={[styles.actionButton, styles.viewButton]}
+                        onPress={() => handleViewImage(witness.documentPath)}
+                      >
+                        <Text style={styles.buttonText}>View</Text>
+                      </TouchableOpacity>
 
-                  {/* Delete Button */}
-                  <TouchableOpacity
-  style={[styles.actionButton, styles.deleteButton]}
-  onPress={async () => {
-    try {
-      // Fetch secAssignmentId from AsyncStorage
-      // const secAssignmentId = await fetchSecAssignmentId();
-
-      // if (!secAssignmentId) {
-      //   Alert.alert("Error", "Unable to retrieve secAssignmentId. Please try again.");
-      //   return;
-      // }
-
-      // Call handleDelete with eSignId and secAssignmentId
-      handleDelete(witness.eSignId, babitaji);
-    } catch (error) {
-      console.error("Error handling delete action:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
-    }
-  }}
->
-  <Text style={styles.actionButtonText}>Delete</Text>
-</TouchableOpacity>
-                 </View> 
+                      {/* Delete Button */}
+                      {witness.officerType === "P" ? (
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.deleteButton]}
+                          onPress={async () => {
+                            try {
+                              handleDelete(witness.eSignId, babitaji)
+                            } catch (error) {
+                              console.error("Error handling delete action:", error)
+                              Alert.alert("Error", "An unexpected error occurred. Please try again.")
+                            }
+                          }}
+                        >
+                          <Text style={styles.actionButtonText}>Delete</Text>
+                        </TouchableOpacity>
+                      ) : witness.officerType === "S" ? (
+                        <Text style={styles.infoText}>N/A</Text>
+                      ) : null}
+                    </View>
               </View>
             </View>
           ))}

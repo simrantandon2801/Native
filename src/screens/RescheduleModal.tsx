@@ -249,7 +249,7 @@ export function RescheduleModal({
     
       await rescheduleInspection(payload1, payload2);
   
-      console.log("Inspection rescheduled successfully!");
+      // console.log("Inspection rescheduled successfully!");
       Alert.alert("Success", "Inspection rescheduled successfully!");
   
       onReschedule({
@@ -376,12 +376,17 @@ export function RescheduleModal({
                 <Text style={styles.resetButtonText}>Reset</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.submitButton, (!selectedInspector || !remarks || isLoading) && styles.disabledButton]}
-                onPress={handleReschedule}
-                disabled={!selectedInspector || !remarks || isLoading}
-              >
-                <Text style={styles.reassignButtonText}>{isLoading ? "Rescheduling..." : "Reschedule"}</Text>
-              </TouchableOpacity>
+  style={[
+    styles.submitButton,
+    (!selectedInspector || !remarks.trim() || isLoading) && styles.disabledButton,
+  ]}
+  onPress={handleReschedule}
+  disabled={!selectedInspector || !remarks.trim() || isLoading}
+>
+  <Text style={styles.reassignButtonText}>
+    {isLoading ? "Rescheduling..." : "Reschedule"}
+  </Text>
+</TouchableOpacity>
             </View>
           </ScrollView>
         </View>
