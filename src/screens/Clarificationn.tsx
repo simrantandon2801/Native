@@ -19,9 +19,10 @@ import { Filter, X } from "lucide-react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getBusinessTypes } from "../database/Statebusinessapi"
-
+import { DataTable } from "react-native-paper" // Added missing import for DataTable
 import { useFocusEffect } from "@react-navigation/native"
-import { getClarificationFromOngoingInspection, getViewScore } from "../database/Clarificationapi"
+import { getClarificationFromOngoingInspection } from "../database/Clarificationapi"
+import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
 
 interface ClarificationData {
   currentPageNo: number
@@ -31,6 +32,15 @@ interface ClarificationData {
   paginationListRecords: any[]
 }
 
+// Modal Component
+interface ClarificationModalProps {
+  isVisible: boolean
+  onClose: () => void
+  data: any
+  refId: any
+}
+
+// Main Component
 const Clarificationn: React.FC = () => {
   const [Clarification, setclarification] = useState<ClarificationData>({
     currentPageNo: 1,
@@ -42,13 +52,16 @@ const Clarificationn: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
+  const [IsViewClarificationModalVisible, setIsViewClarificationModalVisible] = useState(false) 
   const [activeButton, setActiveButton] = useState<number>(1)
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
+  const [displayRefId, setdisplayRefId] = useState("")
+  const [sendbacklist, setSendbacklist] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
-
+  const [view1, setview] = useState<any[]>([]) // Initialize as empty array
   const [refId, setRefId] = useState("")
   const [refreshing, setRefreshing] = useState(false)
-  const [displayRefId, setdisplayRefId] = useState("")
+
   const [hasSearched, setHasSearched] = useState(false)
   const [itemsPerPage] = useState(10)
 
@@ -66,8 +79,7 @@ const Clarificationn: React.FC = () => {
   const [showToPicker, setShowToPicker] = useState(false)
   const [kobId, setKobId] = useState("")
   const [error, setError] = useState<string | null>(null)
-  const [isRemarksModalVisible, setIsRemarksModalVisible] = useState(false)
-  const [selectedRemarks, setSelectedRemarks] = useState<string | null>(null)
+
 
   const fetchclarification = useCallback(
     async (page: number) => {
@@ -75,13 +87,13 @@ const Clarificationn: React.FC = () => {
       setError(null)
       try {
         const payload: any = {
-          statusId: activeButton === 1 ?  41 : 50, // Different status ID based on active button
+          statusId: activeButton === 1 ? 41 : 50,
           userId: userId,
           displayRefId: displayRefId,
           companyName: companyName,
           fromDate: formatDate(fromDate),
           toDate: formatDate(toDate),
-          processFlag: null,
+          processFlag: true,
           inspectionType: selectedInspectionType || null,
           fsoName: null,
           kobId: selectedBusinessType || null,
@@ -101,7 +113,34 @@ const Clarificationn: React.FC = () => {
     },
     [userId, displayRefId, companyName, fromDate, toDate, selectedInspectionType, selectedBusinessType, activeButton],
   )
+  useEffect(() => {
+    const loadCompanyName = async () => {
+      try {
+        const savedCompanyName = await AsyncStorage.getItem("companyName")
+        if (savedCompanyName) {
+          setCompanyName(savedCompanyName)
+        }
+      } catch (error) {
+        console.error("Error loading companyName from AsyncStorage:", error)
+      }
+    }
 
+    loadCompanyName()
+  }, [])
+  useEffect(() => {
+    const loadCompanyName = async () => {
+      try {
+        const savedCompanyName = await AsyncStorage.getItem("displayrefID")
+        if (displayRefId) {
+          setdisplayRefId(displayRefId)
+        }
+      } catch (error) {
+        console.error("Error loading companyName from AsyncStorage:", error)
+      }
+    }
+
+    loadCompanyName()
+  }, [])
   useEffect(() => {
     console.log("Updated refId:", refId)
   }, [refId])
@@ -119,7 +158,12 @@ const Clarificationn: React.FC = () => {
       })
     }, []),
   )
-
+  
+  const openViewModal = (refId: string, inspectionId: string) => {
+    setRefId(refId)
+    handleApiCall(inspectionId, refId)
+  }
+  
   useEffect(() => {
     const fetchDataFromAsyncStorage = async () => {
       try {
@@ -181,20 +225,20 @@ const Clarificationn: React.FC = () => {
     fetchData()
   }, [])
 
-  useEffect(() => {
-    const loadCompanyName = async () => {
-      try {
-        const savedCompanyName = await AsyncStorage.getItem("companyName")
-        if (savedCompanyName) {
-          setCompanyName(savedCompanyName)
-        }
-      } catch (error) {
-        console.error("Error loading companyName from AsyncStorage:", error)
-      }
-    }
+  // useEffect(() => {
+  //   const loadCompanyName = async () => {
+  //     try {
+  //       const savedCompanyName = await AsyncStorage.getItem("companyName")
+  //       if (savedCompanyName) {
+  //         setCompanyName(savedCompanyName)
+  //       }
+  //     } catch (error) {
+  //       console.error("Error loading companyName from AsyncStorage:", error)
+  //     }
+  //   }
 
-    loadCompanyName()
-  }, [])
+  //   loadCompanyName()
+  // }, [])
 
   const onFromDateChange = (event, selectedDate) => {
     setShowFromPicker(false)
@@ -252,12 +296,12 @@ const Clarificationn: React.FC = () => {
     setHasSearched(false)
     setdisplayRefId("")
     setCurrentPage(1)
-    await fetchclarification(1)
+   
   }
 
   const handlePress = (buttonIndex: number) => {
     setActiveButton(buttonIndex)
-    // Reset data when switching tabs
+
     setHasSearched(false)
     setCurrentPage(1)
     setclarification({
@@ -311,20 +355,29 @@ const Clarificationn: React.FC = () => {
 
   useEffect(() => {
     console.log("Current Page:", currentPage)
-
   }, [currentPage])
 
-  const handleViewRemarks = async (refId: string, inspectionId: string) => {
+  const handleApiCall = async (inspectionId: any, refId: any) => {
     try {
-      const response = await getViewScore(refId, inspectionId);
-      console.log("API Response:", response);
-      setSelectedRemarks(response); 
-      setIsRemarksModalVisible(true);
+      console.log("refID==", refId)
+      console.log("inspectionID==", inspectionId)
+
+      const response = await getListSendBackToFBOForClarification(refId, inspectionId)
+      console.log("API Response:", response)
+      
+      // Ensure response is an array
+      const responseData = Array.isArray(response) ? response : []
+      setview(responseData)
+      
+      // Open the modal
+      setIsViewClarificationModalVisible(true)
+
+      return response
     } catch (error) {
-   
-      Alert.alert("Error", "Failed to fetch view score. Please try again.");
-    } 
-  };
+      console.error("Error in handleApiCall:", error)
+      Alert.alert("Error", "Failed to fetch data. Please try again.")
+    }
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -355,7 +408,7 @@ const Clarificationn: React.FC = () => {
         </View>
       </View>
 
-      <Modal visible={isModalVisible}>
+     <Modal visible={isModalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -365,6 +418,7 @@ const Clarificationn: React.FC = () => {
                   <X size={24} color="#000" />
                 </TouchableOpacity>
               </View>
+              {/* <Text style={styles.modalTitle}>Filter Inspection</Text> */}
 
               <Text style={styles.label}>Reference Number</Text>
               <TextInput
@@ -384,7 +438,7 @@ const Clarificationn: React.FC = () => {
                 placeholderTextColor="#999"
               />
 
-              <Text style={styles.label}>Inspection End Date from</Text>
+<Text style={styles.label}>Allocated Date From</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>
                 <Text>{getDisplayDate(fromDate)}</Text>
               </TouchableOpacity>
@@ -392,7 +446,7 @@ const Clarificationn: React.FC = () => {
                 <DateTimePicker value={fromDate || today} mode="date" onChange={onFromDateChange} maximumDate={today} />
               )}
 
-              <Text style={styles.label}>Inspection End Date from</Text>
+              <Text style={styles.label}>Allocated Date To</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowToPicker(true)}>
                 <Text>{getDisplayDate(toDate)}</Text>
               </TouchableOpacity>
@@ -417,6 +471,9 @@ const Clarificationn: React.FC = () => {
                   <Picker.Item label="Select Inspection Type" value="" style={styles.placeholderStyle} />
                   <Picker.Item label="PRE" value="PRE" />
                   <Picker.Item label="POST" value="POST" />
+                  {/* {inspectionTypes.map((type) => (
+    <Picker.Item key={type.id} label={type.name} value={type.id} />
+  ))} */}
                 </Picker>
               </View>
 
@@ -434,20 +491,21 @@ const Clarificationn: React.FC = () => {
                   ))}
                 </Picker>
               </View>
-              <View style={styles.buttonContainers}>
+              <View style={styles.buttonContainer}>
                 <TouchableOpacity onPress={handleReset} style={styles.closeButton}>
                   <Text style={styles.closeButtonText}>Reset</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.applyButton}
                   onPress={async () => {
-                    if ((fromDate && !toDate) || (!fromDate && toDate)) {
-                      Alert.alert("Please select both From and To dates")
-                      return
-                    }
+                      if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                                          Alert.alert("Please select both From and To dates")
+                                          return
+                                        }
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)
+                    // setCompanyName(companyName)
                     await fetchclarification(1)
                     toggleModal()
                   }}
@@ -483,17 +541,14 @@ const Clarificationn: React.FC = () => {
                     Status Description: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
                   </Text>
                   <Text style={styles.boldText}>
-                    Date of Inspection: <Text style={styles.normalText}>{item.
-inspectionDate
- || "N/A"}</Text>
+                    Date of Inspection: <Text style={styles.normalText}>{item.inspectionDate || "N/A"}</Text>
                   </Text>
-              
-                  <View style={styles.companyy}>
-  <Text style={styles.boldText}>Company Name/Organization:</Text>
-  <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
-  <Text style={styles.normalText}>{item.fullAddress || "N/A"}</Text>
-</View>
 
+                  <View style={styles.companyy}>
+                    <Text style={styles.boldText}>Company Name/Organization:</Text>
+                    <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
+                    <Text style={styles.normalText}>{item.fullAddress || "N/A"}</Text>
+                  </View>
                 </View>
 
                 <View style={styles.rightContent}>
@@ -506,12 +561,13 @@ inspectionDate
                       {item.displayRefId || "N/A"}/{item.certificateNo || "N/A"}
                     </Text>
                   </Text>
-
-               
                 </View>
               </View>
               <View style={styles.buttonview}>
-                <TouchableOpacity style={styles.viewButton} onPress={() => handleViewRemarks(item.inspectionId,item.refId)}>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => openViewModal(item.refId, item.inspectionId)}
+                >
                   <Text style={styles.viewButtonText}>View</Text>
                 </TouchableOpacity>
               </View>
@@ -523,23 +579,63 @@ inspectionDate
       </ScrollView>
 
       {hasSearched && Clarification?.paginationListRecords?.length > 0 && renderPagination()}
-
-      <Modal visible={isRemarksModalVisible} transparent={true} onRequestClose={() => setIsRemarksModalVisible(false)}>
-        <View style={{ flex: 1, justifyContent: "flex-end", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" }}>
-          <View style={styles.remarksModalContent}>
-            <Text
-              style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10, textAlign: "center", fontFamily: "Outfit" }}
-            >
-             Points Sent For Clarification
-            </Text>
-            <ScrollView style={styles.remarksScrollView}>
-              <Text style={styles.remarksText}>{selectedRemarks || "No remarks available."}</Text>
-            </ScrollView>
-            <View style={styles.viewcontainer}>
-              <TouchableOpacity style={styles.closeFullButton} onPress={() => setIsRemarksModalVisible(false)}>
-                <Text style={styles.closeFullButtonText}>Close</Text>
+      
+      {/* View Clarification Modal */}
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={IsViewClarificationModalVisible}
+        onRequestClose={() => setIsViewClarificationModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, styles.officerModalContent]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Points to be checklist</Text>
+              <TouchableOpacity onPress={() => setIsViewClarificationModalVisible(false)} style={styles.closeIcon}>
+                <X size={24} color="#000" />
               </TouchableOpacity>
             </View>
+            <ScrollView style={styles.tableContainer}>
+
+
+  {view1 && view1.length > 0 ? (
+    view1.map((officer, index) => (
+      <View key={officer.id || index} style={styles.tableRow}>
+        {/* <Text style={styles.tableCell}>{index + 1}</Text> */}
+        <Text style={styles.tableCell}>Section Name: {officer.sectionName || 'N/A'}</Text>
+        <Text style={styles.tableCell}>Score: {officer.maximumScore || 'N/A'}</Text>
+        
+        <Text style={styles.tableCell}>Observation: {officer.observation || 'N/A'}</Text>
+        <Text style={styles.tableCell}>Maximum score: {officer.maximumScore || 'N/A'}</Text>
+        <Text style={styles.tableCell}>Score: {officer.score || 'N/A'}</Text>
+          {/* <TouchableOpacity
+                    style={styles.checkbox}
+                    onPress={() => {
+                    
+                      const updatedList = [...sendbacklist];
+                      updatedList[index].isSelected = !updatedList[index].isSelected;
+                      setSendbacklist(updatedList); 
+                    }}
+                  >
+                    <Text style={styles.checkboxText}>
+                      {item.isSelected ? "✅" : "⬜"}
+                    </Text>
+                  </TouchableOpacity> */}
+        <Text style={styles.tableCell}>Remarks: {officer.comments || 'N/A'}</Text>
+      </View>
+    ))
+  ) : (
+    <View style={styles.tableRow}>
+      <Text style={[styles.tableCell, { textAlign: 'center', flex: 1 }]}>
+        No officers found
+      </Text>
+    </View>
+  )}
+</ScrollView>
+
+            <TouchableOpacity style={styles.closeButtonView} onPress={() => setIsViewClarificationModalVisible(false)}>
+              <Text style={styles.closeButtonText6}>Close</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -556,7 +652,11 @@ const styles = StyleSheet.create({
     // flex: 1,
   },
   buttonContainer: {
-    padding: 20,
+    // padding: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+    marginTop: 16,
   },
   buttonRow: {
     flexDirection: "row",
@@ -564,14 +664,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "100%",
     flexWrap: "nowrap",
-    paddingLeft:20,
-    paddingRight:20,
-    gap:20
+    paddingLeft: 20,
+    paddingRight: 20,
+    gap: 20,
   },
   button: {
     flex: 1,
     padding: 5,
-   
     borderRadius: 6,
     alignItems: "center",
   },
@@ -829,8 +928,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+  
   closeButtonText: {
     color: "#007bff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  closeButtonText6: {
+    color: "#fff",
     fontWeight: "600",
     fontSize: 16,
   },
@@ -963,7 +1068,41 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
   },
+  // Modal container styles
+  modalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  officerModalContent: {
+    width: "100%",
+    maxHeight: "80%",
+    borderRadius: 12,
+  },
+  tableContainer: {
+    maxHeight: 400,
+  },
+  tableHeader: {
+    backgroundColor: "#f0f0f0",
+  },
+  tableRow: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  tableCell: {
+    padding: 8,
+  },
+  closeButtonView: {
+    backgroundColor: "#007AFF",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 15,
+  },
 })
 
-export default Clarificationn
+// Modal component styles
 
+
+export default Clarificationn

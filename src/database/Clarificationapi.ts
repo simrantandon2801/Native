@@ -96,39 +96,40 @@ export const getClarificationFromScrutinizeInspection = async ()=> {
     throw error
   }
 }
-export const getViewScore = async (refId:string,inspectionId:string) => {
-  try {
-    const storedUserId = await AsyncStorage.getItem("userId");
-    const accessToken = await AsyncStorage.getItem("accessToken");
-    const xAuthUserId = encryptData(storedUserId || "");
+// export const getViewScore = async (refId:string,inspectionId:string) => {
+//   try {
+//     const storedUserId = await AsyncStorage.getItem("userId");
+//     const accessToken = await AsyncStorage.getItem("accessToken");
+//     const xAuthUserId = encryptData(storedUserId || "");
 
-    if (!accessToken || !storedUserId) {
-      throw new Error("No authentication token or user ID found");
-    }
+//     if (!accessToken || !storedUserId) {
+//       throw new Error("No authentication token or user ID found");
+//     }
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/clarificationsenttofboreg/${refId}/${inspectionId}`;
+//     const apiUrl = `${BASE_URL}/gateway/officer/inspection/clarificationsenttofboreg/${refId}/${inspectionId}`;
+//     console.log("apiurl",apiUrl)
 
-    const response = await fetch(apiUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${accessToken}`,
-        "X-Auth-User-Id": xAuthUserId,
-      },
-    });
+//     const response = await fetch(apiUrl, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `${accessToken}`,
+//         "X-Auth-User-Id": xAuthUserId,
+//       },
+//     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
-      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
-    }
+//     if (!response.ok) {
+//       const errorText = await response.text();
+//       console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+//       throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+//     }
 
-    const data = await response.json();
-    console.log("View score:", data);
-    return data;
-  } catch (error) {
-    console.error("Error in getFssaiUserDetails:", error);
-    throw error;
-  }
-};
+//     const data = await response.json();
+//     console.log("View score:", data);
+//     return data;
+//   } catch (error) {
+//     console.error("Error in getFssaiUserDetails:", error);
+//     throw error;
+//   }
+// };
 

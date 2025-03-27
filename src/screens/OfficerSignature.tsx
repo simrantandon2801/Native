@@ -296,21 +296,7 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
       setIsLoading(false);
     }
   };
-  const fetchSecAssignmentId = async () => {
-    // try {
-    //   const secAssignmentId = await AsyncStorage.getItem("secAssignmentId");
-    //   if (secAssignmentId) {
-    //     console.log("Retrieved secAssignmentId from AsyncStorage:", secAssignmentId);
-    //     (secAssignmentId); // Convert back to a number
-    //   } else {
-    //     console.error("secAssignmentId not found in AsyncStorage");
-    //     return null;
-    //   }
-    // } catch (err) {
-    //   console.error("Error retrieving secAssignmentId from AsyncStorage:", err);
-    //   return null;
-    // }
-  };
+
   const openModal = () => {
     setIsModalVisible(true)
     fetchEsignOfficer()
