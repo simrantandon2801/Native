@@ -11,7 +11,8 @@ import { getMasterInspectionSection } from "../database/Resumeapi"
 import { getInspectionParameterResults } from "../database/Resumelistapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
-
+import { Checkbox } from 'react-native-paper';
+import { saveInspectionClarificationReg } from "../database/OfficerSignatureapi"
 type RouteParams = {
   data: Section[]
   refId: string
@@ -23,7 +24,8 @@ interface SendBackItem {
   observation: string;
   score: number;
   maximumScore:number
-  comments:string // Assuming score is a number, adjust if it's a string
+  comments:string
+  isSelected:any // Assuming score is a number, adjust if it's a string
 }
 interface Section {
   sectionName: string
@@ -40,14 +42,18 @@ interface Section {
 const Resumelist: React.FC = () => {
   const navigation = useNavigation()
   const route = useRoute<RouteProp<Record<string, RouteParams>>>()
-  const { data: initialData, refId, inspectionId,assignmentId } = route.params
+  const { data: initialData, refId, inspectionId,assignmentId, } = route.params
   console.log("assishd",assignmentId)
   console.log("refID",refId)
+  
 
   const [data, setData] = useState<Section[]>(initialData)
   const [selectedOption, setSelectedOption] = useState("forward")
  const [sendbacklist, setSendbacklist] = useState<SendBackItem[]>([]); 
   const [remarks, setRemarks] = useState("")
+  const [remarks1, setRemarks1] = useState("")
+   const [error, setError] = useState<string | null>(null)
+  const [userId, setUserId] = useState()
   const [parameterRegResults, setParameterRegResults] = useState<any[]>([])
   const [parameterResults, setParameterResults] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(false)
@@ -72,7 +78,18 @@ const Resumelist: React.FC = () => {
       setIsRefreshing(false)
     }
   }
+  const fetchDataFromAsyncStorage = async () => {
+    try {
+      const storedUserId = await AsyncStorage.getItem("userId")
+      setUserId(storedUserId)
+      console.log("Retrieved User ID:", storedUserId)
+    } catch (err) {
+      console.error("Error fetching data from AsyncStorage:", err)
+      setError("Failed to load data from storage.")
+    }
+  }
 
+  fetchDataFromAsyncStorage()
   useFocusEffect(
     useCallback(() => {
       const checkRefreshFlag = async () => {
@@ -103,7 +120,7 @@ const Resumelist: React.FC = () => {
   
   const handleResumePress = async (inspectionId: number, refId: number,sectionName:string,assignmentId:number,sectionId:number) => {
     try {
-      console.log("Resume pressed for inspection ID:", inspectionId, "ref ID:", refId,"sectionName:",sectionName,"assignmentId",assignmentId,"sectionID",sectionId);
+      console.log("Resume pressed for inspection IDss:", inspectionId, "ref ID:", refId,"sectionName:",sectionName,"assignmentId",assignmentId,"sectionID",sectionId);
   
       const result = await getMasterInspectionSection(inspectionId);
       console.log("Resume API result:", result);
@@ -118,6 +135,90 @@ const Resumelist: React.FC = () => {
       Alert.alert("Error", "Failed to load inspection details. Please try again.");
     }
   };
+  const handleFinish2 = async (sendbacklist, signatureType) => {
+    console.log("handlefinish called with", { sendbacklist, signatureType })
+
+    if (!selectedOption) {
+      Alert.alert("Please select an option (Forward or Send Back).")
+      return
+    }
+
+   
+    const selectedSections = sendbacklist.filter((item) => item.isSelected).map((item) => item.sectionId)
+
+    if (selectedOption === "sendBack" && selectedSections.length === 0) {
+      Alert.alert("Please select at least one reason for sending back")
+      return
+    }
+
+   
+    const isAllSectionsFilled = !data.some(
+      (x) =>
+        x.submittedFlag === false && x.sectionId !== 12 && x.sectionId !== 6 && x.sectionId !== 13 && x.sectionId !== 7,
+    )
+
+    if (!isAllSectionsFilled) {
+      Alert.alert("Please fill all section fields.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+
+      let roleId: number
+      let doRemarks = ""
+      let fsoRemarks = ""
+
+      if (signatureType === "FSO") {
+        fsoRemarks = remarks1
+        roleId = 3
+      } else {
+        doRemarks = remarks1
+        roleId = 4
+      }
+
+  
+      const inspectionClarificationDetails = selectedSections.map((sectionId) => ({
+        sectionId: sectionId,
+      }))
+
+      console.log("Selected sections for clarification:", inspectionClarificationDetails)
+
+      const payload = {
+        inspectionMasterClarificationRegistration: {
+          inspectionId: inspectionId,
+          refId: refId,
+          roleId: roleId,
+          doRemarks: doRemarks,
+          fsoRemarks: fsoRemarks,
+          createdBy: userId,
+          updatedBy: userId,
+        },
+        inspectionClarificationRegistrationDetails: inspectionClarificationDetails,
+        assignmentId: assignmentId,
+        statusId: "20",
+      }
+
+      console.log("Sending payload:", payload)
+
+      const response = await saveInspectionClarificationReg(payload)
+      console.log("API response:", response)
+
+      if (response.statusCode === "200") {
+        Alert.alert("Success", "Inspection clarification sent successfully to Applicant.")
+       
+        setRemarks1("")
+        navigation.navigate('Ongoinglist' as never);
+      } else {
+        Alert.alert("Error", "Some issue occurred. Kindly contact Administrator.")
+      }
+    } catch (error) {
+      console.error("Error saving inspection clarification:", error)
+      Alert.alert("Error", "Failed to save inspection clarification. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
   const handleApiCall = async (refId:string,inspectionId:string) => {
     try {
       console.log("refID==",refId)
@@ -241,7 +342,7 @@ const Resumelist: React.FC = () => {
         )}
 
 <View style={styles.radioContainer}>
-  {/* Radio Button: Forward to NHB */}
+
   <TouchableOpacity style={styles.radioButton} onPress={() => setSelectedOption("forward")}>
     <View style={styles.radioButtonCircle}>
       {selectedOption === "forward" && <View style={styles.radioButtonInnerCircle} />}
@@ -249,7 +350,7 @@ const Resumelist: React.FC = () => {
     <Text style={styles.radioButtonLabel}>Forward to NHB</Text>
   </TouchableOpacity>
 
-  {/* Radio Button: Send Back to Applicant for Clarification */}
+  
   <TouchableOpacity
     style={styles.radioButton}
     onPress={async () => {
@@ -276,32 +377,50 @@ const Resumelist: React.FC = () => {
 
 
   {selectedOption === "sendBack" && (
-    <View style={styles.sendBackListContainer}>
-      {sendbacklist.length > 0 ? (
-        sendbacklist.map((item, index) => (
-          <View key={index} style={styles.sendBackItem}>
-            <Text style={styles.sendBackLabel}>Section Name:</Text>
-            <Text style={styles.sendBackValue}>{item.sectionName || "N/A"}</Text>
-
-            <Text style={styles.sendBackLabel}>Observation:</Text>
-            <Text style={styles.sendBackValue}>{item.observation || "N/A"}</Text>
-
-            <Text style={styles.sendBackLabel}>Score:</Text>
-            <Text style={styles.sendBackValue}>{item.score || "N/A"}</Text>
-            <Text style={styles.sendBackLabel}>Maximum:</Text>
-            <Text style={styles.sendBackValue}>{item.maximumScore || "N/A"}</Text>
-            <Text style={styles.sendBackLabel}>Remarks:</Text>
-            <Text style={styles.sendBackValue}>{item.comments || "N/A"}</Text>
-
+  <View style={styles.sendBackListContainer}>
+    {sendbacklist.length > 0 ? (
+      sendbacklist.map((item, index) => (
+        <View key={index} style={styles.sendBackItem}>
+         
+          <Text style={styles.sendBackLabel}>Section Name:</Text>
+          <Text style={styles.sendBackValue}>{item.sectionName || "N/A"}</Text>
 
        
-          </View>
-        ))
-      ) : (
-        <Text style={styles.noDataText}>No data available</Text>
-      )}
-    </View>
-  )}
+          <Text style={styles.sendBackLabel}>Observation:</Text>
+          <Text style={styles.sendBackValue}>{item.observation || "N/A"}</Text>
+
+      
+          <Text style={styles.sendBackLabel}>Score:</Text>
+          <Text style={styles.sendBackValue}>{item.score || "N/A"}</Text>
+
+          <Text style={styles.sendBackLabel}>Maximum:</Text>
+          <Text style={styles.sendBackValue}>{item.maximumScore || "N/A"}</Text>
+
+    
+          <Text style={styles.sendBackLabel}>Remarks:</Text>
+          <Text style={styles.sendBackValue}>{item.comments || "N/A"}</Text>
+
+          <Text style={styles.sendBackLabel}>Points to be send for Clarification:</Text>
+          <TouchableOpacity
+            style={styles.checkbox}
+            onPress={() => {
+            
+              const updatedList = [...sendbacklist];
+              updatedList[index].isSelected = !updatedList[index].isSelected;
+              setSendbacklist(updatedList); 
+            }}
+          >
+            <Text style={styles.checkboxText}>
+              {item.isSelected ? "✅" : "⬜"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ))
+    ) : (
+      <Text style={styles.noDataText}>No data available</Text>
+    )}
+  </View>
+)}
 </View>
 
         {selectedOption === "forward" && (
@@ -312,8 +431,8 @@ const Resumelist: React.FC = () => {
                 style={styles.textarea}
                 value={remarks}
                 onChangeText={setRemarks}
-                multiline={true}
-                numberOfLines={6}
+                // multiline={true}
+                numberOfLines={2}
                 textAlignVertical="top"
               />
             </View>
@@ -323,43 +442,33 @@ const Resumelist: React.FC = () => {
             </TouchableOpacity>
           </>
         )}
-          {selectedOption === "sendBack" && (
-          <>
-            <View style={styles.remarksContainer}>
-              <Text style={styles.remarksLabel}>Remarks:</Text>
-              <TextInput
-                style={styles.textarea}
-                value={remarks}
-                onChangeText={setRemarks}
-                multiline={true}
-                numberOfLines={6}
-                textAlignVertical="top"
-              />
-            </View>
+      {selectedOption === "sendBack" && (
+  <>
+    <View style={styles.remarksContainer}>
+      <Text style={styles.remarksLabel}>Remarks:</Text>
+      <TextInput
+        style={styles.textarea}
+        value={remarks1}
+        onChangeText={setRemarks1}
+        numberOfLines={2}
+        textAlignVertical="top"
+        placeholder="Enter remarks here..."
+      />
+    </View>
 
-            <TouchableOpacity
-  style={styles.finishButton}
-  onPress={() => {
-   
-    if (!selectedOption) {
-      Alert.alert("Please select an option (Forward or Send Back).");
-      return;
-    }
-
-    if (selectedOption === "sendBack" && sendbacklist.length === 0) {
-      Alert.alert("");
-      return;
-    }
-
-   
-    Alert.alert( "Please fill all section fields ");
-   
-  }}
->
-  <Text style={styles.finishButtonText}>Finish</Text>
-</TouchableOpacity>
-          </>
-        )}
+    <TouchableOpacity
+      style={styles.finishButton}
+      onPress={() => handleFinish2(sendbacklist, "FSO")}
+      disabled={isLoading}
+    >
+      {isLoading ? (
+        <ActivityIndicator size="small" color="#fff" />
+      ) : (
+        <Text style={styles.finishButtonText}>Finish</Text>
+      )}
+    </TouchableOpacity>
+  </>
+)}
       </ScrollView>
     </SafeAreaView>
   )
@@ -546,6 +655,19 @@ const styles = StyleSheet.create({
     color: "#4CAF50",
     fontWeight: "500",
     marginTop: 4,
+  },
+  checkbox: {
+    width: 30,
+    height: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    // borderWidth: 1,
+    // borderColor: "#000",
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  checkboxText: {
+    fontSize: 16,
   },
 })
 

@@ -214,7 +214,7 @@ useFocusEffect(
       console.log("Resume pressed for inspection ID:", inspectionId,refId)
       console.log("Resume pressed for ref ID:", refId)
       console.log("assignmentId",assignmentId)
-      console.log("sectionID",sectionId)
+      console.log("sectwionID",sectionId)
 
       
 

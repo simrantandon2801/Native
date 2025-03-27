@@ -11,14 +11,18 @@ import {
   TouchableOpacity,
   Modal,
   Alert,
-  TextInput,Image
+  TextInput,Image,ActivityIndicator
 } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { useFocusEffect } from '@react-navigation/native';
+import  { useCallback } from 'react';
 import { useRoute, type RouteProp, useNavigation } from "@react-navigation/native"
 import { deleteInspectionofficerSignature, getFssaiUserDetails, getSecEsignDetails, submitapioficer, updateSendInvitation } from "../database/OfficerSignatureapi"
 import DocumentPicker from "react-native-document-picker"
 import { getWitnessDetailsForRegistration, saveWitnessDetailsForRegistration } from "../database/Signatureapi"
 import { viewInspectionDocument } from "../database/DocumentListapi"
+import { getMasterInspectionSection } from "../database/Resumeapi"
+import { submitInspectionSection } from "../database/SubmitSectionapi"
 // Add this function after the imports
 
 interface PreviewDocumentsProps {
@@ -48,7 +52,7 @@ interface Officer {
 const OfficerSignature: React.FC = () => {
   const route = useRoute<RouteProp<Record<string, PreviewDocumentsProps>>>()
   const navigation = useNavigation()
-  const { inspectionId, assignmentId, refId } = route.params
+  const { inspectionId, assignmentId, refId ,sectionId} = route.params
   const [fetchedData, setfetchedData] = useState<WitnessDetail[]>([]);
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -57,7 +61,7 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
   const [userId, setUserId] = useState()
   const [fetchedOfficerData, setFetchedOfficerData] = useState<any>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
-
+  const [isHandToHandVisible, setIsHandToHandVisible] = useState(false);
   // Add state for FSSAI user details and signature modal
   const [fssaiUserDetails, setFssaiUserDetails] = useState<any>(null)
   const [isSignatureViewModalVisible, setIsSignatureModalVisible] = useState(false)
@@ -76,6 +80,7 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
   const [aadhaarNumber, setAadhaarNumber] = useState("")
   const [showPreview, setShowPreview] = useState(false)
   const [aadhaarPart1, setAadhaarPart1] = useState("")
+ 
   const [aadhaarPart2, setAadhaarPart2] = useState("")
 
   // Refs for aadhaar input fields
@@ -169,42 +174,103 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
     return Object.keys(newErrors).length === 0
   }
   const handleSubmit = async (assignmentId: string) => {
+    setIsLoading(true);
     console.log("Handle Submit Officer", assignmentId);
   
     try {
-     
+      // Ensure `inspectionId` is defined before using it
+      if (!inspectionId) {
+        throw new Error("inspectionId is undefined");
+      }
+  
+      const witnessDetails = await getWitnessDetailsForRegistration(
+        Number.parseInt(assignmentId),
+        Number.parseInt(inspectionId)
+      );
+      console.log("Witness details fetched:", witnessDetails);
+  
+      if (witnessDetails.length === 0) {
+        Alert.alert("Alert", "Please add Inspection Officer sign details.");
+        setIsLoading(false);
+        return;
+      }
+  
       const response = await submitapioficer(assignmentId);
       console.log("Assignment ID:", assignmentId);
       console.log("API Response:", response);
   
-     
+      if (response.statusCode === "200" && response.generatedCode === "false") {
+        Alert.alert("Alert", "Please wait for E-sign officer to respond.");
+        setIsLoading(false);
+        return;
+      }
+  
       if (response && response.generatedCode === "true") {
-      
-        Alert.alert("Success", "Form submitted successfully!", [
-          {
-            text: "OK",
-            onPress: () => {
-              
-              navigation.pop(1); 
+        try {
+          console.log("Submission successful, fetching master inspection section...");
+  
+          // Create inspection details object
+          const inspectionDetails = {
+            inspectionDetailsParametersRegistration: [],
+            inspectionDetailsSectionRegistration: {
+              id: {
+                inspectionId: inspectionId,
+                sectionId: sectionId,
+              },
+              createdBy: userId,
+              updatedBy: userId,
+              refId: refId,
+              observation: null,
+              isSubmitted: true,
+              comments: null,
             },
-          },
-        ]);
-      } else {
-
-        Alert.alert("Please wait for E-sign officer to respond.");
+          };
+  
+          console.log("Inspection Details Created:", inspectionDetails);
+  
+          const apiResponse = await submitInspectionSection(inspectionDetails);
+          console.log("submitInspectionSection Response:", apiResponse);
+  
+          // Show success alert after both APIs complete successfully
+          Alert.alert("Success", "Form submitted successfully!", [
+            {
+              text: "OK",
+              onPress: async () => {
+                try {
+                  // Navigate back after performing the async operation
+                  await AsyncStorage.setItem("refreshResumeList", "true");
+                  navigation.pop(1); // Navigate back after the async operation completes
+                } catch (error) {
+                  console.error("Error while setting AsyncStorage item:", error);
+                  Alert.alert("Error", "Failed to update the resume list.");
+                }
+              },
+            }
+          ]);
+        } catch (submitError) {
+          console.error("Error submitting inspection section:", submitError);
+          Alert.alert("Error", "Failed to submit inspection section.");
+        }
       }
     } catch (error) {
-   
-      console.error("API Error:", error);
-      Alert.alert("Error", "An error occurred while submitting the form. Please try again.");
+      console.error("Error in handleSubmit:", error);
+      Alert.alert("Error", "An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
     }
   };
   
+
+  useFocusEffect(
+    useCallback(() => {
+      console.log("Screen focused");
+    }, [inspectionId])
+  );
   const fetchEsignOfficer = async () => {
     try {
       setIsLoading(true);
   
-      // Fetch data from the API
+     
       const data= await getSecEsignDetails(Number.parseInt(assignmentId));
       console.log("Officer signature details fetched:", data);
       setbabitaji(data[0].secAssignmentId);
@@ -260,9 +326,11 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
   }
   const handleSendForSignature = async (secAssignmentId: number, email: string) => {
     try {
+      setIsLoading(true)
       if (!email) {
         console.error("Email is missing.")
         Alert.alert("Error", "Email is missing. Please provide a valid email.")
+        setIsLoading(false)
         return
       }
 
@@ -285,6 +353,8 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
     } catch (error) {
       console.error("Failed to send invitation:", error)
       Alert.alert("Error", "Failed to send invitation. Please try again.")
+    }finally {
+      setIsLoading(false)
     }
   }
 
@@ -513,7 +583,7 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
                 <Text style={styles.infoText}>Action:</Text>
 
                 <View style={styles.buttonContainervd}>
-                      {/* View Button */}
+                    
                       <TouchableOpacity
                         style={[styles.actionButton, styles.viewButton]}
                         onPress={() => handleViewImage(witness.documentPath)}
@@ -546,18 +616,19 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
         </View>
       ) : (
         !isLoading && !error && (
-          <Text style={styles.noDataText}>No matching witness details found.</Text>
+          <Text style={styles.noDataText}></Text>
         )
       )}
 
      
        <View style={styles.buttonContainerRow}>
-       <TouchableOpacity
-  style={styles.submitButton}
-  onPress={() => handleSubmit(assignmentId)} // Wrap the function call in an arrow function
->
-  <Text style={styles.buttonText3}>Submit</Text>
-</TouchableOpacity>
+       <TouchableOpacity style={styles.submitButton} onPress={() => handleSubmit(assignmentId)} disabled={isLoading}>
+      {isLoading ? (
+        <ActivityIndicator size="small" color="#ffffff" />
+      ) : (
+        <Text style={styles.buttonText3}>Submit Section</Text>
+      )}
+    </TouchableOpacity>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -616,8 +687,13 @@ const [currentSecAssignmentId, setCurrentSecAssignmentId] = useState(null);
                         ) : (
                           <TouchableOpacity
                             onPress={() => handleSendForSignature(officer.secAssignmentId, officer.email)}
+                            disabled={isLoading}
                           >
-                            <Text style={styles.linkText}>Send for Signature</Text>
+                            {isLoading ? (
+                              <ActivityIndicator size="small" color="#007bff" />
+                            ) : (
+                              <Text style={styles.linkText}>Send for Signature</Text>
+                            )}
                           </TouchableOpacity>
                         ))}
 
