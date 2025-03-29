@@ -277,20 +277,16 @@ useFocusEffect(
 
   const handlePageChange = async (newPage: number) => {
     if (newPage >= 1) {
-      setCurrentPage((prevPage) => prevPage + 1)
-      await fetchOngoing(newPage)
+      setCurrentPage(newPage);
+      await fetchOngoing(newPage);
     }
-  }
-
-  useEffect(() => {
-    if (userId && hasSearched) {
-      fetchOngoing(currentPage)
-    }
-  }, [userId, currentPage, fetchOngoing, hasSearched])
+  };
+  
   const renderPagination = () => {
     const hasMorePages =
-      ongoingData?.paginationListRecords?.length > 0 && ongoingData?.paginationListRecords?.length >= itemsPerPage
-
+      ongoingData?.paginationListRecords?.length > 0 &&
+      ongoingData?.paginationListRecords?.length >= itemsPerPage;
+  
     return (
       <View style={styles.paginationContainer}>
         <TouchableOpacity
@@ -300,9 +296,9 @@ useFocusEffect(
         >
           <Text style={styles.paginationButtonText}>Previous</Text>
         </TouchableOpacity>
-
+  
         <Text style={styles.paginationInfo}>Page {currentPage}</Text>
-
+  
         <TouchableOpacity
           onPress={() => handlePageChange(currentPage + 1)}
           disabled={!hasMorePages}
@@ -311,12 +307,8 @@ useFocusEffect(
           <Text style={styles.paginationButtonText}>Next</Text>
         </TouchableOpacity>
       </View>
-    )
-  }
-  useEffect(() => {
-    console.log("Current Page:", currentPage)
-    // console.log("Total Pages:", Totalpage)
-  }, [currentPage])
+    );
+  };
 
 
 

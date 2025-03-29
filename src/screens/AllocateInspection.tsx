@@ -21,8 +21,19 @@ import { Filter, X } from "lucide-react-native"
 import { getDistrictList, searchApplications } from "../database/Districtapi"
 import { getStateList, getBusinessTypes } from "../database/Statebusinessapi"
 import { getAllocateInspectionDetails } from "../database/ProceedAllocateapi"
-import AllocateInspectionDetailsModal from "./AllocateInspectionDetailsModal"
 import { useFocusEffect } from "@react-navigation/native"
+interface SelectedInspectionDetails {
+  kobDetails?: KobDetail[];
+  inspectionDetails?: InspectionDetail[];
+}
+interface KobDetail {
+  kobname: string;
+}
+
+interface InspectionDetail {
+  key: string;
+  value: string;
+}
 const AllocateInspection: React.FC = () => {
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -30,7 +41,7 @@ const AllocateInspection: React.FC = () => {
   const [companyName, setCompanyName] = useState("")
   const [selectedState, setSelectedState] = useState("")
   const [selectedDistrict, setSelectedDistrict] = useState("")
-  
+
   const [displayrefId1, setdisplayRefId1] = useState("")
   const [loggedInUserId1, setLoggedInUserId1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
@@ -43,9 +54,7 @@ const AllocateInspection: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
-  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState<AllocateInspectionDetailsResponse | null>(
-    null,
-  )
+  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState<SelectedInspectionDetails | null>(null);
   const [refreshing, setRefreshing] = useState(false)
   const [kobId, setKobId] = useState("")
   const [stateCode, setstatecode] = useState("")
@@ -55,12 +64,7 @@ const AllocateInspection: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
   // const [Totalpage, setTotalpage] = useState()
-  interface AllocateInspectionDetailsResponse {
-    refId: string
-    certificateNo: string
-    kobDetails?: { kobname: string }[]
-    inspectionDetails?: { key: string; value: string }[]
-  }
+
   useEffect(() => {
     const fetchKobId = async () => {
       try {
@@ -112,7 +116,33 @@ const AllocateInspection: React.FC = () => {
 
     fetchLoggedInUser()
   }, [])
+  const handleProceed = async (refId: string, certificateNo: string) => {
+    try {
+      // Store values in AsyncStorage
+      await AsyncStorage.setItem("refIdddd", refId.toString())
+      await AsyncStorage.setItem("certificatenoproceed", certificateNo.toString())
 
+      // Call the API function
+      const result = await getAllocateInspectionDetails(refId, certificateNo)
+      console.log("ref'idafsa", refId, "certifdifFA", certificateNo)
+      console.log(result)
+
+      // Update state variables
+      setSelectedInspectionDetails(result)
+      setCertificateNo(certificateNo)
+      setRefId(refId)
+
+      // Retrieve values from AsyncStorage for logging
+      const refuda = await AsyncStorage.getItem("refIdddd")
+      const certuda = await AsyncStorage.getItem("certificatenoproceed")
+      console.log("simranda : ", refuda, " ,", certuda)
+
+      // Show the modal
+      setIsDetailsModalVisible(true)
+    } catch (error) {
+      console.error("Error fetching Allocate Inspection Details:", error)
+    }
+  }
   const fetchData = useCallback(async () => {
     try {
       const stateData = await getStateList()
@@ -204,6 +234,16 @@ const AllocateInspection: React.FC = () => {
       await AsyncStorage.setItem("districtName", newDistrictName)
     }
   }
+  const onClose = () => {
+    setIsDetailsModalVisible(false)
+  }
+
+  const openAllocateModal = () => {
+    // Implement your allocate modal logic here
+    console.log("Open allocate modal")
+    setIsDetailsModalVisible(false)
+    // You might want to open another modal here
+  }
   useEffect(() => {
     const loadDistrictName = async () => {
       try {
@@ -227,23 +267,16 @@ const AllocateInspection: React.FC = () => {
     setError(null)
     setSearchResults("")
   }
-  const handlePageChange = async (newPage: number) => {
-    if (newPage >= 1) {
-      setCurrentPage(newPage)
-      await handleSearch(newPage)
-    }
-  }
-
+  // Fix for handleSearch function and pagination
   const handleSearch = async (page: number) => {
     setIsSearching(true)
-    setSearchResults([]);
     try {
       const createdBy = loggedInUserId1
       const payload = {
         fssaiUserId: createdBy,
         statusId: 5,
         licenseCategoryId: 1,
-        displayRefId: displayRefId,
+        displayRefId: referenceNo,
         companyName: companyName,
         district: selectedState,
         subDivision: selectedDistrict,
@@ -256,32 +289,25 @@ const AllocateInspection: React.FC = () => {
       console.log("Payload before API call:", JSON.stringify(payload, null, 2))
       const results = await searchApplications(payload, page)
       console.log("API response received:", results)
-
-   
-      if (page === 1) {
-        setSearchResults(results)
-      } else {
-        setSearchResults((prev) => ({
-          ...prev,
-          paginationListRecords: [...(prev?.paginationListRecords || []), ...(results?.paginationListRecords || [])],
-        }))
-      }
-
-      setCurrentPage(page)
+      setSearchResults(results)
     } catch (error) {
       console.error("Error searching applications:", error)
-      setError("Failed to search applications")
+      Alert.alert("Error", "Failed to search applications. Please try again.")
     } finally {
       setIsSearching(false)
     }
   }
-  useEffect(() => {
-    console.log("Updated search results:", searchResults)
-  }, [searchResults])
+
+  const handlePageChange = async (newPage: number) => {
+    if (newPage >= 1) {
+      setCurrentPage(newPage)
+      await handleSearch(newPage)
+    }
+  }
+
   const renderPagination = () => {
     const hasMorePages =
-      searchResults?.paginationListRecords?.length > 0 &&
-      searchResults?.paginationListRecords?.length >= itemsPerPage * currentPage
+      searchResults?.paginationListRecords?.length > 0 && searchResults?.paginationListRecords?.length >= itemsPerPage
 
     return (
       <View style={styles.paginationContainer}>
@@ -305,10 +331,6 @@ const AllocateInspection: React.FC = () => {
       </View>
     )
   }
-  useEffect(() => {
-    console.log("Current Page:", currentPage)
-    // console.log("Total Pages:", Totalpage)
-  }, [currentPage])
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -317,7 +339,7 @@ const AllocateInspection: React.FC = () => {
         </TouchableOpacity>
       </View>
       <Modal visible={isModalVisible}>
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalOverlayF}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Filter Inspection</Text>
@@ -406,11 +428,13 @@ const AllocateInspection: React.FC = () => {
               <TouchableOpacity
                 style={styles.applyButton}
                 onPress={async () => {
-                  if (!selectedState) {
-                    Alert.alert("Please select State")
+                  if (!referenceNo && !companyName && !selectedState && !selectedDistrict && !selectedBusinessType) {
+                    Alert.alert("Please select State name ")
                     return
-                  } else if (!selectedDistrict) {
-                    Alert.alert("Please select District")
+                  }
+
+                  if (selectedState && !selectedDistrict) {
+                    Alert.alert("Please select a District")
                     return
                   }
 
@@ -434,7 +458,9 @@ const AllocateInspection: React.FC = () => {
                 <View style={styles.column}>
                   <View style={styles.recordRow}>
                     <Text style={styles.recordLabel}>Ref ID:/Certificate No.</Text>
-                    <Text style={styles.recordValue}>{item.displayRefId}/{item.certificateNo}</Text>
+                    <Text style={styles.recordValue}>
+                      {item.displayRefId}/{item.certificateNo}
+                    </Text>
                   </View>
                   {/* <View style={styles.recordRow}>
                     <Text style={styles.recordLabel}>Premises Address:</Text>
@@ -442,7 +468,9 @@ const AllocateInspection: React.FC = () => {
                   </View> */}
                   <View style={styles.recordRow}>
                     <Text style={styles.recordLabel}>Company Name:/Organization</Text>
-                    <Text style={styles.recordValue}>{item.companyName}/{item.fullAddress}</Text>
+                    <Text style={styles.recordValue}>
+                      {item.companyName}/{item.fullAddress}
+                    </Text>
                   </View>
                 </View>
 
@@ -463,19 +491,7 @@ const AllocateInspection: React.FC = () => {
 
                 <TouchableOpacity
                   style={styles.proceedButton}
-                  onPress={async () => {
-                    try {
-                    
-
-                      const result = await getAllocateInspectionDetails(item.refId, item.CertificateNo)
-                      console.log(result)
-                      setSelectedInspectionDetails(result)
-                     
-                      setIsDetailsModalVisible(true)
-                    } catch (error) {
-                      console.error("Error fetching Allocate Inspection Details:", error)
-                    }
-                  }}
+                  onPress={() => handleProceed(item.refId, item.certificateNo)}
                 >
                   <Text style={styles.proceedButtonText}>Proceed</Text>
                 </TouchableOpacity>
@@ -489,14 +505,58 @@ const AllocateInspection: React.FC = () => {
         )}
       </ScrollView>
       {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
-      <AllocateInspectionDetailsModal
-        isVisible={isDetailsModalVisible}
-        onClose={() => setIsDetailsModalVisible(false)}
-        data={selectedInspectionDetails || {}}
-        refId={refId}
-        certificateNo={certificateNo}
-        displayRefId={displayRefId}
-      />
+      <Modal visible={isDetailsModalVisible} transparent={true} animationType="slide" onRequestClose={onClose}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <ScrollView>
+              <Text style={styles.modalTitle}>Inspection Details</Text>
+
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Registration Number:</Text>
+                <Text style={styles.detailValue}>{certificateNo}</Text>
+              </View>
+
+              {selectedInspectionDetails &&
+                selectedInspectionDetails.kobDetails &&
+                selectedInspectionDetails.kobDetails.length > 0 && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Business Type:</Text>
+                    <Text style={styles.detailValue}>{selectedInspectionDetails.kobDetails[0].kobname}</Text>
+                  </View>
+                )}
+
+              {selectedInspectionDetails &&
+              selectedInspectionDetails.inspectionDetails &&
+              selectedInspectionDetails.inspectionDetails.length > 0 ? (
+                <View>
+                  <Text style={styles.sectionTitle}>Inspection Details</Text>
+                  {selectedInspectionDetails.inspectionDetails.map((item, index) => (
+                    <View key={index} style={styles.detailRow}>
+                      <Text style={styles.detailLabel}>Inspection Date:</Text>
+                      <Text style={styles.detailValue}>{item.inspectiondate}</Text>
+                      <Text style={styles.detailLabel}> Marks Obtained:</Text>
+                      <Text style={styles.detailValue}>{item.totalobtained}</Text> 
+                    </View>
+                  ))}
+                </View>
+              ) : (
+                <View>
+                  <Text style={styles.sectionTitle}>Inspection Details</Text>
+                  <Text style={styles.detailValue}>N/A</Text>
+                </View>
+              )}
+            </ScrollView>
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.AllocateButton} onPress={openAllocateModal}>
+                <Text style={styles.AllocateButtonText}>Allocate</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   )
 }
@@ -527,6 +587,85 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: "45%",
     maxWidth: "48%",
+  },
+
+  proceedButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  // modalOverlay: {
+  //   flex: 1,
+  //   backgroundColor: "rgba(0, 0, 0, 0.5)",
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
+  modalOverlayF: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+    width: "100%",
+  },
+  modalContainer: {
+    width: "100%",
+    maxHeight: "80%",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 15,
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  detailRow: {
+    flexDirection: "row",
+    marginBottom: 10,
+    flexWrap: "wrap",
+  },
+  detailLabel: {
+    fontWeight: "bold",
+    width: "40%",
+    fontSize: 16,
+  },
+  detailValue: {
+    width: "60%",
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  closeButton: {
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 5,
+    width: "45%",
+    alignItems: "center",
+  },
+  closeButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  AllocateButton: {
+    backgroundColor: "#28a745",
+    padding: 10,
+    borderRadius: 5,
+    width: "45%",
+    alignItems: "center",
+  },
+  AllocateButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
   modalContent: {
     backgroundColor: "#fff",

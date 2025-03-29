@@ -18,14 +18,14 @@ interface AllocateInspectionDetailsModalProps {
   isVisible: boolean
   onClose: () => void
   data?: {
-    kobDetails?: { kobname: string }[]
-    inspectionDetails?: { key: string; value: string }[]
-    displayRefId?: string
-    refId?: string
+    kobDetails: { kobname: string }[]
+    inspectionDetails: { key: string; value: string }[]
+    displayRefId: string
+    refId: string
   }
-  refId?: string
-  certificateNo?: string
-  displayRefId?:string
+  refId: string
+  certificateNo: string
+  displayRefId:string
 }
 
 const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalProps> = ({
@@ -35,7 +35,10 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   refId,
   certificateNo,
 }) => {
-
+  console.log("certificate No",certificateNo)
+  useEffect(() => {
+    console.log("Modal props updated - certificateNo:", certificateNo)
+  }, [certificateNo])
   const [isAllocateModalVisible, setIsAllocateModalVisible] = useState(false)
   const [selectedInspector, setSelectedInspector] = useState("")
   const [remarks, setRemarks] = useState("")
@@ -49,15 +52,15 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
   const [error, setError] = useState(null)
   const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false)
   const [searchResults, setSearchResults] = useState<{ paginationListRecords?: any[] }>({})
-  const [refId1, setRefId1] = useState("")
+  const [refId1, setRefId5] = useState("")
   const[displayrefID1,setdisplayRefID1]=useState("")
   const [certificateNo1, setCertificateNo1] = useState("")
   const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false)
   const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" });
   const [loggedInUserId, setLoggedInUserId] = useState("");
    const [referenceNo, setReferenceNo] = useState("")
-  //  const [certificateNumber, setCertificateNo] = useState<string>('');
-  //   const [refId1, setRefId] = useState<string>('');
+   const [certificateNumber, setCertificateNo5] = useState<string>('');
+    // const [refId1, setRefId] = useState<string>('');
   const toggleSecondaryPicker = () => {
     setIsSecondaryPickerVisible(!isSecondaryPickerVisible)
   }
@@ -76,6 +79,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
         } else {
           console.warn("No logged-in user found in AsyncStorage.");
         }
+        console.log("dantppppppppppppppppppp")
       } catch (error) {
         console.error("Error fetching logged-in user:", error);
       }
@@ -96,17 +100,7 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
     // setSearchResults()
   }
 
-  useEffect(() => {
-    const func = async () => {
-      const storedRefId = await AsyncStorage.getItem("refId")
-      const storedCertificateNo = await AsyncStorage.getItem("certificateNo")
-      const storedDisplayrefID=await AsyncStorage.getItem('displayrefID')
-      setRefId1(storedRefId || "")
-      setCertificateNo1(storedCertificateNo || "")
-      setdisplayRefID1(storedDisplayrefID||"")
-    }
-    func()
-  }, [])
+
 
   const closeAllocateModal = () => {
     setIsAllocateModalVisible(false)
@@ -180,29 +174,29 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
 
   return (
     <>
-      <Modal isVisible={isVisible} onBackdropPress={onClose}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <ScrollView>
-              <Text style={styles.modalTitle}>Inspection Details</Text>
+      {/* <Modal isVisible={isVisible} onBackdropPress={onClose}> */}
+        {/* <View style={styles.modalContainer}> */}
+          {/* <View style={styles.modalContent}> */}
+            {/* <ScrollView> */}
+              {/* <Text style={styles.modalTitle}>Inspection Details</Text> */}
 
               {/* <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Reference ID:</Text>
                 <Text style={styles.detailValue}>{refId1}</Text>
               </View> */}
-
+{/* 
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Registration Number:</Text>
-                <Text style={styles.detailValue}>{certificateNo1}</Text>
-              </View>
-
+                <Text style={styles.detailValue}>{certificateNumber}</Text>
+              </View> */}
+{/* 
               {data && data.kobDetails && data.kobDetails.length > 0 && (
                 <View style={styles.detailRow}>
                   <Text style={styles.detailLabel}>Business Type:</Text>
                   <Text style={styles.detailValue}>{data.kobDetails[0].kobname}</Text>
                 </View>
-              )}
-              {data && data.inspectionDetails && data.inspectionDetails.length > 0 ? (
+              )} */}
+              {/* {data && data.inspectionDetails && data.inspectionDetails.length > 0 ? (
                 <View>
                   <Text style={styles.sectionTitle}>Inspection Details</Text>
                   {data.inspectionDetails.map((item, index) => (
@@ -217,19 +211,19 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
                   <Text style={styles.sectionTitle}>Inspection Details</Text>
                   <Text style={styles.detailValue}>N/A</Text>
                 </View>
-              )}
-            </ScrollView>
-            <View style={styles.buttonContainer}>
+              )} */}
+            {/* </ScrollView> */}
+            {/* <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.closeButton} onPress={onClose}>
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.AllocateButton} onPress={openAllocateModal}>
                 <Text style={styles.AllocateButtonText}>Allocate</Text>
               </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+            </View> */}
+          {/* </View> */}
+        {/* </View> */}
+      {/* </Modal> */}
 
       <Modal isVisible={isAllocateModalVisible} onBackdropPress={closeAllocateModal}>
         <View style={styles.allocateModalContainer}>
@@ -442,14 +436,14 @@ const AllocateInspectionDetailsModal: React.FC<AllocateInspectionDetailsModalPro
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
   },
   modalContent: {
     backgroundColor: "white",
     padding: 20,
     borderRadius: 10,
-    width: "90%",
+    width: "110%",
     maxHeight: "80%",
   },
   modalTitle: {
@@ -482,7 +476,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   closeButton: {
-    backgroundColor: "red",
+    backgroundColor: "#007bff",
     padding: 10,
     borderRadius: 5,
     alignItems: "center",

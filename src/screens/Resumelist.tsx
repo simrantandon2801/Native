@@ -12,7 +12,7 @@ import { getInspectionParameterResults } from "../database/Resumelistapi"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
 import { Checkbox } from 'react-native-paper';
-import { saveInspectionClarificationReg } from "../database/OfficerSignatureapi"
+import { saveFinishForward, saveInspectionClarificationReg } from "../database/OfficerSignatureapi"
 type RouteParams = {
   data: Section[]
   refId: string
@@ -219,6 +219,41 @@ const Resumelist: React.FC = () => {
       setIsLoading(false)
     }
   }
+  const handleFinishPress = async () => {
+    // Validate remarks field
+    if (!remarks.trim()) {
+      Alert.alert("Please fill Remarks.");
+      return;
+    }
+
+    // Set loading state to true
+    setIsLoading(true);
+
+    // Prepare payload
+    const payload = {
+      statusId: "21",
+      assignmentId: assignmentId,
+      remarks: remarks,
+      inspectionId: inspectionId,
+    };
+
+    try {
+     
+      const response = await saveFinishForward(payload);
+      console.log("API Response:", response);
+
+      setRemarks("");
+
+      Alert.alert("Success", "Data saved successfully!");
+      navigation.navigate('Ongoinglist' as never);
+    } catch (error) {
+      console.error("Error while saving data:", error);
+      Alert.alert("Error", "Failed to save data. Please try again.");
+    } finally {
+     
+      setIsLoading(false);
+    }
+  };
   const handleApiCall = async (refId:string,inspectionId:string) => {
     try {
       console.log("refID==",refId)
@@ -422,24 +457,34 @@ const Resumelist: React.FC = () => {
   </View>
 )}
 </View>
+{selectedOption === "forward" && (
+        <>
+          <View style={styles.remarksContainer}>
+            <Text style={styles.remarksLabel}>Remarks:</Text>
+            <TextInput
+              style={styles.textarea}
+              value={remarks}
+              onChangeText={setRemarks}
+              numberOfLines={2}
+              textAlignVertical="top"
+              placeholder="Enter remarks (mandatory)"
+            />
+          </View>
 
-        {selectedOption === "forward" && (
-          <>
-            <View style={styles.remarksContainer}>
-              <Text style={styles.remarksLabel}>Remarks:</Text>
-              <TextInput
-                style={styles.textarea}
-                value={remarks}
-                onChangeText={setRemarks}
-                // multiline={true}
-                numberOfLines={2}
-                textAlignVertical="top"
-              />
+          {/* Conditional rendering of loader */}
+          {isLoading ? (
+            <View style={styles.loaderContainer}>
+              <ActivityIndicator size="large" color="#007BFF" />
             </View>
-
-            <TouchableOpacity style={styles.finishButton}>
+          ) : (
+            <TouchableOpacity
+              style={styles.finishButton}
+              onPress={handleFinishPress}
+              disabled={isLoading} // Disable button while loading
+            >
               <Text style={styles.finishButtonText}>Finish</Text>
             </TouchableOpacity>
+          )}
           </>
         )}
       {selectedOption === "sendBack" && (
@@ -480,6 +525,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   scrollContent: {
+    padding: 16,
+  },
+  loaderContainer: {
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
   },
   refreshIndicator: {

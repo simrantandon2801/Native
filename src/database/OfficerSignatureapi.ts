@@ -233,3 +233,41 @@ export const deleteInspectionofficerSignature = async (eSignId
     throw error;
   }
 };
+export const saveFinishForward = async (payload: any) => {
+  try {
+    const storedUserId = await AsyncStorage.getItem("userId");
+    const accessToken = await AsyncStorage.getItem("accessToken");
+    const xAuthUserId = encryptData(storedUserId || "");
+
+    if (!accessToken || !storedUserId) {
+      throw new Error("No authentication token or user ID found");
+    }
+
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/updatefsoassignmentreg`;
+    
+    console.log("Sending payload:", payload);
+
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${accessToken}`,
+        "X-Auth-User-Id": xAuthUserId,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+      throw new Error(`HTTP error! Status: ${response.status}, Body: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Date save successfully:", data);
+    return data;
+  } catch (error) {
+    console.error("Error in saveEfinishForward:", error);
+    throw error;
+  }
+};
