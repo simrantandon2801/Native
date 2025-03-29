@@ -189,20 +189,7 @@ const InspectionAccepted: React.FC = () => {
     }
     fetchData()
   }, [])
-  useEffect(() => {
-    const loadCompanyName = async () => {
-      try {
-        const savedCompanyName = await AsyncStorage.getItem("companyName")
-        if (savedCompanyName) {
-          setCompanyName(savedCompanyName)
-        }
-      } catch (error) {
-        console.error("Error loading companyName from AsyncStorage:", error)
-      }
-    }
-
-    loadCompanyName()
-  }, [])
+ 
   const onFromDateChange = (event, selectedDate) => {
     setShowFromPicker(false)
     if (event.type === "set") {
@@ -670,7 +657,7 @@ const styles = StyleSheet.create({
   },
   tableHeaderCell: {
     justifyContent: "center",
-    padding: 8,
+    // padding: 8,
   },
   nameColumn: {
     // flex: 2,

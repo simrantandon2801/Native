@@ -433,16 +433,16 @@ const AllocateInspection: React.FC = () => {
               <View key={index} style={styles.recordContainer}>
                 <View style={styles.column}>
                   <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Ref ID:</Text>
-                    <Text style={styles.recordValue}>{item.displayRefId}</Text>
+                    <Text style={styles.recordLabel}>Ref ID:/Certificate No.</Text>
+                    <Text style={styles.recordValue}>{item.displayRefId}/{item.certificateNo}</Text>
                   </View>
-                  <View style={styles.recordRow}>
+                  {/* <View style={styles.recordRow}>
                     <Text style={styles.recordLabel}>Premises Address:</Text>
-                    <Text style={styles.recordValue}>{item.addressPremises}</Text>
-                  </View>
+                    <Text style={styles.recordValue}>{item.fullAddress}</Text>
+                  </View> */}
                   <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Company Name:</Text>
-                    <Text style={styles.recordValue}>{item.companyName}</Text>
+                    <Text style={styles.recordLabel}>Company Name:/Organization</Text>
+                    <Text style={styles.recordValue}>{item.companyName}/{item.fullAddress}</Text>
                   </View>
                 </View>
 
@@ -465,12 +465,12 @@ const AllocateInspection: React.FC = () => {
                   style={styles.proceedButton}
                   onPress={async () => {
                     try {
-                      await AsyncStorage.setItem("refId", item.refId.toString())
-                      await AsyncStorage.setItem("certificateNo", item.certificateNo.toString())
-                      await AsyncStorage.setItem("displayrefID", item.displayRefId.toString())
+                    
 
                       const result = await getAllocateInspectionDetails(item.refId, item.CertificateNo)
+                      console.log(result)
                       setSelectedInspectionDetails(result)
+                     
                       setIsDetailsModalVisible(true)
                     } catch (error) {
                       console.error("Error fetching Allocate Inspection Details:", error)
@@ -578,13 +578,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   recordLabel: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "600",
     color: "#666",
     marginBottom: 4,
   },
   recordValue: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#333",
     flexShrink: 1,
   },

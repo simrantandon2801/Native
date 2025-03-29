@@ -112,7 +112,7 @@ export const rescheduleInspection = async (
     console.log("Second API call result:", data2);
 
     if (data2.statusCode === "200") {
-      Alert.alert("Success", "Both inspections rescheduled successfully.");
+   
       return { first: data1, second: data2 };
     } else {
       throw new Error(`Unexpected status code in second request: ${data2.statusCode}`);

@@ -619,12 +619,12 @@ const styles = StyleSheet.create({
   },
   modalContainerA: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-end",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContentA: {
-    width: "80%",
+    width: "100%",
     padding: 20,
     backgroundColor: "white",
     borderRadius: 10,
@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     padding: 8,
-    left: 100,
+    left: 150,
     //  top:20
   },
   closeIcon5: {

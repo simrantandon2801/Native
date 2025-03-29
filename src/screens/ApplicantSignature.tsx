@@ -182,7 +182,7 @@ const ApplicantSignature: React.FC = () => {
     }
     if (!selectedDocument) {
       newErrors.selectedDocument = "Document upload is required"
-      Alert.alert("Validation Error", "Please select a document to upload")
+      Alert.alert( "Please select a document to upload")
     }
     // if (signatureType === "aadhaar") {
     //   if (!aadhaarPart1 || !aadhaarPart2 || !aadhaarPart3 ||
@@ -210,11 +210,11 @@ const ApplicantSignature: React.FC = () => {
       Alert.alert("Validation Error", "Please fill in all required fields.");
       return;
     }
-  
+
     try {
+      // Set loading state to true when the operation starts
       setIsLoading(true);
-  
-    
+
       const payload = {
         assignmentId: assignmentId,
         inspectionId: parseInt(inspectionId),
@@ -232,18 +232,16 @@ const ApplicantSignature: React.FC = () => {
         officerType: null,
         isOfficer: false,
       };
-  
+
       console.log("------payload signature----", payload);
-  
-  
+
       const response = await saveWitnessDetailsForRegistration(payload, selectedDocument);
-  
+
       console.log("API Response:", response);
-      Alert.alert("Success", "Witness details saved successfully.");
-  
+      Alert.alert("Success", "Data saved successfully.");
+      await fetchWitnessDetails();
       setModalVisible(false);
       resetForm();
-      setModalVisible(false)
     } catch (error) {
       console.error("Error saving witness details:", error);
       Alert.alert(
@@ -251,6 +249,7 @@ const ApplicantSignature: React.FC = () => {
         "Failed to save witness details. Please try again later."
       );
     } finally {
+      // Reset loading state after the operation completes
       setIsLoading(false);
     }
   };
@@ -619,9 +618,17 @@ const ApplicantSignature: React.FC = () => {
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.button, styles.proceedButton]} onPress={handleProceed}>
-                  <Text style={styles.buttonText}>Proceed</Text>
-                </TouchableOpacity>
+                <TouchableOpacity
+      style={[styles.button, styles.proceedButton]}
+      onPress={handleProceed}
+      disabled={isLoading} // Disable the button while loading
+    >
+      {isLoading ? (
+        <ActivityIndicator size="small" color="#ffffff" /> // Show loader when loading
+      ) : (
+        <Text style={styles.buttonText}>Proceed</Text>
+      )}
+    </TouchableOpacity>
 
 
               </View>

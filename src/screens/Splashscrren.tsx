@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, Linking, ImageBackground } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient'; // Install this package: npm install react-native-linear-gradient
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity , Linking} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getBackendToken } from '../database/Splashapi';
 import DeviceInfo from 'react-native-device-info';
@@ -10,16 +9,84 @@ const SplashScreen = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);  
   const [error, setError] = useState(''); 
+  const [updateRequired, setUpdateRequired] = useState(false);
+  const [serverVersionName, setServerVersionName] = useState('');
+
+  // const fetchTokenAndNavigate = async () => {
+  //   try {
+  //     setIsLoading(true);
+  //     setError('');
+  //     setUpdateRequired(false);
+  
+  //     const backendToken = await getBackendToken();
+  //     console.log("Backend token received:", backendToken);
+      
+    
+  //     if (backendToken && backendToken.fcVersionCode) {
+        
+  //       const deviceBuildNumber = buildNumber;
+        
+     
+  //       if (parseInt(backendToken.fcVersionCode) > parseInt(deviceBuildNumber)) {
+         
+  //         setServerVersionName(backendToken.fcVersionName || 'newer version');
+  //         setUpdateRequired(true);
+  //         setIsLoading(false);
+  //         return;
+  //       }
+        
+     
+  //       setIsLoading(false);
+  //       navigation.navigate('Login' as never);
+  //     } else {
+       
+  //       setError("Invalid response from server");
+  //       setIsLoading(false);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error fetching backend token:", err);
+  //     setError("Failed to connect to server");
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   const initialize = async () => {
+  //     try {
+ 
+  //       const number = await DeviceInfo.getBuildNumber(); 
+  //       setBuildNumber(number);
+  //       console.log("Build Number: ", number);
+  
+  //       await fetchTokenAndNavigate();
+  //     } catch (error) {
+  //       console.error("Initialization error:", error);
+  //       setError("Failed to initialize app");
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   initialize();
+  // }, []);
+  // const openAppStore = () => {
+  //   // Replace with your app's store URL
+  //   // For Android:
+  //   Linking.openURL('market://details?id=com.yourapppackage');
+  //   // For iOS:
+  //   // Linking.openURL('itms-apps://itunes.apple.com/app/id123456789');
+  // };
 
   const fetchTokenAndNavigate = async () => {
     try {
       setIsLoading(true);
       setError('');
-
+  
       const backendToken = await getBackendToken();
       console.log("Backend token received:", backendToken);
-
+  
       setIsLoading(false);
+      console.log("Success:", backendToken);
+  
       navigation.navigate('Login' as never);
     } catch (err) {
       console.error("Error fetching backend token:", err);
@@ -31,10 +98,12 @@ const SplashScreen = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
+    
         const number = await DeviceInfo.getBuildNumber(); 
         setBuildNumber(number);
         console.log("Build Number: ", number);
-
+        
+      
         await fetchTokenAndNavigate();
       } catch (error) {
         console.error("Initialization error:", error);
@@ -47,41 +116,11 @@ const SplashScreen = () => {
   }, []);
 
   return (
-    // Option 1: Gradient Background (Uncomment this block if you want a gradient)
-    // <LinearGradient
-    //   colors={['#FFD700', '#32CD32']} // Yellow to Green gradient
-    //   style={styles.container}
-    //   start={{ x: 0, y: 0 }}
-    //   end={{ x: 1, y: 1 }}
-    // >
-    //   <Text style={styles.appName}>BharatGap</Text>
-      
-    //   {isLoading ? (
-    //     <ActivityIndicator size="large" color="#fff" style={styles.loader} />
-    //   ) : error ? (
-    //     <View style={styles.errorContainer}>
-    //       <Text style={styles.errorText}>{error}</Text>
-    //       <TouchableOpacity 
-    //         style={styles.retryButton}
-    //         onPress={fetchTokenAndNavigate}
-    //       >
-    //         <Text style={styles.retryButtonText}>Retry</Text>
-    //       </TouchableOpacity>
-    //       <Text style={styles.buildText}>Build Number: {buildNumber}</Text>
-    //     </View>
-    //   ) : null}
-    // </LinearGradient>
-
-   
-    <ImageBackground
-      source={require('../assets/img/Bharatgapsplash.png')} // Add your image path here
-      style={styles.container}
-      resizeMode="cover"
-    >
+    <View style={styles.container}>
       <Text style={styles.appName}>BharatGap</Text>
       
       {isLoading ? (
-        <ActivityIndicator size="large" color="#fff" style={styles.loader} />
+        <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
       ) : error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
@@ -94,7 +133,38 @@ const SplashScreen = () => {
           <Text style={styles.buildText}>Build Number: {buildNumber}</Text>
         </View>
       ) : null}
-    </ImageBackground>
+    </View>
+  //   <View style={styles.container}>
+  //   <Text style={styles.appName}>Bharatgap</Text>
+    
+  //   {isLoading ? (
+  //     <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />
+  //   ) : updateRequired ? (
+  //     <View style={styles.errorContainer}>
+  //       <Text style={styles.errorText}>
+  //         A new version ({serverVersionName}) of the app is available. Please update.
+  //       </Text>
+  //       {/* <TouchableOpacity 
+  //         style={styles.updateButton}
+  //         onPress={openAppStore}
+  //       >
+  //         <Text style={styles.updateButtonText}>Update Now</Text>
+  //       </TouchableOpacity> */}
+  //       <Text style={styles.buildText}>Current Build: {buildNumber}</Text>
+  //     </View>
+  //   ) : error ? (
+  //     <View style={styles.errorContainer}>
+  //       <Text style={styles.errorText}>{error}</Text>
+  //       <TouchableOpacity 
+  //         style={styles.retryButton}
+  //         onPress={fetchTokenAndNavigate}
+  //       >
+  //         <Text style={styles.retryButtonText}>Retry</Text>
+  //       </TouchableOpacity>
+  //       <Text style={styles.buildText}>Build Number: {buildNumber}</Text>
+  //     </View>
+  //   ) : null}
+  // </View>
   );
 };
 
@@ -103,15 +173,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
   },
   appName: {
-    fontSize: 40,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#000',
     marginBottom: 20,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 5,
   },
   loader: {
     marginTop: 20,
@@ -121,26 +189,38 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    color: '#fff',
+    color: 'red',
     marginBottom: 15,
     textAlign: 'center',
   },
   retryButton: {
-    backgroundColor: '#fff',
+    backgroundColor: '#0066cc',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
     marginBottom: 15,
   },
   retryButtonText: {
-    color: '#32CD32',
+    color: 'white',
     fontWeight: 'bold',
   },
   buildText: {
     fontSize: 12,
-    color: '#fff',
+    color: '#666',
     marginTop: 5,
   },
+  updateButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+  },
+  updateButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+
 });
 
 export default SplashScreen;

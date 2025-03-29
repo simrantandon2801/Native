@@ -395,7 +395,7 @@ export function RescheduleModal({
       <Modal visible={showConfirmModal} transparent animationType="fade">
         <View style={styles.confirmModalOverlay}>
           <View style={styles.confirmModalContent}>
-            <Text style={styles.confirmModalTitle}>Confirm Reassignment</Text>
+            <Text style={styles.confirmModalTitle}>Confirm Reschedule</Text>
             <Text style={styles.confirmModalText}>Are you sure you want to reschedule this inspection?</Text>
             <View style={styles.confirmModalButtons}>
               <TouchableOpacity style={styles.confirmModalButton} onPress={() => setShowConfirmModal(false)}>
@@ -419,8 +419,8 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    padding: 20,
+    justifyContent: "flex-end",
+    // padding: 20,
   },
   secondaryInspectorContainer: {
     flexDirection: "row",
