@@ -574,11 +574,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  listItemText: {
-    fontSize: 14,
-    color: "#555",
-    marginBottom: 8,
-  },
+  // listItemText: {
+  //   fontSize: 14,
+  //   color: "#555",
+  //   marginBottom: 8,
+  // },
   listTitle: {
     fontSize: 18,
     fontWeight: "600",

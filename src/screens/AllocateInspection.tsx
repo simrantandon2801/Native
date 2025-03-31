@@ -22,30 +22,46 @@ import { getDistrictList, searchApplications } from "../database/Districtapi"
 import { getStateList, getBusinessTypes } from "../database/Statebusinessapi"
 import { getAllocateInspectionDetails } from "../database/ProceedAllocateapi"
 import { useFocusEffect } from "@react-navigation/native"
+import { getListOffsounDerDoForReg } from "../database/Allocateapi"
+import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
+import { createInspection } from "../database/CreateInspection"
+
 interface SelectedInspectionDetails {
-  kobDetails?: KobDetail[];
-  inspectionDetails?: InspectionDetail[];
+  kobDetails?: KobDetail[]
+  inspectionDetails?: InspectionDetail[]
 }
 interface KobDetail {
-  kobname: string;
+  kobname: string
+}
+interface User {
+  fssaiUserId: string;
+}
+interface InspectionDetail {
+  key: string
+  value: string
+  totalobtained: any
+  inspectiondate: any
+  obtainedpercentage: any
 }
 
-interface InspectionDetail {
-  key: string;
-  value: string;
-}
 const AllocateInspection: React.FC = () => {
+  // All state variables must be declared at the top level
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [selectedState, setSelectedState] = useState("")
   const [selectedDistrict, setSelectedDistrict] = useState("")
-
+  const [loggedInUserId, setLoggedInUserId] = useState("")
+  const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" })
+  const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false)
   const [displayrefId1, setdisplayRefId1] = useState("")
+  const [userId, setUserId] = useState<string | null>(null)
   const [loggedInUserId1, setLoggedInUserId1] = useState("")
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [districts, setDistricts] = useState<Array<any>>([])
+  // const [displayrefID1, setdisplayRefID1] = useState("")
+  const [refId1, setRefId5] = useState("")
   const [isLoadingDistricts, setIsLoadingDistricts] = useState(false)
   const [districtName, setDistrictName] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
@@ -54,7 +70,7 @@ const AllocateInspection: React.FC = () => {
   const [isSearching, setIsSearching] = useState(false)
   const [searchResults, setSearchResults] = useState<any>(null)
   const [isDetailsModalVisible, setIsDetailsModalVisible] = useState(false)
-  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState<SelectedInspectionDetails | null>(null);
+  const [selectedInspectionDetails, setSelectedInspectionDetails] = useState<SelectedInspectionDetails | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [kobId, setKobId] = useState("")
   const [stateCode, setstatecode] = useState("")
@@ -63,7 +79,118 @@ const AllocateInspection: React.FC = () => {
   const [displayRefId, setdisplayRefId] = useState<string>("")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
-  // const [Totalpage, setTotalpage] = useState()
+  // Add these new state variables for the Allocate modal
+  const [isAllocateModalVisible, setIsAllocateModalVisible] = useState(false)
+  const [selectedInspector, setSelectedInspector] = useState("")
+  const [remarks, setRemarks] = useState("")
+  const [inspectors, setInspectors] = useState([])
+  const [secondaryInspectors, setSecondaryInspectors] = useState([])
+  const [selectedSecondaryInspectors, setSelectedSecondaryInspectors] = useState([])
+  const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false)
+
+  // All functions that use hooks or state
+  const openAllocateModal = () => {
+    setIsAllocateModalVisible(true)
+    setSelectedInspector("")
+    setSecondaryInspectors([])
+    fetchInspectors()
+    fetchSecondaryInspectors()
+  }
+
+  const closeAllocateModal = () => {
+    setIsAllocateModalVisible(false)
+    setSelectedInspector("")
+    setSecondaryInspectors([])
+    setRemarks("")
+  }
+
+  const fetchInspectors = async () => {
+    try {
+      const userId = loggedInUserId1
+      const response = await getListOffsounDerDoForReg(userId)
+      setInspectors(response)
+    } catch (error) {
+      console.error("Error fetching inspectors:", error)
+    }
+  }
+
+  const fetchSecondaryInspectors = async () => {
+    try {
+      const userId = loggedInUserId1
+      const response = await getSecondaryInspectors(userId)
+      const filteredInspectors = response.filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+      setSelectedSecondaryInspectors(filteredInspectors)
+    } catch (error) {
+      console.error("Error fetching secondary inspectors:", error)
+    }
+  }
+
+  const toggleSecondaryPicker = () => {
+    setIsSecondaryPickerVisible(!isSecondaryPickerVisible)
+  }
+
+  const handleSecondaryInspectorSelection = (inspectorId) => {
+    if (inspectorId === selectedInspector) return
+    setSecondaryInspectors((prevInspectors) => {
+      const isSelected = prevInspectors.some((inspector) => inspector.fssaiUserId === inspectorId)
+      if (isSelected) {
+        return prevInspectors.filter((inspector) => inspector.fssaiUserId !== inspectorId)
+      } else {
+        const inspector = selectedSecondaryInspectors.find((i) => i.fssaiUserId === inspectorId)
+        return inspector ? [...prevInspectors, inspector] : prevInspectors
+      }
+    })
+  }
+  useEffect(() => {
+    const fetchLoggedInUser = async () => {
+      try {
+        const storedUserName = await AsyncStorage.getItem("loggedInUserName")
+        if (storedUserName) {
+          setLoggedInUser({ name: storedUserName })
+        } else {
+          console.warn("No logged-in user found in AsyncStorage.")
+        }
+      } catch (error) {
+        console.error("Error fetching logged-in user:", error)
+      }
+    }
+
+    fetchLoggedInUser()
+  }, [])
+  // useEffect hooks
+  useEffect(() => {
+    const fetchDataFromAsyncStorage = async () => {
+      try {
+        setIsLoading(true)
+        setError(null)
+
+        const storedUserId = await AsyncStorage.getItem("userId")
+        setUserId(storedUserId)
+        console.log("Retrieved Data:", { userId: storedUserId })
+      } catch (err) {
+        console.error("Error fetching data from AsyncStorage:", err)
+        setError("Failed to load data from storage.")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchDataFromAsyncStorage()
+  }, [])
+
+  const handleCreateInspection = () => {
+    if (!selectedInspector) {
+      Alert.alert("Error", "Please select a primary inspector")
+      return
+    }
+
+    if (!remarks.trim()) {
+      Alert.alert("Error", "Please enter remarks")
+      return
+    }
+
+    setIsConfirmModalVisible(true)
+  }
 
   useEffect(() => {
     const fetchKobId = async () => {
@@ -99,6 +226,7 @@ const AllocateInspection: React.FC = () => {
 
     loadCompanyName()
   }, [])
+
   useEffect(() => {
     const fetchLoggedInUser = async () => {
       try {
@@ -116,11 +244,13 @@ const AllocateInspection: React.FC = () => {
 
     fetchLoggedInUser()
   }, [])
+
   const handleProceed = async (refId: string, certificateNo: string) => {
     try {
       // Store values in AsyncStorage
       await AsyncStorage.setItem("refIdddd", refId.toString())
       await AsyncStorage.setItem("certificatenoproceed", certificateNo.toString())
+      await AsyncStorage.setItem("displayrefIddddd", displayRefId.toString())
 
       // Call the API function
       const result = await getAllocateInspectionDetails(refId, certificateNo)
@@ -131,11 +261,13 @@ const AllocateInspection: React.FC = () => {
       setSelectedInspectionDetails(result)
       setCertificateNo(certificateNo)
       setRefId(refId)
+      setdisplayRefId(displayRefId)
 
       // Retrieve values from AsyncStorage for logging
       const refuda = await AsyncStorage.getItem("refIdddd")
       const certuda = await AsyncStorage.getItem("certificatenoproceed")
-      console.log("simranda : ", refuda, " ,", certuda)
+      const certuda11 = await AsyncStorage.getItem("displayrefIddddd")
+      console.log("simranda : ", refuda, " ,", certuda,",",certuda11)
 
       // Show the modal
       setIsDetailsModalVisible(true)
@@ -143,6 +275,7 @@ const AllocateInspection: React.FC = () => {
       console.error("Error fetching Allocate Inspection Details:", error)
     }
   }
+
   const fetchData = useCallback(async () => {
     try {
       const stateData = await getStateList()
@@ -154,9 +287,11 @@ const AllocateInspection: React.FC = () => {
       setError("Failed to fetch initial data")
     }
   }, [])
+
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
   useFocusEffect(
     useCallback(() => {
       setSearchResults({ paginationListRecords: [] })
@@ -165,13 +300,15 @@ const AllocateInspection: React.FC = () => {
       return () => {}
     }, [fetchData]),
   )
+
   useEffect(() => {
     const func = async () => {
       const storedDisplayrefID = await AsyncStorage.getItem("displayrefID")
-      setdisplayRefId1(storedDisplayrefID || "")
+      setdisplayRefId(storedDisplayrefID || "")
     }
     func()
   }, [])
+
   const onRefresh = async () => {
     setRefreshing(true)
     setCurrentPage(1)
@@ -187,19 +324,9 @@ const AllocateInspection: React.FC = () => {
   }
 
   const toggleModal = () => {
-    if (!isModalVisible) {
-    }
     setIsModalVisible(!isModalVisible)
   }
 
-  if (isLoading && !refreshing) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text style={styles.loadingText}>Loading...</Text>
-      </View>
-    )
-  }
   const handleStateChange = async (stateCode: string) => {
     setSelectedState(stateCode)
     setDistrictName("")
@@ -224,6 +351,7 @@ const AllocateInspection: React.FC = () => {
       setIsLoadingDistricts(false)
     }
   }
+
   const handleDistrictChange = async (districtCode: string) => {
     setSelectedDistrict(districtCode)
 
@@ -234,16 +362,11 @@ const AllocateInspection: React.FC = () => {
       await AsyncStorage.setItem("districtName", newDistrictName)
     }
   }
+
   const onClose = () => {
     setIsDetailsModalVisible(false)
   }
 
-  const openAllocateModal = () => {
-    // Implement your allocate modal logic here
-    console.log("Open allocate modal")
-    setIsDetailsModalVisible(false)
-    // You might want to open another modal here
-  }
   useEffect(() => {
     const loadDistrictName = async () => {
       try {
@@ -257,6 +380,7 @@ const AllocateInspection: React.FC = () => {
     }
     loadDistrictName()
   }, [])
+
   const handleReset = () => {
     setReferenceNo("")
     setCompanyName("")
@@ -267,13 +391,12 @@ const AllocateInspection: React.FC = () => {
     setError(null)
     setSearchResults("")
   }
-  // Fix for handleSearch function and pagination
+
   const handleSearch = async (page: number) => {
     setIsSearching(true)
     try {
-      const createdBy = loggedInUserId1
       const payload = {
-        fssaiUserId: createdBy,
+        fssaiUserId: userId,
         statusId: 5,
         licenseCategoryId: 1,
         displayRefId: referenceNo,
@@ -331,232 +454,424 @@ const AllocateInspection: React.FC = () => {
       </View>
     )
   }
+
+  // Render the component - no early returns before all hooks are called
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={toggleModal} style={styles.filterIcon}>
-          <Filter size={24} color="#000" />
-        </TouchableOpacity>
-      </View>
-      <Modal visible={isModalVisible}>
-        <View style={styles.modalOverlayF}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Filter Inspection</Text>
-              <TouchableOpacity onPress={toggleModal} style={styles.closeIcon}>
-                <X size={24} color="#000" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.label}>Reference Number</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter reference number"
-              value={referenceNo}
-              onChangeText={setReferenceNo}
-              placeholderTextColor="#999"
-            />
-
-            <Text style={styles.label}>Company Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter company name"
-              value={companyName}
-              onChangeText={async (text) => {
-                setCompanyName(text)
-                await AsyncStorage.setItem("companyName", text)
-              }}
-              placeholderTextColor="#999"
-            />
-
-            <Text style={styles.label}>State</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={selectedState}
-                onValueChange={handleStateChange}
-                style={styles.picker}
-                dropdownIconColor="#666"
-              >
-                <Picker.Item label="Please Select State" value="" style={styles.placeholderStyle} />
-                {states.map((state) => (
-                  <Picker.Item key={state.stateCode} label={state.stateName} value={state.stateCode} />
-                ))}
-              </Picker>
-            </View>
-
-            <Text style={styles.label}>District</Text>
-            <View style={styles.pickerWrapper}>
-              {isLoadingDistricts ? (
-                <ActivityIndicator style={styles.loader} />
-              ) : (
-                <Picker
-                  selectedValue={selectedDistrict}
-                  onValueChange={handleDistrictChange}
-                  style={styles.picker}
-                  dropdownIconColor="#666"
-                  enabled={!isLoadingDistricts && districts.length > 0}
-                >
-                  <Picker.Item label="Please Select District" value="" style={styles.placeholderStyle} />
-                  {districts.map((district, index) => (
-                    <Picker.Item key={index} label={district.districtName} value={district.districtCode} />
-                  ))}
-                </Picker>
-              )}
-            </View>
-            {error && <Text style={styles.errorText}>{error}</Text>}
-
-            <Text style={styles.label}>Business Type</Text>
-            <View style={styles.pickerWrapper}>
-              <Picker
-                selectedValue={selectedBusinessType}
-                onValueChange={setSelectedBusinessType}
-                style={styles.picker}
-                dropdownIconColor="#666"
-              >
-                <Picker.Item label="Select Business Type" value="" style={styles.placeholderStyle} />
-                {businessTypes.map((type) => (
-                  <Picker.Item key={type.kobId} label={type.kobName} value={type.kobId} />
-                ))}
-              </Picker>
-            </View>
-
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity onPress={handleReset} style={styles.closeButton}>
-                <Text style={styles.closeButtonText}>Reset</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.applyButton}
-                onPress={async () => {
-                  if (!referenceNo && !companyName && !selectedState && !selectedDistrict && !selectedBusinessType) {
-                    Alert.alert("Please select State name ")
-                    return
-                  }
-
-                  if (selectedState && !selectedDistrict) {
-                    Alert.alert("Please select a District")
-                    return
-                  }
-
-                  setCurrentPage(1)
-                  await handleSearch(1)
-                  toggleModal()
-                }}
-                disabled={isSearching}
-              >
-                <Text style={styles.applyButtonText}>{isSearching ? "Searching..." : "Search"}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+      {isLoading && !refreshing ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
-      </Modal>
-      <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
-        {searchResults && searchResults.paginationListRecords && searchResults.paginationListRecords.length > 0 ? (
-          <View>
-            {searchResults.paginationListRecords.map((item, index) => (
-              <View key={index} style={styles.recordContainer}>
-                <View style={styles.column}>
-                  <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Ref ID:/Certificate No.</Text>
-                    <Text style={styles.recordValue}>
-                      {item.displayRefId}/{item.certificateNo}
-                    </Text>
+      ) : (
+        <>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={toggleModal} style={styles.filterIcon}>
+              <Filter size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+          <Modal visible={isModalVisible}>
+            <View style={styles.modalOverlayF}>
+              <View style={styles.modalContent}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>Filter Inspection</Text>
+                  <TouchableOpacity onPress={toggleModal} style={styles.closeIcon}>
+                    <X size={24} color="#000" />
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={styles.label}>Reference Number</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter reference number"
+                  value={referenceNo}
+                  onChangeText={setReferenceNo}
+                  placeholderTextColor="#999"
+                />
+
+                <Text style={styles.label}>Company Name</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter company name"
+                  value={companyName}
+                  onChangeText={async (text) => {
+                    setCompanyName(text)
+                    await AsyncStorage.setItem("companyName", text)
+                  }}
+                  placeholderTextColor="#999"
+                />
+
+                <Text style={styles.label}>State</Text>
+                <View style={styles.pickerWrapper}>
+                  <Picker
+                    selectedValue={selectedState}
+                    onValueChange={handleStateChange}
+                    style={styles.picker}
+                    dropdownIconColor="#666"
+                  >
+                    <Picker.Item label="Please Select State" value="" style={styles.placeholderStyle} />
+                    {states.map((state) => (
+                      <Picker.Item key={state.stateCode} label={state.stateName} value={state.stateCode} />
+                    ))}
+                  </Picker>
+                </View>
+
+                <Text style={styles.label}>District</Text>
+                <View style={styles.pickerWrapper}>
+                  {isLoadingDistricts ? (
+                    <ActivityIndicator style={styles.loader} />
+                  ) : (
+                    <Picker
+                      selectedValue={selectedDistrict}
+                      onValueChange={handleDistrictChange}
+                      style={styles.picker}
+                      dropdownIconColor="#666"
+                      enabled={!isLoadingDistricts && districts.length > 0}
+                    >
+                      <Picker.Item label="Please Select District" value="" style={styles.placeholderStyle} />
+                      {districts.map((district, index) => (
+                        <Picker.Item key={index} label={district.districtName} value={district.districtCode} />
+                      ))}
+                    </Picker>
+                  )}
+                </View>
+                {error && <Text style={styles.errorText}>{error}</Text>}
+
+                <Text style={styles.label}>Business Type</Text>
+                <View style={styles.pickerWrapper}>
+                  <Picker
+                    selectedValue={selectedBusinessType}
+                    onValueChange={setSelectedBusinessType}
+                    style={styles.picker}
+                    dropdownIconColor="#666"
+                  >
+                    <Picker.Item label="Select Business Type" value="" style={styles.placeholderStyle} />
+                    {businessTypes.map((type) => (
+                      <Picker.Item key={type.kobId} label={type.kobName} value={type.kobId} />
+                    ))}
+                  </Picker>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity onPress={handleReset} style={styles.closeButton}>
+                    <Text style={styles.closeButtonText}>Reset</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.applyButton}
+                    onPress={async () => {
+                      if (
+                        !referenceNo &&
+                        !companyName &&
+                        !selectedState &&
+                        !selectedDistrict &&
+                        !selectedBusinessType
+                      ) {
+                        Alert.alert("Please select State name ")
+                        return
+                      }
+
+                      if (selectedState && !selectedDistrict) {
+                        Alert.alert("Please select a District")
+                        return
+                      }
+
+                      setCurrentPage(1)
+                      await handleSearch(1)
+                      toggleModal()
+                    }}
+                    disabled={isSearching}
+                  >
+                    <Text style={styles.applyButtonText}>{isSearching ? "Searching..." : "Search"}</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+            {searchResults && searchResults.paginationListRecords && searchResults.paginationListRecords.length > 0 ? (
+              <View>
+                {searchResults.paginationListRecords.map((item, index) => (
+                  <View key={index} style={styles.recordContainer}>
+                    <View style={styles.column}>
+                      <View style={styles.recordRow}>
+                        <Text style={styles.recordLabel}>Ref ID:/Certificate No.</Text>
+                        <Text style={styles.recordValue}>
+                          {item.displayRefId}/{item.certificateNo}
+                        </Text>
+                      </View>
+                      <View style={styles.recordRow}>
+                        <Text style={styles.recordLabel}>Company Name:/Organization</Text>
+                        <Text style={styles.recordValue}>
+                          {item.companyName}/{item.fullAddress}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.column}>
+                      <View style={styles.recordRow}>
+                        <Text style={styles.recordLabel}>Issue Date:</Text>
+                        <Text style={styles.recordValue}>{item.issuedDate}</Text>
+                      </View>
+                      <View style={styles.recordRow}>
+                        <Text style={styles.recordLabel}>Expiry Date:</Text>
+                        <Text style={styles.recordValue}>{item.expiryDate}</Text>
+                      </View>
+                      <View style={styles.recordRow}>
+                        <Text style={styles.recordLabel}>Status:</Text>
+                        <Text style={styles.recordValue}>{item.statusDesc}</Text>
+                      </View>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.proceedButton}
+                      onPress={() => handleProceed(item.refId, item.certificateNo)}
+                    >
+                      <Text style={styles.proceedButtonText}>Proceed</Text>
+                    </TouchableOpacity>
                   </View>
-                  {/* <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Premises Address:</Text>
-                    <Text style={styles.recordValue}>{item.fullAddress}</Text>
-                  </View> */}
-                  <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Company Name:/Organization</Text>
-                    <Text style={styles.recordValue}>
-                      {item.companyName}/{item.fullAddress}
-                    </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>
+                {isSearching ? "Searching..." : "No records found"}
+              </Text>
+            )}
+          </ScrollView>
+          {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
+          <Modal visible={isDetailsModalVisible} transparent={true} animationType="slide" onRequestClose={onClose}>
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContainer}>
+                <ScrollView>
+                  <Text style={styles.modalTitle}>Inspection Details</Text>
+
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Registration Number:</Text>
+                    <Text style={styles.detailValue}>{certificateNo}</Text>
+                  </View>
+
+                  {selectedInspectionDetails &&
+                    selectedInspectionDetails.kobDetails &&
+                    selectedInspectionDetails.kobDetails.length > 0 && (
+                      <View style={styles.detailRow}>
+                        <Text style={styles.detailLabel}>Business Type:</Text>
+                        <Text style={styles.detailValue}>{selectedInspectionDetails.kobDetails[0].kobname}</Text>
+                      </View>
+                    )}
+
+                  {selectedInspectionDetails &&
+                  selectedInspectionDetails.inspectionDetails &&
+                  selectedInspectionDetails.inspectionDetails.length > 0 ? (
+                    <View>
+                      <Text style={styles.sectionTitle}>Inspection Details</Text>
+                      {selectedInspectionDetails.inspectionDetails.map((item, index) => (
+                        <View key={index} style={styles.detailRow}>
+                          <Text style={styles.detailLabel}>Inspection Date:</Text>
+                          <Text style={styles.detailValue}>{item.inspectiondate}</Text>
+                          <Text style={styles.detailLabel}>Inspection Date:</Text>
+                          <Text style={styles.detailValue}>{item.obtainedpercentage}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <View>
+                      <Text style={styles.sectionTitle}>Inspection Details</Text>
+                      <Text style={styles.detailValue}>N/A</Text>
+                    </View>
+                  )}
+                </ScrollView>
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                    <Text style={styles.closeButtonText}>Close</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.AllocateButton} onPress={openAllocateModal}>
+                    <Text style={styles.AllocateButtonText}>Allocate</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <Modal visible={isAllocateModalVisible} transparent={true} onRequestClose={closeAllocateModal}>
+            <View style={styles.allocateModalContainer}>
+              <View style={styles.allocateModalContent}>
+                <Text style={styles.allocateModalTitle}>Allocate Inspection</Text>
+
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Primary Inspector</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={selectedInspector}
+                      onValueChange={(itemValue) => {
+                        setSelectedInspector(itemValue)
+                        setSecondaryInspectors([])
+                      }}
+                      style={styles.picker}
+                    >
+                      <Picker.Item label="Select Primary Inspector" value="" />
+                      {inspectors.map((inspector, index) => (
+                        <Picker.Item key={index} label={inspector.fsoName} value={inspector.fssaiUserId} />
+                      ))}
+                    </Picker>
                   </View>
                 </View>
 
-                <View style={styles.column}>
-                  <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Issue Date:</Text>
-                    <Text style={styles.recordValue}>{item.issuedDate}</Text>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Secondary Inspectors</Text>
+                  <View style={styles.secondaryInspectorContainer}>
+                    <TouchableOpacity
+                      onPress={selectedInspector ? toggleSecondaryPicker : undefined}
+                      style={[styles.pickerContainer, !selectedInspector && styles.disabledPicker, { flex: 1 }]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        value={
+                          !selectedInspector
+                            ? "No data available"
+                            : secondaryInspectors.length > 0
+                              ? secondaryInspectors.map((inspector) => inspector.fsoName).join(", ")
+                              : "Select Secondary Inspectors"
+                        }
+                        editable={false}
+                        placeholder="Select Secondary Inspectors"
+                      />
+                    </TouchableOpacity>
                   </View>
-                  <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Expiry Date:</Text>
-                    <Text style={styles.recordValue}>{item.expiryDate}</Text>
-                  </View>
-                  <View style={styles.recordRow}>
-                    <Text style={styles.recordLabel}>Status:</Text>
-                    <Text style={styles.recordValue}>{item.statusDesc}</Text>
-                  </View>
+
+                  {isSecondaryPickerVisible && selectedInspector && (
+                    <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
+                      <ScrollView style={{ maxHeight: 200 }}>
+                        {selectedSecondaryInspectors
+                          .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+                          .map((inspector, index) => (
+                            <TouchableOpacity
+                              key={index}
+                              style={[
+                                styles.multiSelectItem,
+                                secondaryInspectors.some((si) => si.fssaiUserId === inspector.fssaiUserId) &&
+                                  styles.multiSelectItemSelected,
+                              ]}
+                              onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
+                            >
+                              <Text style={styles.multiSelectItemText}>{inspector.fsoName}</Text>
+                            </TouchableOpacity>
+                          ))}
+                      </ScrollView>
+
+                      <TouchableOpacity onPress={() => setIsSecondaryPickerVisible(false)} style={styles.closeIcon}>
+                        <X size={20} color="black" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Remarks</Text>
+                  <TextInput
+                    style={styles.remarksInput}
+                    placeholder="Enter remarks"
+                    value={remarks}
+                    onChangeText={setRemarks}
+                    multiline
+                  />
+                </View>
+                <View style={styles.allocateButtonContainer}>
+                  <TouchableOpacity style={styles.cancelButton} onPress={closeAllocateModal}>
+                    <Text style={styles.buttonTextC}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.createButton} onPress={handleCreateInspection}>
+                    <Text style={styles.buttonText}>Create Inspection</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <Modal
+            visible={isConfirmModalVisible}
+            transparent={true}
+            onRequestClose={() => setIsConfirmModalVisible(false)}
+            animationType="fade"
+          >
+            <View style={styles.confirmModalContainer}>
+              <Text style={styles.confirmModalTitle}>Confirm Allocation</Text>
+              <Text style={styles.confirmModalText}>Are you sure you want to Continue?</Text>
+              <View style={styles.confirmButtonContainer}>
                 <TouchableOpacity
-                  style={styles.proceedButton}
-                  onPress={() => handleProceed(item.refId, item.certificateNo)}
+                  style={[styles.confirmButton, styles.cancelButton]}
+                  onPress={() => setIsConfirmModalVisible(false)}
                 >
-                  <Text style={styles.proceedButtonText}>Proceed</Text>
+                  <Text style={styles.buttonTextC}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.confirmButton, styles.createButton]}
+                  onPress={async () => {
+                    setIsConfirmModalVisible(false)
+
+                    try {
+                      const selectedInspectorDetails = inspectors.find((i) => i.fssaiUserId === selectedInspector)
+                      const createdById1 = loggedInUserId
+                      const createdByName = loggedInUser?.name
+
+                      const staticAssignment = {
+                        refId: refId,
+                        fsoId: selectedInspector,
+                        createdBy: userId,
+                        updatedBy: userId,
+                        inspectionType: "POST",
+                        fsoName: selectedInspectorDetails?.fsoName || "",
+                        createdByName: createdByName,
+                        doRemarks: remarks,
+                        officerType: "P",
+                      }
+
+                      const dynamicAssignments = secondaryInspectors.map((inspector) => ({
+                        refId: refId,
+                        fsoId: inspector.fssaiUserId,
+                        createdBy: userId,
+                        updatedBy: userId,
+                        inspectionType: "POST",
+                        fsoName: inspector.fsoName,
+                        createdByName: createdByName,
+                        doRemarks: remarks,
+                        officerType: "S",
+                      }))
+
+                      const fsoAssignmentSecondaryOfficerRegistration = [staticAssignment, ...dynamicAssignments]
+
+                      // Final Payload
+                      const payload = {
+                        refId: refId,
+                        doRemarks: remarks,
+                        inspectionDate: "",
+                        displayRefId: displayRefId,
+                        fsoId: selectedInspector,
+                        statusId: 17,
+                        fsoAcknowledgement: true,
+                        createdBy: userId,
+                        updatedBy: userId,
+                        fsoName: selectedInspectorDetails?.fsoName || "",
+                        createdByName: createdByName,
+                        fsoAssignmentSecondaryOfficerRegistration: fsoAssignmentSecondaryOfficerRegistration,
+                        inspectionType: "POST",
+                        checkReschedule: false,
+                      }
+
+                      console.log("Final payload:", JSON.stringify(payload, null, 2))
+                      const result = await createInspection(payload)
+                      console.log("Inspection created:", result)
+                      closeAllocateModal()
+                    } catch (error) {
+                      console.error("Error creating inspection:", error)
+                      Alert.alert("Error", "Failed to create inspection. Please try again.")
+                    }
+                  }}
+                >
+                  <Text style={styles.buttonText}>Yes</Text>
                 </TouchableOpacity>
               </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={[styles.noRecordsText, { textAlign: "center", marginTop: 20 }]}>
-            {isSearching ? "Searching..." : "No records found"}
-          </Text>
-        )}
-      </ScrollView>
-      {searchResults?.paginationListRecords?.length > 0 && renderPagination()}
-      <Modal visible={isDetailsModalVisible} transparent={true} animationType="slide" onRequestClose={onClose}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <ScrollView>
-              <Text style={styles.modalTitle}>Inspection Details</Text>
-
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Registration Number:</Text>
-                <Text style={styles.detailValue}>{certificateNo}</Text>
-              </View>
-
-              {selectedInspectionDetails &&
-                selectedInspectionDetails.kobDetails &&
-                selectedInspectionDetails.kobDetails.length > 0 && (
-                  <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Business Type:</Text>
-                    <Text style={styles.detailValue}>{selectedInspectionDetails.kobDetails[0].kobname}</Text>
-                  </View>
-                )}
-
-              {selectedInspectionDetails &&
-              selectedInspectionDetails.inspectionDetails &&
-              selectedInspectionDetails.inspectionDetails.length > 0 ? (
-                <View>
-                  <Text style={styles.sectionTitle}>Inspection Details</Text>
-                  {selectedInspectionDetails.inspectionDetails.map((item, index) => (
-                    <View key={index} style={styles.detailRow}>
-                      <Text style={styles.detailLabel}>Inspection Date:</Text>
-                      <Text style={styles.detailValue}>{item.inspectiondate}</Text>
-                      <Text style={styles.detailLabel}> Marks Obtained:</Text>
-                      <Text style={styles.detailValue}>{item.totalobtained}</Text> 
-                    </View>
-                  ))}
-                </View>
-              ) : (
-                <View>
-                  <Text style={styles.sectionTitle}>Inspection Details</Text>
-                  <Text style={styles.detailValue}>N/A</Text>
-                </View>
-              )}
-            </ScrollView>
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Text style={styles.closeButtonText}>Close</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.AllocateButton} onPress={openAllocateModal}>
-                <Text style={styles.AllocateButtonText}>Allocate</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        </View>
-      </Modal>
+          </Modal>
+        </>
+      )}
     </SafeAreaView>
   )
 }
@@ -588,18 +903,6 @@ const styles = StyleSheet.create({
     minWidth: "45%",
     maxWidth: "48%",
   },
-
-  proceedButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  // modalOverlay: {
-  //   flex: 1,
-  //   backgroundColor: "rgba(0, 0, 0, 0.5)",
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
   modalOverlayF: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -640,25 +943,9 @@ const styles = StyleSheet.create({
     width: "60%",
     fontSize: 16,
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 20,
-  },
-  closeButton: {
-    backgroundColor: "#dc3545",
-    padding: 10,
-    borderRadius: 5,
-    width: "45%",
-    alignItems: "center",
-  },
-  closeButtonText: {
-    color: "white",
-    fontWeight: "bold",
-  },
   AllocateButton: {
-    backgroundColor: "#28a745",
-    padding: 10,
+    backgroundColor: "#007bff",
+    padding: 20,
     borderRadius: 5,
     width: "45%",
     alignItems: "center",
@@ -674,13 +961,6 @@ const styles = StyleSheet.create({
     padding: 20,
     maxHeight: "90%",
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    marginBottom: 20,
-    color: "#333",
-    textAlign: "center",
-  },
   label: {
     fontSize: 14,
     fontWeight: "500",
@@ -688,14 +968,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    height: 45,
-    borderColor: "#ddd",
-    borderWidth: 1,
-    marginBottom: 16,
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: "#fff",
-    color: "#333",
   },
   recordContainer: {
     backgroundColor: "#fff",
@@ -831,6 +1106,8 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     padding: 8,
+    top: -140,
+    left: 250,
   },
   paginationContainer: {
     flexDirection: "row",
@@ -860,6 +1137,131 @@ const styles = StyleSheet.create({
   paginationInfo: {
     fontSize: 16,
     marginHorizontal: 10,
+  },
+  allocateModalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  allocateModalContent: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    width: "100%",
+  },
+  allocateModalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  inputContainer: {
+    marginBottom: 15,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: "#fff",
+  },
+  disabledPicker: {
+    opacity: 0.5,
+  },
+  secondaryInspectorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  multiSelectPicker: {
+    position: "absolute",
+    top: 70,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    elevation: 5,
+    maxHeight: 200,
+    padding: 10,
+  },
+  multiSelectItem: {
+    padding: 10,
+  },
+  multiSelectItemSelected: {
+    backgroundColor: "#e6f7ff",
+  },
+  multiSelectItemText: {
+    fontSize: 16,
+  },
+  remarksInput: {
+    height: 100,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 10,
+    textAlignVertical: "top",
+  },
+  allocateButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 20,
+  },
+  cancelButton: {
+    backgroundColor: "transparent",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#007bff",
+    width: 150,
+    marginRight: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  createButton: {
+    backgroundColor: "#007bff",
+    padding: 12,
+    borderRadius: 8,
+    marginLeft: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  buttonTextC: {
+    color: "#007bff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  confirmModalContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  confirmModalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+  },
+  confirmModalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  confirmButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    width: "100%",
+  },
+  confirmButton: {
+    padding: 10,
+    borderRadius: 5,
+    alignItems: "center",
+    width: 100,
   },
 })
 

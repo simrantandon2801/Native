@@ -8,32 +8,7 @@ import { Alert } from "react-native";
 const SECRET_KEY = "LsiplyG3M1bX7Rg";
 
 // Define the payload interface for creating an inspection
-interface CreateInspectionPayload {
-  displayRefId: string;
-  inspectionDate: string;
-  refId: number;
-  doRemarks: string;
-  fsoId: string;
-  statusId: number;
-  fsoAcknowledgement: boolean;
-  fsoName: string;
-  createdByName: string;
-  fsoAssignmentSecondaryOfficerRegistration: {
-    refId: number;
-    fsoId: string;
-    createdBy: string;
-    updatedBy: string;
-    inspectionType: string;
-    fsoName: string;
-    createdByName: string;
-    doRemarks: string;
-    officerType: string;
-  }[];
-  inspectionType: string;
-  createdBy: string;
-  updatedBy: string;
-  checkReschedule: boolean;
-}
+
 
 // Encryption function
 const encryptData = (data: string): string => {
@@ -42,19 +17,19 @@ const encryptData = (data: string): string => {
 };
 
 
-export const createInspection = async (payload: CreateInspectionPayload) => {
+export const createInspection = async (payload:any) => {
   try {
    
     const storedUserId = await AsyncStorage.getItem("userId");
     const accessToken = await AsyncStorage.getItem("accessToken");
-
+ const xAuthUserId = encryptData(storedUserId || "")
    
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found");
     }
 
    
-    const xAuthUserId = encryptData(storedUserId);
+    // const xAuthUserId = encryptData(storedUserId);
 
    
     const apiUrl = `${BASE_URL}/gateway/officer/inspection/fsoassignmentreg`;
