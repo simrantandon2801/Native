@@ -90,7 +90,9 @@ const AllocateInspection: React.FC = () => {
 
   // All functions that use hooks or state
   const openAllocateModal = () => {
+    setIsDetailsModalVisible(false)
     setIsAllocateModalVisible(true)
+ 
     setSelectedInspector("")
     setSecondaryInspectors([])
     fetchInspectors()
@@ -245,30 +247,30 @@ const AllocateInspection: React.FC = () => {
     fetchLoggedInUser()
   }, [])
 
-  const handleProceed = async (refId: string, certificateNo: string) => {
+  const handleProceed = async (refId: string, certificateNo: string, displayRefId: string) => {
     try {
       // Store values in AsyncStorage
       await AsyncStorage.setItem("refIdddd", refId.toString())
       await AsyncStorage.setItem("certificatenoproceed", certificateNo.toString())
       await AsyncStorage.setItem("displayrefIddddd", displayRefId.toString())
-
+  
       // Call the API function
       const result = await getAllocateInspectionDetails(refId, certificateNo)
       console.log("ref'idafsa", refId, "certifdifFA", certificateNo)
       console.log(result)
-
+  
       // Update state variables
       setSelectedInspectionDetails(result)
       setCertificateNo(certificateNo)
       setRefId(refId)
-      setdisplayRefId(displayRefId)
-
+      setdisplayRefId(displayRefId)  // Set the displayRefId from the parameter
+  
       // Retrieve values from AsyncStorage for logging
       const refuda = await AsyncStorage.getItem("refIdddd")
       const certuda = await AsyncStorage.getItem("certificatenoproceed")
       const certuda11 = await AsyncStorage.getItem("displayrefIddddd")
       console.log("simranda : ", refuda, " ,", certuda,",",certuda11)
-
+  
       // Show the modal
       setIsDetailsModalVisible(true)
     } catch (error) {
@@ -381,16 +383,26 @@ const AllocateInspection: React.FC = () => {
     loadDistrictName()
   }, [])
 
-  const handleReset = () => {
-    setReferenceNo("")
-    setCompanyName("")
-    setSelectedState("")
-    setSelectedDistrict("")
-    setSelectedBusinessType("")
-    setDistricts([])
-    setError(null)
-    setSearchResults("")
-  }
+  const handleReset = async () => {
+    try {
+      // Reset all state variables
+      setReferenceNo("");
+      setCompanyName("");
+      
+      // Remove the stored company name from AsyncStorage
+      await AsyncStorage.removeItem("companyName");
+      
+      setSelectedState("");
+      setSelectedDistrict("");
+      setSelectedBusinessType("");
+      setDistricts([]);
+      setError(null);
+      setSearchResults("");
+    } catch (error) {
+      console.error("Error resetting data:", error);
+      setError("An error occurred while resetting data.");
+    }
+  };
 
   const handleSearch = async (page: number) => {
     setIsSearching(true)
@@ -455,7 +467,7 @@ const AllocateInspection: React.FC = () => {
     )
   }
 
-  // Render the component - no early returns before all hooks are called
+  
   return (
     <SafeAreaView style={styles.container}>
       {isLoading && !refreshing ? (
@@ -475,14 +487,14 @@ const AllocateInspection: React.FC = () => {
               <View style={styles.modalContent}>
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>Filter Inspection</Text>
-                  <TouchableOpacity onPress={toggleModal} style={styles.closeIcon}>
+                  <TouchableOpacity onPress={toggleModal} style={styles.closeIconf}>
                     <X size={24} color="#000" />
                   </TouchableOpacity>
                 </View>
 
                 <Text style={styles.label}>Reference Number</Text>
                 <TextInput
-                  style={styles.input}
+                  style={styles.inputr}
                   placeholder="Enter reference number"
                   value={referenceNo}
                   onChangeText={setReferenceNo}
@@ -491,7 +503,7 @@ const AllocateInspection: React.FC = () => {
 
                 <Text style={styles.label}>Company Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={styles.inputr}
                   placeholder="Enter company name"
                   value={companyName}
                   onChangeText={async (text) => {
@@ -625,7 +637,7 @@ const AllocateInspection: React.FC = () => {
 
                     <TouchableOpacity
                       style={styles.proceedButton}
-                      onPress={() => handleProceed(item.refId, item.certificateNo)}
+                      onPress={() => handleProceed(item.refId, item.certificateNo, item.displayRefId)}
                     >
                       <Text style={styles.proceedButtonText}>Proceed</Text>
                     </TouchableOpacity>
@@ -691,7 +703,7 @@ const AllocateInspection: React.FC = () => {
               </View>
             </View>
           </Modal>
-          <Modal visible={isAllocateModalVisible} transparent={true} onRequestClose={closeAllocateModal}>
+          <Modal visible={isAllocateModalVisible} transparent={false} onRequestClose={closeAllocateModal}>
             <View style={styles.allocateModalContainer}>
               <View style={styles.allocateModalContent}>
                 <Text style={styles.allocateModalTitle}>Allocate Inspection</Text>
@@ -790,7 +802,7 @@ const AllocateInspection: React.FC = () => {
             transparent={true}
             onRequestClose={() => setIsConfirmModalVisible(false)}
             animationType="fade"
-          >
+          ><View style={styles.modalOverlay}>
             <View style={styles.confirmModalContainer}>
               <Text style={styles.confirmModalTitle}>Confirm Allocation</Text>
               <Text style={styles.confirmModalText}>Are you sure you want to Continue?</Text>
@@ -869,6 +881,7 @@ const AllocateInspection: React.FC = () => {
                 </TouchableOpacity>
               </View>
             </View>
+            </View>
           </Modal>
         </>
       )}
@@ -880,6 +893,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
   },
   header: {
     flexDirection: "row",
@@ -893,11 +912,11 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 8,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "flex-end",
-  },
+  // modalOverlay: {
+  //   flex: 1,
+  //   backgroundColor: "rgba(0, 0, 0, 0.5)",
+  //   justifyContent: "flex-end",
+  // },
   column: {
     flex: 1,
     minWidth: "45%",
@@ -971,6 +990,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: "#fff",
+  },
+  inputr: {
+    height: 45,
+    borderColor: "#ddd",
+    borderWidth: 1,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    color: "#333",
   },
   recordContainer: {
     backgroundColor: "#fff",
@@ -1109,6 +1139,12 @@ const styles = StyleSheet.create({
     top: -140,
     left: 250,
   },
+  closeIconf: {
+    padding: 8,
+    position: "absolute",
+    top: 0,
+    right: 0,
+  },
   paginationContainer: {
     flexDirection: "row",
     justifyContent: "center",
@@ -1241,6 +1277,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 10,
     alignItems: "center",
+    justifyContent:'center'
   },
   confirmModalTitle: {
     fontSize: 18,

@@ -51,7 +51,7 @@ const InspectionAccepted: React.FC = () => {
   const [OfficermodalVisible, setOfficerModalVisible] = useState(false)
   const [companyName, setCompanyName] = useState("")
   const [hasSearched, setHasSearched] = useState(false)
-
+  const [tempCompanyName, setTempCompanyName] = useState("") // Temporary state for company name input
   const [selectedBusinessType, setSelectedBusinessType] = useState("")
   const [userId, setUserId] = useState<string | null>(null)
   const [startingInspections, setStartingInspections] = useState<{ [key: string]: boolean }>({})
@@ -230,6 +230,8 @@ const InspectionAccepted: React.FC = () => {
       // handleReset()
     }
     setIsModalVisible(!isModalVisible)
+    // Reset the temporary company name when opening the modal
+    setTempCompanyName(companyName)
   }
   const handleReset = async () => {
     setReferenceNo("")
@@ -388,12 +390,12 @@ const InspectionAccepted: React.FC = () => {
 
               <Text style={styles.label}>Company Name</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Enter company name"
-                value={companyName}
-                onChangeText={setCompanyName}
-                placeholderTextColor="#999"
-              />
+  style={styles.input}
+  placeholder="Enter company name"
+  value={tempCompanyName}
+  onChangeText={setTempCompanyName}
+  placeholderTextColor="#999"
+/>
 
 <Text style={styles.label}>Allocated Date From</Text>
               <TouchableOpacity style={styles.input} onPress={() => setShowFromPicker(true)}>

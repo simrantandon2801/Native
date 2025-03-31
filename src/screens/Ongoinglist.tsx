@@ -418,10 +418,10 @@ useFocusEffect(
                 <TouchableOpacity
                   style={styles.applyButton}
                   onPress={async () => {
-                    if ((fromDate && !toDate) || (!fromDate && toDate)) {
-                      Alert.alert( "Please select both From and To dates")
-                      return
-                    }
+                    // if ((fromDate && !toDate) || (!fromDate && toDate)) {
+                    //   Alert.alert( "Please select both From and To dates")
+                    //   return
+                    // }
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(inspectionId)
