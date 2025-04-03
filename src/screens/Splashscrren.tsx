@@ -117,7 +117,7 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.appName}>BharatGap</Text>
+      <Text style={styles.appName}>BHARATGAP</Text>
       
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />

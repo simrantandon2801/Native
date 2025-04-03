@@ -1,4 +1,5 @@
 import { BASE_URL } from "@env";
+import fetchData from "../api/Apiservice";
 
 export const getBackendToken = async () => {
   try {
@@ -35,6 +36,7 @@ export const getBackendToken = async () => {
     throw error;
   }
 };
+
 // export const getBackendToken = async () => {
 //   try {
 //     const apiUrl = `${BASE_URL}/gateway/officer/common/signup/getmobileappversiondetails`;

@@ -35,7 +35,7 @@ type DrawerParamList = {
   Rejectedlist: undefined
 }
 
-// Create the Drawer Navigator
+
 const Drawer = createDrawerNavigator<DrawerParamList>()
 
 const styles = StyleSheet.create({
@@ -79,7 +79,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const navigation = useNavigation()
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [nomi, setNomi] = useState<string | null>("Rxx")
-
+  const[jethalal,setjethalal]=useState("")
   useEffect(() => {
     const fetchInitialState = async () => {
       try {
@@ -88,6 +88,9 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
         if (nomiValue) {
           setNomi(nomiValue)
         }
+  const storedNameuser = await AsyncStorage.getItem("loggedInUserName")
+  setjethalal(storedNameuser)
+        console.log("Stored Name:", JSON.parse(storedNameuser || '""'))
 
         const savedCollapsibleState = await AsyncStorage.getItem(COLLAPSIBLE_STATE_KEY)
         if (savedCollapsibleState !== null) {
@@ -138,7 +141,10 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   return (
     <SafeAreaView style={styles.drawerContainer}>
       <View style={styles.profileSection}>
-        <User size={60} color="#000" />
+        <User size={60} color="#000"/>
+        <View>
+          <Text>{jethalal}</Text>
+        </View>
       </View>
       <TouchableOpacity style={styles.collapsibleHeader} onPress={toggleCollapsible}>
         <Text style={styles.collapsibleHeaderText}>{nomi}</Text>

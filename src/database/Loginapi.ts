@@ -5,20 +5,28 @@ import AsyncStorage from "@react-native-async-storage/async-storage"
 const secretKey = "$$CHALLENGE"
 
 export interface LoginResponse {
-  accessToken: string
-  userId: string
+  accessToken: string;
+  userId: string;
   roles: Array<{
-    roleId: number
-    roleName: string
+    roleId: number;
+    roleName: string;
     Menus: Array<{
-      Name: string
+      Name: string;
       SubMenus: Array<{
-        subModuleUrl: string
-        subModuleName: string
-        orderVal: number
-      }>
-    }>
-  }>
+        subModuleUrl: string;
+        subModuleName: string;
+        orderVal: number;
+      }>;
+    }>;
+  }>;
+  userDetails: {
+    name: string;
+    mobileNo: string;
+    loginId: string;
+    userId: string;
+    email: string;
+    categoryId: number;
+  };
 }
 
 const encryptPassword = (password: string, key: string): string => {
@@ -63,7 +71,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
 
     const data: LoginResponse = await response.json()
     console.log("Login response data:", JSON.stringify(data, null, 2))
-  
+  console.log(data.userDetails,"hluh")
     console.log("reached E")
     if (!data.roles || !Array.isArray(data.roles)) {
       console.error("Invalid roles data:", data.roles)
@@ -81,7 +89,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
 
       await AsyncStorage.setItem("accessToken", data.accessToken)
       await AsyncStorage.setItem("userId", String(data.userId))
-      await AsyncStorage.setItem("loggedInUserName", username);
+      await AsyncStorage.setItem("loggedInUserName",String (data.userDetails.name));
       console.log("reached J")
 
       // Store the Registration Inspection menu data
@@ -91,6 +99,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
       if (registrationInspectionMenu) {
         console.log("Login response - Registration Inspection:", registrationInspectionMenu.Name)
         console.log("Login response - SubMenus:", registrationInspectionMenu.SubMenus)
+        
         console.log("reached I")
 
         
@@ -105,6 +114,7 @@ export const loginUser = async (username: string, password: string): Promise<Log
         console.log("Stored SubMenus:", JSON.parse(storedSubMenus || "[]"))
         const storedName = await AsyncStorage.getItem("Nameresponse####")
         console.log("Stored Name:", JSON.parse(storedName || '""'))
+      
         console.log("reached L")
       } else {
         console.log("Registration Inspection menu not found for the role")
