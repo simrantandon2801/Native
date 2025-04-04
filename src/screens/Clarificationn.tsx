@@ -87,20 +87,20 @@ const Clarificationn: React.FC = () => {
         const payload: any = {
           statusId: activeButton === 1 ? 41 : 50,
           userId: userId,
-          displayRefId: displayRefID ,
+          displayRefId: displayRefID,
           companyName: companyName,
           fromDate: formatDate(fromDate),
           toDate: formatDate(toDate),
           processFlag: true,
-          licenseNo:displayRefID,
+          licenseNo: displayRefID,
           inspectionType: selectedInspectionType || null,
           fsoName: null,
           kobId: selectedBusinessType || null,
         }
         console.log("payload clarification", payload)
-       
+
         const result = await getClarificationFromOngoingInspection(payload, page)
-        console.log("displayreufid",displayRefID)
+        console.log("displayreufid", displayRefID)
         setclarification(result)
         setHasSearched(true)
         console.log("============Clarification ongoing=====", result)
@@ -131,7 +131,7 @@ const Clarificationn: React.FC = () => {
         if (savedCompanyName) {
           setCompanyName(savedCompanyName)
         }
-        console.log("compnayname",savedCompanyName)
+        console.log("compnayname", savedCompanyName)
       } catch (error) {
         console.error("Error loading companyName from AsyncStorage:", error)
       }
@@ -496,10 +496,6 @@ const Clarificationn: React.FC = () => {
                 <TouchableOpacity
                   style={styles.applyButton}
                   onPress={async () => {
-                    if ((fromDate && !toDate) || (!fromDate && toDate)) {
-                      Alert.alert("Please select both From and To dates")
-                      return
-                    }
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)
@@ -660,7 +656,7 @@ const styles = StyleSheet.create({
     flexWrap: "nowrap",
     paddingLeft: 20,
     paddingRight: 20,
-    marginBottom:50,
+    marginBottom: 50,
     gap: 20,
   },
   button: {

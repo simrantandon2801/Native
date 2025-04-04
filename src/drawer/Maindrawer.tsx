@@ -1,6 +1,8 @@
+"use client"
+
 import type React from "react"
 import { useEffect, useState, useCallback } from "react"
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView,Alert, } from "react-native"
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from "react-native"
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -10,9 +12,6 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useNavigation } from "@react-navigation/native"
 import { LogOut, ChevronDown, ChevronUp, User } from "lucide-react-native"
-import Collapsible from "react-native-collapsible"
-
-
 
 import DashboardScreen from "../screens/Dashboardscreen"
 import Acknowledgelist from "../screens/Acknowledgelist"
@@ -22,7 +21,6 @@ import Rejectedlist from "../screens/Rejectedlist"
 import Clarificationn from "../screens/Clarificationn"
 import SearchInspection from "../screens/SearchInspection"
 import CompletedInspection from "../screens/CompletedInspection"
-import AllocatedInspection from "../screens/AllocateInspection"
 import AllocateInspection from "../screens/AllocateInspection"
 import AllocatedInspetion from "../screens/Allocated"
 
@@ -34,7 +32,6 @@ type DrawerParamList = {
   Ongoinglist: undefined
   Rejectedlist: undefined
 }
-
 
 const Drawer = createDrawerNavigator<DrawerParamList>()
 
@@ -79,18 +76,30 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const navigation = useNavigation()
   const [isCollapsed, setIsCollapsed] = useState(true)
   const [nomi, setNomi] = useState<string | null>("Rxx")
-  const[jethalal,setjethalal]=useState("")
+  const [jethalal, setjethalal] = useState("")
   useEffect(() => {
     const fetchInitialState = async () => {
       try {
-        const nomiValue1 = await AsyncStorage.getItem("Nameresponse####");
-        const nomiValue=JSON.parse(nomiValue1)
-        if (nomiValue) {
-          setNomi(nomiValue)
+        const nomiValue1 = await AsyncStorage.getItem("Nameresponse####")
+        if (nomiValue1) {
+          try {
+            const nomiValue = JSON.parse(nomiValue1)
+            setNomi(nomiValue)
+          } catch (parseError) {
+            console.error("Error parsing Nameresponse####:", parseError)
+            // Set a default value or handle the error
+            setNomi("Default Name")
+          }
         }
-  const storedNameuser = await AsyncStorage.getItem("loggedInUserName")
-  setjethalal(storedNameuser)
-        console.log("Stored Name:", JSON.parse(storedNameuser || '""'))
+        const storedNameuser = await AsyncStorage.getItem("loggedInUserName")
+        if (storedNameuser) {
+          setjethalal(storedNameuser)
+          try {
+            console.log("Stored Name:", JSON.parse(storedNameuser))
+          } catch (parseError) {
+            console.log("Stored Name (not JSON):", storedNameuser)
+          }
+        }
 
         const savedCollapsibleState = await AsyncStorage.getItem(COLLAPSIBLE_STATE_KEY)
         if (savedCollapsibleState !== null) {
@@ -105,28 +114,26 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   }, [])
 
   const handleLogout = useCallback(() => {
-    
     Alert.alert(
-      "Logout Confirmation", 
-      "Are you sure you want to logout?", 
+      "Logout Confirmation",
+      "Are you sure you want to logout?",
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
-        { 
-          text: "Logout", 
+        {
+          text: "Logout",
           onPress: () => {
-            console.log("Logout confirmed");
-            AsyncStorage.clear();
-            navigation.navigate("Login" as never);
+            console.log("Logout confirmed")
+            AsyncStorage.clear()
+            navigation.navigate("Login" as never)
           },
-      
-        }
+        },
       ],
-      { cancelable: true }
-    );
-  }, [navigation]);
+      { cancelable: true },
+    )
+  }, [navigation])
 
   const toggleCollapsible = useCallback(() => {
     setIsCollapsed((prevState) => {
@@ -141,7 +148,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   return (
     <SafeAreaView style={styles.drawerContainer}>
       <View style={styles.profileSection}>
-        <User size={60} color="#000"/>
+        <User size={60} color="#000" />
         <View>
           <Text>{jethalal}</Text>
         </View>
@@ -191,41 +198,29 @@ const MainDrawer: React.FC = () => {
               componentName = SearchInspection
             } else if (element.subModuleName == "Completed Inspection Reports") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "Document Scrutinization") {
+            } else if (element.subModuleName == "Document Scrutinization") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "Scrutiny Completed") {
+            } else if (element.subModuleName == "Scrutiny Completed") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "Generate Registration Certificate") {
+            } else if (element.subModuleName == "Generate Registration Certificate") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "View Issued Certificates") {
+            } else if (element.subModuleName == "View Issued Certificates") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "List of Application(s) Sent for Editing") {
+            } else if (element.subModuleName == "List of Application(s) Sent for Editing") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "Rejected Application(s)") {
+            } else if (element.subModuleName == "Rejected Application(s)") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "Recall Application(s)") {
+            } else if (element.subModuleName == "Recall Application(s)") {
               componentName = CompletedInspection
-            }
-            else if (element.subModuleName == "Allocate Inspection") {
+            } else if (element.subModuleName == "Allocate Inspection") {
               componentName = AllocateInspection
-            }
-            else if (element.subModuleName == "Allocated Inspection") {
+            } else if (element.subModuleName == "Allocated Inspection") {
               componentName = AllocatedInspetion
-            }
-            else if (element.subModuleName == "Allocate Inspection For Expired Certificate") {
+            } else if (element.subModuleName == "Allocate Inspection For Expired Certificate") {
+              componentName = CompletedInspection
+            } else if (element.subModuleName == "Scrutinize Inspection Report") {
               componentName = CompletedInspection
             }
-            else if (element.subModuleName == "Scrutinize Inspection Report") {
-              componentName = CompletedInspection
-            }
-
 
             mainMenu.push(Object.assign(element, { component: componentName }))
           })
@@ -240,7 +235,6 @@ const MainDrawer: React.FC = () => {
   }, [])
 
   return (
-    
     <Drawer.Navigator
       initialRouteName="Dashboard"
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -271,3 +265,4 @@ const MainDrawer: React.FC = () => {
 }
 
 export default MainDrawer
+
