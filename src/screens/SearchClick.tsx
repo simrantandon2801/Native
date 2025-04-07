@@ -14,10 +14,12 @@ import {
   Image
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRoute } from '@react-navigation/native';
+import { useRoute ,useNavigation} from '@react-navigation/native';
+
 import { getInspectionPreviewDetails, getKobNameReg, getSignaturePreview } from "../database/Previewapi";
 import { viewInspectionDocument } from "../database/DocumentListapi";
-
+import RNHTMLtoPDF from "react-native-html-to-pdf"
+import RNFS from "react-native-fs"
 // Define TypeScript interfaces for API responses
 interface DocumentDetails {
   [key: string]: any; // Replace with actual structure if known
@@ -50,8 +52,9 @@ interface KobNameData {
 const SearchClick: React.FC = () => {
   const route = useRoute();
   const params = route.params || {};
+   const navigation = useNavigation()
   const inspectionId = params.inspectionId || "";
-  const assignmentId = params.assignmentId || 0;
+   const assignmentId = params.assignmentId || "";
   
   const [documentDetails, setDocumentDetails] = useState<DocumentDetails[] | null>(null);
   const [inspectonDetails, setInspectionDetails] = useState<InspectionDetails | null>(null);
@@ -95,7 +98,82 @@ const SearchClick: React.FC = () => {
       setIsLoading(false);
     }
   };
+  const handleDownloadPrintDate = async () => {
+    try {
+      // Generate HTML content for the PDF
+      const htmlContent = `
+        <h1>Auto Generated Inspection Report</h1>
+        <h2>Upload Documents</h2>
+        ${documentDetails && documentDetails.length > 0
+          ? documentDetails.map((doc, index) => `<p>Document Desc: ${doc.documentDesc || "N/A"}</p>`).join("")
+          : "<p>No documents available</p>"}
+        <h2>Inspection Details</h2>
+        <p>Report ID: ${inspectonDetails?.inspectionId || "N/A"}</p>
+        <p>Inspection Officer Name: ${inspectonDetails?.fsoName || "N/A"}</p>
+        <p>Applicant Name: ${inspectonDetails?.companyName || "N/A"}</p>
+        <p>Address: ${inspectonDetails?.address || "N/A"}</p>
+        <p>Inspection Date: ${inspectonDetails?.inspectionDate || "N/A"}</p>
+        <p>Applicant Certificate Number: ${inspectonDetails?.certificateNo || "N/A"}</p>
+        <p>Inspection Officer UserId: ${inspectonDetails?.fsoId || "N/A"}</p>
+        <p>Start Date Time: ${inspectonDetails?.startDateTime || "N/A"}</p>
+        <p>End Date Time: ${inspectonDetails?.endDateTime || "N/A"}</p>
+        <p>Business Type: ${kobNameData || "N/A"}</p>
+        <p>Obtained Percentage: ${scoreDetails?.obtainedpercentage || "N/A"}</p>
+        <p>Total Max: ${scoreDetails?.totalmax || "N/A"}</p>
+        <p>Total Obtained: ${scoreDetails?.totalobtained || "N/A"}</p>
+        <h2>Update Inspection Checklist</h2>
+        ${sectionDetails && sectionDetails.length > 0
+          ? sectionDetails.map((section, index) => `<p>Observation: ${section.observation || "N/A"}</p>`).join("")
+          : "<p>No section details available</p>"}
+        
+        <h2>Applicant Signatures</h2>
+        ${signaturedata && signaturedata.length > 0
+          ? signaturedata
+              .filter(signature => signature && signature.signatureType === "APPLICANT")
+              .map((signature, index) => `
+                <p>Applicant Name: ${signature.name || "N/A"}</p>
+                <p>Applicant Email: ${signature.email || "N/A"}</p>
+                <p>Applicant Contact No: ${signature.mobileNo || "N/A"}</p>
+                <p>Document Description: ${signature.document_desc || "N/A"}</p>
+              `).join("<hr>")
+          : "<p>No applicant signatures available</p>"}
+        
+        <h2>Officer Signatures</h2>
+        ${signaturedata && signaturedata.length > 0
+          ? signaturedata
+              .filter(signature => signature && (signature.signatureType === "FSO" || signature.signatureType === "Inspection Officer"))
+              .map((signature, index) => `
+                <p>Officer Name: ${signature.name || "N/A"}</p>
+                <p>Officer Email: ${signature.email || "N/A"}</p>
+                <p>Officer Contact No: ${signature.mobileNo || "N/A"}</p>
+                <p>Document Description: ${signature.document_desc || "N/A"}</p>
+              `).join("<hr>")
+          : "<p>No officer signatures available</p>"}
+      `
   
+      // Generate PDF using react-native-html-to-pdf
+      const pdfOptions = {
+        html: htmlContent,
+        fileName: `Inspection_Report_${inspectionId}`,
+        directory: "Documents", // Temporary directory
+      }
+  
+      const pdf = await RNHTMLtoPDF.convert(pdfOptions)
+      console.log("PDF generated at:", pdf.filePath)
+  
+      // Define the Downloads directory path
+      const downloadDir = `${RNFS.DownloadDirectoryPath}/Inspection_Report_${inspectionId}.pdf`
+  
+      // Move the file to the Downloads directory
+      await RNFS.moveFile(pdf.filePath, downloadDir)
+      console.log("PDF moved to Downloads folder:", downloadDir)
+  
+      Alert.alert("Success", "PDF downloaded successfully to the Downloads folder!")
+    } catch (error) {
+      console.error("Error generating or saving PDF:", error)
+      Alert.alert("Error", "Failed to generate or save PDF. Please try again.")
+    }
+  }
   const handleViewImage = async (documentPath: string) => {
     if (!documentPath) {
       Alert.alert("Error", "Document path is missing");
@@ -416,6 +494,20 @@ const SearchClick: React.FC = () => {
               </View>
             </View>
           </Modal>
+              <View style={styles.buttonContainerD}>
+                    <TouchableOpacity 
+                      style={styles.button}
+                      onPress={() => handleDownloadPrintDate()} 
+                    >
+                      <Text style={styles.buttonText}>Download Print Date</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.button}
+                      onPress={() => navigation.goBack()} 
+                    >
+                      <Text style={styles.buttonText}>Back</Text>
+                    </TouchableOpacity>
+                  </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -446,6 +538,32 @@ const styles = StyleSheet.create({
     marginTop: 10,
     padding: 15,
   },
+  buttonContainer: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 20, 
+    paddingVertical: 10,
+    marginBottom: 20,
+    backgroundColor: '#f9f9f9', 
+  },
+  buttonContainerD: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    // paddingHorizontal: 20, 
+    // paddingVertical: 10,
+    marginBottom: 20,
+ 
+    backgroundColor: '#f9f9f9', 
+  },
+  button: {
+    flex: 1, 
+    marginHorizontal: 5, 
+    paddingVertical: 10, 
+    backgroundColor: '#0066cc', 
+    borderRadius: 5, 
+    width:100,
+    alignItems: 'center', 
+  },
   closeImageButton: {
     position: "absolute",
     top: 10,
@@ -463,7 +581,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff', 
-    fontSize: 16, 
+    fontSize: 14, 
     fontWeight: 'bold', 
   },
   noDataText: {

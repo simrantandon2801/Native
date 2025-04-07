@@ -568,7 +568,7 @@ const SearchInspection: React.FC = () => {
                   style={styles.picker}
                   dropdownIconColor="#666"
                 >
-                  <Picker.Item label="Select Officer Type" value="" style={styles.placeholderStyle} />
+                  <Picker.Item label="Select Inspection Officer" value="" style={styles.placeholderStyle} />
                   {OfficerTypes.map((type) => (
                     <Picker.Item key={type.fsoName} label={type.fsoName} value={type.fsoName} />
                   ))}
