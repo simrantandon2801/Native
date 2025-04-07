@@ -113,12 +113,12 @@ const UploadDocumentsPhotos: React.FC<UploadDocumentsProps> = ({ visible, onClos
 
   const uploadImage = async () => {
     if (!selectedImage) {
-      Alert.alert("Error", "Please select an image first")
+      Alert.alert( "Please select an image first")
       return
     }
 
     if (!documentName.trim()) {
-      Alert.alert("Error", "Please enter a document name")
+      Alert.alert( "Please enter a document name")
       return
     }
 

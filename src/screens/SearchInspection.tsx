@@ -12,16 +12,20 @@ import {
   SafeAreaView,
   ScrollView,
   RefreshControl,
-  Alert,
+  Alert,Platform
 } from "react-native"
 import { Picker } from "@react-native-picker/picker"
 import { Filter, X } from "lucide-react-native"
+
 import DateTimePicker from "@react-native-community/datetimepicker"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getBusinessTypes } from "../database/Statebusinessapi"
-import { useFocusEffect } from "@react-navigation/native"
-import { getInspectionSearchReport, getSearchOfficer } from "../database/Searchapi"
-
+import { PermissionsAndroid, Linking } from 'react-native';
+import { useFocusEffect, useNavigation } from "@react-navigation/native"
+import XLSX from 'xlsx';
+import RNFS from 'react-native-fs';
+import { getclicktotalcount, getexportexcel, getInspectionSearchReport, getSearchOfficer } from "../database/Searchapi"
+import { PERMISSIONS, request } from 'react-native-permissions';
 interface Searchinspection {
   currentPageNo: number
   totalPages: number
@@ -45,6 +49,7 @@ const SearchInspection: React.FC = () => {
     totalRecords: 0,
     paginationListRecords: [],
   })
+  const navigation=useNavigation()
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
@@ -61,6 +66,7 @@ const SearchInspection: React.FC = () => {
 
   const [hasSearched, setHasSearched] = useState(false)
   const [itemsPerPage] = useState(10)
+  const [totalCount, setTotalCount] = useState(null)
 
   const [currentPage, setCurrentPage] = useState(1)
   const [businessTypes, setBusinessTypes] = useState<Array<any>>([])
@@ -85,7 +91,7 @@ const SearchInspection: React.FC = () => {
       setError(null)
       try {
         const payload = {
-          refId: refId ,
+          refId: refId,
           licenseNo: displayRefID || "",
           txtCompliance: "",
           kobId: selectedBusinessType || "",
@@ -96,7 +102,7 @@ const SearchInspection: React.FC = () => {
           licenseCategoryId: 1,
           processFlag: false,
           groupId: "",
-          companyName: selectedInspectionOfficer || "",
+          companyName: companyName || "",
           riskType: "",
           categoryId: "",
           fsoName: selectedInspectionOfficer || "",
@@ -131,6 +137,116 @@ const SearchInspection: React.FC = () => {
     ],
   )
 
+  const handlePress = async () => {
+    try {
+      setIsLoading(true)
+
+      const payload = {
+        refId: refId,
+        licenseNo: displayRefID,
+        txtCompliance: "",
+        kobId: "",
+        fromDate: formatDate(fromDate),
+        toDate: formatDate(toDate),
+        fsoId: userId,
+        inspectionType: selectedInspectionType,
+        licenseCategoryId: 1,
+        processFlag: false,
+        groupId: "",
+        companyName: companyName,
+        riskType: "",
+        categoryId: "",
+        fsoName: selectedInspectionOfficer,
+      }
+
+      const result = await getclicktotalcount(payload)
+
+      if (result && result[0]?.count !== undefined) {
+        setTotalCount(result[0].count) // Update the state with the count
+      } else {
+        console.warn("Count property is missing in the API response.")
+        setTotalCount(null) // Reset the count if the API response is invalid
+      }
+    } catch (error) {
+      console.error("Error fetching total count:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  // const handleExport = async () => {
+  //   try {
+  //     setIsLoading(true);
+  
+      
+  //     const payload = {
+  //       refId,
+  //       licenseNo: displayRefID,
+  //       txtCompliance: "",
+  //       kobId: "",
+  //       fromDate: formatDate(fromDate),
+  //       toDate: formatDate(toDate),
+  //       fsoId: userId,
+  //       inspectionType: selectedInspectionType,
+  //       licenseCategoryId: 1,
+  //       processFlag: false,
+  //       groupId: "",
+  //       companyName,
+  //       riskType: "",
+  //       categoryId: "",
+  //       fsoName: selectedInspectionOfficer,
+  //     };
+  
+  //     const result = await getexportexcel(payload);
+  //     console.log(result, "API Response");
+  
+  //     if (!Array.isArray(result) || result.length === 0) {
+  //       Alert.alert("No Data", "No data available to export.");
+  //       return;
+  //     }
+  
+    
+  //     // let hasPermission = false;
+  //     // if (Platform.OS === 'android') {
+  //     //   const granted = await request(PERMISSIONS.ANDROID.WRITE_EXTERNAL_STORAGE);
+  //     //   if (granted !== 'granted') {
+  //     //     console.log(granted,)
+  //     //     Alert.alert("Permission Denied", "Storage permission is required to save the file.");
+  //     //     return;
+  //     //   }
+  //     //   hasPermission = true;
+  //     // } else {
+  //     //   hasPermission = true; 
+  //     // }
+  
+  //     // if (!hasPermission) return;
+  
+    
+  //     const fileName = `inspection_data_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  //     const worksheet = XLSX.utils.json_to_sheet(result);
+  //     const workbook = XLSX.utils.book_new();
+  //     XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+  //     const excelData = XLSX.write(workbook, { type: "base64", bookType: "xlsx" });
+  
+     
+  //     const path = `${RNFS.DownloadDirectoryPath}/${fileName}`;
+  //     await RNFS.writeFile(path, excelData, "base64");
+  
+     
+  //     Alert.alert(
+  //       "Success",
+  //       `File saved successfully at ${path}`,
+  //       [
+  //         { text: "Open File", onPress: () => Linking.openURL(path) },
+  //         { text: "OK" },
+  //       ]
+  //     );
+  //   } catch (error) {
+  //     console.error("Error exporting data:", error);
+  //     Alert.alert("Error", "An error occurred while exporting the data.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   useEffect(() => {
     const loadCompanyName = async () => {
       try {
@@ -228,20 +344,19 @@ const SearchInspection: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!userId) return // Skip if userId is not available yet
+      if (!userId) return
 
-      setIsLoading(true) // Start loading
-      setError(null) // Reset error state
+      setIsLoading(true)
+      setError(null)
 
       try {
-        // Fetch data from the API
         const officerData = await getSearchOfficer(userId)
-        setOfficerTypes(officerData) // Update state with fetched data
+        setOfficerTypes(officerData)
       } catch (err) {
         console.error("Error fetching initial data:", err)
         setError("Failed to load inspection officer data. Please try again later.")
       } finally {
-        setIsLoading(false) // Stop loading regardless of success or failure
+        setIsLoading(false)
       }
     }
 
@@ -298,8 +413,10 @@ const SearchInspection: React.FC = () => {
     setSelectedBusinessType("")
     setSelectedInspectionType("")
     setSelectedBusinessType("")
+    setSelectedInspectionOfficer("")
     setFromDate(null)
     setToDate(null)
+    setTotalCount(null)
     setShowFromPicker(false)
     setShowToPicker(false)
     setHasSearched(false)
@@ -314,7 +431,6 @@ const SearchInspection: React.FC = () => {
     }
   }
 
-  // This was causing the infinite loop - now it only runs when dependencies actually change
   useEffect(() => {
     if (userId && hasSearched) {
       fetchInspectionData(currentPage)
@@ -356,10 +472,25 @@ const SearchInspection: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+      {hasSearched && (
+          <TouchableOpacity onPress={handlePress} style={styles.button}>
+            <Text style={styles.buttonTextclick}>Click here for Total Count: {totalCount !== null ? totalCount : ""}</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity onPress={toggleModal} style={styles.filterIcon}>
           <Filter size={24} color="#000" />
         </TouchableOpacity>
+      
       </View>
+      {/* <View style={styles.header}>
+      {hasSearched && (
+          <TouchableOpacity onPress={handleExport} style={styles.buttonExport}>
+            <Text style={styles.buttonTextclickExport}>Export Data to Excel</Text>
+          </TouchableOpacity>
+        )}
+     
+      </View> */}
+     
 
       <Modal visible={isModalVisible}>
         <View style={styles.modalOverlay}>
@@ -512,7 +643,7 @@ const SearchInspection: React.FC = () => {
                   </Text>
                   <Text style={styles.boldText}>
                     Date of Acknowledgement: <Text style={styles.normalText}>{item.fsoAckDate || "N/A"}</Text>
-                  </Text> 
+                  </Text>
                   <View style={styles.companyy}>
                     {/* <Text style={styles.boldText}>Company Name/Organization:</Text>
                     <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
@@ -533,17 +664,21 @@ const SearchInspection: React.FC = () => {
                   <Text style={styles.boldText}>
                     Inpection Officer Name: <Text style={styles.normalText}>{item.fsoName || "N/A"}</Text>
                   </Text>
-              
                 </View>
               </View>
-              {/* <View style={styles.buttonview}>
-                <TouchableOpacity
-                  style={styles.viewButton}
-                  onPress={() => openViewModal(item.refId, item.inspectionId)}
-                >
-                  <Text style={styles.viewButtonText}>View</Text>
-                </TouchableOpacity>
-              </View> */}
+              <View style={styles.buttonview}>
+              <TouchableOpacity
+      style={styles.viewButton}
+      onPress={() =>
+        navigation.navigate("SearchClick", {
+          inspectionId: item.inspectionId,
+          assignmentId: item.assignmentId,
+        })
+      }
+    >
+      <Text style={styles.viewButtonText}>Click here</Text>
+    </TouchableOpacity>
+              </View>
             </View>
           ))
         ) : (
@@ -563,6 +698,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+
   scrollContainer: {
     flex: 1,
   },
@@ -588,7 +724,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 5,
     borderRadius: 6,
-    alignItems: "center",
+    alignItems: "flex-start",
+  
+  },
+  buttonExport: {
+    flex: 1,
+    padding: 5,
+    borderRadius: 6,
+    alignItems: "flex-end",
+  
   },
   activeButton: {
     backgroundColor: "#007bff",
@@ -601,6 +745,19 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 12,
     textAlign: "center",
+  },
+  buttonTextclick: {
+    fontSize: 16,
+    textAlign: "left",
+    color:'red'
+    // justifyContent:'flex-start'
+  },
+  buttonTextclickExport: {
+    fontSize: 15,
+    textAlign: "left",
+    color:'#007AFF',
+    fontWeight:500
+    // justifyContent:'flex-start'
   },
   activeButtonText: {
     color: "white",
@@ -634,8 +791,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     width: 100,
     alignItems: "center",
-    paddingHorizontal: 16,
-    borderRadius: 6,
+    paddingHorizontal: 18,
+    borderRadius: 16,
   },
   viewButtonText: {
     color: "#fff",

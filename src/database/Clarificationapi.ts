@@ -59,13 +59,13 @@ export const getClarificationFromOngoingInspection = async (payload: any,current
   }
 }
 
-export const getClarificationFromScrutinizeInspection = async ()=> {
+export const getClarificationFromScrutinizeInspection = async (payload: any,currentPage:number)=> {
   try {
     const storedUserId = await AsyncStorage.getItem("userId")
     const accessToken = await AsyncStorage.getItem("accessToken")
     const xAuthUserId = encryptData(storedUserId || "")
 
-    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/1`
+    const apiUrl = `${BASE_URL}/gateway/officer/inspection/getinspectiondetailreg/${currentPage}`
 
     if (!accessToken || !storedUserId) {
       throw new Error("No authentication token or user ID found")
@@ -78,7 +78,7 @@ export const getClarificationFromScrutinizeInspection = async ()=> {
         Authorization: `${accessToken}`,
         "X-Auth-User-Id": xAuthUserId,
       },
-     
+      body:JSON.stringify(payload),
     })
 
     if (!response.ok) {

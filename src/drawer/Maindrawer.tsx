@@ -63,6 +63,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+
+  text: {
+    fontSize: 15, // Font size
+    fontWeight: '500', // Bold text
+    color: '#000',
+    marginTop:10 
+    // textAlign: 'center', // Centers the text
+  },
   logoutText: {
     marginLeft: 10,
     fontSize: 16,
@@ -149,9 +157,9 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
     <SafeAreaView style={styles.drawerContainer}>
       <View style={styles.profileSection}>
         <User size={60} color="#000" />
-        <View>
-          <Text>{jethalal}</Text>
-        </View>
+        <View >
+      <Text style={styles.text}>Welcome {jethalal}</Text>
+    </View>
       </View>
       <TouchableOpacity style={styles.collapsibleHeader} onPress={toggleCollapsible}>
         <Text style={styles.collapsibleHeaderText}>{nomi}</Text>

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity , Linking} 
 import { useNavigation } from '@react-navigation/native';
 import { getBackendToken } from '../database/Splashapi';
 import DeviceInfo from 'react-native-device-info';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SplashScreen = () => {
   const [buildNumber, setBuildNumber] = useState('');
@@ -86,8 +87,14 @@ const SplashScreen = () => {
   
       setIsLoading(false);
       console.log("Success:", backendToken);
+      // const checkIfLoggedIn = await AsyncStorage.getItem('userId');
+      //   if(checkIfLoggedIn === '' || checkIfLoggedIn === undefined || !checkIfLoggedIn ){
+      //     navigation.navigate("Login" as never)
+      //   }else{
+      //     navigation.navigate("Dashboardscreen" as never);
+      //   }
   
-      navigation.navigate('Login' as never);
+       navigation.navigate('Login' as never);
     } catch (err) {
       console.error("Error fetching backend token:", err);
       setError("Failed to connect to server");
@@ -105,6 +112,7 @@ const SplashScreen = () => {
         
       
         await fetchTokenAndNavigate();
+        
       } catch (error) {
         console.error("Initialization error:", error);
         setError("Failed to initialize app");
@@ -117,7 +125,7 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.appName}>BHARATGAP</Text>
+      <Text style={styles.appName}>BharatGAP</Text>
       
       {isLoading ? (
         <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />

@@ -38,6 +38,7 @@ import UploadDocumentsPhotos from "./src/screens/UploadDocumentsPhotos"
 import Preview from "./src/screens/Preview"
 import ApplicantSignature from "./src/screens/ApplicantSignature"
 import OfficerSignature from "./src/screens/OfficerSignature"
+import SearchClick from "./src/screens/SearchClick"
 
 
 
@@ -110,6 +111,7 @@ function App(): React.JSX.Element {
   <Stack.Screen name="Upload Documents/Photos" component={UploadDocumentsPhotos} />
   <Stack.Screen name="Applicant Signature" component={ApplicantSignature} />
   <Stack.Screen name="Officer Signature" component={OfficerSignature} />
+  <Stack.Screen name="SearchClick" component={SearchClick}  options={{ title: 'Search Inspection Report' }} />
 
 
           

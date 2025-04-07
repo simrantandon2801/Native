@@ -529,6 +529,9 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     textAlign: "center",
   },
+  infoCard1:{
+
+  },
   parameterText: {
     fontSize: 14,
     color: "#555",

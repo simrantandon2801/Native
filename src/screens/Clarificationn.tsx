@@ -20,7 +20,10 @@ import DateTimePicker from "@react-native-community/datetimepicker"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getBusinessTypes } from "../database/Statebusinessapi"
 import { useFocusEffect } from "@react-navigation/native"
-import { getClarificationFromOngoingInspection } from "../database/Clarificationapi"
+import {
+  getClarificationFromOngoingInspection,
+  getClarificationFromScrutinizeInspection,
+} from "../database/Clarificationapi"
 import { getListSendBackToFBOForClarification } from "../database/Sendbackradioapi"
 
 interface ClarificationData {
@@ -48,7 +51,15 @@ const Clarificationn: React.FC = () => {
     totalRecords: 0,
     paginationListRecords: [],
   })
+  const [clarification1, setclarification1] = useState<ClarificationData>({
+    currentPageNo: 1,
+    totalPages: 0,
+    pageLimit: 10,
+    totalRecords: 0,
+    paginationListRecords: [],
+  })
   const [isModalVisible, setIsModalVisible] = useState(false)
+  // const[clarification1,setclarification1]=useState("")
   const [referenceNo, setReferenceNo] = useState("")
   const [companyName, setCompanyName] = useState("")
   const [IsViewClarificationModalVisible, setIsViewClarificationModalVisible] = useState(false)
@@ -85,16 +96,16 @@ const Clarificationn: React.FC = () => {
       setError(null)
       try {
         const payload: any = {
-          statusId: activeButton === 1 ? 41 : 50,
+          statusId: 41,
           userId: userId,
-          displayRefId: displayRefID,
+          // displayRefId: displayRefID,
           companyName: companyName,
           fromDate: formatDate(fromDate),
           toDate: formatDate(toDate),
           processFlag: true,
           licenseNo: displayRefID,
           inspectionType: selectedInspectionType || null,
-          fsoName: null,
+          // fsoName: null,
           kobId: selectedBusinessType || null,
         }
         console.log("payload clarification", payload)
@@ -104,6 +115,51 @@ const Clarificationn: React.FC = () => {
         setclarification(result)
         setHasSearched(true)
         console.log("============Clarification ongoing=====", result)
+      } catch (error) {
+        console.error("Error loading data:", error)
+        setError("Failed to load data. Please try again.")
+      } finally {
+        setIsLoading(false)
+        setRefreshing(false)
+      }
+    },
+    [
+      userId,
+      displayRefID,
+      companyName,
+      fromDate,
+      toDate,
+      selectedInspectionType,
+      selectedBusinessType,
+      activeButton,
+      referenceNo,
+    ],
+  )
+  const fetchclarification1 = useCallback(
+    async (page: number) => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        const payload: any = {
+          statusId: 50,
+          userId: userId,
+          // displayRefId: displayRefID,
+          companyName: companyName,
+          fromDate: formatDate(fromDate),
+          toDate: formatDate(toDate),
+          processFlag: true,
+          licenseNo: displayRefID,
+          inspectionType: selectedInspectionType || null,
+          // fsoName: null,
+          kobId: selectedBusinessType || null,
+        }
+        console.log("payload clarification", payload)
+
+        const result = await getClarificationFromScrutinizeInspection(payload, page)
+        console.log("displayreufid", displayRefID)
+        setclarification1(result)
+        setHasSearched(true)
+        console.log("============Clarification scritinize=====", result)
       } catch (error) {
         console.error("Error loading data:", error)
         setError("Failed to load data. Please try again.")
@@ -254,7 +310,13 @@ const Clarificationn: React.FC = () => {
     setRefreshing(true)
     setCurrentPage(1)
     if (hasSearched) {
-      fetchclarification(1)
+      if (activeButton === 1) {
+        fetchclarification(1)
+      } else if (activeButton === 2) {
+        fetchclarification1(1)
+      } else {
+        setRefreshing(false)
+      }
     } else {
       setRefreshing(false)
     }
@@ -299,10 +361,16 @@ const Clarificationn: React.FC = () => {
 
   const handlePress = (buttonIndex: number) => {
     setActiveButton(buttonIndex)
-
     setHasSearched(false)
     setCurrentPage(1)
     setclarification({
+      currentPageNo: 1,
+      totalPages: 0,
+      pageLimit: 10,
+      totalRecords: 0,
+      paginationListRecords: [],
+    })
+    setclarification1({
       currentPageNo: 1,
       totalPages: 0,
       pageLimit: 10,
@@ -315,14 +383,19 @@ const Clarificationn: React.FC = () => {
     if (newPage >= 1) {
       setCurrentPage((prevPage) => prevPage + 1)
       await fetchclarification(newPage)
+      await fetchclarification1(newPage)
     }
   }
 
   useEffect(() => {
     if (userId && hasSearched) {
-      fetchclarification(currentPage)
+      if (activeButton === 1) {
+        fetchclarification(currentPage)
+      } else if (activeButton === 2) {
+        fetchclarification1(currentPage)
+      }
     }
-  }, [userId, currentPage, fetchclarification, hasSearched])
+  }, [userId, currentPage, fetchclarification, fetchclarification1, hasSearched, activeButton])
 
   const renderPagination = () => {
     const hasMorePages =
@@ -385,7 +458,7 @@ const Clarificationn: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.container}>
+      <View style={styles.containerb}>
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, activeButton === 1 ? styles.activeButton : styles.inactiveButton]}
@@ -499,8 +572,11 @@ const Clarificationn: React.FC = () => {
                     setCurrentPage(1)
                     setHasSearched(true)
                     setdisplayRefId(referenceNo)
-                    // setCompanyName(companyName)
-                    await fetchclarification(1)
+                    if (activeButton === 1) {
+                      await fetchclarification(1)
+                    } else if (activeButton === 2) {
+                      await fetchclarification1(1)
+                    }
                     toggleModal()
                   }}
                   disabled={isSearching}
@@ -519,7 +595,7 @@ const Clarificationn: React.FC = () => {
       >
         {!hasSearched ? (
           <Text style={styles.emptyListText}>No record found</Text>
-        ) : Clarification.paginationListRecords.length > 0 ? (
+        ) : activeButton === 1 && Clarification.paginationListRecords.length > 0 ? (
           Clarification.paginationListRecords.map((item) => (
             <View
               key={`item-${item.assignmentId || ""}-${Math.random().toString(36).substr(2, 9)}`}
@@ -567,14 +643,64 @@ const Clarificationn: React.FC = () => {
               </View>
             </View>
           ))
+        ) : activeButton === 2 && clarification1.paginationListRecords.length > 0 ? (
+          clarification1.paginationListRecords.map((item) => (
+            <View
+              key={`item-${item.assignmentId || ""}-${Math.random().toString(36).substr(2, 9)}`}
+              style={styles.listItem}
+            >
+              <View style={styles.listItemContent}>
+                <View style={styles.leftContent}>
+                  <Text style={styles.boldText}>
+                    Assignment ID: <Text style={styles.normalText}>{item.assignmentId || "N/A"}</Text>
+                  </Text>
+
+                  <Text style={styles.boldText}>
+                    Status Description: <Text style={styles.normalText}>{item.statusDesc || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Date of Inspection: <Text style={styles.normalText}>{item.inspectionDate || "N/A"}</Text>
+                  </Text>
+
+                  <View style={styles.companyy}>
+                    <Text style={styles.boldText}>Company Name/Organization:</Text>
+                    <Text style={styles.normalText}>{item.companyName || "N/A"}</Text>
+                    <Text style={styles.normalText}>{item.fullAddress || "N/A"}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.rightContent}>
+                  <Text style={styles.boldText}>
+                    Inpsection Type: <Text style={styles.normalText}>{item.inspectionType || "N/A"}</Text>
+                  </Text>
+                  <Text style={styles.boldText}>
+                    Ref No:/Applicant No:{" "}
+                    <Text style={styles.normalText}>
+                      {item.displayRefId || "N/A"}/{item.certificateNo || "N/A"}
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.buttonview}>
+                <TouchableOpacity
+                  style={styles.viewButton}
+                  onPress={() => openViewModal(item.refId, item.inspectionId)}
+                >
+                  <Text style={styles.viewButtonText}>View</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ))
         ) : (
-          <Text style={styles.emptyListText}>No inspections found.</Text>
+          <Text style={styles.emptyListText}>No record found.</Text>
         )}
       </ScrollView>
+      {hasSearched &&
+        ((activeButton === 1 && Clarification?.paginationListRecords?.length > 0) ||
+          (activeButton === 2 && clarification1?.paginationListRecords?.length > 0)) &&
+        renderPagination()}
 
-      {hasSearched && Clarification?.paginationListRecords?.length > 0 && renderPagination()}
-
-      {/* View Clarification Modal */}
+     
       <Modal
         animationType="none"
         transparent={true}
@@ -636,6 +762,10 @@ const Clarificationn: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  containerb: {
+    // flex: 1,
     backgroundColor: "#f5f5f5",
   },
   scrollContainer: {
