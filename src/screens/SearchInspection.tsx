@@ -673,6 +673,7 @@ const SearchInspection: React.FC = () => {
         navigation.navigate("SearchClick", {
           inspectionId: item.inspectionId,
           assignmentId: item.assignmentId,
+          refId:item.refId,
         })
       }
     >

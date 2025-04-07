@@ -46,7 +46,7 @@ interface SectionDetails {
 }
 
 interface KobNameData {
-  kobNameData?: string;
+  kobData?: string;
 }
 
 const SearchClick: React.FC = () => {
@@ -55,6 +55,8 @@ const SearchClick: React.FC = () => {
    const navigation = useNavigation()
   const inspectionId = params.inspectionId || "";
    const assignmentId = params.assignmentId || "";
+   const refId=params.refId||""
+   
   
   const [documentDetails, setDocumentDetails] = useState<DocumentDetails[] | null>(null);
   const [inspectonDetails, setInspectionDetails] = useState<InspectionDetails | null>(null);
@@ -66,7 +68,7 @@ const SearchClick: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [viewImageModal, setViewImageModal] = useState(false);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
-
+ const [kobData, setKobData] = useState<any>(null)
   // Fetch inspection preview details
   const fetchInspectionsearch = async (inspectionId: string, assignmentId: number) => {
     if (!inspectionId || !assignmentId) {
@@ -117,7 +119,7 @@ const SearchClick: React.FC = () => {
         <p>Inspection Officer UserId: ${inspectonDetails?.fsoId || "N/A"}</p>
         <p>Start Date Time: ${inspectonDetails?.startDateTime || "N/A"}</p>
         <p>End Date Time: ${inspectonDetails?.endDateTime || "N/A"}</p>
-        <p>Business Type: ${kobNameData || "N/A"}</p>
+        <p>Business Type: ${kobData || "N/A"}</p>
         <p>Obtained Percentage: ${scoreDetails?.obtainedpercentage || "N/A"}</p>
         <p>Total Max: ${scoreDetails?.totalmax || "N/A"}</p>
         <p>Total Obtained: ${scoreDetails?.totalobtained || "N/A"}</p>
@@ -204,29 +206,16 @@ const SearchClick: React.FC = () => {
     console.log("Updated currentImage status:", currentImage ? "received" : "not set");
   }, [currentImage]);
   
-  const fetchKobNameReg = async (refId: string) => {
-    if (!refId) return;
-    
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      console.log("Fetching KOB name registration data with refId:", refId);
-      const response = await getKobNameReg(refId);
-      
-      if (response && response[0]) {
-        setKobNameData(response[0].kobName);
-      }
-
-      console.log("KOB name registration data received");
-    } catch (error) {
-      console.error("Error fetching KOB name registration data:", error);
-      setError("Failed to load KOB name registration data. Please try again.");
-      Alert.alert("Error", "Failed to load KOB name registration data. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //  const fetchKobNameReg = async (refId:string) => {
+  //   console.log(refId,"jsa")
+  //    try {
+  //      const response = await getKobNameReg(refId)
+  //      setKobData(response[0].kobname)
+  //      console.log("KOB name registration data received:", response)
+  //    } catch (error) {
+  //      console.error("Error fetching KOB name registration data:", error)
+  //    }
+  //  }
 
   const fetchpreviewsignature = async () => {
     if (!assignmentId || !inspectionId) {
@@ -257,7 +246,7 @@ const SearchClick: React.FC = () => {
       } catch (err) {
         console.error("Error fetching data from AsyncStorage:", err);
         setError("Failed to load data from storage.");
-      }
+      };
     };
 
     fetchDataFromAsyncStorage();
@@ -265,10 +254,12 @@ const SearchClick: React.FC = () => {
     if (inspectionId && assignmentId) {
       fetchInspectionsearch(inspectionId, assignmentId);
       fetchpreviewsignature();
+      // fetchKobNameReg();
+   
     } else {
       console.log("Missing inspectionId or assignmentId, cannot fetch data");
     }
-  }, [inspectionId, assignmentId]);
+  }, [inspectionId, assignmentId,refId]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -303,6 +294,7 @@ const SearchClick: React.FC = () => {
                 <Text style={styles.infoText}>Inspection Officer UserId: {inspectonDetails.fsoId || "N/A"}</Text>
                 <Text style={styles.infoText}>Start Date Time: {inspectonDetails.startDateTime || "N/A"}</Text>
                 <Text style={styles.infoText}>End Date Time: {inspectonDetails.endDateTime || "N/A"}</Text>
+             
               </View>
             </View>
           )}

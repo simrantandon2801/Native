@@ -401,92 +401,77 @@ const Preview: React.FC = () => {
               )}
 
               {signaturedata && signaturedata.length > 0 && (
-                <View style={styles.sectionContainer}>
-                  <Text style={styles.infoText1}>{sectionDetails[3]?.sectionName || "N/A"}</Text>
-                  {signaturedata.map((signature, index) => (
-                    <View key={index} style={styles.infoCard}>
-                      <Text style={styles.infoText}>Applicant Name: {signature.name || "N/A"}</Text>
-                      <Text style={styles.infoText}>Applicant Email: {signature.email || "N/A"}</Text>
-                      <Text style={styles.infoText}>Applicant Contact No. {signature.mobileNo || "N/A"}</Text>
-                      <Text style={styles.infoText}>Document Desciption: {signature.document_desc || "N/A"}</Text>
-
-                      <View style={styles.actionContainer}>
-                        <Text style={styles.infoText}>Action:</Text>
-                        <TouchableOpacity
-                          style={styles.viewButton}
-                          onPress={() => handleViewImage(signature.documentPath)}
-                        >
-                          <Text style={styles.buttonText}>View</Text>
-                        </TouchableOpacity>
-                        <Modal
-                          animationType="fade"
-                          transparent={true}
-                          visible={viewImageModal}
-                          onRequestClose={() => setViewImageModal(false)}
-                        >
-                          <View style={styles.imageModalOverlay}>
-                            <View>
-                              <TouchableOpacity style={styles.closeImageButton} onPress={() => setViewImageModal(false)}>
-                                <Text style={styles.closeButtonText}>X</Text>
-                              </TouchableOpacity>
-                  
-                              {currentImage ? (
-                                <Image source={{ uri: currentImage }} style={styles.fullImage} resizeMode="contain" />
-                              ) : (
-                                <Text style={styles.emptyText}>No image available</Text>
-                              )}
-                            </View>
-                          </View>
-                        </Modal>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-  <Text style={styles.infoText1}>{sectionDetails[4]?.sectionName || "N/A"}</Text>
-{signaturedataofficer && signaturedataofficer.length > 0 && (
-                <View style={styles.sectionContainer}>
-                
-                  {signaturedataofficer.map((signature, index) => (
-                    <View key={index} style={styles.infoCard}>
-                      <Text style={styles.infoText}>Applicant Name: {signature.name || "N/A"}</Text>
-                      {/* <Text style={styles.infoText}>Applicant Email: {signature.email || "N/A"}</Text>
-                      <Text style={styles.infoText}>Applicant Contact No. {signature.mobileNo || "N/A"}</Text>
-                      <Text style={styles.infoText}>Document Desciption: {signature.document_desc || "N/A"}</Text> */}
-
-                      <View style={styles.actionContainer}>
-                        <Text style={styles.infoText}>Action:</Text>
-                        <TouchableOpacity
-                          style={styles.viewButton}
-                          onPress={() => handleViewImage(signature.documentPath)}
-                        >
-                          <Text style={styles.buttonText}>View</Text>
-                        </TouchableOpacity>
-                        <Modal
-                          animationType="fade"
-                          transparent={true}
-                          visible={viewImageModal}
-                          onRequestClose={() => setViewImageModal(false)}
-                        >
-                          <View style={styles.imageModalOverlay}>
-                            <View>
-                              <TouchableOpacity style={styles.closeImageButton} onPress={() => setViewImageModal(false)}>
-                                <Text style={styles.closeButtonText}>X</Text>
-                              </TouchableOpacity>
-                  
-                              {currentImage ? (
-                                <Image source={{ uri: currentImage }} style={styles.fullImage} resizeMode="contain" />
-                              ) : (
-                                <Text style={styles.emptyText}>No image available</Text>
-                              )}
-                            </View>
-                          </View>
-                        </Modal>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
+             <View style={styles.sectionContainer}>
+               <Text style={styles.infoText1}>
+                 {sectionDetails && sectionDetails.length > 3 && sectionDetails[3] 
+                   ? sectionDetails[3].sectionName || "Signatures" 
+                   : "Signatures"}
+               </Text>
+               {signaturedata
+                 .filter(signature => 
+                   signature && 
+                   (signature.signatureType === "APPLICANT")
+                 )
+                 .map((signature, index) => (
+                   <View key={index} style={styles.infoCard}>
+                     <Text style={styles.infoText}>Applicant Name: {signature.name || "N/A"}</Text>
+                     <Text style={styles.infoText}>Applicant Email: {signature.email || "N/A"}</Text>
+                     <Text style={styles.infoText}>Applicant Contact No. {signature.mobileNo || "N/A"}</Text>
+                     <Text style={styles.infoText}>Document Desciption: {signature.document_desc || "N/A"}</Text>
+           
+                     <View style={styles.actionContainer}>
+                       <Text style={styles.infoText}>Action:</Text>
+                       <TouchableOpacity
+                         style={styles.viewButton}
+                         onPress={() => signature.documentPath ? handleViewImage(signature.documentPath) : Alert.alert("Error", "Document path is missing")}
+                       >
+                         <Text style={styles.buttonText}>View</Text>
+                       </TouchableOpacity>
+                     </View>
+                   </View>
+                 ))}
+             </View>
+           )}
+                     
+                     {/* Filtered signature data section */}
+                     {signaturedata && signaturedata.length > 0 && (
+                       (() => {
+                         // Filter the data safely
+                         const filteredData = signaturedata.filter(
+                           (signature) => 
+                             signature && 
+                             (signature.signatureType === "FSO" || signature.signatureType === "Inspection Officer")
+                         );
+                         
+                         return filteredData.length > 0 ? (
+                           <View style={styles.sectionContainer}>
+                             <Text style={styles.infoText1}>
+                               {sectionDetails && sectionDetails.length > 4 && sectionDetails[4] 
+                                 ? sectionDetails[4].sectionName || "Officer Signatures" 
+                                 : "Officer Signatures"}
+                             </Text>
+                             {filteredData.map((signature, index) => (
+                               <View key={index} style={styles.infoCard}>
+                                 <Text style={styles.infoText}>Applicant Name: {signature.name || "N/A"}</Text>
+                                 <Text style={styles.infoText}>Applicant Email: {signature.email || "N/A"}</Text>
+                                 <Text style={styles.infoText}>Applicant Contact No. {signature.mobileNo || "N/A"}</Text>
+                                 <Text style={styles.infoText}>Document Desciption: {signature.document_desc || "N/A"}</Text>
+           
+                                 <View style={styles.actionContainer}>
+                                   <Text style={styles.infoText}>Action:</Text>
+                                   <TouchableOpacity
+                                     style={styles.viewButton}
+                                     onPress={() => signature.documentPath ? handleViewImage(signature.documentPath) : Alert.alert("Error", "Document path is missing")}
+                                   >
+                                     <Text style={styles.buttonText}>View</Text>
+                                   </TouchableOpacity>
+                                 </View>
+                               </View>
+                             ))}
+                           </View>
+                         ) : null;
+                       })()
+                     )}
             </View>
           )}
         </View>
@@ -560,7 +545,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#ffffff', 
-    fontSize: 16, 
+    fontSize: 14, 
     fontWeight: 'bold', 
   },
   emptyText: {
