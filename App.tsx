@@ -40,6 +40,7 @@ import ApplicantSignature from "./src/screens/ApplicantSignature"
 import OfficerSignature from "./src/screens/OfficerSignature"
 import SearchClick from "./src/screens/SearchClick"
 import Viewclick from "./src/screens/Viewclick"
+import ProceedInspection from "./src/screens/ProceedInspection"
 
 
 
@@ -114,6 +115,7 @@ function App(): React.JSX.Element {
   <Stack.Screen name="Officer Signature" component={OfficerSignature} />
   <Stack.Screen name="SearchClick" component={SearchClick}  options={{ title: 'Search Inspection Report' }} />
   <Stack.Screen name="Viewclick" component={Viewclick}  options={{ title: 'Scrutinize Inspection Report' }} />
+  <Stack.Screen name="Proceed Inspection" component={ProceedInspection}  options={{ title: 'Proceed Inspection' }} />
 
 
           

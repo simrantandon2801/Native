@@ -234,7 +234,7 @@ const [kobData, setKobData] = useState<any>(null)
                           <View style={styles.sectionContainer}>
                             <Text style={styles.infoText}>Final score:</Text>
                           
-                            <View style={styles.infoCard1}>
+                            <View >
                               <Text style={styles.infoText}>
                                 Obtained Percentage: {scoreDetails.obtainedpercentage || "N/A"}
                               </Text>

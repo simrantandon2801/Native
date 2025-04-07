@@ -546,9 +546,17 @@ const SearchInspection: React.FC = () => {
                 </View>
               </View>
               <View style={styles.buttonview}>
-                <TouchableOpacity
+              <TouchableOpacity
                   style={styles.viewButton}
-                  // onPress={() => navigation.navigate('SearchClick' as never)}
+                  onPress={() =>
+                    navigation.navigate("Proceed Inspection", {
+                      displayRefId: item.displayRefId,
+                      companyName: item.companyName,
+                      inspectionDate: item.inspectionDate,
+                      inspectionType: item.inspectionType,
+                      refId:item.refId,
+                    } as never)
+                  }
                 >
                   <Text style={styles.viewButtonText}>Proceed</Text>
                 </TouchableOpacity>
