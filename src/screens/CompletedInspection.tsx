@@ -555,6 +555,9 @@ const SearchInspection: React.FC = () => {
                       inspectionDate: item.inspectionDate,
                       inspectionType: item.inspectionType,
                       refId:item.refId,
+                      assignmentId: item.assignmentId,
+                      inspectionId:item.inspectionId
+                     
                     } as never)
                   }
                 >
@@ -578,7 +581,7 @@ const SearchInspection: React.FC = () => {
             </View>
           ))
         ) : (
-          <Text style={styles.emptyListText}>No inspections found.</Text>
+          <Text style={styles.emptyListText}>No record found.</Text>
         )}
       </ScrollView>
 

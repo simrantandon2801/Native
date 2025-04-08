@@ -305,7 +305,7 @@ const Resumelist: React.FC = () => {
         assignmentId
         
       }
-      console.log("Paylonad:", payload)//done
+      console.log("Paylonad:", payload)
       
       if (submittedFlag) {
      
