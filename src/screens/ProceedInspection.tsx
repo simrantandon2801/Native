@@ -13,6 +13,9 @@ import { saveAcceptg, saveInspectionclarificationreg, saveRejectscritnize } from
 
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { getListOffsounDerDoForReg } from "../database/Allocateapi"
+import { getSecondaryInspectors } from "../database/SecondaryInspectorapi"
+import { Picker } from "@react-native-picker/picker"
+import { X } from "lucide-react-native"
 
 // Define the type for route params
 type ProceedInspectionParams = {
@@ -39,16 +42,20 @@ const ProceedInspection: React.FC = () => {
   const [kobData, setKobData] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+    // const [loggedInUser, setLoggedInUser] = useState({ name: "Default Logged-In User" })
   const [remarks1, setRemarks1] = useState("")
   const [remarks, setRemarks] = useState("")
   const [remarks3, setRemarks3] = useState("")
   const [remarks5, setRemarks5] = useState("")
-    const [loggedInUserId1, setLoggedInUserId1] = useState("")
-   const [inspectors, setInspectors] = useState([])
+  const [secondaryInspectors, setSecondaryInspectors] = useState([])
+  const [selectedSecondaryInspectors, setSelectedSecondaryInspectors] = useState([])
+  const [isSecondaryPickerVisible, setIsSecondaryPickerVisible] = useState(false)
+  const [loggedInUserId1, setLoggedInUserId1] = useState("")
+  const [inspectors, setInspectors] = useState([])
   const [sendbacklist, setSendbacklist] = useState<SendBackItem[]>([])
   const [inspectionHistory, setInspectionHistory] = useState<any[]>([])
   const [selectedOption, setSelectedOption] = useState<string>("sendBack") // Default to "Send back to Applicant"
-
+  const [selectedInspector, setSelectedInspector] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { displayRefId, companyName, inspectionDate, inspectionType, refId, inspectionId, assignmentId } =
     route.params || {}
@@ -78,6 +85,7 @@ const ProceedInspection: React.FC = () => {
     const fetchDataFromAsyncStorage = async () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId")
+        setUserId(storedUserId)
         console.log("Retrieved User ID:", storedUserId)
       } catch (err) {
         console.error("Error fetching data from AsyncStorage:", err)
@@ -110,26 +118,49 @@ const ProceedInspection: React.FC = () => {
     }
   }
   const fetchInspectors = async (userId: string) => {
+    console.log("dsdgdys")
     try {
-      // Make sure these variables are defined before using them
-      // const refId = ...; // Define this variable
-      // const inspectionId = ...; // Define this variable
       
-      const response = await getListOffsounDerDoForReg(userId);
-      
-      // Only log these if they're defined
-      // console.log("refID==", refId);
-      // console.log("inspectionID==", inspectionId);
-      
-      console.log("API Response:", response);
-      setSendbacklist(response);
-      
-      return response;
+      const response = await getListOffsounDerDoForReg(userId)
+      setInspectors(response)
     } catch (error) {
-      console.error("Error fetching inspectors:", error);
-      return null; // Return null or appropriate error state
+      console.error("Error fetching inspectors:", error)
+    }
+  }
+  const fetchSecondaryInspectors = async (userId: string) => {
+    try {
+      const response = await getSecondaryInspectors(userId);
+      console.log(response, "Secondary Inspectors Response");
+  
+      const filteredInspectors = response.filter(
+        (inspector) => inspector.fssaiUserId !== userId
+      );
+  
+      setSelectedSecondaryInspectors(filteredInspectors); // For picker options
+      setSecondaryInspectors([]);  // Reset selected secondary
+    } catch (error) {
+      console.error("Error fetching secondary inspectors:", error);
     }
   };
+  
+  
+
+  const toggleSecondaryPicker = () => {
+    setIsSecondaryPickerVisible(!isSecondaryPickerVisible)
+  }
+
+  const handleSecondaryInspectorSelection = (inspectorId) => {
+    if (inspectorId === selectedInspector) return
+    setSecondaryInspectors((prevInspectors) => {
+      const isSelected = prevInspectors.some((inspector) => inspector.fssaiUserId === inspectorId)
+      if (isSelected) {
+        return prevInspectors.filter((inspector) => inspector.fssaiUserId !== inspectorId)
+      } else {
+        const inspector = selectedSecondaryInspectors.find((i) => i.fssaiUserId === inspectorId)
+        return inspector ? [...prevInspectors, inspector] : prevInspectors
+      }
+    })
+  }
   const handleSubmit1 = async () => {
     if (!remarks1.trim()) {
       Alert.alert("Remarks is a mandatory field.")
@@ -230,13 +261,12 @@ const ProceedInspection: React.FC = () => {
       return
     }
 
-
     try {
       const payload = {
         statusId: 23,
-  assignmentId: assignmentId,
-  remarks: remarks3,
-  inspectionId: inspectionId,
+        assignmentId: assignmentId,
+        remarks: remarks3,
+        inspectionId: inspectionId,
       }
 
       console.log("Submijxztting payload:", payload)
@@ -257,57 +287,108 @@ const ProceedInspection: React.FC = () => {
     }
   }
   const handleSubmit4 = async () => {
+    // Validate remarks
     if (!remarks.trim()) {
-      Alert.alert("Remarks is a mandatory field.")
-      return
+      Alert.alert("Remarks is a mandatory field.");
+      return;
     }
-
-    const selectedItems = sendbacklist.filter((item) => item.isSelected)
-    if (selectedItems.length === 0) {
-      Alert.alert("Please select at least one point to send for clarification.")
-      return
-    }
-
+  
     try {
+      // Fix: Add closing parenthesis
+      const selectedInspectorDetails = inspectors.find((i) => i.fssaiUserId === selectedInspector);
+      const createdByName = userId?.name;
+      
+      // Create the static FSO assignment (primary officer)
+      const staticFsoAssignment = {
+        refId: refId,
+        fsoId: userId, // Primary inspector ID
+        createdBy: userId,
+        updatedBy: userId,
+        inspectionType: inspectionType,
+        // Fix: Use the primary inspector's name (likely the logged-in user)
+        fsoName: userId?.name || "",
+        createdByName: createdByName,
+        doRemarks: remarks.trim(),
+        officerType: "P", // Primary officer
+      };
+  
+      // Map secondary inspectors with their own names
+      const dynamicOfficers = secondaryInspectors.length > 0
+        ? secondaryInspectors.map((inspector) => {
+            // Find the inspector details to get the correct name
+            const inspectorDetails = inspectors.find(i => i.fssaiUserId === inspector.fssaiUserId);
+            
+            return {
+              refId: refId,
+              fsoId: inspector.fssaiUserId,
+              createdBy: userId,
+              updatedBy: userId,
+              inspectionType: inspectionType,
+              // Fix: Use each inspector's own name
+              fsoName: inspectorDetails?.fsoName || "",
+              createdByName: createdByName,
+              doRemarks: remarks.trim(),
+              officerType: "S",
+            };
+          })
+        : [];
+  
+      // Consider using a proper date format for inspectionDate
       const payload = {
-        inspectionMasterClarificationRegistration: {
-          inspectionId: Number.parseInt(inspectionId),
-          refId: Number.parseInt(refId),
-          roleId: 4,
-          doRemarks: remarks1,
-          fsoRemarks: null,
-          createdBy: userId,
-          updatedBy: userId,
+        inspectionDate: new Date().toISOString(), // Fix: Use current date or a selected date
+        refId: refId,
+        displayRefId: displayRefId,
+        fsoId: userId,
+        statusId: 17,
+        inspectionType: inspectionType,
+        fsoAcknowledgement: true,
+        fsoName: userId?.name || "", // Fix: Use the primary inspector's name
+        createdByName: createdByName,
+        
+        // Consider renaming this to better reflect its contents
+        fsoAssignmentOfficerRegistration: [
+          staticFsoAssignment,
+          ...dynamicOfficers
+        ],
+        createdBy: userId,
+        updatedBy: userId,
+        doRemarks: remarks.trim(),
+      };
+  
+      console.log("Submitting payload:", payload);
+  
+      // Replace with your actual API endpoint
+      const response = await fetch("YOUR_API_ENDPOINT", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        inspectionClarificationRegistrationDetails: selectedItems.map((item) => ({
-          sectionId: item.sectionId,
-        })),
-        assignmentId: assignmentId,
-        statusId: "21",
+        body: JSON.stringify(payload),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Submission successful:", data);
+        Alert.alert("Success", "Inspection submitted successfully!", [
+          {
+            text: "OK",
+            onPress: () => navigation.navigate("Completed Inspection", { result: "success" }),
+          },
+        ]);
+      } else {
+        console.error("Error submitting inspection:", response.statusText);
+        Alert.alert("Error", "Failed to submit inspection. Please try again.");
       }
-
-      console.log("Submitting payload:", payload)
-
-      // Call the API
-      const response = await saveInspectionclarificationreg(payload)
-      console.log("API Response:", response)
-
-      Alert.alert("Success", "Successfully sent for clarification", [
-        {
-          text: "OK",
-          onPress: () => navigation.navigate("Completed Inspection", { result: "success" }),
-        },
-      ])
     } catch (error) {
-      console.error("Error submitting clarification:", error)
-      Alert.alert("Failed to send for clarification. Please try again.")
+      console.error("Error submitting inspection:", error);
+      Alert.alert("Error", "Failed to submit inspection. Please try again.");
     }
-  }
-// Import Alert for user notifications
+  };
+  // Import Alert for user notifications
 
   const handlesubmit5 = async () => {
-    console.log("Starting submission process...");
-  
+    console.log("Starting submission process...")
+
     try {
       // Define the payload dynamically
       const payload = {
@@ -319,47 +400,38 @@ const ProceedInspection: React.FC = () => {
         assignmentId: assignmentId, // Ensure this is defined elsewhere in your code
         statusId: "7",
         preStatusId: "21",
-      };
-  
-      console.log("Submitting with payload:", payload);
-  
+      }
+
+      console.log("Submitting with payload:", payload)
+
       // Call the API to save the data
-      const response = await saveRejectscritnize(payload);
-  
-      console.log("Submission successful:", response);
-  
+      const response = await saveRejectscritnize(payload)
+
+      console.log("Submission successful:", response)
+
       // Notify the user of success
-      Alert.alert(
-        "Success",
-        "Document scrutinization processed successfully.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.pop(1), // Navigate back after user confirms
-          },
-        ]
-      );
-  
-      console.log("Successfully processed document scrutinization.");
+      Alert.alert("Success", "Document scrutinization processed successfully.", [
+        {
+          text: "OK",
+          onPress: () => navigation.pop(1), // Navigate back after user confirms
+        },
+      ])
+
+      console.log("Successfully processed document scrutinization.")
     } catch (error) {
-      console.error("Error in submission:", error);
-  
-      // Notify the user of failure
-      Alert.alert(
-        "Error",
-        "Failed to process document scrutinization. Please try again.",
-        [
-          {
-            text: "OK",
-            onPress: () => {}, // No action needed on OK press
-          },
-        ]
-      );
-  
-      console.log("Failed to process document scrutinization. Please try again.");
+      console.error("Error in submission:", error)
+
+      Alert.alert("Error", "Failed to process document scrutinization. Please try again.", [
+        {
+          text: "OK",
+          onPress: () => {},
+        },
+      ])
+
+      console.log("Failed to process document scrutinization. Please try again.")
     }
-  };
-  
+  }
+
   // Execute the function
 
   const handleBack = () => {
@@ -439,8 +511,7 @@ const ProceedInspection: React.FC = () => {
                 </Text>
               </TouchableOpacity>
 
-             
-              {inspectionType !== "POST" && (
+              {/* {inspectionType !== "POST" && (
                 <TouchableOpacity
                   style={styles.radioButton}
                   onPress={async () => {
@@ -461,7 +532,7 @@ const ProceedInspection: React.FC = () => {
                   </View>
                   <Text style={styles.radioButtonLabel}>{isLoading ? "Loading..." : "Generate Certificate"}</Text>
                 </TouchableOpacity>
-              )}
+              )} */}
 
               {/* Radio Button 3: Accept Inspection Report - Only visible if inspectionType is not 'PRE' */}
               {inspectionType !== "PRE" && (
@@ -492,13 +563,19 @@ const ProceedInspection: React.FC = () => {
   style={styles.radioButton}
   onPress={async () => {
     setSelectedOption("Re-inspection & Assign Inspection Officer");
-    
+
     try {
       setIsLoading(true);
-      await fetchInspectors(userId);
+
+      // Ensure userId is not null before calling fetchInspectors
+      if (userId !== null) {
+        await fetchInspectors(userId);
+        await fetchSecondaryInspectors(userId)
+      } else {
+        console.error("User ID is null. Cannot fetch inspectors.");
+      }
     } catch (error) {
       console.error("Error during API call:", error);
-   
     } finally {
       setIsLoading(false);
     }
@@ -593,7 +670,7 @@ const ProceedInspection: React.FC = () => {
           </View>
         )}
 
-        {selectedOption === "Generate Certificate" && (
+        {/* {selectedOption === "Generate Certificate" && (
           <View style={styles.card}>
             <View style={styles.remarksContainer}>
               <Text style={styles.remarksLabel}>Remarks:</Text>
@@ -607,7 +684,6 @@ const ProceedInspection: React.FC = () => {
               />
             </View>
 
-         
             <View style={styles.optionButtonContainer}>
               <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                 <Text style={styles.buttonText}>Back</Text>
@@ -622,7 +698,8 @@ const ProceedInspection: React.FC = () => {
               </TouchableOpacity>
             </View>
           </View>
-        )}
+        )} */}
+
         {selectedOption === "Accept Inspection Report" && (
           <View style={styles.card}>
             <View style={styles.remarksContainer}>
@@ -636,7 +713,6 @@ const ProceedInspection: React.FC = () => {
                 placeholder="Enter remarks here..."
               />
             </View>
-
 
             <View style={styles.optionButtonContainer}>
               <TouchableOpacity style={styles.backButton} onPress={handleBack}>
@@ -653,8 +729,110 @@ const ProceedInspection: React.FC = () => {
             </View>
           </View>
         )}
+
         {selectedOption === "Re-inspection & Assign Inspection Officer" && (
           <View style={styles.card}>
+          
+
+          <View style={styles.inputContainer}>
+  <Text style={styles.inputLabel}>Primary Inspector</Text>
+  <View style={styles.pickerContainer}>
+    <Picker
+      selectedValue={selectedInspector}
+      onValueChange={(itemValue, itemIndex) => {
+        setSelectedInspector(itemValue);
+        setIsSecondaryPickerVisible(false); // Close secondary picker when primary changes
+        setSecondaryInspectors([]); // Reset secondary inspectors
+      }}
+      style={styles.picker}
+    >
+      <Picker.Item label="Select Primary Inspector" value="" />
+      {inspectors.map((inspector, index) => (
+        <Picker.Item 
+          key={index} 
+          label={inspector.fsoName} 
+          value={inspector.fssaiUserId} 
+        />
+      ))}
+    </Picker>
+
+    {/* Show Selected Primary Inspector Name */}
+    {selectedInspector !== "" && (
+      <View style={styles.selectedPrimaryInspector}>
+        <Text style={styles.selectedPrimaryInspectorText}>
+          {inspectors.find((inspector) => inspector.fssaiUserId === selectedInspector)?.fsoName || ""}
+        </Text>
+      </View>
+    )}
+  </View>
+</View>
+
+   <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Secondary Inspectors</Text>
+                  <View style={styles.secondaryInspectorContainer}>
+                    <TouchableOpacity
+                      onPress={selectedInspector ? toggleSecondaryPicker : undefined}
+                      style={[styles.pickerContainer, !selectedInspector && styles.disabledPicker, { flex: 1 }]}
+                    >
+                      <TextInput
+                        style={styles.input}
+                        value={
+                          !selectedInspector
+                            ? "No data available"
+                            : secondaryInspectors.length > 0
+                              ? secondaryInspectors.map((inspector) => inspector.fsoName).join(", ")
+                              : "Select Secondary Inspectors"
+                        }
+                        editable={false}
+                        placeholder="Select Secondary Inspectors"
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {isSecondaryPickerVisible && selectedInspector && (
+                    <View style={[styles.pickerContainer, styles.multiSelectPicker]}>
+ <View style={{ flex: 1 }}>
+  <View style={{ flex: 0 }}>
+   
+  </View>
+
+  <View style={{ height: 200 }}> 
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={{ paddingBottom: 20 }}
+      nestedScrollEnabled={true}   // ⭐ Important for nested scrolling
+    >
+      {selectedSecondaryInspectors
+        .filter((inspector) => inspector.fssaiUserId !== selectedInspector)
+        .map((inspector, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => handleSecondaryInspectorSelection(inspector.fssaiUserId)}
+            style={[
+              styles.inspectorOption,
+              secondaryInspectors.some((i) => i.fssaiUserId === inspector.fssaiUserId) && styles.selectedInspectorOption,
+            ]}
+          >
+            <Text style={styles.inspectorOptionText}>
+              {inspector.fsoName}
+            </Text>
+          </TouchableOpacity>
+        ))}
+    </ScrollView>
+  </View>
+</View>
+
+
+
+
+
+                      <TouchableOpacity onPress={() => setIsSecondaryPickerVisible(false)} style={styles.closeIcon}>
+                        <X size={20} color="black" />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+
             <View style={styles.remarksContainer}>
               <Text style={styles.remarksLabel}>Remarks:</Text>
               <TextInput
@@ -666,8 +844,6 @@ const ProceedInspection: React.FC = () => {
                 placeholder="Enter remarks here..."
               />
             </View>
-
-            {/* Submit and Back buttons for Re-inspection option */}
             <View style={styles.optionButtonContainer}>
               <TouchableOpacity style={styles.backButton} onPress={handleBack}>
                 <Text style={styles.buttonText}>Back</Text>
@@ -724,12 +900,39 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  inspectorOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,       
+    borderBottomColor: '#ccc',
+    backgroundColor: '#fff',
+  },
+  inspectorOptionText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  selectedInspectorOption: {
+    backgroundColor: '#e0f7fa', // halka sa blue background jab selected ho
+  },
+  
+  
   scrollContainer: {
     flex: 1,
   },
   checkboxRow: {
     flexDirection: "row",
     alignItems: "flex-start",
+  },
+  selectedPrimaryInspector: {
+    marginTop: 8,
+    padding: 8,
+
+    borderRadius: 8,
+  },
+  selectedPrimaryInspectorText: {
+    fontSize: 16,
+    // fontWeight: '500',
+    color: '#333',
   },
   checkbox: {
     width: 24,
@@ -952,6 +1155,71 @@ const styles = StyleSheet.create({
   disabledButton: {
     backgroundColor: "#a0a0a0",
     opacity: 0.7,
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "#fff",
+  },
+  picker: {
+    height: 50,
+    width: "100%",
+  },
+  input: {
+    height: 50,
+    paddingHorizontal: 12,
+    fontSize: 16,
+  },
+  disabledPicker: {
+    backgroundColor: "#f0f0f0",
+    opacity: 0.7,
+  },
+  secondaryInspectorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  multiSelectPicker: {
+    position: "absolute",
+    top: 50,
+    left: 0,
+    right: 0,
+    zIndex: 1000,
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    backgroundColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  multiSelectItem: {
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  multiSelectItemSelected: {
+    backgroundColor: "#e6f7ff",
+  },
+  multiSelectItemText: {
+    fontSize: 16,
+  },
+  closeIcon: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    padding: 4,
   },
 })
 

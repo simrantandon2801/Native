@@ -87,14 +87,14 @@ const SplashScreen = () => {
   
       setIsLoading(false);
       console.log("Success:", backendToken);
-      // const checkIfLoggedIn = await AsyncStorage.getItem('userId');
-      //   if(checkIfLoggedIn === '' || checkIfLoggedIn === undefined || !checkIfLoggedIn ){
-      //     navigation.navigate("Login" as never)
-      //   }else{
-      //     navigation.navigate("Dashboardscreen" as never);
-      //   }
+      const checkIfLoggedIn = await AsyncStorage.getItem('userId');
+        if(checkIfLoggedIn === '' || checkIfLoggedIn === undefined || !checkIfLoggedIn ){
+          navigation.navigate("Login" as never)
+        }else{
+          navigation.navigate("Dashboard" as never);
+        }
   
-       navigation.navigate('Login' as never);
+      //  navigation.navigate('Login' as never);//
     } catch (err) {
       console.error("Error fetching backend token:", err);
       setError("Failed to connect to server");
