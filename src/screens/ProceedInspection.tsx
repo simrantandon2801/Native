@@ -357,7 +357,7 @@ const ProceedInspection: React.FC = () => {
   
       console.log("Submitting payload:", payload);
   
-      // Replace with your actual API endpoint
+   
       const response = await fetch("YOUR_API_ENDPOINT", {
         method: "POST",
         headers: {

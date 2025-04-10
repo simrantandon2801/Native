@@ -1,32 +1,33 @@
 import CryptoJS from "crypto-js"
 import { BASE_URL } from "@env"
 import AsyncStorage from "@react-native-async-storage/async-storage"
+import { fetchWithEncryption } from "../screens/utils/interceptor"
 
 const secretKey = "$$CHALLENGE"
 
 export interface LoginResponse {
-  accessToken: string;
-  userId: string;
+  accessToken: string
+  userId: string
   roles: Array<{
-    roleId: number;
-    roleName: string;
+    roleId: number
+    roleName: string
     Menus: Array<{
-      Name: string;
+      Name: string
       SubMenus: Array<{
-        subModuleUrl: string;
-        subModuleName: string;
-        orderVal: number;
-      }>;
-    }>;
-  }>;
+        subModuleUrl: string
+        subModuleName: string
+        orderVal: number
+      }>
+    }>
+  }>
   userDetails: {
-    name: string;
-    mobileNo: string;
-    loginId: string;
-    userId: string;
-    email: string;
-    categoryId: number;
-  };
+    name: string
+    mobileNo: string
+    loginId: string
+    userId: string
+    email: string
+    categoryId: number
+  }
 }
 
 const encryptPassword = (password: string, key: string): string => {
@@ -44,10 +45,9 @@ export const loginUser = async (username: string, password: string): Promise<Log
   const encryptedPasswordMD5 = encryptPasswordMD5(password, secretKey)
 
   try {
-    console.log("Attempting login with:", { username, encryptedPassword, encryptedPasswordMD5 })
-    console.log("reached ASSADJh");
+    console.log("Attempting login with:", { username, encryptedPassword: "***", encryptedPasswordMD5: "***" })
 
-    const response = await fetch(`${BASE_URL}/gateway/officer/authority`, {
+    const response = await fetchWithEncryption(`${BASE_URL}/gateway/officer/authority`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -59,63 +59,53 @@ export const loginUser = async (username: string, password: string): Promise<Log
       }),
     })
 
-    console.log("Response status:", response.status)
-    console.log("reached B")
+    // Since fetchWithEncryption already handles JSON parsing, we don't need to parse again
+    // The response should already be the data object
+    const data: LoginResponse = response.data || response
+    console.log("Login response data received")
 
-    if (!response.ok) {
-      console.log("reached C")
-      const errorText = await response.text()
-      console.error("Error response:", errorText)
-      throw new Error(`Network response was not ok: ${response.status} ${errorText}`)
-    }
-
-    const data: LoginResponse = await response.json()
-    console.log("Login response data:", JSON.stringify(data, null, 2))
-  console.log(data.userDetails,"hluh")
-    console.log("reached E")
     if (!data.roles || !Array.isArray(data.roles)) {
       console.error("Invalid roles data:", data.roles)
       throw new Error("Invalid roles data received from server")
     }
-    console.log("reached F")
+
     const targetRole = data.roles.find((role) => role.roleId === 4 || role.roleId === 40)
-    console.log(targetRole)
-    console.log("reached G")
+    console.log("Target role found:", targetRole ? "Yes" : "No")
 
     if (targetRole) {
-      let menuList:any[]= data.Menus;
-      const registrationInspectionMenu = menuList.Menus.find((menu) => menu.Name === "Inspection")
-      console.log("reached H")
+      // Correctly access Menus from the targetRole, not from data
+      if (!targetRole.Menus || !Array.isArray(targetRole.Menus)) {
+        console.error("Menus not found in target role:", targetRole)
+        throw new Error("Menus not found in target role")
+      }
 
+      const registrationInspectionMenu = targetRole.Menus.find((menu) => menu.Name === "Inspection")
+
+      // Store auth data
       await AsyncStorage.setItem("accessToken", data.accessToken)
       await AsyncStorage.setItem("userId", String(data.userId))
-      await AsyncStorage.setItem("loggedInUserName",String (data.userDetails.name));
-      console.log("reached J")
-
-      // Store the Registration Inspection menu data
-      await AsyncStorage.setItem("Nameresponse####", JSON.stringify(registrationInspectionMenu.Name))
-      await AsyncStorage.setItem("menufromresponse", JSON.stringify(registrationInspectionMenu.SubMenus))
+      await AsyncStorage.setItem("loggedInUserName", String(data.userDetails.name))
 
       if (registrationInspectionMenu) {
-        console.log("Login response - Registration Inspection:", registrationInspectionMenu.Name)
-        console.log("Login response - SubMenus:", registrationInspectionMenu.SubMenus)
-        
-        console.log("reached I")
+        console.log("Registration Inspection menu found")
 
-        
-        console.log('suhhsd-------------',)
-       
-        console.log("reached K")
+        // Store the Registration Inspection menu data
+        await AsyncStorage.setItem("Nameresponse####", JSON.stringify(registrationInspectionMenu.Name))
+        await AsyncStorage.setItem("menufromresponse", JSON.stringify(registrationInspectionMenu.SubMenus))
+
+        console.log("Login response - Registration Inspection:", registrationInspectionMenu.Name)
+        console.log(
+          "Login response - SubMenus:",
+          JSON.stringify(registrationInspectionMenu.SubMenus).substring(0, 100) + "...",
+        )
 
         console.log("Login data stored in AsyncStorage")
 
-     
+        // Verify stored data
         const storedSubMenus = await AsyncStorage.getItem("menufromresponse")
-        console.log("Stored SubMenus:", JSON.parse(storedSubMenus || "[]"))
+        console.log("Stored SubMenus:", storedSubMenus ? "✓" : "✗")
         const storedName = await AsyncStorage.getItem("Nameresponse####")
-        console.log("Stored Name:", JSON.parse(storedName || '""'))
-      
-        console.log("reached L")
+        console.log("Stored Name:", storedName ? "✓" : "✗")
       } else {
         console.log("Registration Inspection menu not found for the role")
       }
